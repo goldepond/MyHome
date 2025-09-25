@@ -7,6 +7,9 @@
 /* 1. APP INITIALIZATION - 애플리케이션 초기화 */
 /* =========================================== */
 document.addEventListener('DOMContentLoaded', function() {
+    console.log('🔍 DOMContentLoaded - 페이지 로드 완료');
+    console.log('🔍 JUSO_API_CONFIG:', JUSO_API_CONFIG);
+    
     // 추가 초기화 코드가 필요한 경우 여기에 작성
 });
 
@@ -86,24 +89,34 @@ const JUSO_API_CONFIG = {
  * 사용자 입력을 검증하고 API 호출
  */
 async function searchAddress() {
+    console.log('🔍 searchAddress 함수 시작');
+    
     const addressInput = document.getElementById('addressInput');
     const keyword = addressInput.value.trim();
     
+    console.log('🔍 검색 키워드:', keyword);
+    
     // 입력값 검증
     if (!checkSearchedWord(keyword)) {
+        console.log('🔍 검색어 유효성 검사 실패');
         return;
     }
     
     if (!keyword) {
+        console.log('🔍 검색어가 비어있음');
         alert('검색할 주소를 입력해주세요.');
         addressInput.focus();
         return;
     }
     
     // 로딩 상태 표시
+    console.log('🔍 로딩 상태 표시');
     showLoading();
     
     try {
+        console.log('🔍 API 호출 시작');
+        console.log('🔍 JUSO_API_CONFIG:', JUSO_API_CONFIG);
+        
         // JSONP 방식으로 API 호출
         const params = new URLSearchParams({
             confmKey: JUSO_API_CONFIG.confmKey,
@@ -115,31 +128,40 @@ async function searchAddress() {
         });
         
         const url = `${JUSO_API_CONFIG.baseUrl}?${params.toString()}`;
+        console.log('🔍 API 호출 URL:', url);
         
         // JSONP 방식으로 호출
         const script = document.createElement('script');
         script.src = url;
         script.onload = () => {
+            console.log('🔍 스크립트 로드 완료');
             document.head.removeChild(script);
         };
-        script.onerror = () => {
+        script.onerror = (error) => {
+            console.error('🔍 스크립트 로드 오류:', error);
             document.head.removeChild(script);
             showError('주소 검색 중 오류가 발생했습니다.');
+            hideLoading();
         };
         
         // 전역 콜백 함수 설정
         window.jusoCallback = function(data) {
+            console.log('🔍 Juso API 응답:', data);
             if (data.results && data.results.common.errorCode === '0') {
+                console.log('🔍 검색 결과 표시');
                 displaySearchResults(data.results.juso);
             } else {
+                console.log('🔍 검색 결과 없음 또는 오류:', data.results?.common?.errorMessage);
                 showError(data.results?.common?.errorMessage || '검색 결과가 없습니다.');
             }
             hideLoading();
         };
         
+        console.log('🔍 스크립트 태그 추가');
         document.head.appendChild(script);
         
     } catch (error) {
+        console.error('🔍 API 호출 오류:', error);
         // 주소 검색 오류 처리
         showError('주소 검색 중 오류가 발생했습니다. 다시 시도해주세요.');
         hideLoading();
@@ -289,6 +311,8 @@ function hideLoading() {
  * @param {string} message - 에러 메시지
  */
 function showError(message) {
+    console.log('🔍 showError 호출:', message);
+    
     // 기존 에러 메시지 제거
     const existingError = document.querySelector('.error-message');
     if (existingError) {
@@ -303,6 +327,8 @@ function showError(message) {
     // 검색 섹션에 에러 메시지 추가
     const searchSection = document.querySelector('.search-section');
     searchSection.appendChild(errorDiv);
+    
+    console.log('🔍 에러 메시지 표시 완료');
 }
 
 /* =========================================== */
