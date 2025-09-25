@@ -73,24 +73,27 @@ window.addEventListener('click', function(event) {
  * GitHub Pages인지 로컬 개발 환경인지 자동 감지
  */
 function isGitHubPages() {
-    // GitHub Pages 환경 감지
-    const isGitHub = window.location.hostname === 'github.io' || 
-                     window.location.hostname.includes('github.io');
-    
-    // 로컬 개발 환경 감지
+    // 로컬 개발 환경 우선 감지
     const isLocal = window.location.hostname === 'localhost' ||
                     window.location.hostname === '127.0.0.1' ||
-                    window.location.protocol === 'file:';
+                    window.location.protocol === 'file:' ||
+                    window.location.hostname === '';
+    
+    // GitHub Pages 환경 감지 (로컬이 아닌 경우에만)
+    const isGitHub = !isLocal && (
+        window.location.hostname === 'github.io' || 
+        window.location.hostname.includes('github.io')
+    );
     
     console.log('🔍 환경 감지:', {
         hostname: window.location.hostname,
         protocol: window.location.protocol,
         isGitHub: isGitHub,
         isLocal: isLocal,
-        result: isGitHub && !isLocal
+        result: isGitHub
     });
     
-    return isGitHub && !isLocal;
+    return isGitHub;
 }
 
 /**
@@ -142,93 +145,86 @@ async function searchAddress() {
         console.log('🔍 API 호출 시작');
         console.log('🔍 JUSO_API_CONFIG:', JUSO_API_CONFIG);
         
-       // 환경에 따른 API 호출 방식 선택
-       if (isGitHubPages()) {
-           // GitHub Pages: JSONP 방식
-           console.log('🌐 GitHub Pages 환경 - JSONP 사용');
-           
-           const params = new URLSearchParams({
-               confmKey: JUSO_API_CONFIG.confmKey,
-               currentPage: JUSO_API_CONFIG.currentPage,
-               countPerPage: JUSO_API_CONFIG.countPerPage,
-               keyword: keyword,
-               resultType: JUSO_API_CONFIG.resultType,
-               callback: 'jusoCallback'
-           });
-           
-           const url = `${JUSO_API_CONFIG.baseUrl}?${params.toString()}`;
-           console.log('🔍 JSONP API 호출 URL:', url);
-           
-           // JSONP 콜백 함수 정의
-           window.jusoCallback = function(data) {
-               console.log('🔍 Juso API 응답:', data);
-               
-               if (data.results && data.results.common.errorCode === '0') {
-                   console.log('🔍 검색 결과 표시');
-                   displaySearchResults(data.results.juso);
-               } else {
-                   console.log('🔍 검색 결과 없음 또는 오류:', data.results?.common?.errorMessage);
-                   showError(data.results?.common?.errorMessage || '검색 결과가 없습니다.');
-               }
-               
-               hideLoading();
-           };
-           
-           // 스크립트 태그로 JSONP 요청
-           const script = document.createElement('script');
-           script.src = url;
-           script.onerror = function() {
-               console.log('🔍 스크립트 로드 오류:', event);
-               showError('주소 검색 중 오류가 발생했습니다. 다시 시도해주세요.');
-               hideLoading();
-           };
-           
-           console.log('🔍 스크립트 태그 추가');
-           document.head.appendChild(script);
-           
-           // 응답 처리는 콜백에서 하므로 여기서는 return
-           return;
-           
-       } else {
-           // 로컬 개발: 프록시 서버 사용
-           console.log('🏠 로컬 개발 환경 - 프록시 서버 사용');
-           
-           const params = new URLSearchParams({
-               confmKey: JUSO_API_CONFIG.confmKey,
-               currentPage: JUSO_API_CONFIG.currentPage,
-               countPerPage: JUSO_API_CONFIG.countPerPage,
-               keyword: keyword,
-               resultType: JUSO_API_CONFIG.resultType
-           });
-           
-           const url = `http://localhost:3001/api/juso?${params.toString()}`;
-           console.log('🔍 프록시 API 호출 URL:', url);
-           
-           const response = await fetch(url, {
-               method: 'GET',
-               headers: {
-                   'Accept': 'application/json'
-               }
-           });
-           
-           console.log('🔍 응답 상태:', response.status);
-           console.log('🔍 응답 헤더:', response.headers);
-           
-           if (!response.ok) {
-               throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-           }
-           
-           const data = await response.json();
-           console.log('🔍 Juso API 응답:', data);
-           
-           if (data.results && data.results.common.errorCode === '0') {
-               console.log('🔍 검색 결과 표시');
-               displaySearchResults(data.results.juso);
-           } else {
-               console.log('🔍 검색 결과 없음 또는 오류:', data.results?.common?.errorMessage);
-               showError(data.results?.common?.errorMessage || '검색 결과가 없습니다.');
-           }
-       }
+        // 환경에 따른 API 호출 방식 선택
+        if (isGitHubPages()) {
+            // GitHub Pages: 직접 호출 (CORS 우회)
+            console.log('🌐 GitHub Pages 환경 - 직접 호출 사용');
+            
+            const params = new URLSearchParams({
+                confmKey: JUSO_API_CONFIG.confmKey,
+                currentPage: JUSO_API_CONFIG.currentPage,
+                countPerPage: JUSO_API_CONFIG.countPerPage,
+                keyword: keyword,
+                resultType: JUSO_API_CONFIG.resultType
+            });
+            
+            const url = `${JUSO_API_CONFIG.baseUrl}?${params.toString()}`;
+            console.log('🔍 직접 API 호출 URL:', url);
+            
+            // 직접 fetch 호출 (CORS 우회 시도)
+            const response = await fetch(url, {
+                method: 'GET',
+                mode: 'cors',
+                headers: {
+                    'Accept': 'application/json'
+                }
+            });
+            
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+            
+            const data = await response.json();
+            console.log('🔍 Juso API 응답:', data);
+            
+            if (data.results && data.results.common.errorCode === '0') {
+                console.log('🔍 검색 결과 표시');
+                displaySearchResults(data.results.juso);
+            } else {
+                console.log('🔍 검색 결과 없음 또는 오류:', data.results?.common?.errorMessage);
+                showError(data.results?.common?.errorMessage || '검색 결과가 없습니다.');
+            }
+            
+        } else {
+            // 로컬 개발: 프록시 서버 사용
+            console.log('🏠 로컬 개발 환경 - 프록시 서버 사용');
+            
+            const params = new URLSearchParams({
+                confmKey: JUSO_API_CONFIG.confmKey,
+                currentPage: JUSO_API_CONFIG.currentPage,
+                countPerPage: JUSO_API_CONFIG.countPerPage,
+                keyword: keyword,
+                resultType: JUSO_API_CONFIG.resultType
+            });
+            
+            const url = `http://localhost:3001/api/juso?${params.toString()}`;
+            console.log('🔍 프록시 API 호출 URL:', url);
+            
+            const response = await fetch(url, {
+                method: 'GET',
+                headers: {
+                    'Accept': 'application/json'
+                }
+            });
+            
+            console.log('🔍 응답 상태:', response.status);
+            console.log('🔍 응답 헤더:', response.headers);
+            
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+            
+            const data = await response.json();
+            console.log('🔍 Juso API 응답:', data);
+            
+            if (data.results && data.results.common.errorCode === '0') {
+                console.log('🔍 검색 결과 표시');
+                displaySearchResults(data.results.juso);
+            } else {
+                console.log('🔍 검색 결과 없음 또는 오류:', data.results?.common?.errorMessage);
+                showError(data.results?.common?.errorMessage || '검색 결과가 없습니다.');
+            }
+        }
         
     } catch (error) {
         console.error('🔍 API 호출 오류:', error);

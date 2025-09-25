@@ -541,14 +541,18 @@ async function loadAptDetail(kaptCode, kaptName) {
         
         // 환경에 따른 API 호출 방식 선택
         let url;
-        const isGitHub = window.location.hostname === 'github.io' || window.location.hostname.includes('github.io');
-        const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.protocol === 'file:';
+        const isLocal = window.location.hostname === 'localhost' || 
+                        window.location.hostname === '127.0.0.1' || 
+                        window.location.protocol === 'file:' ||
+                        window.location.hostname === '';
+        const isGitHub = !isLocal && (
+            window.location.hostname === 'github.io' || 
+            window.location.hostname.includes('github.io')
+        );
         
-        if (isGitHub && !isLocal) {
-            // GitHub Pages: CORS 프록시 사용
-            const proxyUrl = 'https://cors-anywhere.herokuapp.com/';
-            const targetUrl = `${APT_DETAIL_API_CONFIG.baseUrl}?${params.toString()}`;
-            url = `${proxyUrl}${targetUrl}`;
+        if (isGitHub) {
+            // GitHub Pages: 직접 호출
+            url = `${APT_DETAIL_API_CONFIG.baseUrl}?${params.toString()}`;
         } else {
             // 로컬 개발: 프록시 서버 사용
             url = `http://localhost:3001/api/apt-detail?${params.toString()}`;
@@ -796,14 +800,18 @@ async function loadBuildingInfo(sigunguCd, bjdongCd, bun) {
             
             // 환경에 따른 API 호출 방식 선택
             let url;
-            const isGitHub = window.location.hostname === 'github.io' || window.location.hostname.includes('github.io');
-            const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.protocol === 'file:';
+            const isLocal = window.location.hostname === 'localhost' || 
+                            window.location.hostname === '127.0.0.1' || 
+                            window.location.protocol === 'file:' ||
+                            window.location.hostname === '';
+            const isGitHub = !isLocal && (
+                window.location.hostname === 'github.io' || 
+                window.location.hostname.includes('github.io')
+            );
             
-            if (isGitHub && !isLocal) {
-                // GitHub Pages: CORS 프록시 사용
-                const proxyUrl = 'https://cors-anywhere.herokuapp.com/';
-                const targetUrl = `${BUILDING_API_CONFIG.baseUrl}?${params.toString()}`;
-                url = `${proxyUrl}${targetUrl}`;
+            if (isGitHub) {
+                // GitHub Pages: 직접 호출
+                url = `${BUILDING_API_CONFIG.baseUrl}?${params.toString()}`;
             } else {
                 // 로컬 개발: 프록시 서버 사용
                 url = `http://localhost:3001/api/building?${params.toString()}`;
