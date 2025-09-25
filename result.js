@@ -551,8 +551,10 @@ async function loadAptDetail(kaptCode, kaptName) {
         );
         
         if (isGitHub) {
-            // GitHub Pages: 직접 호출
-            url = `${APT_DETAIL_API_CONFIG.baseUrl}?${params.toString()}`;
+            // GitHub Pages: CORS 프록시 사용
+            const proxyUrl = 'https://cors-anywhere.herokuapp.com/';
+            const targetUrl = `${APT_DETAIL_API_CONFIG.baseUrl}?${params.toString()}`;
+            url = `${proxyUrl}${targetUrl}`;
         } else {
             // 로컬 개발: 프록시 서버 사용
             url = `http://localhost:3001/api/apt-detail?${params.toString()}`;
@@ -810,8 +812,10 @@ async function loadBuildingInfo(sigunguCd, bjdongCd, bun) {
             );
             
             if (isGitHub) {
-                // GitHub Pages: 직접 호출
-                url = `${BUILDING_API_CONFIG.baseUrl}?${params.toString()}`;
+                // GitHub Pages: CORS 프록시 사용
+                const proxyUrl = 'https://cors-anywhere.herokuapp.com/';
+                const targetUrl = `${BUILDING_API_CONFIG.baseUrl}?${params.toString()}`;
+                url = `${proxyUrl}${targetUrl}`;
             } else {
                 // 로컬 개발: 프록시 서버 사용
                 url = `http://localhost:3001/api/building?${params.toString()}`;

@@ -93,6 +93,12 @@ function isGitHubPages() {
         result: isGitHub
     });
     
+    // 강제로 로컬 환경으로 설정 (테스트용)
+    if (window.location.hostname === '' || window.location.protocol === 'file:') {
+        console.log('🔍 강제 로컬 환경 설정');
+        return false;
+    }
+    
     return isGitHub;
 }
 
@@ -147,43 +153,50 @@ async function searchAddress() {
         
         // 환경에 따른 API 호출 방식 선택
         if (isGitHubPages()) {
-            // GitHub Pages: 직접 호출 (CORS 우회)
-            console.log('🌐 GitHub Pages 환경 - 직접 호출 사용');
+            // GitHub Pages: JSONP 방식
+            console.log('🌐 GitHub Pages 환경 - JSONP 사용');
             
             const params = new URLSearchParams({
                 confmKey: JUSO_API_CONFIG.confmKey,
                 currentPage: JUSO_API_CONFIG.currentPage,
                 countPerPage: JUSO_API_CONFIG.countPerPage,
                 keyword: keyword,
-                resultType: JUSO_API_CONFIG.resultType
+                resultType: JUSO_API_CONFIG.resultType,
+                callback: 'jusoCallback'
             });
             
             const url = `${JUSO_API_CONFIG.baseUrl}?${params.toString()}`;
-            console.log('🔍 직접 API 호출 URL:', url);
+            console.log('🔍 JSONP API 호출 URL:', url);
             
-            // 직접 fetch 호출 (CORS 우회 시도)
-            const response = await fetch(url, {
-                method: 'GET',
-                mode: 'cors',
-                headers: {
-                    'Accept': 'application/json'
+            // JSONP 콜백 함수 정의
+            window.jusoCallback = function(data) {
+                console.log('🔍 Juso API 응답:', data);
+                
+                if (data.results && data.results.common.errorCode === '0') {
+                    console.log('🔍 검색 결과 표시');
+                    displaySearchResults(data.results.juso);
+                } else {
+                    console.log('🔍 검색 결과 없음 또는 오류:', data.results?.common?.errorMessage);
+                    showError(data.results?.common?.errorMessage || '검색 결과가 없습니다.');
                 }
-            });
+                
+                hideLoading();
+            };
             
-            if (!response.ok) {
-                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-            }
+            // 스크립트 태그로 JSONP 요청
+            const script = document.createElement('script');
+            script.src = url;
+            script.onerror = function() {
+                console.log('🔍 스크립트 로드 오류:', event);
+                showError('주소 검색 중 오류가 발생했습니다. 다시 시도해주세요.');
+                hideLoading();
+            };
             
-            const data = await response.json();
-            console.log('🔍 Juso API 응답:', data);
+            console.log('🔍 스크립트 태그 추가');
+            document.head.appendChild(script);
             
-            if (data.results && data.results.common.errorCode === '0') {
-                console.log('🔍 검색 결과 표시');
-                displaySearchResults(data.results.juso);
-            } else {
-                console.log('🔍 검색 결과 없음 또는 오류:', data.results?.common?.errorMessage);
-                showError(data.results?.common?.errorMessage || '검색 결과가 없습니다.');
-            }
+            // 응답 처리는 콜백에서 하므로 여기서는 return
+            return;
             
         } else {
             // 로컬 개발: 프록시 서버 사용
