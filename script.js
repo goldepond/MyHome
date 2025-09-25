@@ -73,9 +73,24 @@ window.addEventListener('click', function(event) {
  * GitHub Pages인지 로컬 개발 환경인지 자동 감지
  */
 function isGitHubPages() {
-    return window.location.hostname === 'github.io' || 
-           window.location.hostname.includes('github.io') ||
-           window.location.protocol === 'https:';
+    // GitHub Pages 환경 감지
+    const isGitHub = window.location.hostname === 'github.io' || 
+                     window.location.hostname.includes('github.io');
+    
+    // 로컬 개발 환경 감지
+    const isLocal = window.location.hostname === 'localhost' ||
+                    window.location.hostname === '127.0.0.1' ||
+                    window.location.protocol === 'file:';
+    
+    console.log('🔍 환경 감지:', {
+        hostname: window.location.hostname,
+        protocol: window.location.protocol,
+        isGitHub: isGitHub,
+        isLocal: isLocal,
+        result: isGitHub && !isLocal
+    });
+    
+    return isGitHub && !isLocal;
 }
 
 /**

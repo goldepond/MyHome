@@ -541,7 +541,10 @@ async function loadAptDetail(kaptCode, kaptName) {
         
         // 환경에 따른 API 호출 방식 선택
         let url;
-        if (window.location.hostname === 'github.io' || window.location.hostname.includes('github.io') || window.location.protocol === 'https:') {
+        const isGitHub = window.location.hostname === 'github.io' || window.location.hostname.includes('github.io');
+        const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.protocol === 'file:';
+        
+        if (isGitHub && !isLocal) {
             // GitHub Pages: CORS 프록시 사용
             const proxyUrl = 'https://cors-anywhere.herokuapp.com/';
             const targetUrl = `${APT_DETAIL_API_CONFIG.baseUrl}?${params.toString()}`;
@@ -793,7 +796,10 @@ async function loadBuildingInfo(sigunguCd, bjdongCd, bun) {
             
             // 환경에 따른 API 호출 방식 선택
             let url;
-            if (window.location.hostname === 'github.io' || window.location.hostname.includes('github.io') || window.location.protocol === 'https:') {
+            const isGitHub = window.location.hostname === 'github.io' || window.location.hostname.includes('github.io');
+            const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.protocol === 'file:';
+            
+            if (isGitHub && !isLocal) {
                 // GitHub Pages: CORS 프록시 사용
                 const proxyUrl = 'https://cors-anywhere.herokuapp.com/';
                 const targetUrl = `${BUILDING_API_CONFIG.baseUrl}?${params.toString()}`;
