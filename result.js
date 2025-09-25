@@ -539,12 +539,11 @@ async function loadAptDetail(kaptCode, kaptName) {
             kaptCode: kaptCode
         });
         
-        const url = `${APT_DETAIL_API_CONFIG.baseUrl}?${params.toString()}`;
+        const url = `http://localhost:3001/api/apt-detail?${params.toString()}`;
         
         const response = await fetch(url, {
             method: 'GET',
             headers: {
-                'Content-Type': 'application/json',
                 'Accept': 'application/json'
             }
         });
@@ -782,7 +781,7 @@ async function loadBuildingInfo(sigunguCd, bjdongCd, bun) {
                 numOfRows: BUILDING_API_CONFIG.numOfRows
             });
             
-            const url = `${BUILDING_API_CONFIG.baseUrl}/getBrTitleInfo?${params.toString()}`;
+            const url = `http://localhost:3001/api/building?${params.toString()}`;
             
             const response = await fetch(url);
             

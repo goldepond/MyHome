@@ -105,7 +105,7 @@ app.use('/api/building', createProxyMiddleware({
     target: 'https://apis.data.go.kr',
     changeOrigin: true,
     pathRewrite: {
-        '^/api/building': '/1613000/BldRgstHubService'
+        '^/api/building': '/1613000/BldRgstHubService/getBrTitleInfo'
     },
     onProxyReq: (proxyReq, req, res) => {
         console.log('🏗️ 건물 정보 API 프록시 요청:', proxyReq.path);
