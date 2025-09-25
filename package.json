@@ -1,0 +1,35 @@
+{
+  "name": "house-mvp",
+  "version": "1.0.0",
+  "description": "부동산 검색을 위한 MVP 웹 애플리케이션",
+  "main": "index.html",
+  "scripts": {
+    "start": "serve .",
+    "dev": "serve . -l 3000",
+    "proxy": "node proxy-server.js",
+    "dev:full": "concurrently \"npm run proxy\" \"npm run dev\"",
+    "build": "echo 'No build step required for static site'",
+    "deploy": "gh-pages -d ."
+  },
+  "keywords": [
+    "real-estate",
+    "house-search",
+    "mvp",
+    "web-app"
+  ],
+  "author": "Your Name",
+  "license": "MIT",
+  "devDependencies": {
+    "serve": "^14.2.0",
+    "gh-pages": "^4.0.0",
+    "express": "^4.18.2",
+    "http-proxy-middleware": "^2.0.6",
+    "cors": "^2.8.5",
+    "concurrently": "^8.2.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yourusername/houseMvpProject.git"
+  },
+  "homepage": "https://yourusername.github.io/houseMvpProject"
+}
