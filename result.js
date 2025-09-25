@@ -539,7 +539,17 @@ async function loadAptDetail(kaptCode, kaptName) {
             kaptCode: kaptCode
         });
         
-        const url = `http://localhost:3001/api/apt-detail?${params.toString()}`;
+        // 환경에 따른 API 호출 방식 선택
+        let url;
+        if (window.location.hostname === 'github.io' || window.location.hostname.includes('github.io') || window.location.protocol === 'https:') {
+            // GitHub Pages: CORS 프록시 사용
+            const proxyUrl = 'https://cors-anywhere.herokuapp.com/';
+            const targetUrl = `${APT_DETAIL_API_CONFIG.baseUrl}?${params.toString()}`;
+            url = `${proxyUrl}${targetUrl}`;
+        } else {
+            // 로컬 개발: 프록시 서버 사용
+            url = `http://localhost:3001/api/apt-detail?${params.toString()}`;
+        }
         
         const response = await fetch(url, {
             method: 'GET',
@@ -781,7 +791,17 @@ async function loadBuildingInfo(sigunguCd, bjdongCd, bun) {
                 numOfRows: BUILDING_API_CONFIG.numOfRows
             });
             
-            const url = `http://localhost:3001/api/building?${params.toString()}`;
+            // 환경에 따른 API 호출 방식 선택
+            let url;
+            if (window.location.hostname === 'github.io' || window.location.hostname.includes('github.io') || window.location.protocol === 'https:') {
+                // GitHub Pages: CORS 프록시 사용
+                const proxyUrl = 'https://cors-anywhere.herokuapp.com/';
+                const targetUrl = `${BUILDING_API_CONFIG.baseUrl}?${params.toString()}`;
+                url = `${proxyUrl}${targetUrl}`;
+            } else {
+                // 로컬 개발: 프록시 서버 사용
+                url = `http://localhost:3001/api/building?${params.toString()}`;
+            }
             
             const response = await fetch(url);
             
