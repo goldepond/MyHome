@@ -70,7 +70,7 @@ window.addEventListener('click', function(event) {
  * 프록시 서버를 통해 CORS 문제 해결
  */
 const JUSO_API_CONFIG = {
-    baseUrl: 'http://localhost:3001/api/juso', // 프록시 서버 사용
+    baseUrl: 'https://business.juso.go.kr/addrlink/addrLinkApi.do', // 직접 API 호출
     confmKey: 'devU01TX0FVVEgyMDI1MDkwNDE5NDkzNDExNjE1MTQ=', // 실제 승인키
     currentPage: 1,
     countPerPage: 10,
@@ -104,32 +104,44 @@ async function searchAddress() {
     showLoading();
     
     try {
-        // API 호출
-        const response = await fetch(`${JUSO_API_CONFIG.baseUrl}?${new URLSearchParams({
+        // JSONP 방식으로 API 호출
+        const params = new URLSearchParams({
             confmKey: JUSO_API_CONFIG.confmKey,
             currentPage: JUSO_API_CONFIG.currentPage,
             countPerPage: JUSO_API_CONFIG.countPerPage,
             keyword: keyword,
-            resultType: JUSO_API_CONFIG.resultType
-        })}`);
+            resultType: JUSO_API_CONFIG.resultType,
+            callback: 'jusoCallback'
+        });
         
-        if (!response.ok) {
-            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-        }
+        const url = `${JUSO_API_CONFIG.baseUrl}?${params.toString()}`;
         
-        const data = await response.json();
+        // JSONP 방식으로 호출
+        const script = document.createElement('script');
+        script.src = url;
+        script.onload = () => {
+            document.head.removeChild(script);
+        };
+        script.onerror = () => {
+            document.head.removeChild(script);
+            showError('주소 검색 중 오류가 발생했습니다.');
+        };
         
-        // 검색 결과 처리
-        if (data.results && data.results.common.errorCode === '0') {
-            displaySearchResults(data.results.juso);
-        } else {
-            throw new Error(data.results?.common?.errorMessage || '주소 검색 중 오류가 발생했습니다.');
-        }
+        // 전역 콜백 함수 설정
+        window.jusoCallback = function(data) {
+            if (data.results && data.results.common.errorCode === '0') {
+                displaySearchResults(data.results.juso);
+            } else {
+                showError(data.results?.common?.errorMessage || '검색 결과가 없습니다.');
+            }
+            hideLoading();
+        };
+        
+        document.head.appendChild(script);
         
     } catch (error) {
         // 주소 검색 오류 처리
         showError('주소 검색 중 오류가 발생했습니다. 다시 시도해주세요.');
-    } finally {
         hideLoading();
     }
 }

@@ -36,7 +36,7 @@ const APT_API_CONFIG = {
  * 공동주택 상세 정보제공 서비스 API (프록시 서버 사용)
  */
 const APT_DETAIL_API_CONFIG = {
-    baseUrl: 'http://localhost:3001/api/apt-detail',
+    baseUrl: 'https://apis.data.go.kr/1613000/AptBasisInfoServiceV4/getAphusDtlInfoV4',
     apiKey: 'lkFNy5FKYttNQrsdPfqBSmg8frydGZUlWeH5sHrmuILv0cwLvMSCDh+Tl1KORZJXQTqih1BTBLpxfdixxY0mUQ=='
 };
 
@@ -45,7 +45,7 @@ const APT_DETAIL_API_CONFIG = {
  * 건물등기정보제공 서비스 API (프록시 서버 사용)
  */
 const BUILDING_API_CONFIG = {
-    baseUrl: 'http://localhost:3001/api/building',
+    baseUrl: 'https://apis.data.go.kr/1613000/BldRgstHubService/getBrTitleInfo',
     apiKey: 'lkFNy5FKYttNQrsdPfqBSmg8frydGZUlWeH5sHrmuILv0cwLvMSCDh+Tl1KORZJXQTqih1BTBLpxfdixxY0mUQ==',
     pageNo: 1,
     numOfRows: 10
@@ -535,7 +535,7 @@ async function loadAptDetail(kaptCode, kaptName) {
     try {
         // GET 방식으로 먼저 시도
         const params = new URLSearchParams({
-            ServiceKey: APT_DETAIL_API_CONFIG.apiKey,
+            serviceKey: APT_DETAIL_API_CONFIG.apiKey,
             kaptCode: kaptCode
         });
         
