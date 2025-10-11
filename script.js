@@ -6,11 +6,46 @@
 /* =========================================== */
 /* 1. APP INITIALIZATION - 애플리케이션 초기화 */
 /* =========================================== */
+
+// 디바운스 타이머
+let searchDebounceTimer = null;
+
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('🔍 DOMContentLoaded - 페이지 로드 완료');
-    console.log('🔍 JUSO_API_CONFIG:', JUSO_API_CONFIG);
+    console.log('✅ 페이지 로드 완료');
     
-    // 추가 초기화 코드가 필요한 경우 여기에 작성
+    // URL 파라미터에서 공유 링크 처리
+    const urlParams = new URLSearchParams(window.location.search);
+    const sharedAddress = urlParams.get('address');
+    if (sharedAddress) {
+        document.getElementById('addressInput').value = decodeURIComponent(sharedAddress);
+        // 자동으로 검색 실행
+        setTimeout(() => searchAddress(), 500);
+    }
+    
+    // 최근 검색 & 즐겨찾기 로드
+    loadRecentSearches();
+    loadFavorites();
+    
+    // 검색창 입력 이벤트 (디바운스)
+    const addressInput = document.getElementById('addressInput');
+    addressInput.addEventListener('input', function() {
+        // 입력 중일 때 최근 검색/즐겨찾기 표시
+        const quickAccess = document.getElementById('quickAccess');
+        if (this.value.trim() === '') {
+            loadRecentSearches();
+            loadFavorites();
+            quickAccess.style.display = 'block';
+        } else {
+            quickAccess.style.display = 'none';
+        }
+    });
+    
+    // Enter 키 감지
+    addressInput.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            searchAddress();
+        }
+    });
 });
 
 /* =========================================== */
@@ -118,43 +153,37 @@ const JUSO_API_CONFIG = {
 /* 4. SEARCH FUNCTIONALITY - 주소 검색 기능 */
 /* =========================================== */
 
+
 /**
  * 주소 검색 실행
  * 사용자 입력을 검증하고 API 호출
  */
 async function searchAddress() {
-    console.log('🔍 searchAddress 함수 시작');
-    
     const addressInput = document.getElementById('addressInput');
     const keyword = addressInput.value.trim();
     
-    console.log('🔍 검색 키워드:', keyword);
-    
     // 입력값 검증
     if (!checkSearchedWord(keyword)) {
-        console.log('🔍 검색어 유효성 검사 실패');
         return;
     }
     
     if (!keyword) {
-        console.log('🔍 검색어가 비어있음');
         alert('검색할 주소를 입력해주세요.');
         addressInput.focus();
         return;
     }
     
     // 로딩 상태 표시
-    console.log('🔍 로딩 상태 표시');
     showLoading();
     
     try {
-        console.log('🔍 API 호출 시작');
-        console.log('🔍 JUSO_API_CONFIG:', JUSO_API_CONFIG);
+        console.log('\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+        console.log('📍 [도로명주소 검색 API] 호출 시작');
+        console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
         
         // 환경에 따른 API 호출 방식 선택
         if (isGitHubPages()) {
             // GitHub Pages: 직접 호출 (CORS 우회 시도)
-            console.log('🌐 GitHub Pages 환경 - 직접 호출 사용');
             
             const params = new URLSearchParams({
                 confmKey: JUSO_API_CONFIG.confmKey,
@@ -165,7 +194,6 @@ async function searchAddress() {
             });
             
             const url = `${JUSO_API_CONFIG.baseUrl}?${params.toString()}`;
-            console.log('🔍 직접 API 호출 URL:', url);
             
             try {
                 // 직접 fetch 호출 (CORS 우회 시도)
@@ -182,17 +210,20 @@ async function searchAddress() {
                 }
                 
                 const data = await response.json();
-                console.log('🔍 Juso API 응답:', data);
                 
                 if (data.results && data.results.common.errorCode === '0') {
-                    console.log('🔍 검색 결과 표시');
+                    console.log('✅ [도로명주소 검색 API] 응답 성공');
+                    console.log(`   결과 건수: ${data.results.juso?.length || 0}건`);
                     displaySearchResults(data.results.juso);
                 } else {
-                    console.log('🔍 검색 결과 없음 또는 오류:', data.results?.common?.errorMessage);
+                    console.log('❌ [도로명주소 검색 API] 응답 실패');
+                    console.log(`   에러: ${data.results?.common?.errorMessage}`);
                     showError(data.results?.common?.errorMessage || '검색 결과가 없습니다.');
                 }
             } catch (corsError) {
-                console.log('🔍 CORS 오류 발생, 모의 데이터 사용:', corsError);
+                console.log('❌ [도로명주소 검색 API] CORS 오류 발생');
+                console.log(`   에러: ${corsError.message}`);
+                console.log('   → 모의 데이터 사용');
                 // CORS 오류 시 모의 데이터 사용
                 const mockData = {
                     results: {
@@ -234,13 +265,11 @@ async function searchAddress() {
                     }
                 };
                 
-                console.log('🔍 모의 데이터 사용');
                 displaySearchResults(mockData.results.juso);
             }
             
         } else {
             // 로컬 개발: 프록시 서버 사용
-            console.log('🏠 로컬 개발 환경 - 프록시 서버 사용');
             
             const params = new URLSearchParams({
                 confmKey: JUSO_API_CONFIG.confmKey,
@@ -251,7 +280,6 @@ async function searchAddress() {
             });
             
             const url = `http://localhost:3001/api/juso?${params.toString()}`;
-            console.log('🔍 프록시 API 호출 URL:', url);
             
             const response = await fetch(url, {
                 method: 'GET',
@@ -260,28 +288,29 @@ async function searchAddress() {
                 }
             });
             
-            console.log('🔍 응답 상태:', response.status);
-            console.log('🔍 응답 헤더:', response.headers);
-            
             if (!response.ok) {
                 throw new Error(`HTTP ${response.status}: ${response.statusText}`);
             }
             
             const data = await response.json();
-            console.log('🔍 Juso API 응답:', data);
             
             if (data.results && data.results.common.errorCode === '0') {
-                console.log('🔍 검색 결과 표시');
+                console.log('✅ [도로명주소 검색 API] 응답 성공');
+                console.log(`   결과 건수: ${data.results.juso?.length || 0}건`);
+                
+                // 최근 검색 저장
+                saveRecentSearch(keyword);
                 displaySearchResults(data.results.juso);
             } else {
-                console.log('🔍 검색 결과 없음 또는 오류:', data.results?.common?.errorMessage);
+                console.log('❌ [도로명주소 검색 API] 응답 실패');
+                console.log(`   에러: ${data.results?.common?.errorMessage}`);
                 showError(data.results?.common?.errorMessage || '검색 결과가 없습니다.');
             }
         }
         
     } catch (error) {
-        console.error('🔍 API 호출 오류:', error);
-        // 주소 검색 오류 처리
+        console.log('❌ [도로명주소 검색 API] 에러 발생');
+        console.log(`   에러: ${error.message}`);
         showError('주소 검색 중 오류가 발생했습니다. 다시 시도해주세요.');
     } finally {
         hideLoading();
@@ -379,23 +408,91 @@ function createResultContainer() {
     return container;
 }
 
+// 선택된 주소 정보를 저장할 전역 변수
+let selectedAddressData = null;
+
 /**
  * 주소 선택 처리
- * 선택된 주소 정보를 결과 페이지로 전달
+ * 선택된 주소 정보를 저장하고 동/호수 입력 폼 표시
  * @param {string} roadAddr - 도로명주소
  * @param {string} jibunAddr - 지번주소
  * @param {string} zipNo - 우편번호
  * @param {Object} fullJusoData - 전체 주소 데이터
  */
 function selectAddress(roadAddr, jibunAddr, zipNo, fullJusoData) {
-    // URL 파라미터로 주소 정보 전달하여 결과 페이지로 이동
-    const params = new URLSearchParams({
+    // 선택된 주소 데이터를 전역 변수에 저장
+    selectedAddressData = {
         roadAddr: roadAddr,
         jibunAddr: jibunAddr,
-        zipCode: zipNo,
-        admCd: fullJusoData.admCd, // 행정구역코드 추가
+        zipNo: zipNo,
+        fullJusoData: fullJusoData
+    };
+    
+    // 기존 입력 폼이 있으면 제거
+    const existingForm = document.querySelector('.detail-input-form');
+    if (existingForm) {
+        existingForm.remove();
+    }
+    
+    // 동/호수 입력 폼 생성
+    const detailForm = document.createElement('div');
+    detailForm.className = 'detail-input-form';
+    detailForm.innerHTML = `
+        <div class="selected-address-display">
+            <h3>선택된 주소</h3>
+            <p class="selected-addr">${roadAddr}</p>
+        </div>
+        <div class="detail-input-container">
+            <div class="input-group">
+                <label for="dongInput">동</label>
+                <input type="text" id="dongInput" placeholder="예: 101동" class="detail-input">
+            </div>
+            <div class="input-group">
+                <label for="hosuInput">호수</label>
+                <input type="text" id="hosuInput" placeholder="예: 1201호" class="detail-input">
+            </div>
+        </div>
+        <button class="confirm-btn" onclick="confirmAddressDetail()">
+            확인
+        </button>
+    `;
+    
+    // 검색 결과 아래에 추가
+    const searchSection = document.querySelector('.search-section');
+    searchSection.appendChild(detailForm);
+    
+    // 스크롤을 입력 폼으로 이동
+    detailForm.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+/**
+ * 동/호수 정보 확인 후 결과 페이지로 이동
+ */
+function confirmAddressDetail() {
+    if (!selectedAddressData) {
+        alert('주소 정보가 없습니다.');
+        return;
+    }
+    
+    const dongNm = document.getElementById('dongInput').value.trim();
+    const hoNm = document.getElementById('hosuInput').value.trim();
+    
+    // 동/호수가 입력되지 않으면 경고
+    if (!dongNm && !hoNm) {
+        alert('동 또는 호수를 입력해주세요.');
+        return;
+    }
+    
+    // URL 파라미터로 주소 정보 전달하여 결과 페이지로 이동
+    const params = new URLSearchParams({
+        roadAddr: selectedAddressData.roadAddr,
+        jibunAddr: selectedAddressData.jibunAddr,
+        zipCode: selectedAddressData.zipNo,
+        admCd: selectedAddressData.fullJusoData.admCd, // 행정구역코드 추가
+        dongNm: dongNm,
+        hoNm: hoNm,
         // 모든 주소 정보를 JSON으로 인코딩하여 전달
-        fullData: JSON.stringify(fullJusoData)
+        fullData: JSON.stringify(selectedAddressData.fullJusoData)
     });
     
     window.location.href = `result.html?${params.toString()}`;
@@ -431,8 +528,6 @@ function hideLoading() {
  * @param {string} message - 에러 메시지
  */
 function showError(message) {
-    console.log('🔍 showError 호출:', message);
-    
     // 기존 에러 메시지 제거
     const existingError = document.querySelector('.error-message');
     if (existingError) {
@@ -447,8 +542,6 @@ function showError(message) {
     // 검색 섹션에 에러 메시지 추가
     const searchSection = document.querySelector('.search-section');
     searchSection.appendChild(errorDiv);
-    
-    console.log('🔍 에러 메시지 표시 완료');
 }
 
 /* =========================================== */
@@ -484,4 +577,120 @@ function goBack() {
 function submitRequest() {
     // 실제 구현에서는 서버로 데이터 전송
     alert('매물 요청이 제출되었습니다. 빠른 시일 내에 연락드리겠습니다.');
+}
+
+/* =========================================== */
+/* 8. RECENT SEARCHES & FAVORITES - 최근 검색 & 즐겨찾기 */
+/* =========================================== */
+
+/**
+ * 최근 검색 로드
+ */
+function loadRecentSearches() {
+    const recentSearches = JSON.parse(localStorage.getItem('recentSearches') || '[]');
+    const recentSection = document.getElementById('recentSearches');
+    const recentList = document.getElementById('recentList');
+    
+    if (!recentList) return;
+    
+    if (recentSearches.length === 0) {
+        recentSection.style.display = 'none';
+        return;
+    }
+    
+    recentSection.style.display = 'block';
+    document.getElementById('quickAccess').style.display = 'block';
+    
+    recentList.innerHTML = recentSearches.slice(0, 5).map(search => `
+        <div class="quick-item" onclick="selectQuickSearch('${search.keyword.replace(/'/g, "\\'")}')">
+            <span class="quick-icon">🕐</span>
+            <span class="quick-text">${search.keyword}</span>
+            <span class="quick-time">${getTimeAgo(search.timestamp)}</span>
+        </div>
+    `).join('');
+}
+
+/**
+ * 즐겨찾기 로드
+ */
+function loadFavorites() {
+    const favorites = JSON.parse(localStorage.getItem('favoriteAddresses') || '[]');
+    const favSection = document.getElementById('favorites');
+    const favList = document.getElementById('favoriteList');
+    
+    if (!favList) return;
+    
+    if (favorites.length === 0) {
+        favSection.style.display = 'none';
+        return;
+    }
+    
+    favSection.style.display = 'block';
+    document.getElementById('quickAccess').style.display = 'block';
+    
+    favList.innerHTML = favorites.slice(0, 5).map((fav, index) => `
+        <div class="quick-item favorite-item">
+            <span class="quick-icon">⭐</span>
+            <span class="quick-text" onclick="selectQuickSearch('${fav.roadAddr.replace(/'/g, "\\'")}')">${fav.roadAddr}</span>
+            <button class="remove-fav-btn" onclick="removeFavorite(${index})" title="삭제">✕</button>
+        </div>
+    `).join('');
+}
+
+/**
+ * 최근 검색 저장
+ */
+function saveRecentSearch(keyword) {
+    let recentSearches = JSON.parse(localStorage.getItem('recentSearches') || '[]');
+    
+    // 중복 제거
+    recentSearches = recentSearches.filter(s => s.keyword !== keyword);
+    
+    // 새 검색어 추가
+    recentSearches.unshift({
+        keyword: keyword,
+        timestamp: new Date().toISOString()
+    });
+    
+    // 최대 10개까지만 저장
+    recentSearches = recentSearches.slice(0, 10);
+    
+    localStorage.setItem('recentSearches', JSON.stringify(recentSearches));
+}
+
+/**
+ * 빠른 검색 선택
+ */
+function selectQuickSearch(keyword) {
+    document.getElementById('addressInput').value = keyword;
+    document.getElementById('quickAccess').style.display = 'none';
+    searchAddress();
+}
+
+/**
+ * 즐겨찾기 제거
+ */
+function removeFavorite(index) {
+    event.stopPropagation();
+    
+    let favorites = JSON.parse(localStorage.getItem('favoriteAddresses') || '[]');
+    favorites.splice(index, 1);
+    localStorage.setItem('favoriteAddresses', JSON.stringify(favorites));
+    
+    loadFavorites();
+}
+
+/**
+ * 시간 경과 표시
+ */
+function getTimeAgo(timestamp) {
+    const now = new Date();
+    const past = new Date(timestamp);
+    const diff = Math.floor((now - past) / 1000); // 초 단위
+    
+    if (diff < 60) return '방금';
+    if (diff < 3600) return `${Math.floor(diff / 60)}분 전`;
+    if (diff < 86400) return `${Math.floor(diff / 3600)}시간 전`;
+    if (diff < 2592000) return `${Math.floor(diff / 86400)}일 전`;
+    return past.toLocaleDateString();
 }

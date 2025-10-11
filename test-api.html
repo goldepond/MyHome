@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API 테스트</title>
+</head>
+<body>
+    <h1>API 테스트 페이지</h1>
+    <button onclick="testAPI()">API 테스트</button>
+    <div id="result"></div>
+
+    <script>
+        async function testAPI() {
+            try {
+                console.log('API 테스트 시작...');
+                const response = await fetch('http://localhost:3001/api/realtors');
+                const data = await response.json();
+                
+                console.log('API 응답:', data);
+                document.getElementById('result').innerHTML = `
+                    <h3>API 응답 성공!</h3>
+                    <p>총 ${data.data.length}개의 중개업자 데이터</p>
+                    <pre>${JSON.stringify(data, null, 2)}</pre>
+                `;
+            } catch (error) {
+                console.error('API 테스트 실패:', error);
+                document.getElementById('result').innerHTML = `
+                    <h3>API 테스트 실패</h3>
+                    <p>오류: ${error.message}</p>
+                `;
+            }
+        }
+    </script>
+</body>
+</html>

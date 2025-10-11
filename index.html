@@ -45,7 +45,24 @@
                     <input type="text" id="addressInput" placeholder="원하시는 지역명, 지하철역, 단지명을 입력해주세요" class="search-input">
                     <button class="search-btn" onclick="searchAddress()">검색</button>
                 </div>
+                
+                <!-- 최근 검색 & 즐겨찾기 -->
+                <div class="quick-access" id="quickAccess" style="display: none;">
+                    <!-- 최근 검색 -->
+                    <div class="recent-searches" id="recentSearches" style="display: none;">
+                        <h3>🕐 최근 검색</h3>
+                        <div class="recent-list" id="recentList"></div>
+                    </div>
+                    
+                    <!-- 즐겨찾기 -->
+                    <div class="favorites" id="favorites" style="display: none;">
+                        <h3>⭐ 즐겨찾기</h3>
+                        <div class="favorite-list" id="favoriteList"></div>
+                    </div>
+                </div>
             </div>
+            
+            
         </div>
     </section>
 

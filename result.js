@@ -7,38 +7,22 @@
 /* 1. API CONFIGURATION - API 설정 */
 /* =========================================== */
 
-/**
- * 행정구역코드 API 설정
- * 행정안전부_행정표준코드_법정동코드 API
- */
-const REGION_API_CONFIG = {
-    baseUrl: 'https://apis.data.go.kr/1741000/StanReginCd/getStanReginCdList',
-    apiKey: 'lkFNy5FKYttNQrsdPfqBSmg8frydGZUlWeH5sHrmuILv0cwLvMSCDh+Tl1KORZJXQTqih1BTBLpxfdixxY0mUQ==',
-    pageNo: 1,
-    numOfRows: 10,
-    type: 'json',
-    flag: 'Y'
+// 전체 데이터를 저장할 객체
+let allData = {
+    addressInfo: null,
+    buildingInfo: null,
+    geocoderInfo: null,
+    landInfo: null,
 };
 
-/**
- * 아파트 목록 API 설정
- * 공동주택 단지 목록제공 서비스 API
- */
-const APT_API_CONFIG = {
-    baseUrl: 'https://apis.data.go.kr/1613000/AptListService3/getRoadnameAptList3',
-    apiKey: 'lkFNy5FKYttNQrsdPfqBSmg8frydGZUlWeH5sHrmuILv0cwLvMSCDh+Tl1KORZJXQTqih1BTBLpxfdixxY0mUQ==',
-    pageNo: 1,
-    numOfRows: 10
+// API 응답 표시 상태 추적
+let apiDisplayStatus = {
+    addressInfo: { loaded: false, displayed: false, name: '주소 검색 API' },
+    buildingInfo: { loaded: false, displayed: false, name: '건물 정보 API' },
+    geocoderInfo: { loaded: false, displayed: false, name: 'Geocoder API' },
+    landInfo: { loaded: false, displayed: false, name: '토지특성 API' },
 };
 
-/**
- * 공동주택 상세 정보 API 설정
- * 공동주택 상세 정보제공 서비스 API (프록시 서버 사용)
- */
-const APT_DETAIL_API_CONFIG = {
-    baseUrl: 'https://apis.data.go.kr/1613000/AptBasisInfoServiceV4/getAphusDtlInfoV4',
-    apiKey: 'lkFNy5FKYttNQrsdPfqBSmg8frydGZUlWeH5sHrmuILv0cwLvMSCDh+Tl1KORZJXQTqih1BTBLpxfdixxY0mUQ=='
-};
 
 /**
  * 건물 정보 API 설정
@@ -46,7 +30,7 @@ const APT_DETAIL_API_CONFIG = {
  */
 const BUILDING_API_CONFIG = {
     baseUrl: 'https://apis.data.go.kr/1613000/BldRgstHubService/getBrTitleInfo',
-    apiKey: 'lkFNy5FKYttNQrsdPfqBSmg8frydGZUlWeH5sHrmuILv0cwLvMSCDh+Tl1KORZJXQTqih1BTBLpxfdixxY0mUQ==',
+    apiKey: 'lkFNy5FKYttNQrsdPfqBSmg8frydGZUlWeH5sHrmuILv0cwLvMSCDh%2BTl1KORZJXQTqih1BTBLpxfdixxY0mUQ%3D%3D',
     pageNo: 1,
     numOfRows: 10
 };
@@ -69,28 +53,684 @@ const GEOCODER_API_CONFIG = {
 };
 
 /**
- * VWorld 토지이용계획도 API 설정
- * 좌표를 기반으로 토지이용계획 정보를 조회하는 API
+ * VWorld 토지특성공간정보 API 설정
+ * 토지특성 WFS 서비스 API
  */
-const LAND_USE_API_CONFIG = {
-    baseUrl: 'https://api.vworld.kr/ned/data/getLandUseAttr',
-    apiKey: 'C13F9ADA-AA60-36F7-928F-FAC481AA66AE',
-    service: 'data',
-    request: 'GetFeature',
-    version: '2.0',
-    format: 'json',
-    data: 'LT_C_LHBLPN',
-    crs: 'EPSG:4326',
-    size: 10,
-    page: 1,
-    geometry: 'true',
-    attribute: 'true'
+const LAND_API_CONFIG = {
+    baseUrl: 'http://api.vworld.kr/ned/wfs/getLandCharacteristicsWFS',
+    apiKey: 'FA0D6750-3DC2-3389-B8F1-0385C5976B96',
+    typename: 'dt_d194',
+    maxFeatures: 10,
+    resultType: 'results',
+    srsName: 'EPSG:4326',
+    output: 'GML2'
 };
 
 
 /* =========================================== */
 /* 2. PAGE INITIALIZATION - 페이지 초기화 */
 /* =========================================== */
+
+/**
+ * JSON 데이터 업데이트 및 표시
+ */
+function updateJsonData() {
+    const jsonDisplay = document.getElementById('json-display');
+    
+    if (jsonDisplay) {
+        const jsonString = JSON.stringify(allData, null, 2);
+        jsonDisplay.textContent = jsonString;
+    }
+    
+    // API 표시 상태 확인 및 콘솔 출력
+    checkApiDisplayStatus();
+}
+
+/**
+ * API 응답 표시 상태 확인
+ */
+function checkApiDisplayStatus() {
+    // 각 API의 표시 상태 확인
+    const addressInfoSection = document.querySelector('.address-info');
+    const buildingSections = document.querySelectorAll('[id*="buildingInfoPage"]');
+    const geocoderSection = document.getElementById('geocoderInfo');
+    
+    // 표시 상태 업데이트
+    apiDisplayStatus.addressInfo.displayed = !!addressInfoSection;
+    apiDisplayStatus.buildingInfo.displayed = buildingSections.length > 0;
+    apiDisplayStatus.geocoderInfo.displayed = !!geocoderSection;
+    
+    // 최종 결과 출력
+    printFinalApiStatus();
+}
+
+/**
+ * 최종 API 상태를 콘솔에 출력 - 원본 데이터 그대로 출력
+ */
+function printFinalApiStatus() {
+    console.log('\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    console.log('📊 API 원본 응답 데이터');
+    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
+    
+    // 1. 주소 검색 API
+    console.log('✅ [주소 검색 API] - business.juso.go.kr');
+    console.log(JSON.stringify(allData.addressInfo, null, 2));
+    console.log('\n');
+    
+    // 2. 건물 정보 API
+    console.log('✅ [건물 정보 API] - apis.data.go.kr/BldRgstHubService');
+    console.log(JSON.stringify(allData.buildingInfo, null, 2));
+    console.log('\n');
+    
+    // 3. Geocoder API (좌표 변환)
+    console.log('✅ [Geocoder API] - api.vworld.kr/req/address');
+    console.log(JSON.stringify(allData.geocoderInfo, null, 2));
+    console.log('\n');
+    
+    // 4. 토지특성 API
+    console.log('✅ [토지특성 API] - api.vworld.kr/ned/wfs/getLandCharacteristicsWFS');
+    if (typeof allData.landInfo === 'string') {
+        console.log(allData.landInfo.substring(0, 1000) + (allData.landInfo.length > 1000 ? '...' : ''));
+    } else {
+        console.log(JSON.stringify(allData.landInfo, null, 2));
+    }
+    console.log('\n');
+    
+    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
+}
+
+
+
+/**
+ * WhatHouse 데이터 매핑 표시
+ */
+function displayWhatHouseDataMapping() {
+    // WhatHouse 데이터 매핑 섹션 생성
+    let mappingSection = document.getElementById('whathouse-mapping-section');
+    if (!mappingSection) {
+        mappingSection = document.createElement('div');
+        mappingSection.id = 'whathouse-mapping-section';
+        mappingSection.style.cssText = 'margin-top: 30px; padding: 20px; background: #f8f9fa; border-radius: 10px;';
+        
+        const content = document.getElementById('whathouse-content');
+        if (content) {
+            content.appendChild(mappingSection);
+        }
+    }
+    
+    // 데이터 매핑 테이블 생성
+    const mappingData = createWhatHouseMappingData();
+    
+    mappingSection.innerHTML = `
+        <h3 style="color: #333; margin-bottom: 15px;">📋 WhatHouse 데이터 매핑</h3>
+        <p style="color: #666; margin-bottom: 20px;">API에서 수집된 데이터가 WhatHouse 문서의 "A" 플레이스홀더에 어떻게 매핑되는지 보여줍니다.</p>
+        
+        <div style="overflow-x: auto;">
+            <table style="width: 100%; border-collapse: collapse; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                <thead>
+                    <tr style="background: #007bff; color: white;">
+                        <th style="padding: 12px; text-align: left; border-bottom: 2px solid #0056b3;">카테고리</th>
+                        <th style="padding: 12px; text-align: left; border-bottom: 2px solid #0056b3;">API 데이터</th>
+                        <th style="padding: 12px; text-align: left; border-bottom: 2px solid #0056b3;">변수명</th>
+                        <th style="padding: 12px; text-align: left; border-bottom: 2px solid #0056b3;">실제 값</th>
+                        <th style="padding: 12px; text-align: left; border-bottom: 2px solid #0056b3;">단위</th>
+                        <th style="padding: 12px; text-align: left; border-bottom: 2px solid #0056b3;">상태</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${mappingData.map(item => `
+                        <tr style="border-bottom: 1px solid #eee;">
+                            <td style="padding: 12px; font-weight: bold; color: #495057;">${item.category}</td>
+                            <td style="padding: 12px; color: #6c757d;">${item.apiField}</td>
+                            <td style="padding: 12px; font-family: monospace; background: #f8f9fa; color: #e83e8c;">${item.variableName}</td>
+                            <td style="padding: 12px; color: #28a745; font-weight: bold;">${item.value}</td>
+                            <td style="padding: 12px; color: #6c757d;">${item.unit}</td>
+                            <td style="padding: 12px;">
+                                <span style="padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; ${item.status === '사용가능' ? 'background: #d4edda; color: #155724;' : 'background: #f8d7da; color: #721c24;'}">
+                                    ${item.status}
+                                </span>
+                            </td>
+                        </tr>
+                    `).join('')}
+                </tbody>
+            </table>
+        </div>
+        
+        <div style="margin-top: 20px; padding: 15px; background: #e3f2fd; border-radius: 8px; border-left: 4px solid #2196f3;">
+            <h4 style="margin: 0 0 10px 0; color: #1976d2;">📝 사용 방법</h4>
+            <p style="margin: 5px 0; color: #1976d2;">
+                1. 위의 데이터를 WhatHouse 문서의 "A" 플레이스홀더에 순서대로 삽입<br>
+                2. 단위가 있는 데이터는 단위와 함께 표시<br>
+                3. 사용불가능한 데이터는 "-" 또는 기본값으로 표시
+            </p>
+        </div>
+        
+    `;
+}
+
+/**
+ * WhatHouse 데이터 매핑 정보 생성
+ */
+function createWhatHouseMappingData() {
+    
+    const mappingData = [];
+    
+    // 1. 주소 정보
+    if (allData.addressInfo) {
+        const addr = allData.addressInfo;
+        mappingData.push(
+            { category: '주소정보', apiField: 'roadAddr', variableName: 'ROAD_ADDRESS', value: addr.roadAddr || '-', unit: '', status: addr.roadAddr ? '사용가능' : '사용불가' },
+            { category: '주소정보', apiField: 'jibunAddr', variableName: 'JIBUN_ADDRESS', value: addr.jibunAddr || '-', unit: '', status: addr.jibunAddr ? '사용가능' : '사용불가' },
+            { category: '주소정보', apiField: 'zipNo', variableName: 'ZIP_CODE', value: addr.zipNo || '-', unit: '', status: addr.zipNo ? '사용가능' : '사용불가' },
+            { category: '주소정보', apiField: 'bdNm', variableName: 'BUILDING_NAME', value: addr.bdNm || '-', unit: '', status: addr.bdNm ? '사용가능' : '사용불가' }
+        );
+    }
+    
+    // 2. 행정구역 정보
+    if (allData.regionDetails && allData.regionDetails.length > 0) {
+        const region = allData.regionDetails[0];
+        mappingData.push(
+            { category: '행정구역', apiField: 'region_cd', variableName: 'REGION_CODE', value: region.region_cd || '-', unit: '', status: region.region_cd ? '사용가능' : '사용불가' },
+            { category: '행정구역', apiField: 'sido_cd', variableName: 'SIDO_CODE', value: region.sido_cd || '-', unit: '', status: region.sido_cd ? '사용가능' : '사용불가' },
+            { category: '행정구역', apiField: 'sgg_cd', variableName: 'SGG_CODE', value: region.sgg_cd || '-', unit: '', status: region.sgg_cd ? '사용가능' : '사용불가' },
+            { category: '행정구역', apiField: 'umd_cd', variableName: 'UMD_CODE', value: region.umd_cd || '-', unit: '', status: region.umd_cd ? '사용가능' : '사용불가' }
+        );
+    }
+    
+    // 3. 아파트 정보
+    if (allData.apartmentList && allData.apartmentList.items && allData.apartmentList.items.length > 0) {
+        const apt = allData.apartmentList.items[0];
+        mappingData.push(
+            { category: '아파트정보', apiField: 'kaptName', variableName: 'APARTMENT_NAME', value: apt.kaptName || '-', unit: '', status: apt.kaptName ? '사용가능' : '사용불가' },
+            { category: '아파트정보', apiField: 'kaptCode', variableName: 'APARTMENT_CODE', value: apt.kaptCode || '-', unit: '', status: apt.kaptCode ? '사용가능' : '사용불가' },
+            { category: '아파트정보', apiField: 'doroJuso', variableName: 'APARTMENT_ADDRESS', value: apt.doroJuso || '-', unit: '', status: apt.doroJuso ? '사용가능' : '사용불가' }
+        );
+    }
+    
+    // 4. 아파트 상세 정보
+    if (allData.apartmentDetail) {
+        const detail = allData.apartmentDetail;
+        mappingData.push(
+            { category: '아파트상세', apiField: 'codeStr', variableName: 'BUILDING_STRUCTURE', value: detail.codeStr || '-', unit: '', status: detail.codeStr ? '사용가능' : '사용불가' },
+            { category: '아파트상세', apiField: 'codeMgr', variableName: 'MANAGEMENT_TYPE', value: detail.codeMgr || '-', unit: '', status: detail.codeMgr ? '사용가능' : '사용불가' },
+            { category: '아파트상세', apiField: 'kaptMgrCnt', variableName: 'MANAGEMENT_PERSONNEL', value: detail.kaptMgrCnt || '-', unit: '명', status: detail.kaptMgrCnt ? '사용가능' : '사용불가' },
+            { category: '아파트상세', apiField: 'codeSec', variableName: 'SECURITY_TYPE', value: detail.codeSec || '-', unit: '', status: detail.codeSec ? '사용가능' : '사용불가' },
+            { category: '아파트상세', apiField: 'kaptdScnt', variableName: 'SECURITY_PERSONNEL', value: detail.kaptdScnt || '-', unit: '명', status: detail.kaptdScnt ? '사용가능' : '사용불가' },
+            { category: '아파트상세', apiField: 'codeClean', variableName: 'CLEANING_TYPE', value: detail.codeClean || '-', unit: '', status: detail.codeClean ? '사용가능' : '사용불가' },
+            { category: '아파트상세', apiField: 'kaptdClcnt', variableName: 'CLEANING_PERSONNEL', value: detail.kaptdClcnt || '-', unit: '명', status: detail.kaptdClcnt ? '사용가능' : '사용불가' },
+            { category: '아파트상세', apiField: 'kaptdEcnt', variableName: 'ELEVATOR_COUNT', value: detail.kaptdEcnt || '-', unit: '대', status: detail.kaptdEcnt ? '사용가능' : '사용불가' },
+            { category: '아파트상세', apiField: 'kaptdPcnt', variableName: 'PARKING_COUNT', value: detail.kaptdPcnt || '-', unit: '대', status: detail.kaptdPcnt ? '사용가능' : '사용불가' },
+            { category: '아파트상세', apiField: 'kaptdPcntu', variableName: 'UNDERGROUND_PARKING', value: detail.kaptdPcntu || '-', unit: '대', status: detail.kaptdPcntu ? '사용가능' : '사용불가' }
+        );
+    }
+    
+    // 5. 건물 정보
+    if (allData.buildingInfo && allData.buildingInfo.length > 0) {
+        const building = allData.buildingInfo[0].data.items.item;
+        if (building) {
+            mappingData.push(
+                { category: '건물정보', apiField: 'mainPurpsCdNm', variableName: 'BUILDING_PURPOSE', value: building.mainPurpsCdNm || '-', unit: '', status: building.mainPurpsCdNm ? '사용가능' : '사용불가' },
+                { category: '건물정보', apiField: 'strctCdNm', variableName: 'BUILDING_STRUCTURE_DETAIL', value: building.strctCdNm || '-', unit: '', status: building.strctCdNm ? '사용가능' : '사용불가' },
+                { category: '건물정보', apiField: 'platArea', variableName: 'BUILDING_AREA', value: building.platArea || '-', unit: '㎡', status: building.platArea ? '사용가능' : '사용불가' },
+                { category: '건물정보', apiField: 'grndFlrCnt', variableName: 'FLOOR_COUNT', value: building.grndFlrCnt || '-', unit: '층', status: building.grndFlrCnt ? '사용가능' : '사용불가' },
+                { category: '건물정보', apiField: 'ugrndFlrCnt', variableName: 'UNDERGROUND_FLOOR_COUNT', value: building.ugrndFlrCnt || '-', unit: '층', status: building.ugrndFlrCnt ? '사용가능' : '사용불가' },
+                { category: '건물정보', apiField: 'heit', variableName: 'BUILDING_HEIGHT', value: building.heit || '-', unit: 'm', status: building.heit ? '사용가능' : '사용불가' },
+                { category: '건물정보', apiField: 'hhldCnt', variableName: 'HOUSEHOLD_COUNT', value: building.hhldCnt || '-', unit: '세대', status: building.hhldCnt ? '사용가능' : '사용불가' },
+                { category: '건물정보', apiField: 'hoCnt', variableName: 'ROOM_COUNT', value: building.hoCnt || '-', unit: '호', status: building.hoCnt ? '사용가능' : '사용불가' },
+                { category: '건물정보', apiField: 'pmsDay', variableName: 'CONSTRUCTION_DATE', value: building.pmsDay || '-', unit: '', status: building.pmsDay ? '사용가능' : '사용불가' }
+            );
+        }
+    }
+    
+    // 6. 좌표 정보
+    if (allData.geocoderInfo && allData.geocoderInfo.result && allData.geocoderInfo.result.point) {
+        const point = allData.geocoderInfo.result.point;
+        mappingData.push(
+            { category: '위치정보', apiField: 'point.x', variableName: 'LONGITUDE', value: point.x || '-', unit: '', status: point.x ? '사용가능' : '사용불가' },
+            { category: '위치정보', apiField: 'point.y', variableName: 'LATITUDE', value: point.y || '-', unit: '', status: point.y ? '사용가능' : '사용불가' }
+        );
+    }
+    
+    // 7. 토지이용계획 정보
+    if (allData.landUseInfo && allData.landUseInfo.landUses && allData.landUseInfo.landUses.field && allData.landUseInfo.landUses.field.length > 0) {
+        const landUse = allData.landUseInfo.landUses.field[0];
+        mappingData.push(
+            { category: '토지이용계획', apiField: 'prposAreaDstrcCodeNm', variableName: 'LAND_USE_PURPOSE', value: landUse.prposAreaDstrcCodeNm || '-', unit: '', status: landUse.prposAreaDstrcCodeNm ? '사용가능' : '사용불가' },
+            { category: '토지이용계획', apiField: 'prposAreaDstrcCode', variableName: 'LAND_USE_CODE', value: landUse.prposAreaDstrcCode || '-', unit: '', status: landUse.prposAreaDstrcCode ? '사용가능' : '사용불가' },
+            { category: '토지이용계획', apiField: 'cnflcAtNm', variableName: 'LAND_USE_CONFLICT', value: landUse.cnflcAtNm || '-', unit: '', status: landUse.cnflcAtNm ? '사용가능' : '사용불가' },
+            { category: '토지이용계획', apiField: 'area', variableName: 'LAND_AREA', value: landUse.area || landUse.extent || landUse.size || '-', unit: 'm²', status: (landUse.area || landUse.extent || landUse.size) ? '사용가능' : '사용불가' }
+        );
+    }
+    
+    
+    // 9. 시스템 정보
+    const now = new Date();
+    mappingData.push(
+        { category: '시스템정보', apiField: 'currentDate', variableName: 'CURRENT_DATE', value: now.toLocaleDateString('ko-KR'), unit: '', status: '사용가능' },
+        { category: '시스템정보', apiField: 'currentTime', variableName: 'CURRENT_TIME', value: now.toLocaleTimeString('ko-KR'), unit: '', status: '사용가능' }
+    );
+    
+    return mappingData;
+}
+
+/**
+ * API 데이터 접근 경로 생성
+ */
+function createApiAccessPaths() {
+    
+    const accessPaths = [];
+    
+    // 값 추출 헬퍼 함수
+    const getValue = (obj, path) => {
+        try {
+            return path.split('.').reduce((acc, part) => {
+                // 배열 인덱스 처리 (예: field[0])
+                const arrayMatch = part.match(/^(\w+)\[(\d+)\]$/);
+                if (arrayMatch) {
+                    return acc?.[arrayMatch[1]]?.[parseInt(arrayMatch[2])];
+                }
+                return acc?.[part];
+            }, obj);
+        } catch {
+            return undefined;
+        }
+    };
+    
+    // 1. 주소 정보 접근 경로 (모든 상세 정보 포함)
+    if (allData.addressInfo) {
+        const addr = allData.addressInfo;
+        accessPaths.push(
+            { category: '주소정보', dataName: '도로명주소', accessPath: 'allData.addressInfo.roadAddr', value: addr.roadAddr || '-' },
+            { category: '주소정보', dataName: '지번주소', accessPath: 'allData.addressInfo.jibunAddr', value: addr.jibunAddr || '-' },
+            { category: '주소정보', dataName: '우편번호', accessPath: 'allData.addressInfo.zipNo', value: addr.zipNo || '-' },
+            { category: '주소정보', dataName: '건물명', accessPath: 'allData.addressInfo.bdNm', value: addr.bdNm || '-' },
+            { category: '주소정보', dataName: '영문주소', accessPath: 'allData.addressInfo.engAddr', value: addr.engAddr || '-' },
+            { category: '주소정보', dataName: '도로명', accessPath: 'allData.addressInfo.rn', value: addr.rn || '-' },
+            { category: '주소정보', dataName: '읍면동명', accessPath: 'allData.addressInfo.emdNm', value: addr.emdNm || '-' },
+            { category: '주소정보', dataName: '시도명', accessPath: 'allData.addressInfo.siNm', value: addr.siNm || '-' },
+            { category: '주소정보', dataName: '시군구명', accessPath: 'allData.addressInfo.sggNm', value: addr.sggNm || '-' },
+            { category: '주소정보', dataName: '관리번호', accessPath: 'allData.addressInfo.bdMgtSn', value: addr.bdMgtSn || '-' },
+            { category: '주소정보', dataName: '상세건물명', accessPath: 'allData.addressInfo.detBdNmList', value: addr.detBdNmList || '-' },
+            { category: '주소정보', dataName: '도로명주소참고항목', accessPath: 'allData.addressInfo.roadAddrPart2', value: addr.roadAddrPart2 || '-' },
+            { category: '주소정보', dataName: '도로명주소기본', accessPath: 'allData.addressInfo.roadAddrPart1', value: addr.roadAddrPart1 || '-' },
+            { category: '주소정보', dataName: '행정구역코드', accessPath: 'allData.addressInfo.admCd', value: addr.admCd || '-' },
+            { category: '주소정보', dataName: '지번본번', accessPath: 'allData.addressInfo.lnbrMnnm', value: addr.lnbrMnnm || '-' },
+            { category: '주소정보', dataName: '지번부번', accessPath: 'allData.addressInfo.lnbrSlno', value: addr.lnbrSlno || '-' },
+            { category: '주소정보', dataName: '건물본번', accessPath: 'allData.addressInfo.buldMnnm', value: addr.buldMnnm || '-' },
+            { category: '주소정보', dataName: '건물부번', accessPath: 'allData.addressInfo.buldSlno', value: addr.buldSlno || '-' },
+            { category: '주소정보', dataName: '도로명코드', accessPath: 'allData.addressInfo.rnMgtSn', value: addr.rnMgtSn || '-' },
+            { category: '주소정보', dataName: '읍면동일련번호', accessPath: 'allData.addressInfo.emdNo', value: addr.emdNo || '-' }
+        );
+    }
+    
+    // 2. 행정구역 정보 접근 경로 (국가공공데이터포털 서비스 중단으로 인해 비활성화)
+    if (allData.regionDetails && allData.regionDetails.length > 0) {
+        const region = allData.regionDetails[0];
+        accessPaths.push(
+            { category: '행정구역', dataName: '행정구역코드', accessPath: 'allData.regionDetails[0].region_cd', value: region.region_cd || '-' },
+            { category: '행정구역', dataName: '시도코드', accessPath: 'allData.regionDetails[0].sido_cd', value: region.sido_cd || '-' },
+            { category: '행정구역', dataName: '시군구코드', accessPath: 'allData.regionDetails[0].sgg_cd', value: region.sgg_cd || '-' },
+            { category: '행정구역', dataName: '읍면동코드', accessPath: 'allData.regionDetails[0].umd_cd', value: region.umd_cd || '-' }
+        );
+    } else {
+        // 국가공공데이터포털 서비스 중단 안내
+        accessPaths.push(
+            { category: '행정구역', dataName: '서비스 상태', accessPath: 'N/A', value: '국가공공데이터포털 서비스 중단 (데이터센터 화재)' }
+        );
+    }
+    
+    // 3. 아파트 정보 접근 경로 (국가공공데이터포털 서비스 중단으로 인해 비활성화)
+    if (allData.apartmentList && allData.apartmentList.items && allData.apartmentList.items.length > 0) {
+        const apt = allData.apartmentList.items[0];
+        accessPaths.push(
+            { category: '아파트정보', dataName: '아파트명', accessPath: 'allData.apartmentList.items[0].kaptName', value: apt.kaptName || '-' },
+            { category: '아파트정보', dataName: '아파트코드', accessPath: 'allData.apartmentList.items[0].kaptCode', value: apt.kaptCode || '-' },
+            { category: '아파트정보', dataName: '아파트주소', accessPath: 'allData.apartmentList.items[0].doroJuso', value: apt.doroJuso || '-' }
+        );
+    } else {
+        // 국가공공데이터포털 서비스 중단 안내
+        accessPaths.push(
+            { category: '아파트정보', dataName: '서비스 상태', accessPath: 'N/A', value: '국가공공데이터포털 서비스 중단 (데이터센터 화재)' }
+        );
+    }
+    
+    // 4. 아파트 상세 정보 접근 경로
+    if (allData.apartmentDetail) {
+        const detail = allData.apartmentDetail;
+        accessPaths.push(
+            { category: '아파트상세', dataName: '건물구조', accessPath: 'allData.apartmentDetail.codeStr', value: detail.codeStr || '-' },
+            { category: '아파트상세', dataName: '관리방식', accessPath: 'allData.apartmentDetail.codeMgr', value: detail.codeMgr || '-' },
+            { category: '아파트상세', dataName: '관리인원', accessPath: 'allData.apartmentDetail.kaptMgrCnt', value: detail.kaptMgrCnt || '-' },
+            { category: '아파트상세', dataName: '경비방식', accessPath: 'allData.apartmentDetail.codeSec', value: detail.codeSec || '-' },
+            { category: '아파트상세', dataName: '경비인원', accessPath: 'allData.apartmentDetail.kaptdScnt', value: detail.kaptdScnt || '-' },
+            { category: '아파트상세', dataName: '청소방식', accessPath: 'allData.apartmentDetail.codeClean', value: detail.codeClean || '-' },
+            { category: '아파트상세', dataName: '청소인원', accessPath: 'allData.apartmentDetail.kaptdClcnt', value: detail.kaptdClcnt || '-' },
+            { category: '아파트상세', dataName: '승강기대수', accessPath: 'allData.apartmentDetail.kaptdEcnt', value: detail.kaptdEcnt || '-' },
+            { category: '아파트상세', dataName: '주차대수', accessPath: 'allData.apartmentDetail.kaptdPcnt', value: detail.kaptdPcnt || '-' },
+            { category: '아파트상세', dataName: '지하주차대수', accessPath: 'allData.apartmentDetail.kaptdPcntu', value: detail.kaptdPcntu || '-' }
+        );
+    }
+    
+    // 5. 건물 정보 접근 경로 (국가공공데이터포털 서비스 중단으로 인해 비활성화)
+    if (allData.buildingInfo && allData.buildingInfo.length > 0) {
+        const building = allData.buildingInfo[0].data.items.item;
+        if (building) {
+            accessPaths.push(
+                { category: '건물정보', dataName: '건물용도', accessPath: 'allData.buildingInfo[0].data.items.item.mainPurpsCdNm', value: building.mainPurpsCdNm || '-' },
+                { category: '건물정보', dataName: '건물구조', accessPath: 'allData.buildingInfo[0].data.items.item.strctCdNm', value: building.strctCdNm || '-' },
+                { category: '건물정보', dataName: '대지면적', accessPath: 'allData.buildingInfo[0].data.items.item.platArea', value: building.platArea || '-' },
+                { category: '건물정보', dataName: '지상층수', accessPath: 'allData.buildingInfo[0].data.items.item.grndFlrCnt', value: building.grndFlrCnt || '-' },
+                { category: '건물정보', dataName: '지하층수', accessPath: 'allData.buildingInfo[0].data.items.item.ugrndFlrCnt', value: building.ugrndFlrCnt || '-' },
+                { category: '건물정보', dataName: '건물높이', accessPath: 'allData.buildingInfo[0].data.items.item.heit', value: building.heit || '-' },
+                { category: '건물정보', dataName: '세대수', accessPath: 'allData.buildingInfo[0].data.items.item.hhldCnt', value: building.hhldCnt || '-' },
+                { category: '건물정보', dataName: '호수', accessPath: 'allData.buildingInfo[0].data.items.item.hoCnt', value: building.hoCnt || '-' },
+                { category: '건물정보', dataName: '착공일', accessPath: 'allData.buildingInfo[0].data.items.item.pmsDay', value: building.pmsDay || '-' }
+            );
+        }
+    } else {
+        // 국가공공데이터포털 서비스 중단 안내
+        accessPaths.push(
+            { category: '건물정보', dataName: '서비스 상태', accessPath: 'N/A', value: '국가공공데이터포털 서비스 중단 (데이터센터 화재)' }
+        );
+    }
+    
+    // 6. 좌표 정보 접근 경로 (모든 Geocoder 정보 포함)
+    if (allData.geocoderInfo) {
+        const geocoder = allData.geocoderInfo;
+        accessPaths.push(
+            { category: '위치정보', dataName: '경도', accessPath: 'allData.geocoderInfo.result.point.x', value: geocoder.result?.point?.x || '-' },
+            { category: '위치정보', dataName: '위도', accessPath: 'allData.geocoderInfo.result.point.y', value: geocoder.result?.point?.y || '-' },
+            { category: '위치정보', dataName: '좌표계', accessPath: 'allData.geocoderInfo.result.crs', value: geocoder.result?.crs || '-' },
+            { category: '위치정보', dataName: '입력주소', accessPath: 'allData.geocoderInfo.input.address', value: geocoder.input?.address || '-' },
+            { category: '위치정보', dataName: '주소유형', accessPath: 'allData.geocoderInfo.input.type', value: geocoder.input?.type || '-' },
+            { category: '위치정보', dataName: '처리상태', accessPath: 'allData.geocoderInfo.status', value: geocoder.status || '-' },
+            { category: '위치정보', dataName: '정제된주소', accessPath: 'allData.geocoderInfo.refined.text', value: geocoder.refined?.text || '-' },
+            { category: '위치정보', dataName: '시도', accessPath: 'allData.geocoderInfo.refined.structure.level1', value: geocoder.refined?.structure?.level1 || '-' },
+            { category: '위치정보', dataName: '시군구', accessPath: 'allData.geocoderInfo.refined.structure.level2', value: geocoder.refined?.structure?.level2 || '-' },
+            { category: '위치정보', dataName: '읍면동', accessPath: 'allData.geocoderInfo.refined.structure.level3', value: geocoder.refined?.structure?.level3 || '-' },
+            { category: '위치정보', dataName: '도로명', accessPath: 'allData.geocoderInfo.refined.structure.level4L', value: geocoder.refined?.structure?.level4L || '-' },
+            { category: '위치정보', dataName: '건물번호', accessPath: 'allData.geocoderInfo.refined.structure.level5', value: geocoder.refined?.structure?.level5 || '-' },
+            { category: '위치정보', dataName: '상세주소', accessPath: 'allData.geocoderInfo.refined.structure.detail', value: geocoder.refined?.structure?.detail || '-' }
+        );
+    }
+    
+    // 7. 토지이용계획 정보 접근 경로 (모든 계획구역 포함)
+    if (allData.landUseInfo && allData.landUseInfo.landUses && allData.landUseInfo.landUses.field && allData.landUseInfo.landUses.field.length > 0) {
+        const landUses = allData.landUseInfo.landUses.field;
+        
+        // 각 계획구역별로 데이터 추가
+        landUses.forEach((landUse, index) => {
+            accessPaths.push(
+                { category: `토지이용계획${index + 1}`, dataName: '용도지역명', accessPath: `allData.landUseInfo.landUses.field[${index}].prposAreaDstrcCodeNm`, value: landUse.prposAreaDstrcCodeNm || '-' },
+                { category: `토지이용계획${index + 1}`, dataName: '용도지역코드', accessPath: `allData.landUseInfo.landUses.field[${index}].prposAreaDstrcCode`, value: landUse.prposAreaDstrcCode || '-' },
+                { category: `토지이용계획${index + 1}`, dataName: '저촉여부', accessPath: `allData.landUseInfo.landUses.field[${index}].cnflcAtNm`, value: landUse.cnflcAtNm || '-' },
+                { category: `토지이용계획${index + 1}`, dataName: '토지코드', accessPath: `allData.landUseInfo.landUses.field[${index}].ldCode`, value: landUse.ldCode || '-' },
+                { category: `토지이용계획${index + 1}`, dataName: '토지코드명', accessPath: `allData.landUseInfo.landUses.field[${index}].ldCodeNm`, value: landUse.ldCodeNm || '-' },
+                { category: `토지이용계획${index + 1}`, dataName: '지번', accessPath: `allData.landUseInfo.landUses.field[${index}].mnnmSlno`, value: landUse.mnnmSlno || '-' },
+                { category: `토지이용계획${index + 1}`, dataName: 'PNU', accessPath: `allData.landUseInfo.landUses.field[${index}].pnu`, value: landUse.pnu || '-' },
+                { category: `토지이용계획${index + 1}`, dataName: '면적', accessPath: `allData.landUseInfo.landUses.field[${index}].area`, value: landUse.area || landUse.extent || landUse.size || '-' },
+                { category: `토지이용계획${index + 1}`, dataName: '지형정보', accessPath: `allData.landUseInfo.landUses.field[${index}].geometry`, value: landUse.geometry ? '포함됨' : '-' },
+                { category: `토지이용계획${index + 1}`, dataName: '최종수정일', accessPath: `allData.landUseInfo.landUses.field[${index}].lastUpdtDt`, value: landUse.lastUpdtDt || '-' },
+                { category: `토지이용계획${index + 1}`, dataName: '등록일', accessPath: `allData.landUseInfo.landUses.field[${index}].registDt`, value: landUse.registDt || '-' },
+                { category: `토지이용계획${index + 1}`, dataName: '도면번호', accessPath: `allData.landUseInfo.landUses.field[${index}].manageNo`, value: landUse.manageNo || '-' }
+            );
+        });
+        
+        // 토지이용계획 전체 정보
+        accessPaths.push(
+            { category: '토지이용계획전체', dataName: '총 건수', accessPath: 'allData.landUseInfo.landUses.totalCount', value: allData.landUseInfo.landUses.totalCount || '-' },
+            { category: '토지이용계획전체', dataName: '현재 페이지', accessPath: 'allData.landUseInfo.landUses.pageNo', value: allData.landUseInfo.landUses.pageNo || '-' },
+            { category: '토지이용계획전체', dataName: '페이지당 건수', accessPath: 'allData.landUseInfo.landUses.numOfRows', value: allData.landUseInfo.landUses.numOfRows || '-' }
+        );
+    }
+    
+    
+    // 9. 시스템 정보 접근 경로
+    const now = new Date();
+    accessPaths.push(
+        { category: '시스템정보', dataName: '현재날짜', accessPath: 'new Date().toLocaleDateString("ko-KR")', value: now.toLocaleDateString('ko-KR') },
+        { category: '시스템정보', dataName: '현재시간', accessPath: 'new Date().toLocaleTimeString("ko-KR")', value: now.toLocaleTimeString('ko-KR') }
+    );
+    
+    return accessPaths;
+}
+
+/**
+ * API 데이터 접근 경로 별도 표시
+ */
+function displayApiAccessPaths() {
+    
+    // API 데이터 접근 경로 섹션 생성
+    let accessPathsSection = document.getElementById('api-access-paths-section');
+    if (!accessPathsSection) {
+        accessPathsSection = document.createElement('div');
+        accessPathsSection.id = 'api-access-paths-section';
+        accessPathsSection.style.cssText = 'margin-top: 30px; padding: 20px; background: #fff3cd; border-radius: 10px; border-left: 4px solid #ffc107;';
+        
+        // JSON 데이터 섹션 다음에 삽입
+        const jsonSection = document.getElementById('json-data-section');
+        if (jsonSection && jsonSection.parentNode) {
+            jsonSection.parentNode.insertBefore(accessPathsSection, jsonSection.nextSibling);
+        }
+    }
+    
+    // API 데이터 접근 경로 테이블 생성
+    const accessPaths = createApiAccessPaths();
+    
+    accessPathsSection.innerHTML = `
+        <h3 style="color: #856404; margin-bottom: 15px;">🔍 API 데이터 접근 경로</h3>
+        <p style="color: #6c757d; margin-bottom: 20px;">API에서 수집된 모든 데이터의 정확한 JavaScript 접근 경로를 확인할 수 있습니다.</p>
+        
+        <div style="overflow-x: auto;">
+            <table style="width: 100%; border-collapse: collapse; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                <thead>
+                    <tr style="background: #ffc107; color: #856404;">
+                        <th style="padding: 12px; text-align: left; border-bottom: 2px solid #ff8f00;">카테고리</th>
+                        <th style="padding: 12px; text-align: left; border-bottom: 2px solid #ff8f00;">데이터명</th>
+                        <th style="padding: 12px; text-align: left; border-bottom: 2px solid #ff8f00;">JavaScript 접근 경로</th>
+                        <th style="padding: 12px; text-align: left; border-bottom: 2px solid #ff8f00; min-width: 200px;">실제 리턴값</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${accessPaths.map(item => `
+                        <tr style="border-bottom: 1px solid #eee;">
+                            <td style="padding: 12px; font-weight: bold; color: #495057; white-space: nowrap;">${item.category}</td>
+                            <td style="padding: 12px; color: #6c757d; white-space: nowrap;">${item.dataName}</td>
+                            <td style="padding: 12px; font-family: monospace; background: #f8f9fa; color: #e83e8c; font-size: 11px; word-break: break-all; max-width: 300px;">${item.accessPath}</td>
+                            <td style="padding: 12px; color: #28a745; font-weight: 500; max-width: 400px; word-break: break-word;" title="${item.value}">${item.value}</td>
+                        </tr>
+                    `).join('')}
+                </tbody>
+            </table>
+        </div>
+        
+        <div style="margin-top: 20px; padding: 15px; background: #e3f2fd; border-radius: 8px; border-left: 4px solid #2196f3;">
+            <h4 style="margin: 0 0 10px 0; color: #1976d2;">💡 사용 방법</h4>
+            <p style="margin: 5px 0; color: #1976d2;">
+                1. 위의 JavaScript 접근 경로를 복사하여 WhatHouse 문서에서 사용<br>
+                2. 예: <code style="background: #f8f9fa; padding: 2px 4px; border-radius: 3px;">allData.landUseInfo.landUses.field[0].prposAreaDstrcCodeNm</code><br>
+                3. 모든 데이터는 <code style="background: #f8f9fa; padding: 2px 4px; border-radius: 3px;">allData</code> 객체를 통해 접근 가능
+            </p>
+        </div>
+    `;
+}
+
+/**
+ * WhatHouse 문서 로드 기능
+ */
+function setupWhatHouseLoader() {
+    const loadBtn = document.getElementById('load-whathouse-btn');
+    const toggleBtn = document.getElementById('toggle-whathouse-btn');
+    const content = document.getElementById('whathouse-content');
+    
+    if (loadBtn && toggleBtn && content) {
+        let isLoaded = false;
+        let isVisible = false;
+        
+        // 로드 버튼 클릭 이벤트
+        loadBtn.addEventListener('click', async function() {
+            if (!isLoaded) {
+                try {
+                    loadBtn.textContent = '로딩 중...';
+                    loadBtn.disabled = true;
+                    
+                    // 모든 WhatHouse HTML 파일들을 순차적으로 로드 (프록시 서버를 통해)
+                    const whathouseFiles = [
+                        'http://localhost:3001/assest/whathouse/whathouse_01.html',
+                        'http://localhost:3001/assest/whathouse/whathouse_02.html',
+                        'http://localhost:3001/assest/whathouse/whathouse_03.html',
+                        'http://localhost:3001/assest/whathouse/whathouse_04.html',
+                        'http://localhost:3001/assest/whathouse/whathouse_05.html',
+                        'http://localhost:3001/assest/whathouse/whathouse_06.html',
+                        'http://localhost:3001/assest/whathouse/whathouse_07.html',
+                        'http://localhost:3001/assest/whathouse/whathouse_08.html',
+                        'http://localhost:3001/assest/whathouse/whathouse_09.html',
+                        'http://localhost:3001/assest/whathouse/whathouse_10.html',
+                        'http://localhost:3001/assest/whathouse/whathouse_11.html',
+                        'http://localhost:3001/assest/whathouse/whathouse_12.html'
+                    ];
+                    
+                    let allContent = '';
+                    
+                    for (let i = 0; i < whathouseFiles.length; i++) {
+                        try {
+                            const response = await fetch(whathouseFiles[i]);
+                            if (response.ok) {
+                                const htmlContent = await response.text();
+                                allContent += htmlContent;
+                            }
+                        } catch (error) {
+                            // Skip failed files
+                        }
+                    }
+                    
+                    if (allContent) {
+                        // iframe을 사용하여 WhatHouse 문서들을 개별적으로 표시
+                        const iframeContainer = document.createElement('div');
+                        iframeContainer.style.cssText = 'width: 100%; height: 600px; border: 1px solid #ddd; overflow: auto;';
+                        
+                        // 첫 번째 HTML 파일을 iframe으로 로드
+                        const iframe = document.createElement('iframe');
+                        iframe.src = 'http://localhost:3001/assest/whathouse/whathouse_01.html';
+                        iframe.style.cssText = 'width: 100%; height: 100%; border: none; font-family: Arial, sans-serif;';
+                        iframe.setAttribute('sandbox', 'allow-same-origin allow-scripts');
+                        iframe.setAttribute('loading', 'lazy');
+                        
+                        // 문자 인코딩 문제 해결을 위한 스타일 추가
+                        const style = document.createElement('style');
+                        style.textContent = `
+                            iframe {
+                                font-family: Arial, sans-serif !important;
+                                font-size: 14px !important;
+                                line-height: 1.4 !important;
+                            }
+                            iframe body {
+                                font-family: Arial, sans-serif !important;
+                                font-size: 14px !important;
+                                line-height: 1.4 !important;
+                                color: #000 !important;
+                            }
+                        `;
+                        document.head.appendChild(style);
+                        
+                        iframeContainer.appendChild(iframe);
+                        
+                        // 페이지 네비게이션 버튼 추가
+                        const navContainer = document.createElement('div');
+                        navContainer.style.cssText = 'margin-bottom: 10px; text-align: center;';
+                        
+                        const prevBtn = document.createElement('button');
+                        prevBtn.textContent = '이전 페이지';
+                        prevBtn.style.cssText = 'margin-right: 10px; padding: 5px 10px;';
+                        
+                        const nextBtn = document.createElement('button');
+                        nextBtn.textContent = '다음 페이지';
+                        nextBtn.style.cssText = 'padding: 5px 10px;';
+                        
+                        const pageInfo = document.createElement('span');
+                        pageInfo.textContent = '1 / 6';
+                        pageInfo.style.cssText = 'margin: 0 10px;';
+                        
+                        let currentPage = 1;
+                        const totalPages = 6;
+                        
+                        prevBtn.addEventListener('click', () => {
+                            if (currentPage > 1) {
+                                currentPage--;
+                                iframe.src = `http://localhost:3001/assest/whathouse/whathouse_${String(currentPage).padStart(2, '0')}.html`;
+                                pageInfo.textContent = `${currentPage} / ${totalPages}`;
+                            }
+                        });
+                        
+                        nextBtn.addEventListener('click', () => {
+                            if (currentPage < totalPages) {
+                                currentPage++;
+                                iframe.src = `http://localhost:3001/assest/whathouse/whathouse_${String(currentPage).padStart(2, '0')}.html`;
+                                pageInfo.textContent = `${currentPage} / ${totalPages}`;
+                            }
+                        });
+                        
+                        navContainer.appendChild(prevBtn);
+                        navContainer.appendChild(pageInfo);
+                        navContainer.appendChild(nextBtn);
+                        
+                        content.innerHTML = '';
+                        content.appendChild(navContainer);
+                        content.appendChild(iframeContainer);
+                        
+                        isLoaded = true;
+                        loadBtn.textContent = '문서 다시 로드';
+                        toggleBtn.style.display = 'inline-block';
+                        content.style.display = 'block';
+                        isVisible = true;
+                    } else {
+                        content.innerHTML = '<p style="color: red;">문서를 로드할 수 없습니다.</p>';
+                    }
+                    
+                } catch (error) {
+                    content.innerHTML = '<p style="color: red;">문서 로드 중 오류가 발생했습니다.</p>';
+                } finally {
+                    loadBtn.disabled = false;
+                }
+            } else {
+                // 이미 로드된 경우 토글
+                isVisible = !isVisible;
+                content.style.display = isVisible ? 'block' : 'none';
+                toggleBtn.textContent = isVisible ? '문서 숨기기' : '문서 보기';
+            }
+        });
+        
+        // 토글 버튼 클릭 이벤트
+        toggleBtn.addEventListener('click', function() {
+            isVisible = !isVisible;
+            content.style.display = isVisible ? 'block' : 'none';
+            toggleBtn.textContent = isVisible ? '문서 숨기기' : '문서 보기';
+        });
+    }
+}
+
+
+
+/**
+ * JSON 토글 버튼 이벤트 설정
+ */
+function setupJsonToggle() {
+    const toggleBtn = document.getElementById('toggle-json-btn');
+    const jsonSection = document.getElementById('json-data-section');
+    const jsonDisplay = document.getElementById('json-display');
+    
+    if (toggleBtn && jsonSection && jsonDisplay) {
+        let isVisible = false;
+        
+        toggleBtn.addEventListener('click', function() {
+            isVisible = !isVisible;
+            jsonSection.style.display = isVisible ? 'block' : 'none';
+            toggleBtn.textContent = isVisible ? 'JSON 데이터 숨기기' : 'JSON 데이터 보기/숨기기';
+            
+            // WhatHouse 데이터 매핑, API 접근 경로, JSON 데이터 표시 제거 (사용자 요청)
+        });
+    }
+}
 
 /**
  * 페이지 로드 시 초기화
@@ -102,10 +742,44 @@ document.addEventListener('DOMContentLoaded', function() {
     const roadAddr = urlParams.get('roadAddr');
     const jibunAddr = urlParams.get('jibunAddr');
     const zipCode = urlParams.get('zipCode');
+    const dongNm = urlParams.get('dongNm');
+    const hoNm = urlParams.get('hoNm');
     const fullData = urlParams.get('fullData');
     
     // 기본 주소 정보 표시
     displayBasicAddressInfo(roadAddr, jibunAddr, zipCode);
+    
+    // 동/호수 정보 표시
+    if (dongNm) {
+        document.getElementById('selectedDong').textContent = dongNm;
+        document.getElementById('dongInfoDiv').style.display = 'block';
+    }
+    if (hoNm) {
+        document.getElementById('selectedHosu').textContent = hoNm;
+        document.getElementById('hosuInfoDiv').style.display = 'block';
+    }
+    
+    // WhatHouse 로더 설정 - 제거됨 (사용자 요청)
+    // setupWhatHouseLoader();
+    
+    // JSON 토글 버튼 설정 - 제거됨 (사용자 요청)
+    // setupJsonToggle();
+    
+    // 페이지 로드 시 JSON 데이터 표시 - 삭제됨 (사용자 요청)
+    // setTimeout(() => {
+    //     updateJsonData();
+    //     
+    //     // WhatHouse 데이터 매핑 표시
+    //     displayWhatHouseDataMapping();
+    //     
+    //     // API 데이터 접근 경로 표시
+    //     displayApiAccessPaths();
+    // }, 1000);
+    
+    // 모든 API 로드 완료 후 최종 상태 확인 (5초 후)
+    setTimeout(() => {
+        checkApiDisplayStatus();
+    }, 5000);
     
     // 전체 주소 정보 처리
     if (fullData) {
@@ -113,11 +787,19 @@ document.addEventListener('DOMContentLoaded', function() {
             const fullJusoData = JSON.parse(decodeURIComponent(fullData));
             displayFullAddressInfo(fullJusoData);
             
+            // 주소 정보를 allData에 저장
+            allData.addressInfo = fullJusoData;
+            apiDisplayStatus.addressInfo.loaded = true;
+            // updateJsonData(); // JSON 데이터 업데이트 - 제거됨 (사용자 요청)
+            
             // roadAddrPart1 값을 전역 변수로 저장 (아파트 필터링용)
             window.selectedRoadAddrPart1 = fullJusoData.roadAddrPart1;
             
             // 건물관리번호를 전역 변수로 저장 (토지이용계획도 API용)
             window.buildingManagementNumber = fullJusoData.bdMgtSn;
+            
+            // 주소 요약 카드 즉시 표시 (기본 정보만)
+            displayAddressSummaryCard();
         } catch (error) {
             // 주소 데이터 파싱 오류 처리
         }
@@ -125,16 +807,9 @@ document.addEventListener('DOMContentLoaded', function() {
     
     
     // 관련 API 호출
-    if (jibunAddr) {
-        loadRegionDetails(jibunAddr);
-    }
-    
     if (fullData) {
         try {
             const fullJusoData = JSON.parse(decodeURIComponent(fullData));
-            if (fullJusoData.rnMgtSn) {
-                loadAptList(fullJusoData.rnMgtSn);
-            }
             
             // 건물 정보 API 호출 (행정구역코드 사용)
             if (fullJusoData.admCd) {
@@ -145,7 +820,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 const lnbrMnnm = fullJusoData.lnbrMnnm || '0';
                 const bun = lnbrMnnm.toString().padStart(4, '0');
                 
-                loadBuildingInfo(sigunguCd, bjdongCd, bun);
+                loadBuildingInfo(sigunguCd, bjdongCd, bun, dongNm);
             }
             
             // Geocoder API 호출 (도로명주소를 좌표로 변환)
@@ -195,113 +870,8 @@ function displayFullAddressInfo(fullJusoData) {
     detailSection.className = 'info-card';
     
     const html = `
-        <h2>📋 상세 주소 정보</h2>
-        <div class="address-details-grid">
-            <div class="detail-group">
-                <h4>📍 기본 주소 정보</h4>
-                <div class="detail-item">
-                    <strong>도로명주소:</strong> ${fullJusoData.roadAddr || '-'}
-                </div>
-                <div class="detail-item">
-                    <strong>도로명주소(참고항목 제외):</strong> ${fullJusoData.roadAddrPart1 || '-'}
-                </div>
-                <div class="detail-item">
-                    <strong>도로명주소 참고항목:</strong> ${fullJusoData.roadAddrPart2 || '-'}
-                </div>
-                <div class="detail-item">
-                    <strong>지번주소:</strong> ${fullJusoData.jibunAddr || '-'}
-                </div>
-                <div class="detail-item">
-                    <strong>도로명주소(영문):</strong> ${fullJusoData.engAddr || '-'}
-                </div>
-                <div class="detail-item">
-                    <strong>우편번호:</strong> ${fullJusoData.zipNo || '-'}
-                </div>
-            </div>
-            
-            <div class="detail-group">
-                <h4>🏢 건물 정보</h4>
-                <div class="detail-item">
-                    <strong>건물명:</strong> ${fullJusoData.bdNm || '-'}
-                </div>
-                <div class="detail-item">
-                    <strong>상세건물명:</strong> ${fullJusoData.detBdNmList || '-'}
-                </div>
-                <div class="detail-item">
-                    <strong>공동주택여부:</strong> ${fullJusoData.bdKdcd === '1' ? '공동주택' : '비공동주택'}
-                </div>
-                <div class="detail-item">
-                    <strong>건물본번:</strong> ${fullJusoData.buldMnnm || '-'}
-                </div>
-                <div class="detail-item">
-                    <strong>건물부번:</strong> ${fullJusoData.buldSlno || '-'}
-                </div>
-                <div class="detail-item">
-                    <strong>지하여부:</strong> ${fullJusoData.udrtYn === '0' ? '지상' : '지하'}
-                </div>
-            </div>
-            
-            <div class="detail-group">
-                <h4>🗺️ 행정구역 정보</h4>
-                <div class="detail-item">
-                    <strong>시도명:</strong> ${fullJusoData.siNm || '-'}
-                </div>
-                <div class="detail-item">
-                    <strong>시군구명:</strong> ${fullJusoData.sggNm || '-'}
-                </div>
-                <div class="detail-item">
-                    <strong>읍면동명:</strong> ${fullJusoData.emdNm || '-'}
-                </div>
-                <div class="detail-item">
-                    <strong>법정리명:</strong> ${fullJusoData.liNm || '-'}
-                </div>
-                <div class="detail-item">
-                    <strong>읍면동일련번호:</strong> ${fullJusoData.emdNo || '-'}
-                </div>
-                <div class="detail-item">
-                    <strong>관할주민센터:</strong> ${fullJusoData.hemdNm || '-'}
-                </div>
-            </div>
-            
-            <div class="detail-group">
-                <h4>🛣️ 도로 정보</h4>
-                <div class="detail-item">
-                    <strong>도로명:</strong> ${fullJusoData.rn || '-'}
-                </div>
-                <div class="detail-item">
-                    <strong>도로명코드:</strong> ${fullJusoData.rnMgtSn || '-'}
-                </div>
-                <div class="detail-item">
-                    <strong>건물관리번호:</strong> ${fullJusoData.bdMgtSn || '-'}
-                </div>
-                <div class="detail-item">
-                    <strong>행정구역코드:</strong> ${fullJusoData.admCd || '-'}
-                </div>
-            </div>
-            
-            <div class="detail-group">
-                <h4>📍 지번 정보</h4>
-                <div class="detail-item">
-                    <strong>지번본번:</strong> ${fullJusoData.lnbrMnnm || '-'}
-                </div>
-                <div class="detail-item">
-                    <strong>지번부번:</strong> ${fullJusoData.lnbrSlno || '-'}
-                </div>
-                <div class="detail-item">
-                    <strong>산여부:</strong> ${fullJusoData.mtYn === '0' ? '대지' : '산'}
-                </div>
-                <div class="detail-item">
-                    <strong>관련지번:</strong> ${fullJusoData.relJibun || '-'}
-                </div>
-            </div>
-            
-            <div class="detail-group">
-                <h4>📊 기타 정보</h4>
-                <div class="detail-item">
-                    <strong>변동이력여부:</strong> ${fullJusoData.hstryYn === '0' ? '현행 주소정보' : '변동된 주소정보'}
-                </div>
-            </div>
-        </div>
+        <h2>📋 주소 검색 API 원본 응답</h2>
+        <pre>${JSON.stringify(fullJusoData, null, 2)}</pre>
     `;
     
     detailSection.innerHTML = html;
@@ -309,475 +879,7 @@ function displayFullAddressInfo(fullJusoData) {
 }
 
 /* =========================================== */
-/* 4. REGION API - 행정구역코드 API */
-/* =========================================== */
-
-/**
- * 행정구역코드 API 호출
- * @param {string} jibunAddr - 지번주소
- */
-async function loadRegionDetails(jibunAddr) {
-    try {
-        // 지번주소에서 "동"까지 추출
-        const dongName = extractDongName(jibunAddr);
-        if (!dongName) {
-            return;
-        }
-        
-        const params = new URLSearchParams({
-            ServiceKey: REGION_API_CONFIG.apiKey,
-            type: REGION_API_CONFIG.type,
-            pageNo: REGION_API_CONFIG.pageNo,
-            numOfRows: REGION_API_CONFIG.numOfRows,
-            flag: REGION_API_CONFIG.flag,
-            locatadd_nm: dongName
-        });
-        
-        const url = `${REGION_API_CONFIG.baseUrl}?${params.toString()}`;
-        
-        const response = await fetch(url);
-        
-        if (!response.ok) {
-            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-        }
-        
-        const data = await response.json();
-        
-        if (data.StanReginCd && data.StanReginCd.length > 0) {
-            displayRegionDetails(data.StanReginCd[1].row);
-        } else {
-        }
-        
-    } catch (error) {
-        // 행정구역코드 API 호출 오류 처리
-    }
-}
-
-/**
- * 지번주소에서 동 이름 추출
- * @param {string} jibunAddr - 지번주소
- * @returns {string} - 동 이름
- */
-function extractDongName(jibunAddr) {
-    // "경기도 성남시 분당구 서현동" -> "서현동"
-    const parts = jibunAddr.split(' ');
-    for (let i = parts.length - 1; i >= 0; i--) {
-        if (parts[i].endsWith('동')) {
-            return parts[i];
-        }
-    }
-    return null;
-}
-
-/**
- * 행정구역 정보 표시
- * @param {Array} regionData - 행정구역 데이터 배열
- */
-function displayRegionDetails(regionData) {
-    if (!regionData || regionData.length === 0) {
-        return;
-    }
-    
-    const addressInfo = document.querySelector('.address-info');
-    
-    // 행정구역 정보 섹션 생성
-    const regionSection = document.createElement('div');
-    regionSection.className = 'info-card';
-    
-    const region = regionData[0]; // 첫 번째 결과 사용
-    
-    const html = `
-        <h2>🏛️ 행정구역 정보</h2>
-        <div class="region-details">
-            <div class="detail-item">
-                <strong>지역주소명:</strong> ${region.locatadd_nm || '-'}
-            </div>
-            <div class="detail-item">
-                <strong>지역코드:</strong> ${region.region_cd || '-'}
-            </div>
-            <div class="detail-item">
-                <strong>시도코드:</strong> ${region.sido_cd || '-'}
-            </div>
-            <div class="detail-item">
-                <strong>시군구코드:</strong> ${region.sgg_cd || '-'}
-            </div>
-            <div class="detail-item">
-                <strong>읍면동코드:</strong> ${region.umd_cd || '-'}
-            </div>
-            <div class="detail-item">
-                <strong>리코드:</strong> ${region.ri_cd || '-'}
-            </div>
-            <div class="detail-item">
-                <strong>주민등록 지역코드:</strong> ${region.locatjumin_cd || '-'}
-            </div>
-            <div class="detail-item">
-                <strong>지적 지역코드:</strong> ${region.locatjijuk_cd || '-'}
-            </div>
-            <div class="detail-item">
-                <strong>최하위지역명:</strong> ${region.locallow_nm || '-'}
-            </div>
-            <div class="detail-item">
-                <strong>상위지역코드:</strong> ${region.locathigh_cd || '-'}
-            </div>
-        </div>
-    `;
-    
-    regionSection.innerHTML = html;
-    addressInfo.appendChild(regionSection);
-}
-
-/* =========================================== */
-/* 5. APARTMENT LIST API - 아파트 목록 API */
-/* =========================================== */
-
-/**
- * 아파트 목록 API 호출
- * @param {string} roadCode - 도로명코드
- */
-async function loadAptList(roadCode) {
-    try {
-        const params = new URLSearchParams({
-            serviceKey: APT_API_CONFIG.apiKey,
-            roadCode: roadCode,
-            pageNo: APT_API_CONFIG.pageNo,
-            numOfRows: APT_API_CONFIG.numOfRows
-        });
-        
-        const url = `${APT_API_CONFIG.baseUrl}?${params.toString()}`;
-        
-        const response = await fetch(url);
-        
-        if (!response.ok) {
-            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-        }
-        
-        const data = await response.json();
-        
-        if (data.response && data.response.header && data.response.header.resultCode === '00') {
-            displayAptList(data.response.body);
-        } else {
-        }
-        
-    } catch (error) {
-        // 아파트 목록 API 호출 오류 처리
-    }
-}
-
-/**
- * 아파트 목록 표시
- * @param {Object} aptData - 아파트 데이터
- */
-function displayAptList(aptData) {
-    const addressInfo = document.querySelector('.address-info');
-    
-    // 선택된 주소의 roadAddrPart1 가져오기
-    const selectedRoadAddrPart1 = window.selectedRoadAddrPart1;
-    
-    // 아파트 목록 섹션 생성
-    const aptSection = document.createElement('div');
-    aptSection.id = 'aptListInfo';
-    aptSection.className = 'info-card';
-    
-    let aptListHtml = `
-        <h2>🏢 해당 주소의 아파트 목록</h2>
-        <div class="apt-list-container">
-    `;
-    
-    if (aptData.items && aptData.items.length > 0) {
-        // roadAddrPart1과 doroJuso가 일치하는 아파트만 필터링
-        const filteredApts = aptData.items.filter(apt => {
-            // doroJuso에서 "서현동" 같은 동 이름을 제거하고 비교
-            const cleanDoroJuso = apt.doroJuso.replace(/\s+[가-힣]+동\s+/, ' ');
-            const isMatch = cleanDoroJuso === selectedRoadAddrPart1;
-            return isMatch;
-        });
-        
-        if (filteredApts.length > 0) {
-            filteredApts.forEach((apt, index) => {
-                aptListHtml += `
-                    <div class="apt-item">
-                        <div class="apt-name">${apt.kaptName || '-'}</div>
-                        <div class="apt-code">아파트코드: ${apt.kaptCode || '-'}</div>
-                        <div class="apt-address">${apt.doroJuso || '-'}</div>
-                    </div>
-                `;
-            });
-            
-            // 첫 번째 아파트의 상세 정보 자동 로드
-            if (filteredApts.length > 0) {
-                const firstApt = filteredApts[0];
-                // 바로 상세 정보 로드
-                loadAptDetail(firstApt.kaptCode, firstApt.kaptName);
-            }
-        } else {
-            aptListHtml += `<div class="no-apt">선택한 주소 "${selectedRoadAddrPart1}"에 해당하는 아파트가 없습니다.</div>`;
-        }
-    } else {
-        aptListHtml += '<div class="no-apt">해당 도로에 등록된 아파트가 없습니다.</div>';
-    }
-    
-    aptListHtml += '</div>';
-    aptSection.innerHTML = aptListHtml;
-    addressInfo.appendChild(aptSection);
-}
-
-/* =========================================== */
-/* 6. APARTMENT DETAIL API - 아파트 상세 정보 API */
-/* =========================================== */
-
-/**
- * 아파트 상세 정보 API 호출
- * @param {string} kaptCode - 아파트 코드
- * @param {string} kaptName - 아파트 이름
- */
-async function loadAptDetail(kaptCode, kaptName) {
-    
-    try {
-        // GET 방식으로 먼저 시도
-        const params = new URLSearchParams({
-            serviceKey: APT_DETAIL_API_CONFIG.apiKey,
-            kaptCode: kaptCode
-        });
-        
-        // 환경에 따른 API 호출 방식 선택
-        let url;
-        const isLocal = window.location.hostname === 'localhost' || 
-                        window.location.hostname === '127.0.0.1' || 
-                        window.location.protocol === 'file:' ||
-                        window.location.hostname === '';
-        const isGitHub = !isLocal && (
-            window.location.hostname === 'github.io' || 
-            window.location.hostname.includes('github.io')
-        );
-        
-        if (isGitHub) {
-            // GitHub Pages: CORS 프록시 사용
-            const proxyUrl = 'https://cors-anywhere.herokuapp.com/';
-            const targetUrl = `${APT_DETAIL_API_CONFIG.baseUrl}?${params.toString()}`;
-            url = `${proxyUrl}${targetUrl}`;
-        } else {
-            // 로컬 개발: 프록시 서버 사용
-            url = `http://localhost:3001/api/apt-detail?${params.toString()}`;
-        }
-        
-        const response = await fetch(url, {
-            method: 'GET',
-            headers: {
-                'Accept': 'application/json'
-            }
-        });
-        
-        // 응답이 JSON인지 확인
-        const contentType = response.headers.get('content-type');
-        
-        let data;
-        if (contentType && contentType.includes('application/json')) {
-            data = await response.json();
-        } else {
-            const textData = await response.text();
-            // GET 방식이 실패하면 POST 방식으로 재시도
-            
-            const postResponse = await fetch(APT_DETAIL_API_CONFIG.baseUrl, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json'
-                },
-                body: JSON.stringify({
-                    ServiceKey: APT_DETAIL_API_CONFIG.apiKey,
-                    kaptCode: kaptCode
-                })
-            });
-            
-            const postContentType = postResponse.headers.get('content-type');
-            
-            if (postContentType && postContentType.includes('application/json')) {
-                data = await postResponse.json();
-            } else {
-                const postTextData = await postResponse.text();
-                throw new Error('POST 방식도 JSON 형식이 아닙니다.');
-            }
-        }
-        
-        
-        if (data.response && data.response.header && data.response.header.resultCode === '00') {
-            displayAptDetail(data.response.body.item, kaptName);
-        } else {
-        }
-        
-    } catch (error) {
-        // 아파트 상세 정보 API 호출 오류 처리
-    }
-}
-
-/**
- * 아파트 상세 정보 표시
- * @param {Object} detailData - 상세 정보 데이터
- * @param {string} kaptName - 아파트 이름
- */
-function displayAptDetail(detailData, kaptName) {
-    
-    // 기존 상세 정보 섹션이 있으면 제거
-    const existingDetail = document.getElementById('aptDetailInfo');
-    if (existingDetail) {
-        existingDetail.remove();
-    }
-    
-    const addressInfo = document.querySelector('.address-info');
-    
-    // 아파트 상세 정보 섹션 생성
-    const detailSection = document.createElement('div');
-    detailSection.id = 'aptDetailInfo';
-    detailSection.className = 'info-card';
-    
-    const html = `
-        <h2>🏢 ${kaptName} 상세 정보</h2>
-        <div class="apt-detail-grid">
-            <div class="detail-group">
-                <h4>🏠 기본 정보</h4>
-                <div class="detail-item">
-                    <strong>단지코드:</strong> ${detailData.kaptCode || '-'}
-                </div>
-                <div class="detail-item">
-                    <strong>단지명:</strong> ${detailData.kaptName || '-'}
-                </div>
-                <div class="detail-item">
-                    <strong>건물구조:</strong> ${detailData.codeStr || '-'}
-                </div>
-            </div>
-            
-            <div class="detail-group">
-                <h4>👥 관리 정보</h4>
-                <div class="detail-item">
-                    <strong>일반관리방식:</strong> ${detailData.codeMgr || '-'}
-                </div>
-                <div class="detail-item">
-                    <strong>일반관리인원:</strong> ${detailData.kaptMgrCnt || '-'}명
-                </div>
-                <div class="detail-item">
-                    <strong>일반관리 계약업체:</strong> ${detailData.kaptCcompany || '-'}
-                </div>
-                <div class="detail-item">
-                    <strong>경비관리방식:</strong> ${detailData.codeSec || '-'}
-                </div>
-                <div class="detail-item">
-                    <strong>경비관리인원:</strong> ${detailData.kaptdScnt || '-'}명
-                </div>
-                <div class="detail-item">
-                    <strong>경비관리 계약업체:</strong> ${detailData.kaptdSecCom || '-'}
-                </div>
-            </div>
-            
-            <div class="detail-group">
-                <h4>🧹 청소 및 환경</h4>
-                <div class="detail-item">
-                    <strong>청소관리방식:</strong> ${detailData.codeClean || '-'}
-                </div>
-                <div class="detail-item">
-                    <strong>청소관리인원:</strong> ${detailData.kaptdClcnt || '-'}명
-                </div>
-                <div class="detail-item">
-                    <strong>음식물처리방법:</strong> ${detailData.codeGarbage || '-'}
-                </div>
-                <div class="detail-item">
-                    <strong>소독관리방식:</strong> ${detailData.codeDisinf || '-'}
-                </div>
-                <div class="detail-item">
-                    <strong>연간소독횟수:</strong> ${detailData.kaptdDcnt || '-'}회
-                </div>
-                <div class="detail-item">
-                    <strong>소독방법:</strong> ${detailData.disposalType || '-'}
-                </div>
-            </div>
-            
-            <div class="detail-group">
-                <h4>⚡ 전기 및 안전</h4>
-                <div class="detail-item">
-                    <strong>수전용량:</strong> ${detailData.kaptdEcapa || '-'}kW
-                </div>
-                <div class="detail-item">
-                    <strong>세대전기계약방식:</strong> ${detailData.codeEcon || '-'}
-                </div>
-                <div class="detail-item">
-                    <strong>전기안전관리자법정선임여부:</strong> ${detailData.codeEmgr || '-'}
-                </div>
-                <div class="detail-item">
-                    <strong>화재수신반방식:</strong> ${detailData.codeFalarm || '-'}
-                </div>
-            </div>
-            
-            <div class="detail-group">
-                <h4>🚰 급수 및 승강기</h4>
-                <div class="detail-item">
-                    <strong>급수방식:</strong> ${detailData.codeWsupply || '-'}
-                </div>
-                <div class="detail-item">
-                    <strong>승강기관리형태:</strong> ${detailData.codeElev || '-'}
-                </div>
-                <div class="detail-item">
-                    <strong>승강기대수:</strong> ${detailData.kaptdEcnt || '-'}대
-                </div>
-            </div>
-            
-            <div class="detail-group">
-                <h4>🚗 주차 및 시설</h4>
-                <div class="detail-item">
-                    <strong>주차대수(지상):</strong> ${detailData.kaptdPcnt || '-'}대
-                </div>
-                <div class="detail-item">
-                    <strong>주차대수(지하):</strong> ${detailData.kaptdPcntu || '-'}대
-                </div>
-                <div class="detail-item">
-                    <strong>주차관제.홈네트워크:</strong> ${detailData.codeNet || '-'}
-                </div>
-                <div class="detail-item">
-                    <strong>CCTV대수:</strong> ${detailData.kaptdCccnt || '-'}대
-                </div>
-                <div class="detail-item">
-                    <strong>부대.복리시설:</strong> ${detailData.welfareFacility || '-'}
-                </div>
-            </div>
-            
-            <div class="detail-group">
-                <h4>🚌 교통 및 편의</h4>
-                <div class="detail-item">
-                    <strong>버스정류장 거리:</strong> ${detailData.kaptdWtimebus || '-'}분
-                </div>
-                <div class="detail-item">
-                    <strong>지하철호선:</strong> ${detailData.subwayLine || '-'}
-                </div>
-                <div class="detail-item">
-                    <strong>지하철역명:</strong> ${detailData.subwayStation || '-'}
-                </div>
-                <div class="detail-item">
-                    <strong>지하철역 거리:</strong> ${detailData.kaptdWtimesub || '-'}분
-                </div>
-                <div class="detail-item">
-                    <strong>편의시설:</strong> ${detailData.convenientFacility || '-'}
-                </div>
-                <div class="detail-item">
-                    <strong>교육시설:</strong> ${detailData.educationFacility || '-'}
-                </div>
-            </div>
-            
-            <div class="detail-group">
-                <h4>🔌 전기차 충전</h4>
-                <div class="detail-item">
-                    <strong>지상 전기차 충전기:</strong> ${detailData.groundElChargerCnt || '-'}대
-                </div>
-                <div class="detail-item">
-                    <strong>지하 전기차 충전기:</strong> ${detailData.undergroundElChargerCnt || '-'}대
-                </div>
-            </div>
-        </div>
-    `;
-    
-    detailSection.innerHTML = html;
-    addressInfo.appendChild(detailSection);
-}
-
-/* =========================================== */
-/* 7. BUILDING INFO API - 건물 정보 API */
+/* 4. BUILDING INFO API - 건물 정보 API */
 /* =========================================== */
 
 /**
@@ -785,8 +887,21 @@ function displayAptDetail(detailData, kaptName) {
  * @param {string} sigunguCd - 시군구코드 (행정구역코드 앞 5자리)
  * @param {string} bjdongCd - 법정동코드 (행정구역코드 뒤 5자리)
  * @param {string} bun - 지번본번 (4자리, 2자리인 경우 앞에 00을 붙임)
+ * @param {string} dongNm - 동명 (옵션)
  */
-async function loadBuildingInfo(sigunguCd, bjdongCd, bun) {
+async function loadBuildingInfo(sigunguCd, bjdongCd, bun, dongNm) {
+    console.log('\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    console.log('🏗️ [건물 정보 API] 호출 시작 (1-10페이지)');
+    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    console.log(`   전달 파라미터: sigunguCd=${sigunguCd}, bjdongCd=${bjdongCd}, bun=${bun}, dongNm=${dongNm || '없음'}`);
+    if (dongNm) {
+        console.log(`   ⚠️  주의: 건물정보 API는 dongNm 필터를 지원하지 않습니다.`);
+        console.log(`   📌 클라이언트 측에서 "${dongNm}"으로 필터링합니다.`);
+    }
+    
+    let successCount = 0;
+    let failCount = 0;
+    
     // 1-10페이지 순차 호출
     for (let pageNo = 1; pageNo <= 10; pageNo++) {
         try {
@@ -799,6 +914,9 @@ async function loadBuildingInfo(sigunguCd, bjdongCd, bun) {
                 pageNo: pageNo,
                 numOfRows: BUILDING_API_CONFIG.numOfRows
             });
+            
+            // 주의: dongNm은 API 파라미터로 지원되지 않으므로 보내지 않음
+            // 대신 응답 후 클라이언트 측에서 필터링
             
             // 환경에 따른 API 호출 방식 선택
             let url;
@@ -824,7 +942,7 @@ async function loadBuildingInfo(sigunguCd, bjdongCd, bun) {
             const response = await fetch(url);
             
             if (!response.ok) {
-                console.error(`🏗️ 페이지 ${pageNo} HTTP 오류:`, response.status, response.statusText);
+                failCount++;
                 continue; // 다음 페이지로 계속
             }
             
@@ -839,11 +957,49 @@ async function loadBuildingInfo(sigunguCd, bjdongCd, bun) {
             }
             
             if (data.response && data.response.header && data.response.header.resultCode === '00') {
-                displayBuildingInfo(data.response.body, pageNo);
+                // dongNm이 지정된 경우 필터링
+                let filteredBody = data.response.body;
+                if (dongNm && data.response.body && data.response.body.items && data.response.body.items.item) {
+                    const items = Array.isArray(data.response.body.items.item) 
+                        ? data.response.body.items.item 
+                        : [data.response.body.items.item];
+                    
+                    const filteredItems = items.filter(item => {
+                        // dongNm과 일치하는지 확인 (211, 211동 모두 매칭)
+                        const itemDongNm = item.dongNm ? item.dongNm.replace('동', '') : '';
+                        const searchDongNm = dongNm.replace('동', '');
+                        return itemDongNm === searchDongNm;
+                    });
+                    
+                    if (filteredItems.length > 0) {
+                        filteredBody = {
+                            ...data.response.body,
+                            items: {
+                                item: filteredItems
+                            },
+                            totalCount: filteredItems.length
+                        };
+                    } else {
+                        // 필터링 결과가 없으면 이 페이지는 건너뛰기
+                        continue;
+                    }
+                }
+                
+                if (!allData.buildingInfo) {
+                    allData.buildingInfo = [];
+                }
+                allData.buildingInfo.push({
+                    pageNo: pageNo,
+                    data: filteredBody
+                });
+                apiDisplayStatus.buildingInfo.loaded = true;
+                displayBuildingInfo(filteredBody, pageNo);
+                // updateJsonData(); // JSON 데이터 업데이트 - 제거됨 (사용자 요청)
+                successCount++;
             }
             
         } catch (error) {
-            console.error(`🏗️ 페이지 ${pageNo} API 호출 오류:`, error);
+            failCount++;
         }
         
         // 페이지 간 간격 (API 서버 부하 방지)
@@ -851,6 +1007,34 @@ async function loadBuildingInfo(sigunguCd, bjdongCd, bun) {
             await new Promise(resolve => setTimeout(resolve, 100));
         }
     }
+    
+    // 최종 결과 요약
+    console.log('\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    if (successCount > 0) {
+        console.log(`✅ [건물 정보 API] 응답 성공 (${successCount}/10 페이지)`);
+        if (dongNm) {
+            // 필터링된 총 건수 계산
+            let totalFiltered = 0;
+            if (allData.buildingInfo) {
+                allData.buildingInfo.forEach(page => {
+                    if (page.data && page.data.items && page.data.items.item) {
+                        const items = Array.isArray(page.data.items.item) 
+                            ? page.data.items.item 
+                            : [page.data.items.item];
+                        totalFiltered += items.length;
+                    }
+                });
+            }
+            console.log(`📌 동명 "${dongNm}" 필터링 결과: ${totalFiltered}건`);
+        }
+    }
+    if (failCount > 0) {
+        console.log(`❌ [건물 정보 API] 응답 실패 (${failCount}/10 페이지)`);
+    }
+    if (successCount === 0 && failCount === 0) {
+        console.log('❌ [건물 정보 API] 응답 없음');
+    }
+    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
 }
 
 /* =========================================== */
@@ -862,6 +1046,10 @@ async function loadBuildingInfo(sigunguCd, bjdongCd, bun) {
  * @param {string} address - 도로명주소
  */
 async function loadGeocoderInfo(address) {
+    console.log('\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    console.log('🌍 [Geocoder API] 호출 시작');
+    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    
     try {
         const params = new URLSearchParams({
             service: GEOCODER_API_CONFIG.service,
@@ -886,24 +1074,29 @@ async function loadGeocoderInfo(address) {
         const data = await response.json();
         
         if (data.response && data.response.status === 'OK') {
+            console.log('✅ [Geocoder API] 응답 성공');
+            allData.geocoderInfo = data.response;
+            apiDisplayStatus.geocoderInfo.loaded = true;
             displayGeocoderInfo(data.response);
+            // updateJsonData(); // JSON 데이터 업데이트 - 제거됨 (사용자 요청)
             
-            // 좌표 정보가 있으면 토지이용계획도 API 호출
-            if (data.response.result && data.response.result.point) {
-                const point = data.response.result.point;
-                console.log('🏗️ Geocoder에서 좌표 획득:', point);
-                console.log('🏗️ 토지이용계획도 API 호출 시작:', { x: point.x, y: point.y });
-                loadLandUseInfo(point.x, point.y);
-            } else {
-                console.log('🏗️ Geocoder에서 좌표 정보를 찾을 수 없습니다.');
-                console.log('🏗️ data.response.result:', data.response.result);
+            // 주소 요약 카드 업데이트 (좌표 정보 추가)
+            displayAddressSummaryCard();
+            
+            // Geocoder API 성공 후 토지특성 API 호출
+            if (allData.addressInfo) {
+                loadLandInfo(allData.addressInfo, data.response);
             }
+            
         } else {
-            console.error('🌍 Geocoder API 실패:', data.response?.status, data.response?.error);
+            console.log('❌ [Geocoder API] 응답 실패');
+            console.log(`   상태: ${data.response?.status}`);
+            console.log(`   에러: ${data.response?.error?.message || data.response?.error}`);
         }
         
     } catch (error) {
-        console.error('🌍 Geocoder API 호출 오류:', error);
+        console.log('❌ [Geocoder API] 에러 발생');
+        console.log(`   에러: ${error.message}`);
     }
 }
 
@@ -918,10 +1111,6 @@ function displayGeocoderInfo(geocoderData) {
         return;
     }
     
-    const point = geocoderData.result.point;
-    const refined = geocoderData.refined;
-    const input = geocoderData.input;
-    
     // 기존 좌표 정보 섹션이 있으면 제거
     const existingGeocoder = document.getElementById('geocoderInfo');
     if (existingGeocoder) {
@@ -933,61 +1122,9 @@ function displayGeocoderInfo(geocoderData) {
     geocoderSection.id = 'geocoderInfo';
     geocoderSection.className = 'info-card';
     
-    // 좌표 정보를 HTML 문자열로 구성
     const html = `
-        <h2>🌍 좌표 정보</h2>
-        <div class="building-detail-grid">
-            <div class="detail-group">
-                <h4>📍 좌표 정보</h4>
-                <div class="detail-item">
-                    <strong>X좌표 (경도):</strong> ${point.x || '-'}
-                </div>
-                <div class="detail-item">
-                    <strong>Y좌표 (위도):</strong> ${point.y || '-'}
-                </div>
-                <div class="detail-item">
-                    <strong>좌표계:</strong> ${geocoderData.result.crs || '-'}
-                </div>
-            </div>
-            
-            <div class="detail-group">
-                <h4>🏠 정제된 주소 정보</h4>
-                <div class="detail-item">
-                    <strong>전체 주소:</strong> ${refined?.text || '-'}
-                </div>
-                <div class="detail-item">
-                    <strong>시도:</strong> ${refined?.structure?.level1 || '-'}
-                </div>
-                <div class="detail-item">
-                    <strong>시군구:</strong> ${refined?.structure?.level2 || '-'}
-                </div>
-                <div class="detail-item">
-                    <strong>읍면동:</strong> ${refined?.structure?.level4L || '-'}
-                </div>
-                <div class="detail-item">
-                    <strong>도로명:</strong> ${refined?.structure?.level4L || '-'}
-                </div>
-                <div class="detail-item">
-                    <strong>건물번호:</strong> ${refined?.structure?.level5 || '-'}
-                </div>
-                <div class="detail-item">
-                    <strong>상세주소:</strong> ${refined?.structure?.detail || '-'}
-                </div>
-            </div>
-            
-            <div class="detail-group">
-                <h4>🔍 입력 정보</h4>
-                <div class="detail-item">
-                    <strong>입력 주소:</strong> ${geocoderData.input?.address || '-'}
-                </div>
-                <div class="detail-item">
-                    <strong>주소 유형:</strong> ${geocoderData.input?.type || '-'}
-                </div>
-                <div class="detail-item">
-                    <strong>처리 상태:</strong> ${geocoderData.status || '-'}
-                </div>
-            </div>
-        </div>
+        <h2>🌍 Geocoder API 원본 응답</h2>
+        <pre>${JSON.stringify(geocoderData, null, 2)}</pre>
     `;
     
     geocoderSection.innerHTML = html;
@@ -997,208 +1134,6 @@ function displayGeocoderInfo(geocoderData) {
         addressInfo.appendChild(geocoderSection);
     } else {
         console.error('🌍 address-info 요소를 찾을 수 없습니다.');
-    }
-}
-
-/**
- * 토지이용계획도 API 호출
- * @param {string} x - X좌표 (경도)
- * @param {string} y - Y좌표 (위도)
- */
-async function loadLandUseInfo(x, y) {
-    try {
-        console.log('🏗️ 토지이용계획도 API 호출 시작:', { x, y });
-        console.log('🏗️ 건물관리번호 (pnu):', window.buildingManagementNumber);
-        
-        const params = new URLSearchParams({
-            service: LAND_USE_API_CONFIG.service,
-            request: LAND_USE_API_CONFIG.request,
-            version: LAND_USE_API_CONFIG.version,
-            key: LAND_USE_API_CONFIG.apiKey,
-            format: LAND_USE_API_CONFIG.format,
-            data: LAND_USE_API_CONFIG.data,
-            crs: LAND_USE_API_CONFIG.crs,
-            size: LAND_USE_API_CONFIG.size,
-            page: LAND_USE_API_CONFIG.page,
-            geometry: LAND_USE_API_CONFIG.geometry,
-            attribute: LAND_USE_API_CONFIG.attribute,
-            geomFilter: `POINT(${x} ${y})`,
-            pnu: window.buildingManagementNumber || ''
-        });
-        
-        const url = `${LAND_USE_API_CONFIG.baseUrl}?${params.toString()}`;
-        console.log('🏗️ 토지이용계획도 API 호출 URL:', url);
-        console.log('🏗️ 전달 파라미터:', {
-            service: LAND_USE_API_CONFIG.service,
-            request: LAND_USE_API_CONFIG.request,
-            version: LAND_USE_API_CONFIG.version,
-            key: LAND_USE_API_CONFIG.apiKey,
-            format: LAND_USE_API_CONFIG.format,
-            data: LAND_USE_API_CONFIG.data,
-            crs: LAND_USE_API_CONFIG.crs,
-            size: LAND_USE_API_CONFIG.size,
-            page: LAND_USE_API_CONFIG.page,
-            geometry: LAND_USE_API_CONFIG.geometry,
-            attribute: LAND_USE_API_CONFIG.attribute,
-            geomFilter: `POINT(${x} ${y})`,
-            pnu: window.buildingManagementNumber || ''
-        });
-        
-        const response = await fetch(url);
-        console.log('🏗️ 응답 상태:', response.status);
-        console.log('🏗️ 응답 헤더:', response.headers);
-        
-        if (!response.ok) {
-            console.error('🏗️ HTTP 오류:', response.status, response.statusText);
-            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-        }
-        
-        const data = await response.json();
-        console.log('🏗️ 토지이용계획도 API 응답:', data);
-        console.log('🏗️ 응답 구조 분석:', {
-            hasService: !!data.service,
-            hasStatus: !!data.status,
-            hasRecord: !!data.record,
-            hasPage: !!data.page,
-            hasResult: !!data.result,
-            hasError: !!data.error,
-            status: data.status,
-            error: data.error,
-            serviceInfo: data.service,
-            recordInfo: data.record,
-            pageInfo: data.page,
-            resultInfo: data.result
-        });
-        
-        if (data.landUses && data.landUses.field) {
-            console.log('🏗️ 성공 응답 - 토지이용계획 정보 표시');
-            displayLandUseInfo(data);
-        } else {
-            console.error('🏗️ 토지이용계획도 API 실패:', data.resultCode, data.resultMsg);
-            console.log('🏗️ 전체 응답 데이터:', JSON.stringify(data, null, 2));
-        }
-        
-    } catch (error) {
-        console.error('🏗️ 토지이용계획도 API 호출 오류:', error);
-        console.error('🏗️ 오류 스택:', error.stack);
-    }
-}
-
-/**
- * 토지이용계획 정보 표시 함수
- * @param {Object} landUseData - 토지이용계획 데이터
- */
-function displayLandUseInfo(landUseData) {
-    console.log('🏗️ displayLandUseInfo 함수 호출됨:', landUseData);
-    
-    const addressInfo = document.querySelector('.address-info');
-    console.log('🏗️ address-info 요소 찾음:', addressInfo);
-    
-    if (!landUseData.landUses || !landUseData.landUses.field || landUseData.landUses.field.length === 0) {
-        console.log('🏗️ 토지이용계획 데이터가 없습니다.');
-        console.log('🏗️ landUseData.landUses:', landUseData.landUses);
-        console.log('🏗️ 전체 landUseData:', landUseData);
-        return;
-    }
-    
-    const features = landUseData.landUses.field;
-    console.log('🏗️ 토지이용계획 features:', features);
-    console.log('🏗️ features 개수:', features.length);
-    
-    // 첫 번째 feature의 상세 확인
-    if (features.length > 0) {
-        console.log('🏗️ 첫 번째 feature:', features[0]);
-        console.log('🏗️ feature 키들:', Object.keys(features[0] || {}));
-    }
-    
-    // 기존 토지이용계획 정보 섹션이 있으면 제거
-    const existingLandUse = document.getElementById('landUseInfo');
-    if (existingLandUse) {
-        console.log('🏗️ 기존 토지이용계획 정보 섹션 제거');
-        existingLandUse.remove();
-    }
-    
-    // 토지이용계획 정보 섹션 생성
-    const landUseSection = document.createElement('div');
-    landUseSection.id = 'landUseInfo';
-    landUseSection.className = 'info-card';
-    
-    const html = `
-        <div class="info-card-header">
-            <h3>🏗️ 토지이용계획 정보</h3>
-        </div>
-        <div class="info-card-content">
-            <div class="detail-group">
-                <h4>📊 계획 정보</h4>
-                <div class="detail-item">
-                    <strong>총 건수:</strong> ${landUseData.landUses?.totalCount || '-'}
-                </div>
-                <div class="detail-item">
-                    <strong>현재 페이지:</strong> ${landUseData.landUses?.pageNo || '-'}
-                </div>
-                <div class="detail-item">
-                    <strong>페이지당 건수:</strong> ${landUseData.landUses?.numOfRows || '-'}
-                </div>
-            </div>
-            
-            <div class="detail-group">
-                <h4>🏘️ 토지이용계획 상세</h4>
-                ${features.map((feature, index) => `
-                    <div class="feature-item">
-                        <h5>계획구역 ${index + 1}</h5>
-                        <div class="detail-item">
-                            <strong>고유번호 (pnu):</strong> ${feature.pnu || '-'}
-                        </div>
-                        <div class="detail-item">
-                            <strong>법정동코드:</strong> ${feature.ldCode || '-'}
-                        </div>
-                        <div class="detail-item">
-                            <strong>법정동명:</strong> ${feature.ldCodeNm || '-'}
-                        </div>
-                        <div class="detail-item">
-                            <strong>대장구분코드:</strong> ${feature.regstrSeCode || '-'}
-                        </div>
-                        <div class="detail-item">
-                            <strong>대장구분명:</strong> ${feature.regstrSeCodeNm || '-'}
-                        </div>
-                        <div class="detail-item">
-                            <strong>지번:</strong> ${feature.mnnmSlno || '-'}
-                        </div>
-                        <div class="detail-item">
-                            <strong>도면번호:</strong> ${feature.manageNo || '-'}
-                        </div>
-                        <div class="detail-item">
-                            <strong>저촉여부코드:</strong> ${feature.cnflcAt || '-'}
-                        </div>
-                        <div class="detail-item">
-                            <strong>저촉여부:</strong> ${feature.cnflcAtNm || '-'}
-                        </div>
-                        <div class="detail-item">
-                            <strong>용도지역지구코드:</strong> ${feature.prposAreaDstrcCode || '-'}
-                        </div>
-                        <div class="detail-item">
-                            <strong>용도지역지구명:</strong> ${feature.prposAreaDstrcCodeNm || '-'}
-                        </div>
-                        <div class="detail-item">
-                            <strong>등록일자:</strong> ${feature.registDt || '-'}
-                        </div>
-                        <div class="detail-item">
-                            <strong>데이터기준일자:</strong> ${feature.lastUpdtDt || '-'}
-                        </div>
-                    </div>
-                `).join('')}
-            </div>
-        </div>
-    `;
-    
-    landUseSection.innerHTML = html;
-    
-    // 페이지에 추가
-    if (addressInfo) {
-        addressInfo.appendChild(landUseSection);
-        console.log('🏗️ 토지이용계획 정보 섹션 추가 완료');
-    } else {
-        console.error('🏗️ address-info 요소를 찾을 수 없습니다.');
     }
 }
 
@@ -1281,180 +1216,14 @@ function displayBuildingInfo(buildingData, pageNo) {
         return;
     }
     
-    const building = buildingData.items.item;
-    
-    // 건물 데이터가 없는 경우 처리
-    if (!building || (Array.isArray(building) && building.length === 0)) {
-        return;
-    }
-    
     // 건물 정보 섹션 생성 (페이지별로 구분)
     const buildingSection = document.createElement('div');
     buildingSection.id = `buildingInfoPage${pageNo}`;
     buildingSection.className = 'info-card';
     
-    // 실제 건물 데이터 (배열인 경우 첫 번째 항목 사용)
-    const buildingInfo = Array.isArray(building) ? building[0] : building;
-    
-    // buildingInfo가 유효한지 확인
-    if (!buildingInfo) {
-        return;
-    }
-    
     const html = `
-        <h2>🏗️ 건물 정보 (페이지 ${pageNo})</h2>
-        <div class="building-detail-grid">
-            <div class="detail-group">
-                <h4>📍 기본 정보</h4>
-                <div class="detail-item">
-                    <strong>건물명:</strong> ${buildingInfo.bldNm || '-'}
-                </div>
-                <div class="detail-item">
-                    <strong>소재지:</strong> ${buildingInfo.platPlc || '-'}
-                </div>
-                <div class="detail-item">
-                    <strong>신소재지:</strong> ${buildingInfo.newPlatPlc || '-'}
-                </div>
-                <div class="detail-item">
-                    <strong>동명:</strong> ${buildingInfo.dongNm || '-'}
-                </div>
-                <div class="detail-item">
-                    <strong>본번:</strong> ${buildingInfo.bun || '-'}
-                </div>
-                <div class="detail-item">
-                    <strong>부번:</strong> ${buildingInfo.ji || '-'}
-                </div>
-            </div>
-            
-            <div class="detail-group">
-                <h4>🏠 용도 및 구조</h4>
-                <div class="detail-item">
-                    <strong>주용도:</strong> ${buildingInfo.mainPurpsCdNm || '-'}
-                </div>
-                <div class="detail-item">
-                    <strong>기타용도:</strong> ${buildingInfo.etcPurps || '-'}
-                </div>
-                <div class="detail-item">
-                    <strong>구조:</strong> ${buildingInfo.strctCdNm || '-'}
-                </div>
-                <div class="detail-item">
-                    <strong>기타구조:</strong> ${buildingInfo.etcStrct || '-'}
-                </div>
-                <div class="detail-item">
-                    <strong>지붕:</strong> ${buildingInfo.roofCdNm || '-'}
-                </div>
-                <div class="detail-item">
-                    <strong>기타지붕:</strong> ${buildingInfo.etcRoof || '-'}
-                </div>
-            </div>
-            
-            <div class="detail-group">
-                <h4>📊 면적 정보</h4>
-                <div class="detail-item">
-                    <strong>대지면적:</strong> ${buildingInfo.platArea || '-'}㎡
-                </div>
-                <div class="detail-item">
-                    <strong>건축면적:</strong> ${buildingInfo.archArea || '-'}㎡
-                </div>
-                <div class="detail-item">
-                    <strong>연면적:</strong> ${buildingInfo.totArea || '-'}㎡
-                </div>
-                <div class="detail-item">
-                    <strong>건폐율:</strong> ${buildingInfo.bcRat || '-'}%
-                </div>
-                <div class="detail-item">
-                    <strong>용적율:</strong> ${buildingInfo.vlRat || '-'}%
-                </div>
-            </div>
-            
-            <div class="detail-group">
-                <h4>🏢 건물 규모</h4>
-                <div class="detail-item">
-                    <strong>지상층수:</strong> ${buildingInfo.grndFlrCnt || '-'}층
-                </div>
-                <div class="detail-item">
-                    <strong>지하층수:</strong> ${buildingInfo.ugrndFlrCnt || '-'}층
-                </div>
-                <div class="detail-item">
-                    <strong>높이:</strong> ${buildingInfo.heit || '-'}m
-                </div>
-                <div class="detail-item">
-                    <strong>세대수:</strong> ${buildingInfo.hhldCnt || '-'}세대
-                </div>
-                <div class="detail-item">
-                    <strong>호수:</strong> ${buildingInfo.hoCnt || '-'}호
-                </div>
-            </div>
-            
-            <div class="detail-group">
-                <h4>🚗 주차 및 승강기</h4>
-                <div class="detail-item">
-                    <strong>승용승강기:</strong> ${buildingInfo.rideUseElvtCnt || '-'}대
-                </div>
-                <div class="detail-item">
-                    <strong>비상승강기:</strong> ${buildingInfo.emgenUseElvtCnt || '-'}대
-                </div>
-                <div class="detail-item">
-                    <strong>지하주차:</strong> ${buildingInfo.indrAutoUtcnt || '-'}대 (${buildingInfo.indrAutoArea || '-'}㎡)
-                </div>
-                <div class="detail-item">
-                    <strong>지상주차:</strong> ${buildingInfo.oudrAutoUtcnt || '-'}대 (${buildingInfo.oudrAutoArea || '-'}㎡)
-                </div>
-                <div class="detail-item">
-                    <strong>지하기계식:</strong> ${buildingInfo.indrMechUtcnt || '-'}대 (${buildingInfo.indrMechArea || '-'}㎡)
-                </div>
-                <div class="detail-item">
-                    <strong>지상기계식:</strong> ${buildingInfo.oudrMechUtcnt || '-'}대 (${buildingInfo.oudrMechArea || '-'}㎡)
-                </div>
-            </div>
-            
-            <div class="detail-group">
-                <h4>📅 건축 정보</h4>
-                <div class="detail-item">
-                    <strong>사용승인일:</strong> ${buildingInfo.useAprDay || '-'}
-                </div>
-                <div class="detail-item">
-                    <strong>착공일:</strong> ${buildingInfo.stcnsDay || '-'}
-                </div>
-                <div class="detail-item">
-                    <strong>준공일:</strong> ${buildingInfo.pmsDay || '-'}
-                </div>
-                <div class="detail-item">
-                    <strong>건축연도:</strong> ${buildingInfo.pmsnoYear || '-'}
-                </div>
-                <div class="detail-item">
-                    <strong>건축주:</strong> ${buildingInfo.pmsnoKikCdNm || '-'}
-                </div>
-                <div class="detail-item">
-                    <strong>설계자:</strong> ${buildingInfo.pmsnoGbCdNm || '-'}
-                </div>
-            </div>
-            
-            <div class="detail-group">
-                <h4>🏆 인증 정보</h4>
-                <div class="detail-item">
-                    <strong>에너지등급:</strong> ${buildingInfo.engrGrade || '-'}
-                </div>
-                <div class="detail-item">
-                    <strong>에너지효율:</strong> ${buildingInfo.engrRat || '-'}
-                </div>
-                <div class="detail-item">
-                    <strong>에너지EPI:</strong> ${buildingInfo.engrEpi || '-'}
-                </div>
-                <div class="detail-item">
-                    <strong>녹색건물등급:</strong> ${buildingInfo.gnBldGrade || '-'}
-                </div>
-                <div class="detail-item">
-                    <strong>녹색건물인증:</strong> ${buildingInfo.gnBldCert || '-'}
-                </div>
-                <div class="detail-item">
-                    <strong>통합건물등급:</strong> ${buildingInfo.itgBldGrade || '-'}
-                </div>
-                <div class="detail-item">
-                    <strong>통합건물인증:</strong> ${buildingInfo.itgBldCert || '-'}
-                </div>
-            </div>
-        </div>
+        <h2>🏗️ 건물 정보 API 원본 응답 (페이지 ${pageNo})</h2>
+        <pre>${JSON.stringify(buildingData, null, 2)}</pre>
     `;
     
     buildingSection.innerHTML = html;
@@ -1462,8 +1231,517 @@ function displayBuildingInfo(buildingData, pageNo) {
 }
 
 /* =========================================== */
-/* 8. UTILITY FUNCTIONS - 유틸리티 함수 */
+/* 8. LAND CHARACTERISTICS API - 토지특성 API */
 /* =========================================== */
+
+/**
+ * PNU(필지고유번호) 생성 함수
+ * PNU = 행정구역코드(10) + 필지구분(1) + 본번(4) + 부번(4) = 19자리
+ * 필지구분: 1=일반, 2=산
+ * 
+ * @param {object} addressData - 주소 검색 API 응답 데이터
+ * @returns {string} 19자리 PNU
+ */
+function generatePNU(addressData) {
+    if (!addressData) {
+        console.error('❌ PNU 생성 실패: 주소 데이터가 없습니다.');
+        return null;
+    }
+    
+    // 행정구역코드 (10자리)
+    const admCd = addressData.admCd || '';
+    if (admCd.length !== 10) {
+        console.error('❌ PNU 생성 실패: 행정구역코드가 10자리가 아닙니다:', admCd);
+        return null;
+    }
+    
+    // 필지구분 (1자리)
+    // mtYn: '0' = 일반, '1' = 산
+    // PNU 필지구분: '1' = 일반, '2' = 산
+    const mtYn = addressData.mtYn || '0';
+    const piljigubn = mtYn === '1' ? '2' : '1'; // 산이면 2, 일반이면 1
+    
+    // 본번 (4자리, 0000으로 패딩)
+    const lnbrMnnm = addressData.lnbrMnnm || '0';
+    const bun = lnbrMnnm.toString().padStart(4, '0');
+    
+    // 부번 (4자리, 0000으로 패딩)
+    const lnbrSlno = addressData.lnbrSlno || '0';
+    const ji = lnbrSlno.toString().padStart(4, '0');
+    
+    const pnu = `${admCd}${piljigubn}${bun}${ji}`;
+    
+    console.log(`📌 PNU 생성: ${pnu}`);
+    console.log(`   행정구역코드: ${admCd} (10자리)`);
+    console.log(`   필지구분: ${piljigubn} (${piljigubn === '1' ? '일반' : '산'})`);
+    console.log(`   본번: ${bun} (4자리)`);
+    console.log(`   부번: ${ji} (4자리)`);
+    console.log(`   → ${admCd} + ${piljigubn} + ${bun} + ${ji} = ${pnu}`);
+    
+    return pnu;
+}
+
+/**
+ * BBOX(경계 상자) 생성 함수
+ * 주어진 좌표(경도, 위도)를 중심으로 약 500m x 500m 크기의 bbox 생성
+ * 
+ * @param {number} x - 경도(longitude)
+ * @param {number} y - 위도(latitude)
+ * @param {number} distance - 중심에서의 거리(미터, 기본값: 250m)
+ * @returns {string} bbox 문자열 (EPSG:4326 형식: ymin,xmin,ymax,xmax)
+ */
+function generateBBOX(x, y, distance = 250) {
+    // 위도 1도 ≈ 111km
+    // 경도 1도 ≈ 111km * cos(위도)
+    const latDelta = distance / 111000; // 위도 변화량
+    const lonDelta = distance / (111000 * Math.cos(y * Math.PI / 180)); // 경도 변화량
+    
+    const xmin = x - lonDelta;
+    const xmax = x + lonDelta;
+    const ymin = y - latDelta;
+    const ymax = y + latDelta;
+    
+    // EPSG:4326의 경우 (ymin,xmin,ymax,xmax) 순서
+    const bbox = `${ymin},${xmin},${ymax},${xmax},EPSG:4326`;
+    
+    console.log(`📐 BBOX 생성 (중심에서 ${distance}m):`);
+    console.log(`   중심 좌표: (${x}, ${y})`);
+    console.log(`   BBOX: ${bbox}`);
+    
+    return bbox;
+}
+
+/**
+ * 토지특성 API 호출 및 표시
+ * 
+ * @param {object} addressData - 주소 검색 API 응답 데이터
+ * @param {object} geocoderData - Geocoder API 응답 데이터
+ */
+async function loadLandInfo(addressData, geocoderData) {
+    console.log('\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    console.log('🌍 [토지특성 API] 호출 시작');
+    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    
+    // PNU 생성
+    const pnu = generatePNU(addressData);
+    
+    if (!pnu) {
+        console.error('❌ [토지특성 API] PNU 생성 실패');
+        return;
+    }
+    
+    try {
+        const params = new URLSearchParams({
+            key: LAND_API_CONFIG.apiKey,
+            typename: LAND_API_CONFIG.typename,
+            pnu: pnu,
+            resultType: LAND_API_CONFIG.resultType,
+            srsName: LAND_API_CONFIG.srsName,
+            output: LAND_API_CONFIG.output,
+            maxFeatures: LAND_API_CONFIG.maxFeatures
+        });
+        
+        console.log('\n┌─────────────────────────────────────────┐');
+        console.log('│  📤 [토지특성 API - PNU 검색] 요청 내용  │');
+        console.log('└─────────────────────────────────────────┘');
+        console.log(`   🔑 key: ${LAND_API_CONFIG.apiKey}`);
+        console.log(`   📋 typename: ${LAND_API_CONFIG.typename}`);
+        console.log(`   🏘️  pnu: ${pnu}`);
+        console.log(`   📊 resultType: ${LAND_API_CONFIG.resultType}`);
+        console.log(`   🗺️  srsName: ${LAND_API_CONFIG.srsName}`);
+        console.log(`   📄 output: ${LAND_API_CONFIG.output}`);
+        console.log(`   🔢 maxFeatures: ${LAND_API_CONFIG.maxFeatures}`);
+        
+        // 환경에 따른 API 호출 방식 선택
+        let url;
+        const isLocal = window.location.hostname === 'localhost' || 
+                        window.location.hostname === '127.0.0.1' || 
+                        window.location.protocol === 'file:' ||
+                        window.location.hostname === '';
+        
+        if (isLocal) {
+            // 로컬 개발: 프록시 서버 사용
+            url = `http://localhost:3001/api/land?${params.toString()}`;
+        } else {
+            // GitHub Pages: 직접 호출
+            url = `${LAND_API_CONFIG.baseUrl}?${params.toString()}`;
+        }
+        
+        console.log(`\n   🌐 요청 URL:`);
+        console.log(`   ${url}\n`);
+        
+        const response = await fetch(url);
+        
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+        
+        const contentType = response.headers.get('content-type');
+        let data;
+        
+        if (contentType && contentType.includes('application/json')) {
+            data = await response.json();
+        } else {
+            // GML/XML 응답
+            const xmlText = await response.text();
+            
+            // 빈 응답 체크 (Feature가 없는 경우)
+            if (xmlText.includes('boundedBy') && xmlText.includes('-1,-1 0,0')) {
+                console.log('\n┌─────────────────────────────────────────┐');
+                console.log('│  📥 [토지특성 API - PNU 검색] 응답 내용  │');
+                console.log('└─────────────────────────────────────────┘');
+                console.warn('   ⚠️  응답 상태: 데이터 없음');
+                console.warn('   원인: 해당 PNU에 대한 토지특성 데이터가 존재하지 않습니다');
+                console.log('\n   📄 원본 XML 응답:');
+                console.log('   ' + xmlText.replace(/\n/g, '\n   '));
+                
+                // BBOX 검색 시도
+                if (geocoderData && geocoderData.result && geocoderData.result.point) {
+                    console.log('\n🔄 [토지특성 API] BBOX 검색으로 재시도...\n');
+                    await loadLandInfoByBBOX(geocoderData.result.point);
+                    return;
+                }
+            } else {
+                console.log('\n┌─────────────────────────────────────────┐');
+                console.log('│  📥 [토지특성 API - PNU 검색] 응답 내용  │');
+                console.log('└─────────────────────────────────────────┘');
+                console.log('   ✅ 응답 상태: 성공 (XML/GML)');
+                console.log('\n   📄 원본 XML 응답:');
+                const xmlPreview = xmlText.substring(0, 1000);
+                console.log('   ' + xmlPreview.replace(/\n/g, '\n   ') + (xmlText.length > 1000 ? '\n   ...(생략)...' : ''));
+            }
+            
+            // XML 데이터 저장
+            allData.landInfo = xmlText;
+            apiDisplayStatus.landInfo.loaded = true;
+            displayLandInfo(xmlText);
+            // updateJsonData(); // JSON 데이터 업데이트 - 제거됨 (사용자 요청)
+            
+            // 주소 요약 카드 업데이트 (토지 정보 배지 추가)
+            displayAddressSummaryCard();
+            
+            // 자동으로 파싱된 정보 출력
+            if (window.parseLandXML) {
+                setTimeout(() => window.parseLandXML(), 500);
+            }
+            
+            return;
+        }
+        
+        console.log('\n┌─────────────────────────────────────────┐');
+        console.log('│  📥 [토지특성 API - PNU 검색] 응답 내용  │');
+        console.log('└─────────────────────────────────────────┘');
+        console.log('   ✅ 응답 상태: 성공 (JSON)');
+        console.log('\n   📄 원본 JSON 응답:');
+        console.log(JSON.stringify(data, null, 2));
+        
+        allData.landInfo = data;
+        apiDisplayStatus.landInfo.loaded = true;
+        displayLandInfo(data);
+        // updateJsonData(); // JSON 데이터 업데이트 - 제거됨 (사용자 요청)
+        
+        // 자동으로 파싱된 정보 출력
+        if (window.parseLandXML) {
+            setTimeout(() => window.parseLandXML(), 500);
+        }
+        
+    } catch (error) {
+        console.error('❌ [토지특성 API] 에러 발생:', error.message);
+    }
+    
+    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
+}
+
+/**
+ * BBOX를 사용한 토지특성 API 호출
+ * PNU 검색이 실패했을 때 좌표 범위로 검색
+ * 
+ * @param {object} point - 좌표 정보 {x: 경도, y: 위도}
+ */
+async function loadLandInfoByBBOX(point) {
+    console.log('\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    console.log('🌍 [토지특성 API - BBOX 검색] 호출 시작');
+    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    
+    const x = parseFloat(point.x);
+    const y = parseFloat(point.y);
+    
+    // BBOX 생성 (중심에서 50m 범위)
+    const bbox = generateBBOX(x, y, 50);
+    
+    try {
+        const params = new URLSearchParams({
+            key: LAND_API_CONFIG.apiKey,
+            typename: LAND_API_CONFIG.typename,
+            bbox: bbox,
+            resultType: LAND_API_CONFIG.resultType,
+            srsName: LAND_API_CONFIG.srsName,
+            output: LAND_API_CONFIG.output,
+            maxFeatures: LAND_API_CONFIG.maxFeatures
+        });
+        
+        console.log('\n┌─────────────────────────────────────────┐');
+        console.log('│ 📤 [토지특성 API - BBOX 검색] 요청 내용  │');
+        console.log('└─────────────────────────────────────────┘');
+        console.log(`   🔑 key: ${LAND_API_CONFIG.apiKey}`);
+        console.log(`   📋 typename: ${LAND_API_CONFIG.typename}`);
+        console.log(`   📦 bbox: ${bbox}`);
+        console.log(`   📊 resultType: ${LAND_API_CONFIG.resultType}`);
+        console.log(`   🗺️  srsName: ${LAND_API_CONFIG.srsName}`);
+        console.log(`   📄 output: ${LAND_API_CONFIG.output}`);
+        console.log(`   🔢 maxFeatures: ${LAND_API_CONFIG.maxFeatures}`);
+        
+        // 환경에 따른 API 호출 방식 선택
+        let url;
+        const isLocal = window.location.hostname === 'localhost' || 
+                        window.location.hostname === '127.0.0.1' || 
+                        window.location.protocol === 'file:' ||
+                        window.location.hostname === '';
+        
+        if (isLocal) {
+            url = `http://localhost:3001/api/land?${params.toString()}`;
+        } else {
+            url = `${LAND_API_CONFIG.baseUrl}?${params.toString()}`;
+        }
+        
+        console.log(`\n   🌐 요청 URL:`);
+        console.log(`   ${url}\n`);
+        
+        const response = await fetch(url);
+        
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+        
+        const xmlText = await response.text();
+        
+        // 빈 응답 체크
+        if (xmlText.includes('boundedBy') && xmlText.includes('-1,-1 0,0')) {
+            console.log('\n┌─────────────────────────────────────────┐');
+            console.log('│ 📥 [토지특성 API - BBOX 검색] 응답 내용  │');
+            console.log('└─────────────────────────────────────────┘');
+            console.warn('   ⚠️  응답 상태: 데이터 없음');
+            console.warn('   원인: 해당 좌표 주변 50m 내에 토지특성 데이터가 존재하지 않습니다');
+            console.log('\n   📄 원본 XML 응답:');
+            console.log('   ' + xmlText.replace(/\n/g, '\n   '));
+        } else {
+            console.log('\n┌─────────────────────────────────────────┐');
+            console.log('│ 📥 [토지특성 API - BBOX 검색] 응답 내용  │');
+            console.log('└─────────────────────────────────────────┘');
+            console.log('   ✅ 응답 상태: 성공 (XML/GML)');
+            console.log('   📦 데이터 포함: 토지특성 정보 있음');
+            console.log('\n   📄 원본 XML 응답:');
+            const xmlPreview = xmlText.substring(0, 2000);
+            console.log('   ' + xmlPreview.replace(/\n/g, '\n   ') + (xmlText.length > 2000 ? '\n   ...(더 보려면 allData.landInfo 확인)...' : ''));
+        }
+        
+        // XML 데이터 저장
+        allData.landInfo = xmlText;
+        apiDisplayStatus.landInfo.loaded = true;
+        displayLandInfo(xmlText);
+        // updateJsonData(); // JSON 데이터 업데이트 - 제거됨 (사용자 요청)
+        
+        // 주소 요약 카드 업데이트 (토지 정보 배지 추가)
+        displayAddressSummaryCard();
+        
+        // 자동으로 파싱된 정보 출력
+        if (window.parseLandXML) {
+            setTimeout(() => window.parseLandXML(), 500);
+        }
+        
+    } catch (error) {
+        console.error('❌ [토지특성 API - BBOX 검색] 에러 발생:', error.message);
+    }
+    
+    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
+}
+
+/**
+ * 토지특성 정보 표시
+ * 
+ * @param {object|string} landData - 토지특성 API 응답 데이터 (JSON 또는 XML/GML)
+ */
+function displayLandInfo(landData) {
+    const addressInfo = document.querySelector('.address-info');
+    
+    // 기존 토지특성 정보 섹션이 있으면 제거
+    const existingLand = document.getElementById('landInfo');
+    if (existingLand) {
+        existingLand.remove();
+    }
+    
+    // 토지특성 정보 섹션 생성
+    const landSection = document.createElement('div');
+    landSection.id = 'landInfo';
+    landSection.className = 'info-card';
+    
+    let parsedContent = '';
+    let displayContent;
+    
+    if (typeof landData === 'string') {
+        // XML/GML 데이터
+        displayContent = landData;
+        
+        // XML 파싱 시도
+        try {
+            const parser = new DOMParser();
+            const xmlDoc = parser.parseFromString(landData, "text/xml");
+            const features = xmlDoc.querySelectorAll('dt_d194');
+            
+            if (features.length > 0) {
+                parsedContent = '<h3>📊 파싱된 토지특성 정보</h3>';
+                parsedContent += '<div class="land-parsed-info">';
+                
+                features.forEach((feature, index) => {
+                    const getTagValue = (tagName) => {
+                        const element = feature.querySelector(tagName);
+                        return element ? element.textContent.trim() : '-';
+                    };
+                    
+                    parsedContent += `<div class="land-item">`;
+                    parsedContent += `<strong>[${index + 1}번째 필지]</strong><br>`;
+                    parsedContent += `🏘️ PNU: ${getTagValue('pnu')}<br>`;
+                    parsedContent += `💰 공시지가: ${getTagValue('pblntf_pclnd')}원/㎡<br>`;
+                    parsedContent += `📝 지목명: ${getTagValue('lndcgr_code_nm')}<br>`;
+                    parsedContent += `📏 토지면적: ${getTagValue('lndpcl_ar')}㎡<br>`;
+                    parsedContent += `🗺️ 용도지역: ${getTagValue('prpos_area_1_nm')}<br>`;
+                    parsedContent += `🏗️ 토지이용상황: ${getTagValue('lad_use_sittn_nm')}<br>`;
+                    parsedContent += `⛰️ 지형높이: ${getTagValue('tpgrph_hg_code_nm')}<br>`;
+                    parsedContent += `📐 지형형상: ${getTagValue('tpgrph_frm_code_nm')}<br>`;
+                    parsedContent += `🛣️ 도로접면: ${getTagValue('road_side_code_nm')}<br>`;
+                    parsedContent += `📅 기준연도: ${getTagValue('stdr_year')}-${getTagValue('stdr_mt')}<br>`;
+                    parsedContent += `</div>`;
+                });
+                
+                parsedContent += '</div>';
+                parsedContent += '<button class="land-detail-btn" onclick="parseLandXML()">콘솔에서 상세 정보 보기</button><br>';
+            }
+        } catch (error) {
+            parsedContent = `<p style="color: orange;">⚠️ XML 파싱 실패: ${error.message}</p>`;
+        }
+    } else {
+        // JSON 데이터
+        displayContent = JSON.stringify(landData, null, 2);
+    }
+    
+    const html = `
+        <h2>🌍 토지특성 API 원본 응답</h2>
+        ${parsedContent}
+        <pre>${displayContent}</pre>
+    `;
+    
+    landSection.innerHTML = html;
+    
+    // 페이지에 추가
+    if (addressInfo) {
+        addressInfo.appendChild(landSection);
+    } else {
+        console.error('🌍 address-info 요소를 찾을 수 없습니다.');
+    }
+}
+
+/* =========================================== */
+/* 9. UTILITY FUNCTIONS - 유틸리티 함수 */
+/* =========================================== */
+
+/**
+ * 토지특성 API 전체 XML 출력 함수
+ * 콘솔에서 호출: showFullLandXML()
+ */
+window.showFullLandXML = function() {
+    if (!allData.landInfo) {
+        console.warn('⚠️  토지특성 API 데이터가 없습니다.');
+        return;
+    }
+    
+    console.log('\n┌─────────────────────────────────────────┐');
+    console.log('│     📄 토지특성 API 전체 XML 응답       │');
+    console.log('└─────────────────────────────────────────┘\n');
+    
+    if (typeof allData.landInfo === 'string') {
+        console.log(allData.landInfo);
+    } else {
+        console.log(JSON.stringify(allData.landInfo, null, 2));
+    }
+    
+    console.log('\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    console.log('💡 Tip: XML 파싱하려면 다음 코드를 실행하세요:');
+    console.log('   const parser = new DOMParser();');
+    console.log('   const xmlDoc = parser.parseFromString(allData.landInfo, "text/xml");');
+    console.log('   const features = xmlDoc.querySelectorAll("dt_d194");');
+    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
+};
+
+/**
+ * 토지특성 XML 파싱 및 표시 함수
+ * 콘솔에서 호출: parseLandXML()
+ */
+window.parseLandXML = function() {
+    if (!allData.landInfo || typeof allData.landInfo !== 'string') {
+        console.warn('⚠️  토지특성 API 데이터가 없습니다.');
+        return;
+    }
+    
+    try {
+        const parser = new DOMParser();
+        const xmlDoc = parser.parseFromString(allData.landInfo, "text/xml");
+        
+        // 에러 체크
+        const errorNode = xmlDoc.querySelector('parsererror');
+        if (errorNode) {
+            console.error('❌ XML 파싱 오류:', errorNode.textContent);
+            return;
+        }
+        
+        // Feature 찾기
+        const features = xmlDoc.querySelectorAll('dt_d194');
+        
+        if (features.length === 0) {
+            console.warn('⚠️  토지특성 데이터가 없습니다 (Feature 0건)');
+            return;
+        }
+        
+        console.log('\n┌─────────────────────────────────────────┐');
+        console.log('│     📊 토지특성 데이터 파싱 결과        │');
+        console.log('└─────────────────────────────────────────┘');
+        console.log(`   총 ${features.length}건의 토지특성 데이터\n`);
+        
+        features.forEach((feature, index) => {
+            console.log(`━━━━━━━ [${index + 1}번째 필지] ━━━━━━━`);
+            
+            // 모든 태그 추출
+            const getTagValue = (tagName) => {
+                const element = feature.querySelector(tagName);
+                return element ? element.textContent.trim() : '-';
+            };
+            
+            console.log(`🏘️  필지고유번호(PNU): ${getTagValue('pnu')}`);
+            console.log(`📍 법정동시도시군구코드: ${getTagValue('ld_cpsg_code')}`);
+            console.log(`📍 법정동읍면동리코드: ${getTagValue('ld_emd_li_code')}`);
+            console.log(`📋 대장구분: ${getTagValue('regstr_se_code')}`);
+            console.log(`📌 본번: ${getTagValue('mnnm')}`);
+            console.log(`📌 부번: ${getTagValue('slno')}`);
+            console.log(`🏷️  지번지목부호: ${getTagValue('lnm_lndcgr_smbol')}`);
+            console.log(`📅 기준연도: ${getTagValue('stdr_year')}-${getTagValue('stdr_mt')}`);
+            console.log(`💰 공시지가: ${getTagValue('pblntf_pclnd')}원/㎡`);
+            console.log(`📝 지목명: ${getTagValue('lndcgr_code_nm')} (코드: ${getTagValue('lndcgr_code')})`);
+            console.log(`📏 토지면적: ${getTagValue('lndpcl_ar')}㎡`);
+            console.log(`🗺️  용도지역1: ${getTagValue('prpos_area_1_nm')} (코드: ${getTagValue('prpos_area_1')})`);
+            console.log(`🗺️  용도지역2: ${getTagValue('prpos_area_2_nm')} (코드: ${getTagValue('prpos_area_2')})`);
+            console.log(`🏗️  토지이용상황: ${getTagValue('lad_use_sittn_nm')} (코드: ${getTagValue('lad_use_sittn')})`);
+            console.log(`⛰️  지형높이: ${getTagValue('tpgrph_hg_code_nm')} (코드: ${getTagValue('tpgrph_hg_code')})`);
+            console.log(`📐 지형형상: ${getTagValue('tpgrph_frm_code_nm')} (코드: ${getTagValue('tpgrph_frm_code')})`);
+            console.log(`🛣️  도로접면: ${getTagValue('road_side_code_nm')} (코드: ${getTagValue('road_side_code')})`);
+            console.log(`📅 데이터기준일자: ${getTagValue('frst_regist_dt')}`);
+            console.log(``);
+        });
+        
+        console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
+        
+    } catch (error) {
+        console.error('❌ XML 파싱 중 오류:', error.message);
+    }
+};
 
 /**
  * 페이지 뒤로가기
@@ -1476,6 +1754,280 @@ function goBack() {
  * 매물 요청 제출
  */
 function submitRequest() {
-    // 실제 구현에서는 서버로 데이터 전송
-    alert('매물 요청이 제출되었습니다. 빠른 시일 내에 연락드리겠습니다.');
+    // 현재 페이지의 모든 데이터를 localStorage에 저장
+    const transferData = {
+        addressInfo: allData.addressInfo,
+        buildingInfo: allData.buildingInfo,
+        geocoderInfo: allData.geocoderInfo,
+        landInfo: allData.landInfo
+    };
+    
+    localStorage.setItem('brokerSearchData', JSON.stringify(transferData));
+    
+    // 공인중개사 찾기 페이지로 이동
+    window.location.href = 'broker.html';
+}
+
+/**
+ * 주소 요약 카드 표시 (점진적 업데이트)
+ */
+function displayAddressSummaryCard() {
+    const container = document.getElementById('addressSummaryCard');
+    if (!container) return;
+    
+    const addressInfo = allData.addressInfo;
+    const geocoderInfo = allData.geocoderInfo;
+    const landInfo = allData.landInfo;
+    
+    if (!addressInfo) {
+        console.warn('⚠️ 주소 정보가 없습니다.');
+        return;
+    }
+    
+    // PNU 생성
+    const pnu = generatePNU(addressInfo);
+    
+    // 좌표 정보 (있으면 표시, 없으면 "로딩 중...")
+    let coordinates = '로딩 중...';
+    if (geocoderInfo && geocoderInfo.result && geocoderInfo.result.point) {
+        const point = geocoderInfo.result.point;
+        coordinates = `${point.y}, ${point.x}`;
+    }
+    
+    // 토지 정보에서 배지 데이터 추출 (있으면 표시)
+    let landBadges = '';
+    if (landInfo && typeof landInfo === 'string') {
+        try {
+            const parser = new DOMParser();
+            const xmlDoc = parser.parseFromString(landInfo, "text/xml");
+            const feature = xmlDoc.querySelector('dt_d194');
+            
+            if (feature) {
+                const area = feature.querySelector('lndpcl_ar')?.textContent || '-';
+                const purpose = feature.querySelector('prpos_area_1_nm')?.textContent || '-';
+                const year = feature.querySelector('stdr_year')?.textContent || '-';
+                const price = feature.querySelector('pblntf_pclnd')?.textContent || '-';
+                
+                landBadges = `
+                    <div class="summary-badges">
+                        <span class="badge badge-area">📏 ${area}㎡</span>
+                        <span class="badge badge-purpose">🗺️ ${purpose}</span>
+                        <span class="badge badge-price">💰 ${year}년 ${price !== '-' ? price + '원/㎡' : '정보없음'}</span>
+                    </div>
+                `;
+            }
+        } catch (error) {
+            console.warn('⚠️ 토지 정보 파싱 실패:', error);
+        }
+    }
+    
+    // 데이터 기준일 추출
+    let dataBadge = '';
+    if (landInfo && typeof landInfo === 'string') {
+        try {
+            const parser = new DOMParser();
+            const xmlDoc = parser.parseFromString(landInfo, "text/xml");
+            const feature = xmlDoc.querySelector('dt_d194');
+            
+            if (feature) {
+                const year = feature.querySelector('stdr_year')?.textContent || '';
+                const month = feature.querySelector('stdr_mt')?.textContent || '';
+                
+                if (year && month) {
+                    dataBadge = `<span class="data-date-badge">📅 데이터 기준: ${year}년 ${month}월</span>`;
+                }
+            }
+        } catch (error) {
+            // 무시
+        }
+    }
+    
+    container.innerHTML = `
+        <div class="info-card address-summary-card">
+            <div class="summary-header">
+                <h2>📍 주소 요약 ${dataBadge}</h2>
+                <div class="summary-actions">
+                    <button class="icon-btn" onclick="addToFavorites()" title="즐겨찾기 추가">
+                        ⭐ 즐겨찾기
+                    </button>
+                    <button class="icon-btn" onclick="copyAddressInfo()" title="주소 복사">
+                        📋 복사
+                    </button>
+                    <button class="icon-btn" onclick="shareAddressInfo()" title="공유 링크">
+                        🔗 공유
+                    </button>
+                </div>
+            </div>
+            
+            <div class="summary-content">
+                <div class="summary-item">
+                    <span class="summary-label">도로명주소</span>
+                    <span class="summary-value">${addressInfo.roadAddr || '-'}</span>
+                </div>
+                <div class="summary-item">
+                    <span class="summary-label">지번주소</span>
+                    <span class="summary-value">${addressInfo.jibunAddr || '-'}</span>
+                </div>
+                <div class="summary-item">
+                    <span class="summary-label">우편번호</span>
+                    <span class="summary-value">${addressInfo.zipNo || '-'}</span>
+                </div>
+                <div class="summary-item">
+                    <span class="summary-label">좌표 (위도, 경도)</span>
+                    <span class="summary-value ${coordinates === '로딩 중...' ? 'loading-text' : ''}">${coordinates}</span>
+                </div>
+                <div class="summary-item">
+                    <span class="summary-label">PNU (필지고유번호)</span>
+                    <span class="summary-value">${pnu || '-'}</span>
+                </div>
+            </div>
+            
+            ${landBadges}
+        </div>
+    `;
+}
+
+/**
+ * PNU 생성 함수 (19자리)
+ */
+function generatePNU(addressData) {
+    if (!addressData) return null;
+    
+    const admCd = addressData.admCd || '';
+    if (admCd.length !== 10) return null;
+    
+    const mtYn = addressData.mtYn || '0';
+    const piljigubn = mtYn === '1' ? '2' : '1';
+    
+    const lnbrMnnm = addressData.lnbrMnnm || '0';
+    const bun = lnbrMnnm.toString().padStart(4, '0');
+    
+    const lnbrSlno = addressData.lnbrSlno || '0';
+    const ji = lnbrSlno.toString().padStart(4, '0');
+    
+    return `${admCd}${piljigubn}${bun}${ji}`;
+}
+
+/**
+ * 주소 정보 복사
+ */
+function copyAddressInfo() {
+    const addressInfo = allData.addressInfo;
+    const geocoderInfo = allData.geocoderInfo;
+    
+    if (!addressInfo) return;
+    
+    const pnu = generatePNU(addressInfo);
+    
+    let coordinates = '-';
+    if (geocoderInfo && geocoderInfo.result && geocoderInfo.result.point) {
+        const point = geocoderInfo.result.point;
+        coordinates = `${point.y}, ${point.x}`;
+    }
+    
+    const textToCopy = `
+📍 주소 정보
+━━━━━━━━━━━━━━━━━━━━━━
+도로명주소: ${addressInfo.roadAddr || '-'}
+지번주소: ${addressInfo.jibunAddr || '-'}
+우편번호: ${addressInfo.zipNo || '-'}
+좌표: ${coordinates}
+PNU: ${pnu || '-'}
+    `.trim();
+    
+    navigator.clipboard.writeText(textToCopy).then(() => {
+        alert('✅ 주소 정보가 클립보드에 복사되었습니다!');
+    }).catch(err => {
+        console.error('❌ 복사 실패:', err);
+        alert('복사에 실패했습니다.');
+    });
+}
+
+/**
+ * 주소 정보 공유 (공유 링크 생성)
+ */
+function shareAddressInfo() {
+    const addressInfo = allData.addressInfo;
+    
+    if (!addressInfo) return;
+    
+    // 메인 페이지로 공유 링크 생성 (주소가 미리 채워진 상태)
+    const baseUrl = window.location.origin + window.location.pathname.replace('result.html', 'index.html');
+    const shareUrl = `${baseUrl}?address=${encodeURIComponent(addressInfo.roadAddr || addressInfo.jibunAddr)}`;
+    const shareText = `📍 ${addressInfo.roadAddr || addressInfo.jibunAddr}\n\nHouseMVP에서 확인하기:`;
+    
+    if (navigator.share) {
+        navigator.share({
+            title: 'HouseMVP - 주소 정보',
+            text: shareText,
+            url: shareUrl
+        }).catch(err => {
+            console.log('공유 취소 또는 실패:', err);
+        });
+    } else {
+        // Web Share API 미지원 시 URL 복사
+        const fullShareText = `${shareText}\n${shareUrl}`;
+        navigator.clipboard.writeText(fullShareText).then(() => {
+            alert('✅ 공유 링크가 클립보드에 복사되었습니다!\n\n이 링크를 공유하면 주소가 미리 입력된 상태로 열립니다.');
+        }).catch(err => {
+            console.error('❌ 복사 실패:', err);
+        });
+    }
+}
+
+/**
+ * 즐겨찾기 추가
+ */
+function addToFavorites() {
+    const addressInfo = allData.addressInfo;
+    
+    if (!addressInfo) {
+        alert('❌ 주소 정보가 없습니다.');
+        return;
+    }
+    
+    let favorites = JSON.parse(localStorage.getItem('favoriteAddresses') || '[]');
+    
+    // 중복 체크
+    const isDuplicate = favorites.some(f => f.roadAddr === addressInfo.roadAddr);
+    
+    if (isDuplicate) {
+        alert('⚠️ 이미 즐겨찾기에 추가된 주소입니다.');
+        return;
+    }
+    
+    // 즐겨찾기 추가
+    favorites.unshift({
+        roadAddr: addressInfo.roadAddr,
+        jibunAddr: addressInfo.jibunAddr,
+        zipNo: addressInfo.zipNo,
+        addedAt: new Date().toISOString()
+    });
+    
+    // 최대 20개까지만 저장
+    favorites = favorites.slice(0, 20);
+    
+    localStorage.setItem('favoriteAddresses', JSON.stringify(favorites));
+    alert(`✅ 즐겨찾기에 추가되었습니다!\n\n메인 페이지에서 빠르게 다시 찾을 수 있습니다.`);
+}
+
+/**
+ * 상세정보 보기 토글
+ */
+function toggleDetailInfo() {
+    const detailSection = document.getElementById('detailInfoSection');
+    const toggleIcon = document.getElementById('toggleIcon');
+    const toggleBtn = document.querySelector('.detail-toggle-btn');
+    
+    if (!detailSection) return;
+    
+    if (detailSection.style.display === 'none') {
+        detailSection.style.display = 'block';
+        toggleIcon.textContent = '▲';
+        toggleBtn.innerHTML = '<span id="toggleIcon">▲</span> 상세정보 닫기';
+    } else {
+        detailSection.style.display = 'none';
+        toggleIcon.textContent = '▼';
+        toggleBtn.innerHTML = '<span id="toggleIcon">▼</span> 상세정보 보기';
+    }
 }

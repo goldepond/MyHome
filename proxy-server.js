@@ -6,6 +6,7 @@
 const express = require('express');
 const { createProxyMiddleware } = require('http-proxy-middleware');
 const cors = require('cors');
+const path = require('path');
 
 const app = express();
 const PORT = 3001;
@@ -16,6 +17,13 @@ const PORT = 3001;
 
 // CORS 설정 - 모든 도메인에서의 요청 허용
 app.use(cors());
+
+// JSON 파싱 미들웨어
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+// 정적 파일 서빙 설정
+app.use('/assest', express.static(path.join(__dirname, 'assest')));
 
 /* =========================================== */
 /* 2. PROXY ROUTES - 프록시 라우트 설정 */
@@ -28,15 +36,22 @@ app.use(cors());
 app.use('/api/juso', createProxyMiddleware({
     target: 'https://business.juso.go.kr',
     changeOrigin: true,
+    timeout: 30000, // 30초 타임아웃
     pathRewrite: {
         '^/api/juso': '/addrlink/addrLinkApi.do'
     },
     onProxyReq: (proxyReq, req, res) => {
         console.log('📍 도로명주소 API 프록시 요청:', proxyReq.path);
     },
+    onProxyRes: (proxyRes, req, res) => {
+        console.log('✅ 도로명주소 API 응답:', proxyRes.statusCode);
+    },
     onError: (err, req, res) => {
-        console.error('📍 도로명주소 API 프록시 오류:', err);
-        res.status(500).json({ error: '도로명주소 API 프록시 오류' });
+        console.error('❌ 도로명주소 API 프록시 오류:', err.message);
+        res.status(500).json({ 
+            error: '도로명주소 API 프록시 오류',
+            message: err.message 
+        });
     }
 }));
 
@@ -47,8 +62,9 @@ app.use('/api/juso', createProxyMiddleware({
 app.use('/api/region', createProxyMiddleware({
     target: 'https://apis.data.go.kr',
     changeOrigin: true,
+    secure: false, // SSL 인증서 검증 비활성화
     pathRewrite: {
-        '^/api/region': '/1741000/StanReginCd'
+        '^/api/region': '/1741000/StanReginCd/getStanReginCdList'
     },
     onProxyReq: (proxyReq, req, res) => {
         console.log('🏛️ 행정구역코드 API 프록시 요청:', proxyReq.path);
@@ -66,8 +82,9 @@ app.use('/api/region', createProxyMiddleware({
 app.use('/api/apt', createProxyMiddleware({
     target: 'https://apis.data.go.kr',
     changeOrigin: true,
+    secure: false, // SSL 인증서 검증 비활성화
     pathRewrite: {
-        '^/api/apt': '/1613000/AptListService3'
+        '^/api/apt': '/1613000/AptListService3/getRoadnameAptList3'
     },
     onProxyReq: (proxyReq, req, res) => {
         console.log('🏢 아파트 목록 API 프록시 요청:', proxyReq.path);
@@ -85,6 +102,7 @@ app.use('/api/apt', createProxyMiddleware({
 app.use('/api/apt-detail', createProxyMiddleware({
     target: 'https://apis.data.go.kr',
     changeOrigin: true,
+    secure: false, // SSL 인증서 검증 비활성화
     pathRewrite: {
         '^/api/apt-detail': '/1613000/AptBasisInfoServiceV4/getAphusDtlInfoV4'
     },
@@ -104,9 +122,11 @@ app.use('/api/apt-detail', createProxyMiddleware({
 app.use('/api/building', createProxyMiddleware({
     target: 'https://apis.data.go.kr',
     changeOrigin: true,
+    secure: false, // SSL 인증서 검증 비활성화
     pathRewrite: {
         '^/api/building': '/1613000/BldRgstHubService/getBrTitleInfo'
     },
+    logLevel: 'debug',
     onProxyReq: (proxyReq, req, res) => {
         console.log('🏗️ 건물 정보 API 프록시 요청:', proxyReq.path);
     },
@@ -116,8 +136,82 @@ app.use('/api/building', createProxyMiddleware({
     }
 }));
 
+/**
+ * 부동산 중개업 조회 API 프록시
+ * apis.data.go.kr/1613000/RealEstateService
+ */
+app.use('/api/realestate', createProxyMiddleware({
+    target: 'https://apis.data.go.kr',
+    changeOrigin: true,
+    secure: false, // SSL 인증서 검증 비활성화
+    pathRewrite: {
+        '^/api/realestate': '/1613000/RealEstateService/getRealEstateBrokerInfo'
+    },
+    logLevel: 'debug',
+    onProxyReq: (proxyReq, req, res) => {
+        console.log('🏠 부동산 중개업 조회 API 프록시 요청:', proxyReq.path);
+    },
+    onError: (err, req, res) => {
+        console.error('🏠 부동산 중개업 조회 API 프록시 오류:', err);
+        res.status(500).json({ error: '부동산 중개업 조회 API 프록시 오류' });
+    }
+}));
+
+/**
+ * VWorld 토지특성공간정보 API 프록시
+ * api.vworld.kr/ned/wfs/getLandCharacteristicsWFS
+ */
+app.use('/api/land', createProxyMiddleware({
+    target: 'http://api.vworld.kr',
+    changeOrigin: true,
+    secure: false,
+    pathRewrite: {
+        '^/api/land': '/ned/wfs/getLandCharacteristicsWFS'
+    },
+    onProxyReq: (proxyReq, req, res) => {
+        console.log('🌍 토지특성 API 프록시 요청:', proxyReq.path);
+    },
+    onProxyRes: (proxyRes, req, res) => {
+        console.log('✅ 토지특성 API 응답:', proxyRes.statusCode);
+    },
+    onError: (err, req, res) => {
+        console.error('❌ 토지특성 API 프록시 오류:', err.message);
+        res.status(500).json({ 
+            error: '토지특성 API 프록시 오류',
+            message: err.message 
+        });
+    }
+}));
+
+/**
+ * VWorld 부동산중개업WFS조회 API 프록시
+ * api.vworld.kr/ned/wfs/getEstateBrkpgWFS
+ */
+app.use('/api/broker', createProxyMiddleware({
+    target: 'http://api.vworld.kr',
+    changeOrigin: true,
+    secure: false,
+    pathRewrite: {
+        '^/api/broker': '/ned/wfs/getEstateBrkpgWFS'
+    },
+    onProxyReq: (proxyReq, req, res) => {
+        console.log('🏘️ 부동산중개업 API 프록시 요청:', proxyReq.path);
+    },
+    onProxyRes: (proxyRes, req, res) => {
+        console.log('✅ 부동산중개업 API 응답:', proxyRes.statusCode);
+    },
+    onError: (err, req, res) => {
+        console.error('❌ 부동산중개업 API 프록시 오류:', err.message);
+        res.status(500).json({ 
+            error: '부동산중개업 API 프록시 오류',
+            message: err.message 
+        });
+    }
+}));
+
+
 /* =========================================== */
-/* 3. SERVER STARTUP - 서버 시작 */
+/* 4. SERVER STARTUP - 서버 시작 */
 /* =========================================== */
 
 app.listen(PORT, () => {
@@ -128,6 +222,9 @@ app.listen(PORT, () => {
     console.log('   - /api/apt (아파트 목록)');
     console.log('   - /api/apt-detail (아파트 상세 정보)');
     console.log('   - /api/building (건물 정보)');
+    console.log('   - /api/realestate (부동산 중개업 조회)');
+    console.log('   - /api/land (토지특성공간정보)');
+    console.log('   - /api/broker (부동산중개업WFS조회)');
 });
 
 /* =========================================== */

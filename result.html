@@ -35,10 +35,25 @@
                 <h1>선택한 주소 정보</h1>
                 <p>검색 결과를 확인하고 추가 정보를 입력해주세요</p>
                 
+                <!-- 주소 요약 카드 (동적으로 생성됨) -->
+                <div id="addressSummaryCard"></div>
+                
+                <!-- 상세정보 보기 버튼 -->
+                <div class="detail-toggle-section">
+                    <button class="detail-toggle-btn" onclick="toggleDetailInfo()">
+                        <span id="toggleIcon">▼</span> 상세정보 보기
+                    </button>
+                </div>
+                
                 <!-- 주소 정보 표시 영역 (동적으로 API 데이터가 추가됨) -->
-                <div class="address-info">
-                    <!-- 기본 선택된 주소 정보 -->
-                    <div class="info-card">
+                <div class="address-info" id="detailInfoSection" style="display: none;">
+                    <!-- 기존 API 데이터 카드들이 여기에 동적으로 추가됨 -->
+                </div>
+                
+                <!-- 부동산 정보 입력 영역 (숨김 처리) -->
+                <div class="property-input-section" style="display: none;">
+                    <!-- 기본 선택된 주소 정보 (간단 표시) -->
+                    <div class="info-card" style="display: none;">
                         <h2>📍 선택된 주소</h2>
                         <div class="address-details">
                             <div class="road-address">
@@ -53,11 +68,19 @@
                                 <strong>우편번호:</strong>
                                 <span id="selectedZipCode">-</span>
                             </div>
+                            <div class="dong-info" id="dongInfoDiv" style="display: none;">
+                                <strong>동:</strong>
+                                <span id="selectedDong">-</span>
+                            </div>
+                            <div class="hosu-info" id="hosuInfoDiv" style="display: none;">
+                                <strong>호수:</strong>
+                                <span id="selectedHosu">-</span>
+                            </div>
                         </div>
                     </div>
                     
-                    <!-- 부동산 정보 입력 폼 -->
-                    <div class="info-card">
+                    <!-- 부동산 정보 입력 폼 (숨김 처리) -->
+                    <div class="info-card" style="display: none;">
                         <h2>🏠 부동산 정보</h2>
                         <div class="property-details">
                             <div class="detail-item">
@@ -108,7 +131,7 @@
                 <!-- 액션 버튼 -->
                 <div class="action-buttons">
                     <button class="btn-secondary" onclick="goBack()">다시 검색</button>
-                    <button class="btn-primary" onclick="submitRequest()">매물 요청하기</button>
+                    <button class="btn-primary" onclick="submitRequest()">공인중개사 찾기</button>
                 </div>
             </div>
         </div>
@@ -160,6 +183,6 @@
 
     <!-- JavaScript 파일 로드 -->
     <script src="script.js"></script>
-    <script src="result.js?v=1.2"></script>
+    <script src="result.js?v=1.9"></script>
 </body>
 </html>
