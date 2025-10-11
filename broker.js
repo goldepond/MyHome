@@ -32,29 +32,58 @@ let currentFilter = 'top3'; // 'top3' 또는 'all'
 /* =========================================== */
 
 document.addEventListener('DOMContentLoaded', async () => {
-    console.log('✅ 페이지 로드 완료');
+    console.log('\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    console.log('🏘️ [공인중개사 찾기 페이지] 초기화 시작');
+    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    console.log('✅ 1단계: DOMContentLoaded 이벤트 발생');
+    console.log('   📍 현재 위치:', window.location.href);
+    console.log('   🌐 호스트명:', window.location.hostname);
+    console.log('   🔒 프로토콜:', window.location.protocol);
     
     // localStorage에서 데이터 가져오기
+    console.log('\n✅ 2단계: localStorage에서 데이터 읽기 시도');
     const storedData = localStorage.getItem('brokerSearchData');
     
     if (!storedData) {
+        console.error('❌ localStorage에 brokerSearchData가 없습니다!');
+        console.log('   💾 사용 가능한 localStorage 키:', Object.keys(localStorage));
         alert('검색 데이터가 없습니다. 이전 페이지로 돌아갑니다.');
         window.location.href = 'result.html';
         return;
     }
     
+    console.log('✅ brokerSearchData 발견!');
+    console.log('   📏 데이터 크기:', storedData.length, '바이트');
+    
     try {
+        console.log('\n✅ 3단계: JSON 파싱 시도');
         transferData = JSON.parse(storedData);
-        console.log('📦 전달받은 데이터:', transferData);
+        console.log('✅ JSON 파싱 성공!');
+        console.log('   📦 전달받은 데이터 구조:');
+        console.log('      - addressInfo:', transferData.addressInfo ? '✓' : '✗');
+        console.log('      - geocoderInfo:', transferData.geocoderInfo ? '✓' : '✗');
+        console.log('      - landInfo:', transferData.landInfo ? '✓' : '✗');
+        
+        if (transferData.geocoderInfo && transferData.geocoderInfo.result) {
+            const point = transferData.geocoderInfo.result.point;
+            console.log('      - 좌표:', point ? `(${point.y}, ${point.x})` : '없음');
+        }
         
         // 주소 요약 카드 표시
+        console.log('\n✅ 4단계: 주소 요약 카드 표시');
         displayAddressSummaryCard();
         
         // 공인중개사 검색
+        console.log('\n✅ 5단계: 공인중개사 검색 시작');
         await searchBrokers();
         
     } catch (error) {
-        console.error('❌ 데이터 파싱 오류:', error);
+        console.error('\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+        console.error('❌ [치명적 오류] 데이터 처리 실패');
+        console.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+        console.error('   오류 타입:', error.name);
+        console.error('   오류 메시지:', error.message);
+        console.error('   스택 트레이스:', error.stack);
         alert('데이터 처리 중 오류가 발생했습니다.');
     }
 });
@@ -309,28 +338,56 @@ async function searchBrokers() {
         console.log(`   📄 output: ${BROKER_API_CONFIG.output}`);
         console.log(`   🔢 maxFeatures: ${BROKER_API_CONFIG.maxFeatures}`);
         
+        // 환경 감지
+        console.log('\n┌─────────────────────────────────────────┐');
+        console.log('│  🔍 환경 감지                            │');
+        console.log('└─────────────────────────────────────────┘');
+        console.log('   🌐 hostname:', window.location.hostname);
+        console.log('   🔒 protocol:', window.location.protocol);
+        
         let url;
         const isLocal = window.location.hostname === 'localhost' || 
                         window.location.hostname === '127.0.0.1' || 
                         window.location.protocol === 'file:' ||
                         window.location.hostname === '';
         
+        console.log('   📍 환경 판정:', isLocal ? '로컬 (프록시 사용)' : '웹 (직접 호출)');
+        
         if (isLocal) {
             url = `http://localhost:3001/api/broker?${params.toString()}`;
+            console.log('   ✓ 프록시 서버 사용');
         } else {
             url = `${BROKER_API_CONFIG.baseUrl}?${params.toString()}`;
+            console.log('   ✓ VWorld API 직접 호출');
         }
         
-        console.log(`\n   🌐 요청 URL:`);
-        console.log(`   ${url}\n`);
+        console.log('\n┌─────────────────────────────────────────┐');
+        console.log('│  🚀 API 요청 전송                        │');
+        console.log('└─────────────────────────────────────────┘');
+        console.log('   🌐 요청 URL:');
+        console.log('   ' + url);
+        console.log('\n   ⏳ fetch() 호출 중...');
         
         const response = await fetch(url);
         
+        console.log('   ✅ fetch() 완료!');
+        console.log('   📊 응답 상태 코드:', response.status);
+        console.log('   📄 응답 상태 텍스트:', response.statusText);
+        console.log('   📋 응답 헤더:');
+        console.log('      - Content-Type:', response.headers.get('Content-Type'));
+        console.log('      - Content-Length:', response.headers.get('Content-Length'));
+        
         if (!response.ok) {
+            console.error('   ❌ HTTP 오류 발생!');
+            console.error('   상태 코드:', response.status);
+            console.error('   상태 텍스트:', response.statusText);
             throw new Error(`HTTP ${response.status}: ${response.statusText}`);
         }
         
+        console.log('\n   📥 응답 본문 읽기 중...');
         const xmlText = await response.text();
+        console.log('   ✅ 응답 본문 읽기 완료!');
+        console.log('   📏 응답 크기:', xmlText.length, '바이트');
         
         console.log('\n┌─────────────────────────────────────────┐');
         console.log('│  📥 [부동산중개업 API] 응답 내용        │');
@@ -344,7 +401,23 @@ async function searchBrokers() {
         parseBrokerXML(xmlText);
         
     } catch (error) {
-        console.error('❌ [부동산중개업 API] 에러 발생:', error.message);
+        console.error('\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+        console.error('❌ [부동산중개업 API] 에러 발생');
+        console.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+        console.error('   오류 타입:', error.name);
+        console.error('   오류 메시지:', error.message);
+        console.error('   스택 트레이스:', error.stack);
+        
+        // fetch 에러의 경우 추가 정보
+        if (error instanceof TypeError) {
+            console.error('\n   💡 TypeError 발생 (네트워크 또는 CORS 문제 가능)');
+            console.error('   원인 가능성:');
+            console.error('      1. CORS 정책 위반');
+            console.error('      2. 네트워크 연결 문제');
+            console.error('      3. URL이 잘못됨');
+            console.error('      4. Mixed Content (http/https 혼용)');
+        }
+        
         displayNoResults('공인중개사 정보를 불러오는 중 오류가 발생했습니다.');
     }
     
@@ -356,16 +429,46 @@ async function searchBrokers() {
  * @param {number} distance - 중심점으로부터의 거리 (미터, 기본값: 1000m = 1km)
  */
 function generateBBOX(distance = 1000) {
-    if (!transferData || !transferData.geocoderInfo || !transferData.geocoderInfo.result) {
-        console.error('❌ 좌표 정보가 없습니다.');
+    console.log('\n┌─────────────────────────────────────────┐');
+    console.log('│  📐 BBOX 생성                            │');
+    console.log('└─────────────────────────────────────────┘');
+    console.log('   📏 검색 반경:', distance, 'm');
+    
+    if (!transferData) {
+        console.error('   ❌ transferData가 없습니다!');
+        return null;
+    }
+    
+    if (!transferData.geocoderInfo) {
+        console.error('   ❌ geocoderInfo가 없습니다!');
+        console.log('   transferData 내용:', Object.keys(transferData));
+        return null;
+    }
+    
+    if (!transferData.geocoderInfo.result) {
+        console.error('   ❌ geocoderInfo.result가 없습니다!');
+        console.log('   geocoderInfo 내용:', Object.keys(transferData.geocoderInfo));
         return null;
     }
     
     const point = transferData.geocoderInfo.result.point;
-    if (!point || !point.x || !point.y) {
-        console.error('❌ 유효한 좌표가 없습니다.');
+    if (!point) {
+        console.error('   ❌ point가 없습니다!');
+        console.log('   result 내용:', Object.keys(transferData.geocoderInfo.result));
         return null;
     }
+    
+    if (!point.x || !point.y) {
+        console.error('   ❌ 좌표값이 유효하지 않습니다!');
+        console.log('   point.x:', point.x);
+        console.log('   point.y:', point.y);
+        return null;
+    }
+    
+    console.log('   ✅ 좌표 정보 확인 완료');
+    console.log('   📍 중심 좌표:');
+    console.log('      - 경도(X):', point.x);
+    console.log('      - 위도(Y):', point.y);
     
     const x = parseFloat(point.x);
     const y = parseFloat(point.y);
@@ -384,9 +487,12 @@ function generateBBOX(distance = 1000) {
     // EPSG:4326의 경우 (ymin,xmin,ymax,xmax) 순서
     const bbox = `${ymin},${xmin},${ymax},${xmax},EPSG:4326`;
     
-    console.log(`📐 BBOX 생성 (중심에서 ${distance}m):`);
-    console.log(`   중심 좌표: (${x}, ${y})`);
-    console.log(`   BBOX: ${bbox}`);
+    console.log('\n   🔢 계산된 BBOX:');
+    console.log('      - ymin (최소 위도):', ymin);
+    console.log('      - xmin (최소 경도):', xmin);
+    console.log('      - ymax (최대 위도):', ymax);
+    console.log('      - xmax (최대 경도):', xmax);
+    console.log('   ✅ 최종 BBOX 문자열:', bbox);
     
     return bbox;
 }
@@ -396,34 +502,66 @@ function generateBBOX(distance = 1000) {
  * @param {string} xmlText - XML 텍스트
  */
 function parseBrokerXML(xmlText) {
+    console.log('\n┌─────────────────────────────────────────┐');
+    console.log('│  🔍 XML 파싱 시작                        │');
+    console.log('└─────────────────────────────────────────┘');
+    console.log('   📄 XML 텍스트 길이:', xmlText.length, '바이트');
+    
     try {
+        console.log('   ⏳ DOMParser로 XML 파싱 중...');
         const parser = new DOMParser();
         const xmlDoc = parser.parseFromString(xmlText, "text/xml");
+        console.log('   ✅ DOMParser 파싱 완료');
         
         // 에러 체크
+        console.log('   🔍 파서 오류 체크 중...');
         const parserError = xmlDoc.querySelector('parsererror');
         if (parserError) {
+            console.error('   ❌ XML 파싱 오류 발견!');
+            console.error('   오류 내용:', parserError.textContent);
             throw new Error('XML 파싱 오류');
         }
+        console.log('   ✅ 파서 오류 없음');
         
         // dt_d170 피처 찾기
+        console.log('\n   🔍 dt_d170 피처 검색 중...');
         const features = xmlDoc.querySelectorAll('dt_d170');
         
-        console.log(`📊 검색된 공인중개사: ${features.length}개`);
+        console.log('   ✅ dt_d170 피처 검색 완료');
+        console.log('   📊 검색된 공인중개사 수:', features.length, '개');
         
         if (features.length === 0) {
+            console.warn('   ⚠️ 공인중개사가 0개입니다.');
+            console.log('   🔍 다른 태그 확인:');
+            console.log('      - wfs:FeatureCollection:', xmlDoc.querySelectorAll('wfs\\:FeatureCollection, FeatureCollection').length);
+            console.log('      - gml:featureMember:', xmlDoc.querySelectorAll('gml\\:featureMember, featureMember').length);
+            
+            // 전체 XML 구조 출력
+            console.log('\n   📄 XML 루트 엘리먼트:', xmlDoc.documentElement.tagName);
+            console.log('   📄 전체 XML (처음 500자):');
+            console.log('   ' + xmlText.substring(0, 500).replace(/\n/g, '\n   '));
+            
             displayNoResults('주변에 등록된 공인중개사가 없습니다.');
             return;
         }
         
         // 거리 계산 및 정렬
+        console.log('\n   📏 거리 계산 및 정렬 시작...');
         allBrokers = calculateDistances(features);
+        console.log('   ✅ 거리 계산 완료:', allBrokers.length, '개');
         
         // 상위 3곳 먼저 표시
+        console.log('\n   🎨 화면에 표시 (상위 3곳)');
         displayBrokerList(allBrokers.slice(0, 3));
+        console.log('   ✅ 표시 완료!');
         
     } catch (error) {
-        console.error('❌ XML 파싱 오류:', error);
+        console.error('\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+        console.error('❌ [XML 파싱 오류] 파싱 실패');
+        console.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+        console.error('   오류 타입:', error.name);
+        console.error('   오류 메시지:', error.message);
+        console.error('   스택 트레이스:', error.stack);
         displayNoResults('데이터 처리 중 오류가 발생했습니다.');
     }
 }
@@ -434,18 +572,30 @@ function parseBrokerXML(xmlText) {
  * @returns {Array} 거리순으로 정렬된 공인중개사 배열
  */
 function calculateDistances(features) {
+    console.log('\n   ┌─────────────────────────────────────┐');
+    console.log('   │  📏 거리 계산                        │');
+    console.log('   └─────────────────────────────────────┘');
+    
     if (!transferData || !transferData.geocoderInfo || !transferData.geocoderInfo.result) {
-        console.warn('⚠️ 기준 좌표가 없습니다.');
-        return Array.from(features);
+        console.warn('   ⚠️ 기준 좌표가 없습니다.');
+        return Array.from(features).map((feature, index) => ({
+            feature: feature,
+            distance: null,
+            index: index
+        }));
     }
     
     const basePoint = transferData.geocoderInfo.result.point;
     const baseLat = parseFloat(basePoint.y);
     const baseLon = parseFloat(basePoint.x);
     
+    console.log('   📍 기준 좌표: (위도:', baseLat, ', 경도:', baseLon, ')');
+    console.log('   🔢 처리할 중개사 수:', features.length, '개');
+    
     const brokersWithDistance = Array.from(features).map((feature, index) => {
         const xCrdnt = feature.querySelector('x_crdnt')?.textContent;
         const yCrdnt = feature.querySelector('y_crdnt')?.textContent;
+        const name = feature.querySelector('bsnm_cmpnm')?.textContent || `중개사${index + 1}`;
         
         let distance = null;
         
@@ -455,8 +605,13 @@ function calculateDistances(features) {
             const brokerLon = parseFloat(xCrdnt);
             const brokerLat = parseFloat(yCrdnt);
             
+            console.log(`   ${index + 1}. ${name}: (${brokerLat}, ${brokerLon})`);
+            
             // Haversine 공식으로 거리 계산 (미터 단위)
             distance = calculateHaversineDistance(baseLat, baseLon, brokerLat, brokerLon);
+            console.log(`      → 거리: ${distance !== null ? distance.toFixed(0) + 'm' : '계산 불가'}`);
+        } else {
+            console.log(`   ${index + 1}. ${name}: 좌표 없음 (x:${xCrdnt}, y:${yCrdnt})`);
         }
         
         return {
@@ -467,17 +622,19 @@ function calculateDistances(features) {
     });
     
     // 거리순으로 정렬 (가까운 순)
+    console.log('\n   🔄 거리순 정렬 중...');
     brokersWithDistance.sort((a, b) => {
         if (a.distance === null) return 1;
         if (b.distance === null) return -1;
         return a.distance - b.distance;
     });
     
-    console.log('📍 거리순 정렬 완료:');
-    brokersWithDistance.forEach((broker, idx) => {
+    console.log('   ✅ 거리순 정렬 완료!');
+    console.log('\n   📊 정렬 결과 (상위 5개):');
+    brokersWithDistance.slice(0, 5).forEach((broker, idx) => {
         const name = broker.feature.querySelector('bsnm_cmpnm')?.textContent || `공인중개사 ${broker.index + 1}`;
         const distanceText = broker.distance !== null ? `${broker.distance.toFixed(0)}m` : '거리 계산 불가';
-        console.log(`   ${idx + 1}. ${name} - ${distanceText}`);
+        console.log(`      ${idx + 1}위. ${name} - ${distanceText}`);
     });
     
     return brokersWithDistance;
@@ -519,16 +676,26 @@ function calculateHaversineDistance(lat1, lon1, lat2, lon2) {
  * @param {Array} brokers - 거리 정보가 포함된 공인중개사 배열
  */
 function displayBrokerList(brokers) {
+    console.log('\n   ┌─────────────────────────────────────┐');
+    console.log('   │  🎨 화면 표시                        │');
+    console.log('   └─────────────────────────────────────┘');
+    console.log('   📊 표시할 중개사 수:', brokers.length, '개');
+    
     const container = document.getElementById('brokerListContainer');
     if (!container) {
-        console.error('❌ brokerListContainer를 찾을 수 없습니다.');
+        console.error('   ❌ brokerListContainer DOM 요소를 찾을 수 없습니다!');
         return;
     }
     
+    console.log('   ✅ brokerListContainer 발견');
+    
     // 기존 내용 제거
+    console.log('   🧹 기존 내용 제거 중...');
     container.innerHTML = '';
     
+    console.log('   🔨 중개사 카드 생성 중...');
     brokers.forEach((brokerData, displayIndex) => {
+        console.log(`      카드 ${displayIndex + 1} 생성 중...`);
         const feature = brokerData.feature;
         const distance = brokerData.distance;
         
@@ -605,7 +772,11 @@ function displayBrokerList(brokers) {
         `;
         
         container.appendChild(brokerCard);
+        console.log(`      ✅ 카드 ${displayIndex + 1} 생성 완료`);
     });
+    
+    console.log('\n   ✅ 모든 카드 생성 및 표시 완료!');
+    console.log('   📊 최종 표시된 카드 수:', brokers.length, '개');
 }
 
 /**
@@ -613,6 +784,8 @@ function displayBrokerList(brokers) {
  * @param {string} message - 표시할 메시지
  */
 function displayNoResults(message) {
+    console.log('\n   ⚠️ displayNoResults 호출됨');
+    console.log('   메시지:', message);
     const container = document.getElementById('brokerListContainer');
     if (!container) return;
     
