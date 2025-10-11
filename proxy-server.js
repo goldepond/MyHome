@@ -162,7 +162,7 @@ app.use('/api/realestate', createProxyMiddleware({
  * api.vworld.kr/ned/wfs/getLandCharacteristicsWFS
  */
 app.use('/api/land', createProxyMiddleware({
-    target: 'http://api.vworld.kr',
+    target: 'https://api.vworld.kr',
     changeOrigin: true,
     secure: false,
     pathRewrite: {
@@ -188,7 +188,7 @@ app.use('/api/land', createProxyMiddleware({
  * api.vworld.kr/ned/wfs/getEstateBrkpgWFS
  */
 app.use('/api/broker', createProxyMiddleware({
-    target: 'http://api.vworld.kr',
+    target: 'https://api.vworld.kr',
     changeOrigin: true,
     secure: false,
     pathRewrite: {

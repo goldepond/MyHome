@@ -57,7 +57,7 @@ const GEOCODER_API_CONFIG = {
  * 토지특성 WFS 서비스 API
  */
 const LAND_API_CONFIG = {
-    baseUrl: 'http://api.vworld.kr/ned/wfs/getLandCharacteristicsWFS',
+    baseUrl: 'https://api.vworld.kr/ned/wfs/getLandCharacteristicsWFS',
     apiKey: 'FA0D6750-3DC2-3389-B8F1-0385C5976B96',
     typename: 'dt_d194',
     maxFeatures: 10,

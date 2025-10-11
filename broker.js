@@ -11,7 +11,7 @@
  * VWorld 부동산중개업WFS조회 API 설정
  */
 const BROKER_API_CONFIG = {
-    baseUrl: 'http://api.vworld.kr/ned/wfs/getEstateBrkpgWFS',
+    baseUrl: 'https://api.vworld.kr/ned/wfs/getEstateBrkpgWFS', // http → https
     apiKey: 'FA0D6750-3DC2-3389-B8F1-0385C5976B96',
     typename: 'dt_d170',
     maxFeatures: 30, // 10 → 30으로 증가
