@@ -918,26 +918,8 @@ async function loadBuildingInfo(sigunguCd, bjdongCd, bun, dongNm) {
             // 주의: dongNm은 API 파라미터로 지원되지 않으므로 보내지 않음
             // 대신 응답 후 클라이언트 측에서 필터링
             
-            // 환경에 따른 API 호출 방식 선택
-            let url;
-            const isLocal = window.location.hostname === 'localhost' || 
-                            window.location.hostname === '127.0.0.1' || 
-                            window.location.protocol === 'file:' ||
-                            window.location.hostname === '';
-            const isGitHub = !isLocal && (
-                window.location.hostname === 'github.io' || 
-                window.location.hostname.includes('github.io')
-            );
-            
-            if (isGitHub) {
-                // GitHub Pages: CORS 프록시 사용
-                const proxyUrl = 'https://cors-anywhere.herokuapp.com/';
-                const targetUrl = `${BUILDING_API_CONFIG.baseUrl}?${params.toString()}`;
-                url = `${proxyUrl}${targetUrl}`;
-            } else {
-                // 로컬 개발: 프록시 서버 사용
-                url = `http://localhost:3001/api/building?${params.toString()}`;
-            }
+        // 프록시 서버를 통해 API 호출
+        const url = `http://localhost:3001/api/building?${params.toString()}`;
             
             const response = await fetch(url);
             
@@ -1064,7 +1046,7 @@ async function loadGeocoderInfo(address) {
             address: address
         });
         
-        const url = `${GEOCODER_API_CONFIG.baseUrl}?${params.toString()}`;
+        const url = `http://localhost:3001/api/geocoder?${params.toString()}`;
         const response = await fetch(url);
         
         if (!response.ok) {
@@ -1352,20 +1334,8 @@ async function loadLandInfo(addressData, geocoderData) {
         console.log(`   📄 output: ${LAND_API_CONFIG.output}`);
         console.log(`   🔢 maxFeatures: ${LAND_API_CONFIG.maxFeatures}`);
         
-        // 환경에 따른 API 호출 방식 선택
-        let url;
-        const isLocal = window.location.hostname === 'localhost' || 
-                        window.location.hostname === '127.0.0.1' || 
-                        window.location.protocol === 'file:' ||
-                        window.location.hostname === '';
-        
-        if (isLocal) {
-            // 로컬 개발: 프록시 서버 사용
-            url = `http://localhost:3001/api/land?${params.toString()}`;
-        } else {
-            // GitHub Pages: 직접 호출
-            url = `${LAND_API_CONFIG.baseUrl}?${params.toString()}`;
-        }
+        // 프록시 서버를 통해 API 호출
+        const url = `http://localhost:3001/api/land?${params.toString()}`;
         
         console.log(`\n   🌐 요청 URL:`);
         console.log(`   ${url}\n`);
@@ -1491,18 +1461,8 @@ async function loadLandInfoByBBOX(point) {
         console.log(`   📄 output: ${LAND_API_CONFIG.output}`);
         console.log(`   🔢 maxFeatures: ${LAND_API_CONFIG.maxFeatures}`);
         
-        // 환경에 따른 API 호출 방식 선택
-        let url;
-        const isLocal = window.location.hostname === 'localhost' || 
-                        window.location.hostname === '127.0.0.1' || 
-                        window.location.protocol === 'file:' ||
-                        window.location.hostname === '';
-        
-        if (isLocal) {
-            url = `http://localhost:3001/api/land?${params.toString()}`;
-        } else {
-            url = `${LAND_API_CONFIG.baseUrl}?${params.toString()}`;
-        }
+        // 프록시 서버를 통해 API 호출
+        const url = `http://localhost:3001/api/land?${params.toString()}`;
         
         console.log(`\n   🌐 요청 URL:`);
         console.log(`   ${url}\n`);
@@ -1754,6 +1714,32 @@ function goBack() {
  * 매물 요청 제출
  */
 function submitRequest() {
+    console.log('\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    console.log('🏘️ [공인중개사 찾기] 버튼 클릭');
+    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    
+    // 데이터 유효성 검사
+    console.log('📊 데이터 상태 확인:');
+    console.log('   - addressInfo:', allData.addressInfo ? '✓' : '✗');
+    console.log('   - buildingInfo:', allData.buildingInfo ? '✓' : '✗');
+    console.log('   - geocoderInfo:', allData.geocoderInfo ? '✓' : '✗');
+    console.log('   - landInfo:', allData.landInfo ? '✓' : '✗');
+    
+    // 필수 데이터 체크
+    if (!allData.addressInfo) {
+        console.error('❌ 주소 정보가 없습니다!');
+        alert('❌ 주소 정보가 없습니다. 페이지를 새로고침하고 다시 시도해주세요.');
+        return;
+    }
+    
+    if (!allData.geocoderInfo || !allData.geocoderInfo.result || !allData.geocoderInfo.result.point) {
+        console.error('❌ 좌표 정보가 없습니다!');
+        alert('❌ 좌표 정보를 불러오는 중입니다. 잠시 후 다시 시도해주세요.');
+        return;
+    }
+    
+    console.log('✅ 필수 데이터 확인 완료!');
+    
     // 현재 페이지의 모든 데이터를 localStorage에 저장
     const transferData = {
         addressInfo: allData.addressInfo,
@@ -1762,9 +1748,15 @@ function submitRequest() {
         landInfo: allData.landInfo
     };
     
-    localStorage.setItem('brokerSearchData', JSON.stringify(transferData));
+    console.log('💾 localStorage에 저장 중...');
+    const jsonString = JSON.stringify(transferData);
+    console.log('   📏 저장할 데이터 크기:', jsonString.length, '바이트');
+    
+    localStorage.setItem('brokerSearchData', jsonString);
+    console.log('✅ localStorage 저장 완료!');
     
     // 공인중개사 찾기 페이지로 이동
+    console.log('🚀 broker.html로 이동...');
     window.location.href = 'broker.html';
 }
 
@@ -1976,9 +1968,9 @@ function shareAddressInfo() {
 }
 
 /**
- * 즐겨찾기 추가
+ * 즐겨찾기 추가 (Firestore + localStorage)
  */
-function addToFavorites() {
+async function addToFavorites() {
     const addressInfo = allData.addressInfo;
     
     if (!addressInfo) {
@@ -1986,6 +1978,7 @@ function addToFavorites() {
         return;
     }
     
+    // localStorage에 저장 (항상)
     let favorites = JSON.parse(localStorage.getItem('favoriteAddresses') || '[]');
     
     // 중복 체크
@@ -1997,18 +1990,29 @@ function addToFavorites() {
     }
     
     // 즐겨찾기 추가
-    favorites.unshift({
+    const favoriteData = {
         roadAddr: addressInfo.roadAddr,
         jibunAddr: addressInfo.jibunAddr,
         zipNo: addressInfo.zipNo,
         addedAt: new Date().toISOString()
-    });
+    };
     
-    // 최대 20개까지만 저장
+    favorites.unshift(favoriteData);
     favorites = favorites.slice(0, 20);
-    
     localStorage.setItem('favoriteAddresses', JSON.stringify(favorites));
-    alert(`✅ 즐겨찾기에 추가되었습니다!\n\n메인 페이지에서 빠르게 다시 찾을 수 있습니다.`);
+    
+    // Firestore에도 저장 시도 (로그인된 경우)
+    if (typeof saveFavoriteToFirestore === 'function') {
+        const firestoreSaved = await saveFavoriteToFirestore(addressInfo);
+        
+        if (firestoreSaved) {
+            alert(`✅ 즐겨찾기에 추가되었습니다!\n\n메인 페이지와 클라우드에 저장되었습니다.`);
+        } else {
+            alert(`✅ 즐겨찾기에 추가되었습니다!\n\n메인 페이지에서 빠르게 다시 찾을 수 있습니다.`);
+        }
+    } else {
+        alert(`✅ 즐겨찾기에 추가되었습니다!\n\n메인 페이지에서 빠르게 다시 찾을 수 있습니다.`);
+    }
 }
 
 /**
@@ -2030,4 +2034,18 @@ function toggleDetailInfo() {
         toggleIcon.textContent = '▼';
         toggleBtn.innerHTML = '<span id="toggleIcon">▼</span> 상세정보 보기';
     }
+}
+
+/**
+ * 메인 페이지로 이동 (로고 클릭 시)
+ */
+function goToMainPage() {
+    window.location.href = 'index.html';
+}
+
+/**
+ * 내 제안서 페이지로 이동
+ */
+function goToMyProposals() {
+    window.location.href = 'proposals-list.html';
 }

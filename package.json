@@ -4,10 +4,9 @@
   "description": "부동산 검색을 위한 MVP 웹 애플리케이션",
   "main": "index.html",
   "scripts": {
-    "start": "serve .",
-    "dev": "serve . -l 3000",
+    "start": "node server.js",
     "proxy": "node proxy-server.js",
-    "dev:full": "concurrently \"npm run proxy\" \"npm run dev\"",
+    "dev:full": "concurrently \"npm run proxy\" \"npm run start\"",
     "build": "echo 'No build step required for static site'",
     "deploy": "gh-pages -d ."
   },

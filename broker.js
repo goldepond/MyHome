@@ -716,6 +716,9 @@ function displayBrokerList(brokers) {
         const emplymCo = getTagValue('emplym_co'); // 고용수
         const frstRegistDt = getTagValue('frst_regist_dt'); // 데이터기준일자
         
+        // 중개사명 설정 (견적문의 버튼에서 사용)
+        const brokerName = bsnmCmpnm || '공인중개사';
+        
         // 거리 표시
         let distanceBadge = '';
         if (distance !== null) {
@@ -723,9 +726,6 @@ function displayBrokerList(brokers) {
             distanceBadge = `<span class="distance-badge">📍 ${distanceKm}</span>`;
         }
         
-        // 전화번호 추출 (rdnmadr에서 전화번호가 있을 수 있음 - 실제 데이터에는 없을 수 있음)
-        // 임시로 대표번호 형식 생성
-        const phoneNumber = '02-1234-5678'; // 실제 API에 전화번호 필드가 있다면 수정 필요
         
         brokerCard.innerHTML = `
             <div class="broker-card-header">
@@ -759,8 +759,8 @@ function displayBrokerList(brokers) {
                 ` : ''}
             </div>
             <div class="broker-actions">
-                <button class="action-btn" onclick="callBroker('${phoneNumber}')" title="전화하기">
-                    📞 전화
+                <button class="action-btn" onclick="requestQuote('${brokerName}')" title="견적문의">
+                    💬 견적문의
                 </button>
                 <button class="action-btn" onclick="findRoute('${encodeURIComponent(rdnmadr)}')" title="길찾기">
                     🗺️ 길찾기
@@ -838,19 +838,147 @@ function updateFilterButtons() {
 }
 
 /* =========================================== */
+/* 5.5. LOGIN CHECK FUNCTIONS - 로그인 확인 함수 */
+/* =========================================== */
+
+/**
+ * 로그인 상태 확인
+ */
+function isLoggedIn() {
+    // Firebase 인증 상태 확인
+    if (typeof firebase !== 'undefined' && firebase.auth) {
+        return firebase.auth().currentUser !== null;
+    }
+    
+    // 관리자 로그인 상태 확인
+    const adminAuth = localStorage.getItem('adminAuth');
+    return adminAuth === 'true';
+}
+
+/**
+ * 로그인 모달 열기
+ */
+function openLoginModal() {
+    const loginModal = document.getElementById('loginModal');
+    if (loginModal) {
+        loginModal.style.display = 'block';
+        document.body.style.overflow = 'hidden';
+    } else {
+        alert('로그인 기능을 사용하려면 메인 페이지로 이동해주세요.');
+        window.location.href = 'index.html';
+    }
+}
+
+/* =========================================== */
 /* 6. ACTION FUNCTIONS - 액션 버튼 함수 */
 /* =========================================== */
 
 /**
- * 전화하기
- * @param {string} phoneNumber - 전화번호
+ * 견적문의
+ * @param {string} brokerName - 중개사 이름
  */
-function callBroker(phoneNumber) {
-    if (phoneNumber && phoneNumber !== '-') {
-        window.location.href = `tel:${phoneNumber}`;
-    } else {
-        alert('전화번호 정보가 없습니다.');
+function requestQuote(brokerName) {
+    // 로그인 상태 확인
+    if (!isLoggedIn()) {
+        alert('견적 문의를 하려면 로그인이 필요합니다.\n\n로그인 후 다시 시도해주세요.');
+        openLoginModal();
+        return;
     }
+    
+    const message = prompt(`${brokerName}에 견적을 문의하시겠습니까?\n\n문의 내용을 입력해주세요:`);
+    if (message) {
+        // 견적문의 데이터를 Firestore에 저장
+        saveQuoteRequest(brokerName, message);
+        alert(`견적 문의가 전송되었습니다!\n\n중개사: ${brokerName}\n문의내용: ${message}\n\n빠른 시일 내에 연락드리겠습니다.`);
+    }
+}
+
+/**
+ * 견적문의 데이터를 Firestore에 저장
+ * @param {string} brokerName - 중개사 이름
+ * @param {string} message - 문의 내용
+ */
+async function saveQuoteRequest(brokerName, message) {
+    try {
+        // 현재 사용자 정보 가져오기
+        const currentUser = firebase.auth().currentUser;
+        const userEmail = currentUser ? currentUser.email : 'guest@example.com';
+        const userName = currentUser ? (currentUser.displayName || currentUser.email.split('@')[0]) : '게스트';
+        
+        // 공인중개사 정보 가져오기 (현재 페이지의 중개사 데이터에서)
+        const brokerData = getCurrentBrokerData(brokerName);
+        
+        // 견적문의 데이터 구성
+        const quoteRequestData = {
+            // 사용자 정보
+            userEmail: userEmail,
+            userName: userName,
+            userId: currentUser ? currentUser.uid : 'guest',
+            
+            // 공인중개사 정보
+            brokerName: brokerName,
+            brokerData: brokerData,
+            
+            // 문의 정보
+            message: message,
+            requestDate: new Date().toISOString(),
+            status: 'pending', // pending, contacted, completed, cancelled
+            
+            // 추가 정보
+            userAgent: navigator.userAgent,
+            timestamp: firebase.firestore.FieldValue.serverTimestamp()
+        };
+        
+        // Firestore에 저장
+        const db = firebase.firestore();
+        await db.collection('quoteRequests').add(quoteRequestData);
+        
+        console.log('✅ 견적문의 데이터 저장 완료:', quoteRequestData);
+        
+    } catch (error) {
+        console.error('❌ 견적문의 데이터 저장 실패:', error);
+        alert('견적문의 저장 중 오류가 발생했습니다. 다시 시도해주세요.');
+    }
+}
+
+/**
+ * 현재 중개사 데이터 가져오기
+ * @param {string} brokerName - 중개사 이름
+ * @returns {Object} - 중개사 데이터
+ */
+function getCurrentBrokerData(brokerName) {
+    // 현재 표시된 중개사 목록에서 해당 중개사 찾기
+    const brokerCards = document.querySelectorAll('.broker-card');
+    
+    for (let card of brokerCards) {
+        const cardTitle = card.querySelector('.broker-card-header h3');
+        if (cardTitle && cardTitle.textContent.includes(brokerName)) {
+            // 중개사 카드에서 정보 추출
+            const brokerDetails = card.querySelector('.broker-details');
+            if (brokerDetails) {
+                const details = {};
+                const items = brokerDetails.querySelectorAll('.broker-item');
+                
+                items.forEach(item => {
+                    const label = item.querySelector('strong');
+                    const value = item.querySelector('span');
+                    if (label && value) {
+                        details[label.textContent.trim()] = value.textContent.trim();
+                    }
+                });
+                
+                return {
+                    name: brokerName,
+                    details: details
+                };
+            }
+        }
+    }
+    
+    return {
+        name: brokerName,
+        details: {}
+    };
 }
 
 /**
@@ -868,7 +996,7 @@ function findRoute(address) {
  * 공인중개사 저장
  * @param {number} index - 공인중개사 인덱스
  */
-function saveBroker(index) {
+async function saveBroker(index) {
     const broker = allBrokers.find(b => b.index === index);
     if (!broker) {
         alert('❌ 공인중개사 정보를 찾을 수 없습니다.');
@@ -882,27 +1010,42 @@ function saveBroker(index) {
     };
     
     const bsnmCmpnm = getTagValue('bsnm_cmpnm');
+    const registNo = getTagValue('brkpg_regist_no');
     
     // localStorage에 저장
     let savedBrokers = JSON.parse(localStorage.getItem('savedBrokers') || '[]');
     
     // 중복 체크
-    const isDuplicate = savedBrokers.some(b => b.registNo === getTagValue('brkpg_regist_no'));
+    const isDuplicate = savedBrokers.some(b => b.registNo === registNo);
     
     if (isDuplicate) {
         alert('⚠️ 이미 저장된 공인중개사입니다.');
         return;
     }
     
-    savedBrokers.push({
+    const brokerData = {
         name: bsnmCmpnm,
         address: getTagValue('rdnmadr'),
-        registNo: getTagValue('brkpg_regist_no'),
+        registNo: registNo,
+        employeeCount: getTagValue('emplym_co'),
         savedAt: new Date().toISOString()
-    });
+    };
     
+    savedBrokers.push(brokerData);
     localStorage.setItem('savedBrokers', JSON.stringify(savedBrokers));
-    alert(`✅ ${bsnmCmpnm}이(가) 저장되었습니다!`);
+    
+    // Firestore에도 저장 시도 (로그인된 경우)
+    if (typeof saveBrokerToFirestore === 'function') {
+        const firestoreSaved = await saveBrokerToFirestore(brokerData);
+        
+        if (firestoreSaved) {
+            alert(`✅ ${bsnmCmpnm}이(가) 저장되었습니다!\n\n로컬 및 클라우드에 저장되었습니다.`);
+        } else {
+            alert(`✅ ${bsnmCmpnm}이(가) 저장되었습니다!`);
+        }
+    } else {
+        alert(`✅ ${bsnmCmpnm}이(가) 저장되었습니다!`);
+    }
 }
 
 /* =========================================== */
@@ -970,4 +1113,18 @@ document.getElementById('signupForm')?.addEventListener('submit', (e) => {
     alert('회원가입 기능은 준비 중입니다.');
     closeSignupModal();
 });
+
+/**
+ * 메인 페이지로 이동 (로고 클릭 시)
+ */
+function goToMainPage() {
+    window.location.href = 'index.html';
+}
+
+/**
+ * 내 제안서 페이지로 이동
+ */
+function goToMyProposals() {
+    window.location.href = 'proposals-list.html';
+}
 

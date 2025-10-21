@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>매물 등록 - HouseMVP</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="property-register.css">
+</head>
+<body>
+    <!-- 헤더 -->
+    <header class="header">
+        <div class="container">
+            <div class="logo" onclick="goToMainPage()" style="cursor: pointer;">
+                <span class="logo-icon">🏠</span>
+                <span class="logo-text">HouseMVP</span>
+            </div>
+            <nav class="nav">
+                <button class="nav-btn" onclick="goToAdminDashboard()">대시보드</button>
+                <button class="logout-btn" onclick="logout()">로그아웃</button>
+            </nav>
+        </div>
+    </header>
+
+    <!-- 메인 콘텐츠 -->
+    <main class="main-content">
+        <div class="container">
+            <!-- 페이지 헤더 -->
+            <div class="page-header">
+                <h1>🏡 매물 등록</h1>
+                <p class="subtitle">선정된 매물 정보를 등록하고 판매를 시작하세요</p>
+            </div>
+
+            <!-- 선정 정보 카드 -->
+            <div class="selection-info-card" id="selectionInfoCard">
+                <h2>✅ 선정 정보</h2>
+                <div class="info-grid">
+                    <div class="info-item">
+                        <span class="label">의뢰인</span>
+                        <span class="value" id="customerName">-</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="label">연락처</span>
+                        <span class="value" id="customerEmail">-</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="label">희망 판매가</span>
+                        <span class="value" id="suggestedPrice">-</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="label">중개 수수료</span>
+                        <span class="value" id="commission">-</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 매물 등록 폼 -->
+            <form class="property-form" id="propertyForm">
+                <!-- 1. 기본 정보 -->
+                <section class="form-section">
+                    <h3>🏠 기본 정보</h3>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="propertyType">매물 유형 *</label>
+                            <select id="propertyType" required>
+                                <option value="">선택하세요</option>
+                                <option value="apartment">아파트</option>
+                                <option value="villa">빌라/연립</option>
+                                <option value="house">단독주택</option>
+                                <option value="officetel">오피스텔</option>
+                                <option value="land">토지</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="transactionType">거래 유형 *</label>
+                            <select id="transactionType" required>
+                                <option value="">선택하세요</option>
+                                <option value="sale">매매</option>
+                                <option value="jeonse">전세</option>
+                                <option value="monthly">월세</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="propertyTitle">매물 제목 *</label>
+                        <input type="text" id="propertyTitle" placeholder="예: 신축 아파트, 역세권, 남향 33평" required maxlength="50">
+                        <small>최대 50자</small>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="propertyDescription">매물 설명 *</label>
+                        <textarea id="propertyDescription" rows="5" placeholder="매물의 특징, 장점, 주변 환경 등을 상세히 작성해주세요" required></textarea>
+                    </div>
+                </section>
+
+                <!-- 2. 면적 정보 -->
+                <section class="form-section">
+                    <h3>📏 면적 정보</h3>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="exclusiveArea">전용면적 (㎡) *</label>
+                            <input type="number" id="exclusiveArea" placeholder="예: 84.5" required min="0" step="0.1">
+                        </div>
+                        <div class="form-group">
+                            <label for="supplyArea">공급면적 (㎡)</label>
+                            <input type="number" id="supplyArea" placeholder="예: 120.5" min="0" step="0.1">
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 3. 가격 정보 -->
+                <section class="form-section">
+                    <h3>💰 가격 정보</h3>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="salePrice">판매가 (만원) *</label>
+                            <input type="number" id="salePrice" placeholder="예: 50000" required min="0" step="100">
+                        </div>
+                        <div class="form-group">
+                            <label for="deposit">보증금 (만원)</label>
+                            <input type="number" id="deposit" placeholder="전세/월세인 경우" min="0" step="100">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="monthlyRent">월세 (만원)</label>
+                        <input type="number" id="monthlyRent" placeholder="월세인 경우" min="0" step="10">
+                    </div>
+                </section>
+
+                <!-- 4. 상세 정보 -->
+                <section class="form-section">
+                    <h3>🔍 상세 정보</h3>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="rooms">방 개수</label>
+                            <input type="number" id="rooms" placeholder="예: 3" min="0">
+                        </div>
+                        <div class="form-group">
+                            <label for="bathrooms">욕실 개수</label>
+                            <input type="number" id="bathrooms" placeholder="예: 2" min="0">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="floor">층수</label>
+                            <input type="text" id="floor" placeholder="예: 15/20 (15층/전체 20층)">
+                        </div>
+                        <div class="form-group">
+                            <label for="direction">향</label>
+                            <select id="direction">
+                                <option value="">선택하세요</option>
+                                <option value="south">남향</option>
+                                <option value="north">북향</option>
+                                <option value="east">동향</option>
+                                <option value="west">서향</option>
+                                <option value="south-east">남동향</option>
+                                <option value="south-west">남서향</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="parking">주차 가능 대수</label>
+                            <input type="number" id="parking" placeholder="예: 1" min="0">
+                        </div>
+                        <div class="form-group">
+                            <label for="moveInDate">입주 가능일</label>
+                            <input type="date" id="moveInDate">
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 5. 추가 옵션 -->
+                <section class="form-section">
+                    <h3>✨ 추가 옵션</h3>
+                    <div class="checkbox-grid">
+                        <label class="checkbox-label">
+                            <input type="checkbox" name="options" value="elevator">
+                            <span>엘리베이터</span>
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" name="options" value="parking">
+                            <span>주차 가능</span>
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" name="options" value="veranda">
+                            <span>베란다/발코니</span>
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" name="options" value="builtin">
+                            <span>붙박이장</span>
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" name="options" value="airconditioner">
+                            <span>에어컨</span>
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" name="options" value="refrigerator">
+                            <span>냉장고</span>
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" name="options" value="washer">
+                            <span>세탁기</span>
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" name="options" value="security">
+                            <span>보안 시스템</span>
+                        </label>
+                    </div>
+                </section>
+
+                <!-- 6. 사진 업로드 -->
+                <section class="form-section">
+                    <h3>📸 매물 사진</h3>
+                    <div class="upload-area" id="uploadArea">
+                        <input type="file" id="photoInput" accept="image/*" multiple style="display: none;">
+                        <button type="button" class="upload-btn" onclick="document.getElementById('photoInput').click()">
+                            📷 사진 선택
+                        </button>
+                        <p class="upload-hint">최대 10장까지 업로드 가능합니다</p>
+                    </div>
+                    <div class="photo-preview" id="photoPreview">
+                        <!-- 선택된 사진 미리보기 -->
+                    </div>
+                </section>
+
+                <!-- 제출 버튼 -->
+                <div class="form-actions">
+                    <button type="button" class="btn-secondary" onclick="goBack()">취소</button>
+                    <button type="button" class="btn-draft" onclick="saveDraft()">임시저장</button>
+                    <button type="submit" class="btn-primary">매물 등록</button>
+                </div>
+            </form>
+        </div>
+    </main>
+
+    <!-- JavaScript 파일 로드 -->
+    <script src="firebase-config.js"></script>
+    <script src="property-register.js"></script>
+</body>
+</html>
+
+
+

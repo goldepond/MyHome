@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>제안서 비교 - HouseMVP</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="proposals-list.css">
+</head>
+<body>
+    <!-- 헤더 -->
+    <header class="header">
+        <div class="container">
+            <div class="logo" onclick="goToMainPage()" style="cursor: pointer;">
+                <span class="logo-icon">🏠</span>
+                <span class="logo-text">HouseMVP</span>
+            </div>
+            <nav class="nav">
+                <span class="user-name" id="userName">-</span>
+                <button class="logout-btn" onclick="logout()">로그아웃</button>
+            </nav>
+        </div>
+    </header>
+
+    <!-- 메인 콘텐츠 -->
+    <main class="main-content">
+        <div class="container">
+            <!-- 페이지 헤더 -->
+            <div class="page-header">
+                <h1>📊 제안서 비교</h1>
+                <p class="subtitle">중개사들의 제안을 비교하고 최적의 파트너를 선택하세요</p>
+            </div>
+
+            <!-- 통계 카드 -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon">📝</div>
+                    <div class="stat-info">
+                        <div class="stat-number" id="totalProposals">0</div>
+                        <div class="stat-label">받은 제안서</div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">💰</div>
+                    <div class="stat-info">
+                        <div class="stat-number" id="avgPrice">0원</div>
+                        <div class="stat-label">평균 제안가</div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">💳</div>
+                    <div class="stat-info">
+                        <div class="stat-number" id="avgCommission">0%</div>
+                        <div class="stat-label">평균 수수료</div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">⏱️</div>
+                    <div class="stat-info">
+                        <div class="stat-number" id="avgDuration">0일</div>
+                        <div class="stat-label">평균 예상기간</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 필터 및 정렬 -->
+            <div class="filter-section">
+                <div class="filter-group">
+                    <label>정렬 기준:</label>
+                    <select id="sortBy" onchange="sortProposals()">
+                        <option value="price-high">가격 높은 순</option>
+                        <option value="price-low">가격 낮은 순</option>
+                        <option value="commission-low">수수료 낮은 순</option>
+                        <option value="duration-short">기간 짧은 순</option>
+                        <option value="date-new">최신 순</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- 제안서 목록 -->
+            <div class="proposals-grid" id="proposalsGrid">
+                <!-- 제안서 카드가 동적으로 추가됩니다 -->
+            </div>
+
+            <!-- 빈 상태 -->
+            <div class="empty-state" id="emptyState" style="display: none;">
+                <div class="empty-icon">📭</div>
+                <h3>아직 받은 제안서가 없습니다</h3>
+                <p>중개사가 제안서를 제출하면 여기에 표시됩니다.</p>
+            </div>
+        </div>
+    </main>
+
+    <!-- 제안서 상세 모달 -->
+    <div id="proposalDetailModal" class="modal">
+        <div class="modal-content large">
+            <span class="close" onclick="closeDetailModal()">&times;</span>
+            <div id="proposalDetailContent">
+                <!-- 상세 내용이 동적으로 추가됩니다 -->
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript 파일 로드 -->
+    <script src="firebase-config.js"></script>
+    <script src="proposals-list.js"></script>
+</body>
+</html>
+
+
+

@@ -52,6 +52,12 @@ body {
     font-size: 24px;
     font-weight: 700;
     color: #6366f1;
+    transition: all 0.3s ease;
+}
+
+.logo:hover {
+    color: #4f46e5;
+    transform: scale(1.05);
 }
 
 .logo-icon {
@@ -97,6 +103,41 @@ body {
 
 .signup-btn:hover {
     background: #4f46e5;
+}
+
+/* 내 제안서 버튼 */
+.proposals-btn {
+    background: #8b5cf6;
+    color: white;
+    padding: 8px 16px;
+    border: none;
+    border-radius: 6px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 0.95rem;
+}
+
+.proposals-btn:hover {
+    background: #7c3aed;
+    transform: scale(1.05);
+}
+
+.admin-btn {
+    background: #f59e0b;
+    color: white;
+    padding: 8px 12px;
+    border: none;
+    border-radius: 6px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 1.1rem;
+}
+
+.admin-btn:hover {
+    background: #d97706;
+    transform: scale(1.05);
 }
 
 /* =========================================== */
@@ -993,6 +1034,152 @@ body {
 .submit-btn:hover {
     transform: translateY(-2px);
     box-shadow: 0 8px 25px rgba(139, 92, 246, 0.3);
+}
+
+/* 비밀번호 재설정 링크 */
+.forgot-password {
+    text-align: center;
+    margin-top: 15px;
+    padding-top: 15px;
+    border-top: 1px solid #e5e7eb;
+}
+
+.forgot-password a {
+    color: #8b5cf6;
+    text-decoration: none;
+    font-size: 0.9rem;
+    transition: color 0.3s ease;
+}
+
+.forgot-password a:hover {
+    color: #7c3aed;
+    text-decoration: underline;
+}
+
+/* 관리자 로그인 안내 */
+.admin-login-info {
+    background: #fef3c7;
+    border: 1px solid #f59e0b;
+    border-radius: 8px;
+    padding: 12px;
+    margin: 15px 0;
+    text-align: center;
+}
+
+.admin-login-info p {
+    margin: 0;
+    font-size: 0.85rem;
+    color: #92400e;
+    line-height: 1.4;
+}
+
+.admin-login-info strong {
+    color: #b45309;
+}
+
+/* 소셜 로그인 구분선 */
+.divider {
+    text-align: center;
+    margin: 20px 0;
+    position: relative;
+}
+
+.divider::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: #ddd;
+}
+
+.divider span {
+    background: white;
+    padding: 0 15px;
+    position: relative;
+    color: #999;
+    font-size: 0.9rem;
+}
+
+/* Google 로그인 버튼 */
+.google-login-btn {
+    width: 100%;
+    padding: 12px;
+    background: white;
+    color: #333;
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    font-size: 1rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+
+.google-login-btn:hover {
+    background: #f8f9fa;
+    border-color: #6366f1;
+    box-shadow: 0 4px 15px rgba(99, 102, 241, 0.15);
+}
+
+.google-icon {
+    width: 20px;
+    height: 20px;
+}
+
+/* 사용자 정보 (로그인 후) */
+.user-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.user-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid #6366f1;
+}
+
+.user-avatar-placeholder {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.3rem;
+    border: 2px solid #6366f1;
+}
+
+.user-name {
+    color: #333;
+    font-weight: 500;
+    font-size: 0.95rem;
+}
+
+.logout-btn {
+    padding: 8px 16px;
+    background: #ef4444;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.logout-btn:hover {
+    background: #dc2626;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 10px rgba(239, 68, 68, 0.3);
 }
 
 /* =========================================== */

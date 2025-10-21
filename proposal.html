@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>제안서 작성 - HouseMVP</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="proposal.css">
+</head>
+<body>
+    <!-- 헤더 -->
+    <header class="header">
+        <div class="container">
+            <div class="logo" onclick="goToMainPage()" style="cursor: pointer;">
+                <span class="logo-icon">🏠</span>
+                <span class="logo-text">HouseMVP</span>
+            </div>
+            <nav class="nav">
+                <button class="nav-btn" onclick="goToAdminDashboard()">대시보드</button>
+                <button class="logout-btn" onclick="logout()">로그아웃</button>
+            </nav>
+        </div>
+    </header>
+
+    <!-- 메인 콘텐츠 -->
+    <main class="main-content">
+        <div class="container">
+            <!-- 제목 -->
+            <div class="page-header">
+                <h1>📝 제안서 작성</h1>
+                <p class="subtitle">고객님께 매물 판매 전략을 제안해주세요</p>
+            </div>
+
+            <!-- 견적문의 정보 카드 -->
+            <div class="quote-info-card" id="quoteInfoCard">
+                <h2>📋 견적문의 정보</h2>
+                <div class="info-grid">
+                    <div class="info-item">
+                        <span class="label">고객명</span>
+                        <span class="value" id="customerName">-</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="label">연락처</span>
+                        <span class="value" id="customerEmail">-</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="label">주소</span>
+                        <span class="value" id="propertyAddress">-</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="label">문의일시</span>
+                        <span class="value" id="requestDate">-</span>
+                    </div>
+                </div>
+                <div class="customer-message">
+                    <span class="label">💬 고객 문의내용</span>
+                    <p id="customerMessage">-</p>
+                </div>
+            </div>
+
+            <!-- 제안서 작성 폼 -->
+            <form class="proposal-form" id="proposalForm">
+                <!-- 1. 가격 제안 -->
+                <section class="form-section">
+                    <h3>💰 가격 제안</h3>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="suggestedPrice">희망 판매가 (만원)</label>
+                            <input type="number" id="suggestedPrice" placeholder="예: 50000" required min="0" step="100">
+                            <small>시장 조사를 바탕으로 제안하는 판매 가격입니다</small>
+                        </div>
+                        <div class="form-group">
+                            <label for="minPrice">최소 판매가 (만원)</label>
+                            <input type="number" id="minPrice" placeholder="예: 48000" required min="0" step="100">
+                            <small>협상 가능한 최소 금액입니다</small>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 2. 수수료 -->
+                <section class="form-section">
+                    <h3>💳 중개 수수료</h3>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="commissionRate">수수료율 (%)</label>
+                            <input type="number" id="commissionRate" placeholder="예: 0.5" required min="0" max="100" step="0.1">
+                            <small>법정 수수료: 매매가의 0.4~0.9%</small>
+                        </div>
+                        <div class="form-group">
+                            <label for="commissionAmount">예상 수수료 (만원)</label>
+                            <input type="number" id="commissionAmount" placeholder="자동 계산됨" readonly>
+                            <small>희망 판매가 기준으로 자동 계산됩니다</small>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="commissionNotes">수수료 특이사항</label>
+                        <textarea id="commissionNotes" rows="2" placeholder="할인 조건, 추가 서비스 등을 기재해주세요"></textarea>
+                    </div>
+                </section>
+
+                <!-- 3. 실행 계획 (Timeline) -->
+                <section class="form-section">
+                    <h3>📅 실행 계획 (Timeline)</h3>
+                    <div class="timeline-items" id="timelineItems">
+                        <!-- 타임라인 항목이 동적으로 추가됩니다 -->
+                    </div>
+                    <button type="button" class="add-btn" onclick="addTimelineItem()">+ 일정 추가</button>
+                </section>
+
+                <!-- 4. 전략 -->
+                <section class="form-section">
+                    <h3>🎯 판매 전략</h3>
+                    <div class="form-group">
+                        <label for="marketAnalysis">시장 분석</label>
+                        <textarea id="marketAnalysis" rows="4" placeholder="주변 시세, 경쟁 매물, 시장 동향 등을 분석해주세요" required></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="sellingPoints">매물 강점</label>
+                        <textarea id="sellingPoints" rows="4" placeholder="이 매물의 차별화된 강점을 설명해주세요" required></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="marketingStrategy">마케팅 전략</label>
+                        <textarea id="marketingStrategy" rows="4" placeholder="온라인 광고, 오픈하우스, SNS 홍보 등 구체적인 마케팅 방법을 제안해주세요" required></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="negotiationStrategy">협상 전략</label>
+                        <textarea id="negotiationStrategy" rows="4" placeholder="매수자와의 협상 진행 방법을 설명해주세요" required></textarea>
+                    </div>
+                </section>
+
+                <!-- 5. 현재 상황 -->
+                <section class="form-section">
+                    <h3>📊 현재 상황</h3>
+                    <div class="form-group">
+                        <label for="currentStatus">진행 상황</label>
+                        <select id="currentStatus" required>
+                            <option value="">선택하세요</option>
+                            <option value="ready">제안 준비 중</option>
+                            <option value="submitted">제안 제출 완료</option>
+                            <option value="reviewing">검토 중</option>
+                            <option value="selected">선정 대기</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="statusNotes">상황 설명</label>
+                        <textarea id="statusNotes" rows="3" placeholder="현재 진행 상황에 대한 추가 설명을 입력해주세요"></textarea>
+                    </div>
+                </section>
+
+                <!-- 6. 추가 서비스 -->
+                <section class="form-section">
+                    <h3>✨ 추가 서비스</h3>
+                    <div class="checkbox-group">
+                        <label class="checkbox-label">
+                            <input type="checkbox" name="services" value="photography">
+                            <span>전문 사진 촬영</span>
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" name="services" value="staging">
+                            <span>홈 스테이징</span>
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" name="services" value="virtual-tour">
+                            <span>VR 투어</span>
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" name="services" value="legal-support">
+                            <span>법률 자문</span>
+                        </label>
+                        <label class="checkbox-label">
+                            <input type="checkbox" name="services" value="tax-consulting">
+                            <span>세무 상담</span>
+                        </label>
+                    </div>
+                </section>
+
+                <!-- 제출 버튼 -->
+                <div class="form-actions">
+                    <button type="button" class="btn-secondary" onclick="goBack()">취소</button>
+                    <button type="button" class="btn-draft" onclick="saveDraft()">임시저장</button>
+                    <button type="submit" class="btn-primary">제안서 제출</button>
+                </div>
+            </form>
+        </div>
+    </main>
+
+    <!-- JavaScript 파일 로드 -->
+    <script src="firebase-config.js"></script>
+    <script src="proposal.js"></script>
+</body>
+</html>
+
+
+

@@ -158,6 +158,32 @@ app.use('/api/realestate', createProxyMiddleware({
 }));
 
 /**
+ * VWorld Geocoder API 프록시
+ * api.vworld.kr/req/address
+ */
+app.use('/api/geocoder', createProxyMiddleware({
+    target: 'https://api.vworld.kr',
+    changeOrigin: true,
+    secure: false,
+    pathRewrite: {
+        '^/api/geocoder': '/req/address'
+    },
+    onProxyReq: (proxyReq, req, res) => {
+        console.log('🌍 Geocoder API 프록시 요청:', proxyReq.path);
+    },
+    onProxyRes: (proxyRes, req, res) => {
+        console.log('✅ Geocoder API 응답:', proxyRes.statusCode);
+    },
+    onError: (err, req, res) => {
+        console.error('❌ Geocoder API 프록시 오류:', err.message);
+        res.status(500).json({ 
+            error: 'Geocoder API 프록시 오류',
+            message: err.message 
+        });
+    }
+}));
+
+/**
  * VWorld 토지특성공간정보 API 프록시
  * api.vworld.kr/ned/wfs/getLandCharacteristicsWFS
  */
@@ -223,6 +249,7 @@ app.listen(PORT, () => {
     console.log('   - /api/apt-detail (아파트 상세 정보)');
     console.log('   - /api/building (건물 정보)');
     console.log('   - /api/realestate (부동산 중개업 조회)');
+    console.log('   - /api/geocoder (Geocoder API)');
     console.log('   - /api/land (토지특성공간정보)');
     console.log('   - /api/broker (부동산중개업WFS조회)');
 });

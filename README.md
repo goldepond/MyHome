@@ -78,25 +78,36 @@ houseMvpProject/
 npm install
 ```
 
-### **2. 프록시 서버 실행**
+### **2. 서버 실행 (필수!)**
+
+⚠️ **중요**: Firebase 인증을 사용하려면 반드시 HTTP 서버로 실행해야 합니다.
+`file://` 프로토콜에서는 Firebase가 작동하지 않습니다!
+
+#### **옵션 1: 추천! (모든 서버 동시 실행)**
+```bash
+# 터미널 1: 프록시 서버 (포트 3001)
+npm run proxy
+
+# 터미널 2: 웹 서버 (포트 8080)
+npm start
+```
+
+#### **옵션 2: 프록시만 실행 (Firebase 없이 테스트)**
 ```bash
 npm run proxy
 ```
 
-### **3. 웹 서버 실행**
-```bash
-npm run dev
-```
-
-### **4. 개발 환경 (동시 실행)**
-```bash
-npm run dev:full
-```
-
 ## 🌐 접속 방법
 
-- **메인 페이지**: http://localhost:3000
+### **Firebase 인증 사용 시 (로그인/회원가입)**
+- **메인 페이지**: http://localhost:8080
 - **프록시 서버**: http://localhost:3001
+
+⚠️ **주의**: `file:///D:/houseMvpProject/index.html`로 직접 열면 Firebase 인증이 작동하지 않습니다!
+
+### **Firebase 없이 테스트**
+- 프록시 서버만 실행하고 HTML 파일을 직접 열어도 됩니다.
+- 단, 로그인/회원가입 기능은 사용할 수 없습니다.
 
 ## 📡 API 엔드포인트
 
@@ -107,6 +118,70 @@ npm run dev:full
 - `/api/broker` - 부동산중개업 조회
 
 ## 🔧 설정
+
+### **Firebase 설정 (필수)**
+
+Firebase Authentication을 사용하려면 다음 단계를 따라주세요:
+
+#### **1. Firebase 프로젝트 생성**
+1. [Firebase Console](https://console.firebase.google.com/) 접속
+2. "프로젝트 추가" 클릭
+3. 프로젝트 이름 입력 (예: "HouseMVP")
+4. Google Analytics 설정 (선택사항)
+
+#### **2. 웹 앱 등록**
+1. 프로젝트 개요 > 웹 앱 추가 (`</>` 아이콘)
+2. 앱 닉네임 입력 (예: "HouseMVP Web")
+3. Firebase Hosting 설정 (선택사항)
+
+#### **3. 구성 정보 복사**
+1. 표시되는 `firebaseConfig` 객체 복사
+2. `firebase-config.js` 파일 열기
+3. `firebaseConfig` 객체를 실제 값으로 교체
+
+```javascript
+const firebaseConfig = {
+    apiKey: "YOUR_ACTUAL_API_KEY",
+    authDomain: "your-project-id.firebaseapp.com",
+    projectId: "your-project-id",
+    storageBucket: "your-project-id.appspot.com",
+    messagingSenderId: "123456789",
+    appId: "1:123456789:web:abcdef123456"
+};
+```
+
+#### **4. Authentication 활성화**
+1. 좌측 메뉴 > **Authentication** > **시작하기**
+2. **Sign-in method** 탭 선택
+3. **이메일/비밀번호** 활성화
+4. **Google** 활성화 (프로젝트 지원 이메일 입력 필요)
+
+#### **5. Firestore Database 생성**
+1. 좌측 메뉴 > **Firestore Database** > **데이터베이스 만들기**
+2. 보안 규칙: **테스트 모드**로 시작 (개발용)
+3. 위치: `asia-northeast3 (서울)` 권장
+
+#### **6. 보안 규칙 설정** (중요!)
+Firestore Database > 규칙 탭에서 다음 규칙 적용:
+
+```javascript
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // 사용자는 자신의 데이터만 읽기/쓰기 가능
+    match /users/{userId}/{document=**} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+  }
+}
+```
+
+#### **7. 도메인 승인**
+1. Authentication > **Settings** > **승인된 도메인**
+2. `localhost` (자동 추가됨)
+3. GitHub Pages 도메인 추가 (예: `username.github.io`)
+
+---
 
 ### **API 키 설정**
 각 API의 인증키는 다음과 같이 설정되어 있습니다:
@@ -119,6 +194,9 @@ const JUSO_API_CONFIG = {
 
 // 공공 데이터 포털 API
 const API_KEY = 'lkFNy5FKYttNQrsdPfqBSmg8frydGZUlWeH5sHrmuILv0cwLvMSCDh+Tl1KORZJXQTqih1BTBLpxfdixxY0mUQ==';
+
+// VWorld API
+const VWORLD_API_KEY = 'FA0D6750-3DC2-3389-B8F1-0385C5976B96';
 ```
 
 ## 📱 사용 방법

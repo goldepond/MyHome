@@ -28,25 +28,35 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // 검색창 입력 이벤트 (디바운스)
     const addressInput = document.getElementById('addressInput');
-    addressInput.addEventListener('input', function() {
-        // 입력 중일 때 최근 검색/즐겨찾기 표시
-        const quickAccess = document.getElementById('quickAccess');
-        if (this.value.trim() === '') {
-            loadRecentSearches();
-            loadFavorites();
-            quickAccess.style.display = 'block';
-        } else {
-            quickAccess.style.display = 'none';
-        }
-    });
+    if (addressInput) {
+        addressInput.addEventListener('input', function() {
+            // 입력 중일 때 최근 검색/즐겨찾기 표시
+            const quickAccess = document.getElementById('quickAccess');
+            if (this.value.trim() === '') {
+                loadRecentSearches();
+                loadFavorites();
+                if (quickAccess) quickAccess.style.display = 'block';
+            } else {
+                if (quickAccess) quickAccess.style.display = 'none';
+            }
+        });
+        
+        // Enter 키 감지
+        addressInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                searchAddress();
+            }
+        });
+    }
     
-    // Enter 키 감지
-    addressInput.addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') {
-            searchAddress();
-        }
-    });
+    // 로그인 폼 이벤트 리스너는 auth.js의 initLoginForm에서 처리됨
 });
+
+/* =========================================== */
+/* 1.5. ADMIN LOGIN - 관리자 로그인 기능 */
+/* =========================================== */
+// 로그인 처리는 auth.js의 initLoginForm에서 처리됨
+// (관리자 로그인 + Firebase 로그인 모두 포함)
 
 /* =========================================== */
 /* 2. MODAL MANAGEMENT - 모달 팝업 관리 */
@@ -85,17 +95,70 @@ function closeSignupModal() {
 }
 
 /**
+ * 비밀번호 재설정 모달 열기
+ */
+function showPasswordResetModal() {
+    // 로그인 모달 닫기
+    closeLoginModal();
+    
+    // 비밀번호 재설정 모달 열기
+    document.getElementById('passwordResetModal').style.display = 'block';
+    document.body.style.overflow = 'hidden';
+}
+
+/**
+ * 비밀번호 재설정 모달 닫기
+ */
+function closePasswordResetModal() {
+    document.getElementById('passwordResetModal').style.display = 'none';
+    document.body.style.overflow = 'auto';
+    
+    // 입력 필드 초기화
+    document.getElementById('resetEmail').value = '';
+}
+
+/**
+ * 비밀번호 재설정 폼 제출
+ */
+document.addEventListener('DOMContentLoaded', function() {
+    const passwordResetForm = document.getElementById('passwordResetForm');
+    if (passwordResetForm) {
+        passwordResetForm.addEventListener('submit', async function(event) {
+            event.preventDefault();
+            
+            const email = document.getElementById('resetEmail').value.trim();
+            
+            if (!email) {
+                alert('이메일 주소를 입력해주세요.');
+                return;
+            }
+            
+            try {
+                await resetPassword(email);
+                closePasswordResetModal();
+            } catch (error) {
+                console.error('비밀번호 재설정 오류:', error);
+            }
+        });
+    }
+});
+
+/**
  * 모달 외부 클릭 시 닫기
  */
 window.addEventListener('click', function(event) {
     const loginModal = document.getElementById('loginModal');
     const signupModal = document.getElementById('signupModal');
+    const passwordResetModal = document.getElementById('passwordResetModal');
     
     if (event.target === loginModal) {
         closeLoginModal();
     }
     if (event.target === signupModal) {
         closeSignupModal();
+    }
+    if (event.target === passwordResetModal) {
+        closePasswordResetModal();
     }
 });
 
@@ -270,6 +333,7 @@ async function searchAddress() {
             
         } else {
             // 로컬 개발: 프록시 서버 사용
+            console.log('   ✅ 로컬 환경 감지 → 프록시 서버 사용');
             
             const params = new URLSearchParams({
                 confmKey: JUSO_API_CONFIG.confmKey,
@@ -280,6 +344,8 @@ async function searchAddress() {
             });
             
             const url = `http://localhost:3001/api/juso?${params.toString()}`;
+            console.log('   🌐 요청 URL:', url);
+            console.log('   ⏳ fetch() 호출 중...');
             
             const response = await fetch(url, {
                 method: 'GET',
@@ -288,11 +354,18 @@ async function searchAddress() {
                 }
             });
             
+            console.log('   ✅ fetch() 완료!');
+            console.log('   📊 응답 상태:', response.status, response.statusText);
+            
             if (!response.ok) {
+                console.error('   ❌ HTTP 오류:', response.status, response.statusText);
                 throw new Error(`HTTP ${response.status}: ${response.statusText}`);
             }
             
+            console.log('   📥 JSON 파싱 중...');
             const data = await response.json();
+            console.log('   ✅ JSON 파싱 완료');
+            console.log('   📦 응답 데이터:', data);
             
             if (data.results && data.results.common.errorCode === '0') {
                 console.log('✅ [도로명주소 검색 API] 응답 성공');
@@ -303,7 +376,8 @@ async function searchAddress() {
                 displaySearchResults(data.results.juso);
             } else {
                 console.log('❌ [도로명주소 검색 API] 응답 실패');
-                console.log(`   에러: ${data.results?.common?.errorMessage}`);
+                console.log(`   에러 코드: ${data.results?.common?.errorCode}`);
+                console.log(`   에러 메시지: ${data.results?.common?.errorMessage}`);
                 showError(data.results?.common?.errorMessage || '검색 결과가 없습니다.');
             }
         }
@@ -572,6 +646,28 @@ function goBack() {
 }
 
 /**
+ * 내 제안서 페이지로 이동
+ */
+function goToMyProposals() {
+    window.location.href = 'proposals-list.html';
+}
+
+/**
+ * 메인 페이지로 이동 (로고 클릭 시)
+ */
+function goToMainPage() {
+    // 현재 페이지가 이미 메인 페이지(index.html)인 경우 페이지 상단으로 스크롤
+    if (window.location.pathname.endsWith('index.html') || 
+        window.location.pathname === '/' || 
+        window.location.pathname === '') {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    } else {
+        // 다른 페이지에서 메인 페이지로 이동
+        window.location.href = 'index.html';
+    }
+}
+
+/**
  * 매물 요청 제출 (결과 페이지에서 사용)
  */
 function submitRequest() {
@@ -611,14 +707,33 @@ function loadRecentSearches() {
 }
 
 /**
- * 즐겨찾기 로드
+ * 즐겨찾기 로드 (Firestore + localStorage)
  */
-function loadFavorites() {
-    const favorites = JSON.parse(localStorage.getItem('favoriteAddresses') || '[]');
+async function loadFavorites() {
     const favSection = document.getElementById('favorites');
     const favList = document.getElementById('favoriteList');
     
     if (!favList) return;
+    
+    let favorites = [];
+    
+    // Firestore에서 불러오기 시도 (로그인된 경우)
+    if (typeof loadFavoritesFromFirestore === 'function' && typeof isLoggedIn === 'function' && isLoggedIn()) {
+        try {
+            const firestoreFavorites = await loadFavoritesFromFirestore();
+            if (firestoreFavorites.length > 0) {
+                favorites = firestoreFavorites;
+                console.log('✅ Firestore에서 즐겨찾기 로드:', favorites.length, '개');
+            }
+        } catch (error) {
+            console.warn('⚠️ Firestore 로드 실패, localStorage 사용');
+        }
+    }
+    
+    // Firestore에서 못 가져왔으면 localStorage 사용
+    if (favorites.length === 0) {
+        favorites = JSON.parse(localStorage.getItem('favoriteAddresses') || '[]');
+    }
     
     if (favorites.length === 0) {
         favSection.style.display = 'none';

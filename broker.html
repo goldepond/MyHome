@@ -6,6 +6,11 @@
     <title>공인중개사 찾기 - House MVP</title>
     <link rel="stylesheet" href="styles.css">
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+    
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 </head>
 <body>
     <!-- =========================================== -->
@@ -13,14 +18,16 @@
     <!-- =========================================== -->
     <header class="header">
         <div class="container">
-            <div class="logo">
+            <div class="logo" onclick="goToMainPage()" style="cursor: pointer;">
                 <span class="logo-icon">🏠</span>
                 <span class="logo-text">HouseMVP</span>
             </div>
             <nav class="nav">
                 <div class="auth-links">
+                    <button class="proposals-btn" onclick="goToMyProposals()" title="내 제안서 보기" style="display: none;" id="myProposalsBtn">📊 내 제안서</button>
                     <button class="login-btn" onclick="openLoginModal()">로그인</button>
                     <button class="signup-btn" onclick="openSignupModal()">회원가입</button>
+                    <button class="admin-btn" onclick="openLoginModal()" title="관리자 로그인">⚙️</button>
                 </div>
             </nav>
         </div>
@@ -65,17 +72,26 @@
         <div class="modal-content">
             <span class="close" onclick="closeLoginModal()">&times;</span>
             <h2>로그인</h2>
-            <form id="loginForm">
+            <form class="login-form">
                 <div class="form-group">
-                    <label for="loginEmail">이메일:</label>
-                    <input type="email" id="loginEmail" required>
+                    <input type="email" placeholder="이메일" required>
                 </div>
                 <div class="form-group">
-                    <label for="loginPassword">비밀번호:</label>
-                    <input type="password" id="loginPassword" required>
+                    <input type="password" placeholder="비밀번호" required>
                 </div>
-                <button type="submit" class="btn-primary">로그인</button>
+                <button type="submit" class="submit-btn">로그인</button>
             </form>
+            
+            <!-- 소셜 로그인 구분선 -->
+            <div class="divider">
+                <span>또는</span>
+            </div>
+            
+            <!-- Google 로그인 버튼 -->
+            <button type="button" class="google-login-btn" onclick="loginWithGoogle()">
+                <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" class="google-icon">
+                Google로 로그인
+            </button>
         </div>
     </div>
 
@@ -86,29 +102,27 @@
         <div class="modal-content">
             <span class="close" onclick="closeSignupModal()">&times;</span>
             <h2>회원가입</h2>
-            <form id="signupForm">
+            <form class="signup-form">
                 <div class="form-group">
-                    <label for="signupName">이름:</label>
-                    <input type="text" id="signupName" required>
+                    <input type="text" placeholder="이름" required>
                 </div>
                 <div class="form-group">
-                    <label for="signupEmail">이메일:</label>
-                    <input type="email" id="signupEmail" required>
+                    <input type="email" placeholder="이메일" required>
                 </div>
                 <div class="form-group">
-                    <label for="signupPassword">비밀번호:</label>
-                    <input type="password" id="signupPassword" required>
+                    <input type="password" placeholder="비밀번호" required>
                 </div>
                 <div class="form-group">
-                    <label for="signupPasswordConfirm">비밀번호 확인:</label>
-                    <input type="password" id="signupPasswordConfirm" required>
+                    <input type="password" placeholder="비밀번호 확인" required>
                 </div>
-                <button type="submit" class="btn-primary">가입하기</button>
+                <button type="submit" class="submit-btn">회원가입</button>
             </form>
         </div>
     </div>
 
     <!-- JavaScript 파일 로드 -->
+    <script src="firebase-config.js"></script>
+    <script src="auth.js"></script>
     <script src="broker.js"></script>
 </body>
 </html>

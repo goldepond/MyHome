@@ -6,6 +6,11 @@
     <title>주소 검색 결과 - House MVP</title>
     <link rel="stylesheet" href="styles.css">
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+    
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 </head>
 <body>
     <!-- =========================================== -->
@@ -13,14 +18,16 @@
     <!-- =========================================== -->
     <header class="header">
         <div class="container">
-            <div class="logo">
+            <div class="logo" onclick="goToMainPage()" style="cursor: pointer;">
                 <span class="logo-icon">🏠</span>
                 <span class="logo-text">HouseMVP</span>
             </div>
             <nav class="nav">
                 <div class="auth-links">
+                    <button class="proposals-btn" onclick="goToMyProposals()" title="내 제안서 보기" style="display: none;" id="myProposalsBtn">📊 내 제안서</button>
                     <button class="login-btn" onclick="openLoginModal()">로그인</button>
                     <button class="signup-btn" onclick="openSignupModal()">회원가입</button>
+                    <button class="admin-btn" onclick="openLoginModal()" title="관리자 로그인">⚙️</button>
                 </div>
             </nav>
         </div>
@@ -153,6 +160,17 @@
                 </div>
                 <button type="submit" class="submit-btn">로그인</button>
             </form>
+            
+            <!-- 소셜 로그인 구분선 -->
+            <div class="divider">
+                <span>또는</span>
+            </div>
+            
+            <!-- Google 로그인 버튼 -->
+            <button type="button" class="google-login-btn" onclick="loginWithGoogle()">
+                <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" class="google-icon">
+                Google로 로그인
+            </button>
         </div>
     </div>
 
@@ -182,7 +200,8 @@
     </div>
 
     <!-- JavaScript 파일 로드 -->
-    <script src="script.js"></script>
+    <script src="firebase-config.js"></script>
+    <script src="auth.js"></script>
     <script src="result.js?v=1.9"></script>
 </body>
 </html>
