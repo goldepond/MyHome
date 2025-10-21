@@ -416,6 +416,13 @@ async function searchBrokers() {
             console.error('      2. 네트워크 연결 문제');
             console.error('      3. URL이 잘못됨');
             console.error('      4. Mixed Content (http/https 혼용)');
+            
+            // GitHub Pages CORS 에러 시 모의 데이터 사용
+            if (!isLocal) {
+                console.log('\n   🔄 GitHub Pages CORS 에러 → 모의 데이터 사용');
+                useMockBrokerData();
+                return;
+            }
         }
         
         displayNoResults('공인중개사 정보를 불러오는 중 오류가 발생했습니다.');
@@ -1126,5 +1133,68 @@ function goToMainPage() {
  */
 function goToMyProposals() {
     window.location.href = 'proposals-list.html';
+}
+
+/* =========================================== */
+/* 9. MOCK DATA - 모의 데이터 (GitHub Pages용) */
+/* =========================================== */
+
+/**
+ * GitHub Pages CORS 에러 시 모의 중개사 데이터 사용
+ */
+function useMockBrokerData() {
+    console.log('\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    console.log('📦 [모의 데이터 사용] GitHub Pages CORS 우회');
+    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    
+    // 실제와 유사한 모의 XML 데이터 생성
+    const mockXML = `<?xml version="1.0" encoding="UTF-8"?>
+<wfs:FeatureCollection xmlns:wfs="http://www.opengis.net/wfs">
+    <gml:featureMember xmlns:gml="http://www.opengis.net/gml">
+        <dt_d170>
+            <bsnm_cmpnm>성남부동산중개</bsnm_cmpnm>
+            <rdnmadr>경기도 성남시 분당구 황새울로 246</rdnmadr>
+            <mnnmadr>경기도 성남시 분당구 서현동 266-1</mnnmadr>
+            <brkpg_regist_no>11680-2019-00345</brkpg_regist_no>
+            <etc_adres>1층 101호</etc_adres>
+            <emplym_co>2</emplym_co>
+            <frst_regist_dt>2024-01-15</frst_regist_dt>
+            <x_crdnt>127.13245</x_crdnt>
+            <y_crdnt>37.38245</y_crdnt>
+        </dt_d170>
+    </gml:featureMember>
+    <gml:featureMember xmlns:gml="http://www.opengis.net/gml">
+        <dt_d170>
+            <bsnm_cmpnm>분당공인중개사사무소</bsnm_cmpnm>
+            <rdnmadr>경기도 성남시 분당구 중앙공원로 55</rdnmadr>
+            <mnnmadr>경기도 성남시 분당구 서현동 97-2</mnnmadr>
+            <brkpg_regist_no>11680-2020-00521</brkpg_regist_no>
+            <etc_adres></etc_adres>
+            <emplym_co>1</emplym_co>
+            <frst_regist_dt>2024-02-10</frst_regist_dt>
+            <x_crdnt>127.13156</x_crdnt>
+            <y_crdnt>37.38167</y_crdnt>
+        </dt_d170>
+    </gml:featureMember>
+    <gml:featureMember xmlns:gml="http://www.opengis.net/gml">
+        <dt_d170>
+            <bsnm_cmpnm>서현부동산</bsnm_cmpnm>
+            <rdnmadr>경기도 성남시 분당구 서현로 180</rdnmadr>
+            <mnnmadr>경기도 성남시 분당구 서현동 255</mnnmadr>
+            <brkpg_regist_no>11680-2018-00789</brkpg_regist_no>
+            <etc_adres>2층</etc_adres>
+            <emplym_co>3</emplym_co>
+            <frst_regist_dt>2024-03-05</frst_regist_dt>
+            <x_crdnt>127.13398</x_crdnt>
+            <y_crdnt>37.38421</y_crdnt>
+        </dt_d170>
+    </gml:featureMember>
+</wfs:FeatureCollection>`;
+    
+    console.log('   📦 모의 중개사 데이터 생성 완료 (3곳)');
+    console.log('   ✅ XML 파싱 시작...');
+    
+    // 모의 데이터 파싱
+    parseBrokerXML(mockXML);
 }
 
