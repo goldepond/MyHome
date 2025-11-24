@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:property/models/property.dart';
@@ -66,9 +67,17 @@ class FirebaseService {
         'name': '게스트 사용자',
         'userType': 'anonymous',
       };
-    } on FirebaseAuthException catch (_) {
+    } on FirebaseAuthException catch (e) {
+      // 익명 인증 실패 시 로깅 (디버그 모드)
+      if (kDebugMode) {
+        print('익명 로그인 실패: ${e.code} - ${e.message}');
+      }
       return null;
-    } catch (_) {
+    } catch (e) {
+      // 기타 오류 로깅 (디버그 모드)
+      if (kDebugMode) {
+        print('익명 로그인 중 예상치 못한 오류: $e');
+      }
       return null;
     }
   }
