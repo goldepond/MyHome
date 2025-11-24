@@ -93,9 +93,28 @@ class ApiConstants {
 
 // dotenv 안전 접근 헬퍼 함수
 String _getEnv(String key) {
-  // 웹에서는 dotenv가 초기화되지 않으므로 빈 문자열 반환
+  // 웹에서는 환경 변수 또는 기본값 사용
   if (kIsWeb) {
-    return '';
+    // 웹 빌드 시 --dart-define으로 주입된 환경 변수 사용
+    const webApiKeys = {
+      'JUSO_API_KEY': String.fromEnvironment('JUSO_API_KEY', defaultValue: ''),
+      'VWORLD_API_KEY': String.fromEnvironment('VWORLD_API_KEY', defaultValue: ''),
+      'VWORLD_GEOCODER_API_KEY': String.fromEnvironment('VWORLD_GEOCODER_API_KEY', defaultValue: ''),
+      'DATA_GO_KR_SERVICE_KEY': String.fromEnvironment('DATA_GO_KR_SERVICE_KEY', defaultValue: ''),
+      'NAVER_MAP_CLIENT_ID': String.fromEnvironment('NAVER_MAP_CLIENT_ID', defaultValue: ''),
+      'CODEF_CLIENT_ID': String.fromEnvironment('CODEF_CLIENT_ID', defaultValue: ''),
+      'CODEF_CLIENT_SECRET': String.fromEnvironment('CODEF_CLIENT_SECRET', defaultValue: ''),
+      'CODEF_PUBLIC_KEY': String.fromEnvironment('CODEF_PUBLIC_KEY', defaultValue: ''),
+      'REGISTER_API_KEY': String.fromEnvironment('REGISTER_API_KEY', defaultValue: ''),
+    };
+    
+    final value = webApiKeys[key] ?? '';
+    if (value.isEmpty && key == 'JUSO_API_KEY') {
+      // 웹용 기본 Juso API 키 (개발/테스트용)
+      // 프로덕션에서는 --dart-define으로 주입해야 함
+      return 'U01TX0FVVEgyMDI1MTEyNDE2NTAxMDExNjQ4Nzc=';
+    }
+    return value;
   }
   
   try {
