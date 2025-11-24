@@ -43,6 +43,13 @@ jobs:
           echo "Repo files (top-level):"
           ls -la
 
+      - name: Create .env file if not exists
+        run: |
+          if [ ! -f .env ]; then
+            echo "Creating empty .env file for build"
+            touch .env
+          fi
+
       - name: Flutter pub get
         run: |
           set -euxo pipefail

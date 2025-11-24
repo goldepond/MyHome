@@ -10,8 +10,13 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Load environment variables
-  await dotenv.load(fileName: ".env");
+  // Load environment variables (.env 파일이 있으면 로드, 없으면 무시)
+  try {
+    await dotenv.load(fileName: ".env");
+  } catch (e) {
+    // .env 파일이 없어도 앱은 실행 가능
+    print("Warning: .env file not found, continuing without it");
+  }
 
   // Firebase 초기화
   try {
