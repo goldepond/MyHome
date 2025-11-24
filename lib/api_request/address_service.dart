@@ -86,12 +86,12 @@ class AddressService {
       try {
         debugPrint('프록시 서버로 요청 전송 중...');
         response = await http.get(proxyUri).timeout(
-          Duration(seconds: ApiConstants.requestTimeoutSeconds),
-          onTimeout: () {
+        Duration(seconds: ApiConstants.requestTimeoutSeconds),
+        onTimeout: () {
             debugPrint('⏱️ 요청 타임아웃 발생');
-            throw TimeoutException('주소 검색 시간이 초과되었습니다.');
-          },
-        );
+          throw TimeoutException('주소 검색 시간이 초과되었습니다.');
+        },
+      );
         debugPrint('=== HTTP 응답 수신 ===');
         debugPrint('상태 코드: ${response.statusCode}');
         debugPrint('응답 헤더: ${response.headers}');
