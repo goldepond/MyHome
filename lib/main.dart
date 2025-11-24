@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 import 'constants/app_constants.dart';
@@ -14,12 +15,14 @@ import 'utils/app_analytics_observer.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
-  // .env 파일이 있으면 로드, 없으면 무시
-  try {
-    await dotenv.load(fileName: ".env");
-  } catch (e) {
-    // .env 파일이 없어도 앱은 실행 가능
-    print("Warning: .env file not found, continuing without it");
+  // .env 파일이 있으면 로드, 없으면 무시 (웹에서는 건너뜀)
+  if (!kIsWeb) {
+    try {
+      await dotenv.load(fileName: ".env");
+    } catch (e) {
+      // .env 파일이 없어도 앱은 실행 가능
+      print("Warning: .env file not found, continuing without it");
+    }
   }
   
   // Firebase 초기화

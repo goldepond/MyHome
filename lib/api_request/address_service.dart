@@ -53,12 +53,33 @@ class AddressService {
         '${ApiConstants.proxyRequstAddr}?q=${Uri.encodeComponent(uri.toString())}',
       );
       
-      final response = await http.get(proxyUri).timeout(
-        Duration(seconds: ApiConstants.requestTimeoutSeconds),
-        onTimeout: () {
-          throw TimeoutException('주소 검색 시간이 초과되었습니다.');
-        },
-      );
+      http.Response response;
+      try {
+        response = await http.get(proxyUri).timeout(
+          Duration(seconds: ApiConstants.requestTimeoutSeconds),
+          onTimeout: () {
+            throw TimeoutException('주소 검색 시간이 초과되었습니다.');
+          },
+        );
+      } catch (e) {
+        debugPrint('HTTP 요청 오류: $e');
+        // HTTP 요청 자체가 실패한 경우
+        if (e is TimeoutException) {
+          return AddressSearchResult(
+            fullData: [],
+            addresses: [],
+            totalCount: 0,
+            errorMessage: '주소 검색 시간이 초과되었습니다.',
+          );
+        }
+        // 기타 네트워크 오류
+        return AddressSearchResult(
+          fullData: [],
+          addresses: [],
+          totalCount: 0,
+          errorMessage: '네트워크 연결 오류가 발생했습니다. 인터넷 연결을 확인해주세요.',
+        );
+      }
       
       
       // 503 또는 5xx 에러 처리
