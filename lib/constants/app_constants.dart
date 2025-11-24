@@ -109,10 +109,14 @@ String _getEnv(String key) {
     };
     
     final value = webApiKeys[key] ?? '';
-    if (value.isEmpty && key == 'JUSO_API_KEY') {
-      // 웹용 기본 Juso API 키 (개발/테스트용)
-      // 프로덕션에서는 --dart-define으로 주입해야 함
-      return 'U01TX0FVVEgyMDI1MTEyNDE2NTAxMDExNjQ4Nzc=';
+    if (key == 'JUSO_API_KEY') {
+      // 웹용 Juso API 키 (도로명주소 검색 API)
+      // 승인키: U01TX0FVVEgyMDI1MTEyNDE2NTAxMDExNjQ4Nzc=
+      // 시스템: https://goldepond.github.io/TESTHOME/
+      if (value.isEmpty) {
+        return 'U01TX0FVVEgyMDI1MTEyNDE2NTAxMDExNjQ4Nzc=';
+      }
+      return value;
     }
     return value;
   }
