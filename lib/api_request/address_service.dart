@@ -105,10 +105,37 @@ class AddressService {
         
         Map<String, dynamic> data;
         try {
-          data = json.decode(response.body) as Map<String, dynamic>;
-        } catch (e) {
+          final decoded = json.decode(response.body);
+          if (decoded is! Map<String, dynamic>) {
+            debugPrint('주소 검색 응답이 Map 형식이 아닙니다: ${decoded.runtimeType}');
+            return AddressSearchResult(
+              fullData: [],
+              addresses: [],
+              totalCount: 0,
+              errorMessage: '서버 응답 형식 오류가 발생했습니다.',
+            );
+          }
+          data = decoded;
+        } catch (e, stackTrace) {
           debugPrint('주소 검색 JSON 파싱 오류: $e');
-          debugPrint('응답 본문: ${response.body.substring(0, response.body.length > 200 ? 200 : response.body.length)}');
+          debugPrint('예외 타입: ${e.runtimeType}');
+          debugPrint('스택 트레이스: $stackTrace');
+          final bodyPreview = response.body.length > 200 
+              ? response.body.substring(0, 200) 
+              : response.body;
+          debugPrint('응답 본문 (일부): $bodyPreview');
+          
+          // minified 예외 처리
+          final typeName = e.runtimeType.toString();
+          if (typeName.startsWith('minified:')) {
+            return AddressSearchResult(
+              fullData: [],
+              addresses: [],
+              totalCount: 0,
+              errorMessage: '서버 응답을 처리하는 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.',
+            );
+          }
+          
           return AddressSearchResult(
             fullData: [],
             addresses: [],
@@ -118,8 +145,9 @@ class AddressService {
         }
         
         // results 키가 없는 경우 처리
-        if (data['results'] == null) {
-          debugPrint('주소 검색 응답에 results 키가 없습니다: ${data.keys}');
+        if (data['results'] == null || data['results'] is! Map) {
+          debugPrint('주소 검색 응답에 results 키가 없거나 형식이 올바르지 않습니다.');
+          debugPrint('응답 데이터 키: ${data.keys.toList()}');
           return AddressSearchResult(
             fullData: [],
             addresses: [],
@@ -128,8 +156,10 @@ class AddressService {
           );
         }
         
-        final errorCode = data['results']['common']?['errorCode'];
-        final errorMsg = data['results']['common']?['errorMessage'];
+        final results = data['results'] as Map<String, dynamic>;
+        final common = results['common'];
+        final errorCode = common is Map ? common['errorCode'] : null;
+        final errorMsg = common is Map ? common['errorMessage'] : null;
         
         if (errorCode != '0') {
           return AddressSearchResult(
@@ -141,8 +171,12 @@ class AddressService {
         }
         
         try {
-          final juso = data['results']['juso'];
-          final total = int.tryParse(data['results']['common']['totalCount'] ?? '0') ?? 0;
+          final results = data['results'] as Map<String, dynamic>;
+          final common = results['common'] as Map<String, dynamic>?;
+          final juso = results['juso'];
+          final total = common != null 
+              ? int.tryParse(common['totalCount']?.toString() ?? '0') ?? 0
+              : 0;
           
           if (juso != null && juso.length > 0) {
             final List<dynamic> rawList = juso as List;
