@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'dart:async';
 
 import 'package:property/constants/app_constants.dart';
@@ -62,16 +63,31 @@ class _AddressSearchScreenState extends State<AddressSearchScreen> {
           _selectAddress(singleAddress);
         });
       }
-    } catch (e) {
+    } catch (e, stackTrace) {
+      // 디버그 모드에서 상세 로깅
+      debugPrint('주소 검색 화면 예외 발생:');
+      debugPrint('예외 타입: ${e.runtimeType}');
+      debugPrint('예외 메시지: $e');
+      debugPrint('스택 트레이스: $stackTrace');
+      
       // 예외 메시지를 안전하게 추출
       String errorMsg = '알 수 없는 오류가 발생했습니다.';
       try {
-        if (e.toString().isNotEmpty && !e.toString().contains('Instance of')) {
-          final msg = e.toString();
-          errorMsg = msg.length > 100 ? msg.substring(0, 100) : msg;
+        final exceptionStr = e.toString();
+        final typeName = e.runtimeType.toString();
+        
+        // Instance of가 포함되지 않은 경우에만 메시지 사용
+        if (!exceptionStr.contains('Instance of') && exceptionStr.isNotEmpty) {
+          errorMsg = exceptionStr.length > 100 
+              ? exceptionStr.substring(0, 100) 
+              : exceptionStr;
+        } else if (typeName.isNotEmpty && typeName != 'Object') {
+          // 타입 이름으로 대체
+          errorMsg = '$typeName 오류가 발생했습니다.';
         }
       } catch (_) {
         // 예외 처리 중 오류 발생 시 기본 메시지 사용
+        debugPrint('예외 메시지 추출 중 오류 발생');
       }
       
       setState(() {
