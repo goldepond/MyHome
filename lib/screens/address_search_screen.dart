@@ -76,14 +76,19 @@ class _AddressSearchScreenState extends State<AddressSearchScreen> {
         final exceptionStr = e.toString();
         final typeName = e.runtimeType.toString();
         
-        // Instance of가 포함되지 않은 경우에만 메시지 사용
-        if (!exceptionStr.contains('Instance of') && exceptionStr.isNotEmpty) {
+        // minified 타입 감지 (릴리스 빌드)
+        if (typeName.startsWith('minified:')) {
+          errorMsg = '주소 검색 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.';
+        } else if (!exceptionStr.contains('Instance of') && 
+                   !exceptionStr.contains('minified:') && 
+                   exceptionStr.isNotEmpty) {
           errorMsg = exceptionStr.length > 100 
               ? exceptionStr.substring(0, 100) 
               : exceptionStr;
-        } else if (typeName.isNotEmpty && typeName != 'Object') {
-          // 타입 이름으로 대체
-          errorMsg = '$typeName 오류가 발생했습니다.';
+        } else if (typeName.isNotEmpty && 
+                   typeName != 'Object' && 
+                   !typeName.startsWith('minified:')) {
+          errorMsg = '주소 검색 중 오류가 발생했습니다.';
         }
       } catch (_) {
         // 예외 처리 중 오류 발생 시 기본 메시지 사용
@@ -91,7 +96,7 @@ class _AddressSearchScreenState extends State<AddressSearchScreen> {
       }
       
       setState(() {
-        _errorMessage = '오류가 발생했습니다: $errorMsg';
+        _errorMessage = errorMsg;
         _isLoading = false;
       });
     }

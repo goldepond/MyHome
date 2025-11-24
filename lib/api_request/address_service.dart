@@ -136,7 +136,15 @@ class AddressService {
                 .where((e) => e.isNotEmpty)
                 .toList();
             final List<Map<String,String>> convertedFullData = rawList
-                .map((item) => (item as Map<String,dynamic>).cast<String,String>())
+                .map((item) {
+                  try {
+                    final map = item as Map<String, dynamic>;
+                    return map.map((key, value) => MapEntry(key, value?.toString() ?? ''));
+                  } catch (e) {
+                    debugPrint('주소 데이터 변환 오류: $e');
+                    return <String, String>{};
+                  }
+                })
                 .where((e) => e.isNotEmpty)
                 .toList();
             
@@ -153,12 +161,23 @@ class AddressService {
               errorMessage: '검색 결과 없음',
             );
           }
-        } catch (e) {
+        } catch (e, stackTrace) {
+          debugPrint('검색 결과 처리 중 예외 발생:');
+          debugPrint('예외 타입: ${e.runtimeType}');
+          debugPrint('예외 메시지: $e');
+          debugPrint('스택 트레이스: $stackTrace');
+          
+          String errorMsg = '검색 결과 처리 중 오류가 발생했습니다.';
+          final typeName = e.runtimeType.toString();
+          if (typeName.startsWith('minified:')) {
+            errorMsg = '검색 결과를 처리하는 중 오류가 발생했습니다.';
+          }
+          
           return AddressSearchResult(
             fullData: [],
             addresses: [],
             totalCount: 0,
-            errorMessage: '검색 결과 처리 중 오류가 발생했습니다.',
+            errorMessage: errorMsg,
           );
         }
       } else {
@@ -186,7 +205,13 @@ class AddressService {
       // 예외 메시지를 안전하게 추출
       String errorMsg = '알 수 없는 오류가 발생했습니다.';
       try {
-        if (e is TimeoutException) {
+        final typeName = e.runtimeType.toString();
+        
+        // minified 타입 감지 (릴리스 빌드)
+        if (typeName.startsWith('minified:')) {
+          // minified 예외는 일반적인 오류 메시지로 대체
+          errorMsg = '주소 검색 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.';
+        } else if (e is TimeoutException) {
           errorMsg = '주소 검색 시간이 초과되었습니다.';
         } else if (e is FormatException) {
           errorMsg = '서버 응답 형식 오류가 발생했습니다.';
@@ -195,18 +220,20 @@ class AddressService {
         } else if (e is SocketException) {
           errorMsg = '네트워크 연결을 할 수 없습니다.';
         } else {
-          // 예외 타입 이름 추출 시도
-          final typeName = e.runtimeType.toString();
           final exceptionStr = e.toString();
           
           // Instance of가 포함되지 않은 경우에만 메시지 사용
-          if (!exceptionStr.contains('Instance of') && exceptionStr.isNotEmpty) {
+          if (!exceptionStr.contains('Instance of') && 
+              !exceptionStr.contains('minified:') && 
+              exceptionStr.isNotEmpty) {
             errorMsg = exceptionStr.length > 100 
                 ? exceptionStr.substring(0, 100) 
                 : exceptionStr;
-          } else if (typeName.isNotEmpty && typeName != 'Object') {
-            // 타입 이름으로 대체
-            errorMsg = '$typeName 오류가 발생했습니다.';
+          } else if (typeName.isNotEmpty && 
+                     typeName != 'Object' && 
+                     !typeName.startsWith('minified:')) {
+            // 타입 이름으로 대체 (minified 제외)
+            errorMsg = '주소 검색 중 오류가 발생했습니다.';
           }
         }
       } catch (_) {
@@ -218,7 +245,7 @@ class AddressService {
         fullData: [],
         addresses: [],
         totalCount: 0,
-        errorMessage: '주소 검색 중 오류가 발생했습니다: $errorMsg',
+        errorMessage: errorMsg,
       );
     }
   }
