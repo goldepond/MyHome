@@ -141,11 +141,26 @@ class AddressService {
         errorMessage: '주소 검색 시간이 초과되었습니다.',
       );
     } catch (e) {
+      // 예외 메시지를 안전하게 추출
+      String errorMsg = '알 수 없는 오류가 발생했습니다.';
+      try {
+        if (e is TimeoutException) {
+          errorMsg = '주소 검색 시간이 초과되었습니다.';
+        } else if (e is FormatException || e.toString().contains('FormatException')) {
+          errorMsg = '서버 응답 형식 오류가 발생했습니다.';
+        } else if (e.toString().isNotEmpty && !e.toString().contains('Instance of')) {
+          final msg = e.toString();
+          errorMsg = msg.length > 100 ? msg.substring(0, 100) : msg;
+        }
+      } catch (_) {
+        // 예외 처리 중 오류 발생 시 기본 메시지 사용
+      }
+      
       return AddressSearchResult(
         fullData: [],
         addresses: [],
         totalCount: 0,
-        errorMessage: '주소 검색 중 오류가 발생했습니다: $e',
+        errorMessage: '주소 검색 중 오류가 발생했습니다: $errorMsg',
       );
     }
   }

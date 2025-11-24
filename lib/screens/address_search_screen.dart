@@ -63,8 +63,19 @@ class _AddressSearchScreenState extends State<AddressSearchScreen> {
         });
       }
     } catch (e) {
+      // 예외 메시지를 안전하게 추출
+      String errorMsg = '알 수 없는 오류가 발생했습니다.';
+      try {
+        if (e.toString().isNotEmpty && !e.toString().contains('Instance of')) {
+          final msg = e.toString();
+          errorMsg = msg.length > 100 ? msg.substring(0, 100) : msg;
+        }
+      } catch (_) {
+        // 예외 처리 중 오류 발생 시 기본 메시지 사용
+      }
+      
       setState(() {
-        _errorMessage = '오류가 발생했습니다: $e';
+        _errorMessage = '오류가 발생했습니다: $errorMsg';
         _isLoading = false;
       });
     }
