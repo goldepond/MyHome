@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 // 색상 상수 - HouseMVP 통합 디자인
@@ -43,14 +44,14 @@ class AppGradients {
 
 // CODEF API 관련 상수
 class CodefApiKeys {
-  static String get clientId => dotenv.env['CODEF_CLIENT_ID'] ?? '';
-  static String get clientSecret => dotenv.env['CODEF_CLIENT_SECRET'] ?? '';
-  static String get publicKey => dotenv.env['CODEF_PUBLIC_KEY'] ?? '';
+  static String get clientId => _getEnv('CODEF_CLIENT_ID');
+  static String get clientSecret => _getEnv('CODEF_CLIENT_SECRET');
+  static String get publicKey => _getEnv('CODEF_PUBLIC_KEY');
 }
 
 class VWorldApiConstants {
-  static String get apiKey => dotenv.env['VWORLD_API_KEY'] ?? '';
-  static String get geocoderApiKey => dotenv.env['VWORLD_GEOCODER_API_KEY'] ?? '';
+  static String get apiKey => _getEnv('VWORLD_API_KEY');
+  static String get geocoderApiKey => _getEnv('VWORLD_GEOCODER_API_KEY');
 
   static const String vworldProxyUrl = 'https://map.vworld.kr/proxy.do?url='; //https://github.com/V-world/Utilization-Model/blob/master/utilization-model/%EA%B5%90%ED%86%B5%EC%95%88%EC%A0%84%EC%A7%80%EB%8F%84/index.html#L529
   static const String brokerQueryBaseUrl = 'https://api.vworld.kr/ned/wfs/getEstateBrkpgWFS';
@@ -71,15 +72,15 @@ class ApiConstants {
   static const String proxyRequstAddr = 'https://132.226.226.103:33859/proxy';
 
   // 주소 관련
-  static String get jusoApiKey => dotenv.env['JUSO_API_KEY'] ?? '';
-  static String get registerApiKey => dotenv.env['REGISTER_API_KEY'] ?? '';
+  static String get jusoApiKey => _getEnv('JUSO_API_KEY');
+  static String get registerApiKey => _getEnv('REGISTER_API_KEY');
   static const String baseJusoUrl = 'https://business.juso.go.kr/addrlink/addrLinkApi.do';
   static const String coordIncludedJusoUrl = 'https://business.juso.go.kr/addrlink/addrCoordApi.do';
   static const int requestTimeoutSeconds = 5;
   static const int pageSize = 10;
 
   // Data.go.kr
-  static String get data_go_kr_serviceKey => dotenv.env['DATA_GO_KR_SERVICE_KEY'] ?? '';
+  static String get data_go_kr_serviceKey => _getEnv('DATA_GO_KR_SERVICE_KEY');
 
   // AptBasisInfoServiceV4 - 공동주택 상세 정보조회 API
   // 실제 메서드명: /getAphusDtlInfoV4
@@ -87,7 +88,23 @@ class ApiConstants {
   static const String buildingInfoAPIBaseUrl = 'https://apis.data.go.kr/1613000/ArchPmsServiceV2';
 
   // 네이버 지도 API
-  static String get naverMapClientId => dotenv.env['NAVER_MAP_CLIENT_ID'] ?? '';
+  static String get naverMapClientId => _getEnv('NAVER_MAP_CLIENT_ID');
+}
+
+// dotenv 안전 접근 헬퍼 함수
+String _getEnv(String key) {
+  // 웹에서는 dotenv가 초기화되지 않으므로 빈 문자열 반환
+  if (kIsWeb) {
+    return '';
+  }
+  
+  try {
+    // dotenv가 초기화되었는지 확인
+    return dotenv.env[key] ?? '';
+  } catch (e) {
+    // NotInitializedError 등 예외 발생 시 빈 문자열 반환
+    return '';
+  }
 }
 
 // 임시 계정 정보 (테스트용) - 보안상 주석 처리됨
