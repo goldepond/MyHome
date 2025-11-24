@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:property/models/property.dart';
@@ -324,22 +323,11 @@ class FirebaseService {
       
       return true;
     } on FirebaseAuthException catch (e) {
-      // 상세한 오류 로깅 (디버그 모드)
-      debugPrint('Firebase 회원가입 오류: ${e.code} - ${e.message}');
       if (e.code == 'email-already-in-use') {
-        debugPrint('이미 사용 중인 이메일입니다.');
       } else if (e.code == 'weak-password') {
-        debugPrint('비밀번호가 너무 약합니다.');
-      } else if (e.code == 'invalid-email') {
-        debugPrint('올바르지 않은 이메일 형식입니다.');
-      } else if (e.code == 'operation-not-allowed') {
-        debugPrint('이메일/비밀번호 인증이 활성화되지 않았습니다.');
-      } else {
-        debugPrint('기타 Firebase 인증 오류: ${e.code}');
       }
       return false;
     } catch (e) {
-      debugPrint('회원가입 중 예상치 못한 오류: $e');
       return false;
     }
   }
