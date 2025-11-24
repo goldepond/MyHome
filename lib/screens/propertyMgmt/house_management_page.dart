@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:property/constants/app_constants.dart';
 import 'package:property/api_request/firebase_service.dart';
 import 'package:property/models/quote_request.dart';
-import 'package:property/widgets/home_logo_button.dart';
 import 'package:property/screens/quote_comparison_page.dart';
 import 'package:property/api_request/vworld_service.dart';
 import 'package:property/screens/broker_list_page.dart';
@@ -42,6 +41,8 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
 
   // 그룹화된 견적 데이터 (주소별)
   Map<String, List<QuoteRequest>> _groupedQuotes = {};
+  // 날짜별 그룹화된 견적 데이터 (요청 날짜 기준)
+  Map<String, List<QuoteRequest>> _dateGroupedQuotes = {};
 
   static const Map<String, List<String>> _statusGroups = {
     'waiting': ['pending'],
@@ -119,6 +120,7 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
       }
     }
 
+    // 주소별 그룹화 (기존 로직 유지)
     final Map<String, List<QuoteRequest>> grouped = {};
     for (final quote in nextFiltered) {
       final address = quote.propertyAddress ?? '주소없음';
@@ -128,9 +130,22 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
       value.sort((a, b) => b.requestDate.compareTo(a.requestDate));
     });
 
+    // 날짜별 그룹화 (새로운 로직)
+    final Map<String, List<QuoteRequest>> dateGrouped = {};
+    for (final quote in nextFiltered) {
+      // 날짜를 "yyyy.MM.dd" 형식으로 변환
+      final dateKey = DateFormat('yyyy.MM.dd').format(quote.requestDate);
+      dateGrouped.putIfAbsent(dateKey, () => []).add(quote);
+    }
+    // 각 날짜 그룹 내에서 시간순 정렬 (최신순)
+    dateGrouped.forEach((key, value) {
+      value.sort((a, b) => b.requestDate.compareTo(a.requestDate));
+    });
+
     setState(() {
       filteredQuotes = nextFiltered;
       _groupedQuotes = grouped;
+      _dateGroupedQuotes = dateGrouped;
     });
 
     final appliedStatuses = selectedStatus == 'all'
@@ -316,6 +331,110 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
           );
         }
       }
+    }
+  }
+
+  /// 공인중개사 선택 (계속 진행할래요)
+  Future<void> _onSelectBroker(QuoteRequest quote) async {
+    // 이미 선택된 견적이면 처리하지 않음
+    if (quote.isSelectedByUser == true) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('이미 이 공인중개사와 진행 중입니다.'),
+          backgroundColor: AppColors.kInfo,
+        ),
+      );
+      return;
+    }
+
+    // 로그인 여부 확인
+    if (widget.userId == null || widget.userId!.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('로그인 후에 공인중개사를 선택할 수 있습니다.'),
+          backgroundColor: Colors.orange,
+        ),
+      );
+      return;
+    }
+
+    // 확인 다이얼로그
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('공인중개사 선택'),
+        content: Text(
+          '"${quote.brokerName}" 공인중개사와 계속 진행하시겠습니까?\n\n'
+          '확인 버튼을 누르면:\n'
+          '• 이 공인중개사에게만 판매자님의 연락처가 전달되고\n'
+          '• 이 중개사와의 본격적인 상담이 시작됩니다.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('취소'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.kPrimary,
+              foregroundColor: Colors.white,
+            ),
+            child: const Text('확인'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true) return;
+
+    // 로딩 다이얼로그
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => const Center(
+        child: CircularProgressIndicator(),
+      ),
+    );
+
+    try {
+      final success = await _firebaseService.assignQuoteToBroker(
+        requestId: quote.id,
+        userId: widget.userId!,
+      );
+
+      if (!mounted) return;
+
+      Navigator.pop(context); // 로딩 닫기
+
+      if (success) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              '"${quote.brokerName}" 공인중개사에게 매물 판매 의뢰가 전달되었습니다.\n'
+              '곧 중개사에게서 연락이 올 거예요.',
+            ),
+            backgroundColor: AppColors.kSuccess,
+            duration: const Duration(seconds: 4),
+          ),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('공인중개사 선택에 실패했습니다. 다시 시도해주세요.'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } catch (e) {
+      if (!mounted) return;
+      Navigator.pop(context); // 로딩 닫기
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('오류가 발생했습니다: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
     }
   }
 
@@ -1005,248 +1124,347 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
     final isWeb = screenWidth > 800;
-    final maxWidth = isWeb ? 1200.0 : screenWidth;
-    final structuredQuotes = quotes.where(_hasStructuredData).toList();
 
     return Scaffold(
       backgroundColor: const Color(0xFFF8F9FA),
-      body: CustomScrollView(
-        slivers: [
-          // 헤더
-          SliverAppBar(
-            expandedHeight: 180,
-            floating: false,
-            pinned: true,
-            backgroundColor: Colors.white,
-            foregroundColor: AppColors.kPrimary,
-            elevation: 0,
-            title: const HomeLogoButton(fontSize: 18),
-            centerTitle: false,
-            actions: [
-              // 견적 비교 버튼 (MVP 핵심)
-              IconButton(
-                icon: const Icon(Icons.compare_arrows, color: Colors.white),
-                tooltip: '견적 비교',
-                onPressed: () {
-                  // 답변 완료된 견적만 필터
-                  AnalyticsService.instance.logEvent(
-                    AnalyticsEventNames.quoteComparisonShortcutTapped,
-                    params: {'totalQuotes': quotes.length},
-                    userId: widget.userId,
-                    userName: widget.userName,
-                    stage: FunnelStage.selection,
-                  );
-                  final respondedQuotes = quotes.where((q) {
-                    return (q.recommendedPrice != null &&
-                            q.recommendedPrice!.isNotEmpty) ||
-                        (q.minimumPrice != null && q.minimumPrice!.isNotEmpty);
-                  }).toList();
-
-                  if (respondedQuotes.isEmpty) {
-                    AnalyticsService.instance.logEvent(
-                      AnalyticsEventNames.quoteComparisonShortcutEmpty,
-                      params: {'totalQuotes': quotes.length},
-                      userId: widget.userId,
-                      userName: widget.userName,
-                      stage: FunnelStage.selection,
-                    );
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text(
-                          '비교할 견적이 없습니다. 공인중개사로부터 답변을 받으면 비교할 수 있습니다.',
-                        ),
-                        backgroundColor: Colors.orange,
-                        duration: Duration(seconds: 3),
-                      ),
-                    );
-                    return;
-                  }
-
-                  AnalyticsService.instance.logEvent(
-                    AnalyticsEventNames.quoteComparisonOpened,
-                    params: {
-                      'totalQuotes': quotes.length,
-                      'respondedQuotes': respondedQuotes.length,
-                    },
-                    userId: widget.userId,
-                    userName: widget.userName,
-                    stage: FunnelStage.selection,
-                  );
-
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => QuoteComparisonPage(
-                        quotes: quotes,
-                        userName: widget.userName,
-                        userId:
-                            quotes.isNotEmpty && quotes.first.userId.isNotEmpty
-                            ? quotes.first.userId
-                            : null,
-                      ),
-                    ),
-                  );
-                },
-              ),
-              const SizedBox(width: 8),
-            ],
-            flexibleSpace: FlexibleSpaceBar(
-              background: Container(
-                decoration: const BoxDecoration(
-                  color: AppColors.kSecondary, // 남색 단색
+      body: SingleChildScrollView(
+        child: Stack(
+          alignment: Alignment.topCenter,
+          children: [
+            // 1. 히어로 배너 (다른 페이지와 통일)
+            Container(
+              height: 360,
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 24),
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    Color(0xFF00695C), // Teal
+                    Color(0xFF5B21B6), // Purple
+                  ],
                 ),
-                child: Center(
-                  child: Container(
-                    constraints: BoxConstraints(maxWidth: maxWidth),
-                    padding: const EdgeInsets.symmetric(horizontal: 24),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const SizedBox(height: 40),
-                        const Row(
-                          children: [
-                            Icon(Icons.history, color: Colors.white, size: 40),
-                            SizedBox(width: 16),
-                            Text(
-                              '내집관리',
-                              style: TextStyle(
-                                fontSize: 32,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white,
+                borderRadius: BorderRadius.zero,
+                boxShadow: [
+                  BoxShadow(
+                    color: Color(0x405B21B6),
+                    offset: const Offset(0, 12),
+                    blurRadius: 28,
+                  ),
+                ],
+              ),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Text(
+                    '내집관리',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontSize: 34,
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: -0.8,
+                      height: 1.2,
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  Text(
+                    '견적 요청 내역을 확인하고\n최적의 조건을 비교해보세요',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      color: Colors.white.withValues(alpha: 0.92),
+                      fontSize: 16,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  // 컨텐츠와 겹치는 부분 고려하여 여백 추가
+                  const SizedBox(height: 60),
+                ],
+              ),
+            ),
+
+            // 2. 메인 컨텐츠 (배너와 겹치게 배치)
+            Padding(
+              padding: const EdgeInsets.only(top: 280), // 360(배너) - 80(겹침)
+              child: Center(
+                child: Container(
+                  constraints: const BoxConstraints(maxWidth: 900),
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // (1) 대시보드 카드 (비교 버튼 + 요약)
+                      if (!isLoading && quotes.isNotEmpty)
+                        Container(
+                          margin: const EdgeInsets.only(bottom: 24),
+                          padding: const EdgeInsets.all(24),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(24),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: 0.08),
+                                blurRadius: 24,
+                                offset: const Offset(0, 8),
                               ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 12),
-                        Text(
-                          '내집관리 현황을 확인하세요',
-                          style: TextStyle(
-                            fontSize: 16,
-                            color: Colors.white.withValues(alpha: 0.9),
+                            ],
+                          ),
+                          child: Column(
+                            children: [
+                              Row(
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.all(12),
+                                    decoration: BoxDecoration(
+                                      color: AppColors.kPrimary.withValues(alpha: 0.1),
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                    child: const Icon(Icons.analytics_outlined, color: AppColors.kPrimary, size: 24),
+                                  ),
+                                  const SizedBox(width: 16),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        const Text(
+                                          '받은 견적 현황',
+                                          style: TextStyle(
+                                            fontSize: 18,
+                                            fontWeight: FontWeight.bold,
+                                            color: Color(0xFF1F2937),
+                                          ),
+                                        ),
+                                        const SizedBox(height: 4),
+                                        Text(
+                                          '총 ${quotes.length}건의 요청 중 ${quotes.where((q) => q.hasAnswer).length}건의 답변을 받았습니다.',
+                                          style: TextStyle(
+                                            fontSize: 14,
+                                            color: Colors.grey[600],
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 20),
+                              SizedBox(
+                                width: double.infinity,
+                                height: 52,
+                                child: ElevatedButton.icon(
+                                  onPressed: () {
+                                    // 답변 완료된 견적만 필터
+                                    final respondedQuotes = quotes.where((q) {
+                                      return (q.recommendedPrice != null && q.recommendedPrice!.isNotEmpty) ||
+                                          (q.minimumPrice != null && q.minimumPrice!.isNotEmpty);
+                                    }).toList();
+
+                                    if (respondedQuotes.isEmpty) {
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        const SnackBar(
+                                          content: Text('비교할 견적이 없습니다. 공인중개사로부터 답변을 받으면 비교할 수 있습니다.'),
+                                          backgroundColor: Colors.orange,
+                                          behavior: SnackBarBehavior.floating,
+                                        ),
+                                      );
+                                      return;
+                                    }
+
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => QuoteComparisonPage(
+                                          quotes: quotes,
+                                          userName: widget.userName,
+                                          userId: quotes.isNotEmpty && quotes.first.userId.isNotEmpty ? quotes.first.userId : null,
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: AppColors.kPrimary,
+                                    foregroundColor: Colors.white,
+                                    elevation: 0,
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(14),
+                                    ),
+                                  ),
+                                  icon: const Icon(Icons.compare_arrows_rounded),
+                                  label: const Text(
+                                    '받은 견적 한눈에 비교하기',
+                                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
                         ),
-                      ],
-                    ),
+
+                      // (2) 필터 섹션 (디자인 개선)
+                      if (!isLoading && quotes.isNotEmpty)
+                        Container(
+                          margin: const EdgeInsets.only(bottom: 24),
+                          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(20),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: 0.06),
+                                blurRadius: 24,
+                                offset: const Offset(0, 8),
+                              ),
+                            ],
+                          ),
+                          child: Column(
+                            children: [
+                              // 상단: 탭 스타일 필터바
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: SingleChildScrollView(
+                                      scrollDirection: Axis.horizontal,
+                                      child: Row(
+                                        children: _statusFilterDefinitions.map((definition) {
+                                          final value = definition['value']!;
+                                          final label = definition['label']!;
+                                          final count = value == 'all'
+                                              ? quotes.length
+                                              : quotes.where((q) {
+                                                  final group = _statusGroups[value];
+                                                  if (group == null) return q.status == value;
+                                                  return group.contains(q.status);
+                                                }).length;
+                                          
+                                          final isSelected = selectedStatus == value;
+                                          
+                                          return Padding(
+                                            padding: const EdgeInsets.only(right: 8),
+                                            child: InkWell(
+                                              onTap: () {
+                                                setState(() {
+                                                  selectedStatus = value;
+                                                  _applyFilter(source: 'user');
+                                                });
+                                              },
+                                              borderRadius: BorderRadius.circular(30),
+                                              child: AnimatedContainer(
+                                                duration: const Duration(milliseconds: 200),
+                                                padding: const EdgeInsets.symmetric(
+                                                  horizontal: 16,
+                                                  vertical: 10,
+                                                ),
+                                                decoration: BoxDecoration(
+                                                  color: isSelected 
+                                                      ? AppColors.kPrimary 
+                                                      : Colors.grey[100],
+                                                  borderRadius: BorderRadius.circular(30),
+                                                ),
+                                                child: Row(
+                                                  mainAxisSize: MainAxisSize.min,
+                                                  children: [
+                                                    Text(
+                                                      label,
+                                                      style: TextStyle(
+                                                        fontSize: 14,
+                                                        fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
+                                                        color: isSelected ? Colors.white : Colors.grey[600],
+                                                      ),
+                                                    ),
+                                                    if (count > 0) ...[
+                                                      const SizedBox(width: 6),
+                                                      Container(
+                                                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                                        decoration: BoxDecoration(
+                                                          color: isSelected 
+                                                              ? Colors.white.withValues(alpha: 0.2)
+                                                              : Colors.grey[300],
+                                                          borderRadius: BorderRadius.circular(10),
+                                                        ),
+                                                        child: Text(
+                                                          '$count',
+                                                          style: TextStyle(
+                                                            fontSize: 11,
+                                                            fontWeight: FontWeight.bold,
+                                                            color: isSelected ? Colors.white : Colors.grey[700],
+                                                          ),
+                                                        ),
+                                                      ),
+                                                    ],
+                                                  ],
+                                                ),
+                                              ),
+                                            ),
+                                          );
+                                        }).toList(),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              
+                              // 하단: 액션 영역 (미응답 삭제 등)
+                              Builder(
+                                builder: (context) {
+                                  final waitingCount = quotes.where((q) => (_statusGroups['waiting'] ?? []).contains(q.status)).length;
+                                  if (waitingCount == 0) return const SizedBox.shrink();
+                                  
+                                  return Column(
+                                    children: [
+                                      const SizedBox(height: 16),
+                                      const Divider(height: 1),
+                                      const SizedBox(height: 12),
+                                      Align(
+                                        alignment: Alignment.centerRight,
+                                        child: TextButton.icon(
+                                          onPressed: _deleteWaitingQuotes,
+                                          style: TextButton.styleFrom(
+                                            foregroundColor: Colors.red[700],
+                                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                            backgroundColor: Colors.red.withValues(alpha: 0.05),
+                                            shape: RoundedRectangleBorder(
+                                              borderRadius: BorderRadius.circular(8),
+                                            ),
+                                          ),
+                                          icon: const Icon(Icons.delete_sweep_outlined, size: 18),
+                                          label: Text(
+                                            '미응답 내역 전체 삭제 ($waitingCount)',
+                                            style: const TextStyle(
+                                              fontSize: 13,
+                                              fontWeight: FontWeight.w600,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  );
+                                },
+                              ),
+                            ],
+                          ),
+                        ),
+
+                      // (3) 견적 목록
+                      if (isLoading)
+                        _buildSkeletonList()
+                      else if (error != null)
+                        RetryView(message: error!, onRetry: _loadQuotes)
+                      else if (quotes.isEmpty)
+                        _buildEmptyCard()
+                      else if (filteredQuotes.isEmpty)
+                        _buildNoFilterResultsCard()
+                      else
+                        _buildQuoteList(),
+
+                      const SizedBox(height: 40),
+                    ],
                   ),
                 ),
               ),
             ),
-          ),
-
-          // 컨텐츠
-          SliverToBoxAdapter(
-            child: Center(
-              child: Container(
-                constraints: BoxConstraints(maxWidth: maxWidth),
-                padding: const EdgeInsets.all(24),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // 필터 + '답변 대기 전체 삭제' + 진행 현황 요약 (한 카드로 통합)
-                    if (!isLoading && quotes.isNotEmpty) ...[
-                      Container(
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(16),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withValues(alpha: 0.06),
-                              blurRadius: 20,
-                              offset: const Offset(0, 4),
-                            ),
-                          ],
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Wrap(
-                              spacing: 8,
-                              runSpacing: 8,
-                              children: _statusFilterDefinitions
-                                  .map((definition) {
-                                final value = definition['value']!;
-                                final label = definition['label']!;
-                                final count = value == 'all'
-                                    ? quotes.length
-                                    : quotes.where((q) {
-                                        final group = _statusGroups[value];
-                                        if (group == null) {
-                                          return q.status == value;
-                                        }
-                                        return group.contains(q.status);
-                                      }).length;
-                                return _buildFilterChip(label, value, count);
-                              }).toList(),
-                            ),
-                            const SizedBox(height: 12),
-                            Builder(
-                              builder: (context) {
-                                final waitingStatuses =
-                                    _statusGroups['waiting'] ?? const [];
-                                final waitingCount = quotes
-                                    .where((q) => waitingStatuses
-                                        .contains(q.status))
-                                    .length;
-                                if (waitingCount == 0) {
-                                  return const SizedBox.shrink();
-                                }
-                                return Align(
-                                  alignment: Alignment.centerRight,
-                                  child: TextButton.icon(
-                                    onPressed: _deleteWaitingQuotes,
-                                    icon: const Icon(
-                                      Icons.delete_sweep,
-                                      size: 18,
-                                      color: Colors.red,
-                                    ),
-                                    label: Text(
-                                      '답변 대기 전체 삭제 ($waitingCount건)',
-                                      style: const TextStyle(
-                                        fontSize: 13,
-                                        fontWeight: FontWeight.w600,
-                                        color: Colors.red,
-                                      ),
-                                    ),
-                                  ),
-                                );
-                              },
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 24),
-                    ],
-                    if (!isLoading &&
-                        (widget.userId == null || widget.userId!.isEmpty)) ...[
-                      _buildGuestBanner(),
-                      const SizedBox(height: 16),
-                    ],
-                    if (!isLoading && structuredQuotes.isNotEmpty) ...[
-                      _buildComparisonTable(structuredQuotes),
-                      const SizedBox(height: 24),
-                    ],
-
-                    // 로딩 / 에러 / 결과 표시
-                    if (isLoading)
-                      _buildSkeletonList()
-                    else if (error != null)
-                      RetryView(message: error!, onRetry: _loadQuotes)
-                    else if (quotes.isEmpty)
-                      _buildEmptyCard()
-                    else if (filteredQuotes.isEmpty)
-                      _buildNoFilterResultsCard()
-                    else
-                      _buildQuoteList(),
-
-                    const SizedBox(height: 40),
-                  ],
-                ),
-              ),
-            ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -1314,6 +1532,10 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
     );
   }
 
+  // 진행 현황 요약 카드는 UX 단순화를 위해 제거되었습니다.
+
+  // 사용되지 않는 함수들 (향후 사용 가능성을 위해 주석 처리)
+  /*
   Widget _buildGuestBanner() {
     return Container(
       width: double.infinity,
@@ -1391,8 +1613,6 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
       ),
     );
   }
-
-  // 진행 현황 요약 카드는 UX 단순화를 위해 제거되었습니다.
 
   Widget _buildComparisonTable(List<QuoteRequest> data) {
     final displayed = data.length > 6 ? data.sublist(0, 6) : data;
@@ -1482,6 +1702,7 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
       ),
     );
   }
+  */
 
   /// 정보 행 위젯
   Widget _buildInfoRow(String label, String value) {
@@ -1513,7 +1734,8 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
     );
   }
 
-  /// 필터 칩 위젯
+  /// 필터 칩 위젯 (사용되지 않음 - 향후 사용 가능성을 위해 주석 처리)
+  /*
   Widget _buildFilterChip(String label, String value, int count) {
     final isSelected = selectedStatus == value;
     // 상태별 대표 색상 정의
@@ -1581,29 +1803,166 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
       ),
     );
   }
+  */
 
-  /// 견적문의 목록 (주소별 그룹화)
+  /// 견적문의 목록 (날짜별 그룹화 - 시각적 구분 강화)
   Widget _buildQuoteList() {
-    if (_groupedQuotes.isEmpty) {
+    if (_dateGroupedQuotes.isEmpty) {
       return const SizedBox.shrink();
     }
+
+    // 날짜를 최신순으로 정렬
+    final sortedDates = _dateGroupedQuotes.keys.toList()
+      ..sort((a, b) => b.compareTo(a)); // 내림차순 (최신 날짜가 먼저)
 
     return ListView.builder(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
-      itemCount: _groupedQuotes.length,
-      itemBuilder: (context, index) {
-        final address = _groupedQuotes.keys.elementAt(index);
-        final quotesForAddress = _groupedQuotes[address]!;
+      itemCount: sortedDates.length,
+      itemBuilder: (context, dateIndex) {
+        final dateKey = sortedDates[dateIndex];
+        final quotesForDate = _dateGroupedQuotes[dateKey]!;
+        final isLatestGroup = dateIndex == 0; // 첫 번째 그룹이 최신
 
-        // 같은 주소에 대한 답변이 여러 개인 경우 그룹으로 표시
-        if (quotesForAddress.length > 1) {
-          return _buildGroupedQuotesCard(address, quotesForAddress);
-        } else {
-          // 답변이 하나만 있는 경우 기존 방식대로 표시
-          return _buildQuoteCard(quotesForAddress.first);
-        }
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // 날짜별 섹션 헤더
+            _buildDateSectionHeader(dateKey, quotesForDate.length, isLatestGroup),
+            const SizedBox(height: 12),
+            // 해당 날짜의 견적 카드들
+            ...quotesForDate.map((quote) => Padding(
+              padding: EdgeInsets.only(
+                bottom: 16,
+                left: isLatestGroup ? 0 : 8, // 최신 그룹은 왼쪽 여백 없음
+                right: isLatestGroup ? 0 : 8,
+              ),
+              child: _buildQuoteCardWithDateGroup(quote, isLatestGroup),
+            )),
+            // 날짜 그룹 간 구분선 (마지막 그룹 제외)
+            if (dateIndex < sortedDates.length - 1) ...[
+              const SizedBox(height: 24),
+              Divider(
+                thickness: 2,
+                height: 2,
+                color: Colors.grey[300],
+                indent: 20,
+                endIndent: 20,
+              ),
+              const SizedBox(height: 24),
+            ],
+          ],
+        );
       },
+    );
+  }
+
+  /// 날짜별 섹션 헤더
+  Widget _buildDateSectionHeader(String dateKey, int count, bool isLatest) {
+    final dateFormat = DateFormat('yyyy년 MM월 dd일');
+    final parsedDate = DateFormat('yyyy.MM.dd').parse(dateKey);
+    final isToday = DateFormat('yyyy.MM.dd').format(DateTime.now()) == dateKey;
+    final isYesterday = DateFormat('yyyy.MM.dd').format(
+      DateTime.now().subtract(const Duration(days: 1))
+    ) == dateKey;
+
+    String displayText;
+    if (isToday) {
+      displayText = '오늘 보낸 요청 ($count건)';
+    } else if (isYesterday) {
+      displayText = '어제 보낸 요청 ($count건)';
+    } else {
+      displayText = '${dateFormat.format(parsedDate)} 요청 ($count건)';
+    }
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(
+        color: isLatest 
+            ? AppColors.kPrimary.withValues(alpha: 0.1)
+            : Colors.grey[100],
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: isLatest 
+              ? AppColors.kPrimary.withValues(alpha: 0.3)
+              : Colors.grey[300]!,
+          width: isLatest ? 2 : 1,
+        ),
+      ),
+      child: Row(
+        children: [
+          if (isLatest) ...[
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              decoration: BoxDecoration(
+                color: AppColors.kPrimary,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: const Text(
+                '최신',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 11,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+            const SizedBox(width: 8),
+          ],
+          Icon(
+            Icons.calendar_today,
+            size: 16,
+            color: isLatest ? AppColors.kPrimary : Colors.grey[600],
+          ),
+          const SizedBox(width: 8),
+          Text(
+            displayText,
+            style: TextStyle(
+              fontSize: 15,
+              fontWeight: isLatest ? FontWeight.bold : FontWeight.w600,
+              color: isLatest ? AppColors.kPrimary : Colors.grey[700],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// 날짜 그룹 구분이 있는 견적 카드
+  Widget _buildQuoteCardWithDateGroup(QuoteRequest quote, bool isLatestGroup) {
+    // 기존 _buildQuoteCard를 재사용하되, 최신 그룹은 강조 표시
+    final baseCard = _buildQuoteCard(quote);
+    
+    // 최신 그룹이 아니면 약간 투명하게
+    if (!isLatestGroup) {
+      return Opacity(
+        opacity: 0.85,
+        child: baseCard,
+      );
+    }
+    
+    // 최신 그룹은 강조 테두리 추가 (기존 Container의 decoration에 추가)
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: AppColors.kPrimary.withValues(alpha: 0.4),
+          width: 2,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: AppColors.kPrimary.withValues(alpha: 0.15),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(14), // 내부는 2px 작게
+        child: baseCard,
+      ),
     );
   }
 
@@ -1633,8 +1992,8 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
               color: answeredCount > 0
-                  ? Colors.green.withValues(alpha: 0.1)
-                  : Colors.orange.withValues(alpha: 0.1),
+                  ? Colors.green[100]
+                  : Colors.orange[100],
               borderRadius: const BorderRadius.only(
                 topLeft: Radius.circular(16),
                 topRight: Radius.circular(16),
@@ -1693,7 +2052,7 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
                                   vertical: 4,
                                 ),
                                 decoration: BoxDecoration(
-                                  color: Colors.green.withValues(alpha: 0.2),
+                                  color: Colors.white,
                                   borderRadius: BorderRadius.circular(12),
                                 ),
                                 child: Text(
@@ -1712,7 +2071,7 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
                                   vertical: 4,
                                 ),
                                 decoration: BoxDecoration(
-                                  color: Colors.orange.withValues(alpha: 0.2),
+                                  color: Colors.white,
                                   borderRadius: BorderRadius.circular(12),
                                 ),
                                 child: Text(
@@ -1780,8 +2139,8 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
               color: hasAnswer
-                  ? Colors.green.withValues(alpha: 0.1)
-                  : Colors.orange.withValues(alpha: 0.1),
+                  ? Colors.green[100]
+                  : Colors.orange[100],
               borderRadius: const BorderRadius.only(
                 topLeft: Radius.circular(12),
                 topRight: Radius.circular(12),
@@ -1977,36 +2336,6 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
                             color: Color(0xFF2C3E50),
                             height: 1.5,
                           ),
-                          maxLines: 3,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        const SizedBox(height: 8),
-                        Align(
-                          alignment: Alignment.centerRight,
-                          child: TextButton.icon(
-                            onPressed: () => _showFullQuoteDetails(quote),
-                            style: TextButton.styleFrom(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 12,
-                                vertical: 6,
-                              ),
-                              minimumSize: Size.zero,
-                              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                            ),
-                            icon: const Icon(
-                              Icons.open_in_full,
-                              size: 14,
-                              color: Color(0xFF9C27B0),
-                            ),
-                            label: const Text(
-                              '전체보기',
-                              style: TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w600,
-                                color: Color(0xFF9C27B0),
-                              ),
-                            ),
-                          ),
                         ),
                       ],
                     ),
@@ -2099,7 +2428,44 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
                   ],
                 ),
                 const SizedBox(height: 8),
-                // 2줄째: 비교 화면 / 중개사 재연락
+                // 2줄째: 이 공인중개사랑 계속할래요
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton.icon(
+                    onPressed: quote.isSelectedByUser == true
+                        ? null
+                        : () => _onSelectBroker(quote),
+                    icon: Icon(
+                      quote.isSelectedByUser == true
+                          ? Icons.check_circle
+                          : Icons.handshake,
+                      size: 18,
+                    ),
+                    label: Text(
+                      quote.isSelectedByUser == true
+                          ? '이 공인중개사와 진행 중입니다'
+                          : '이 공인중개사와 계속 진행할래요',
+                      style: const TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: quote.isSelectedByUser == true
+                          ? Colors.grey[300]
+                          : AppColors.kPrimary,
+                      foregroundColor: quote.isSelectedByUser == true
+                          ? Colors.grey[800]
+                          : Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                // 3줄째: 비교 화면 / 중개사 재연락 (추가 기능)
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton.icon(
@@ -2252,8 +2618,8 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
               color: isPending
-                  ? Colors.orange.withValues(alpha: 0.1)
-                  : Colors.green.withValues(alpha: 0.1),
+                  ? Colors.orange[100]
+                  : Colors.green[100],
               borderRadius: const BorderRadius.only(
                 topLeft: Radius.circular(16),
                 topRight: Radius.circular(16),
@@ -2647,38 +3013,6 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
                                         color: Color(0xFF2C3E50),
                                         height: 1.6,
                                       ),
-                                      maxLines: 5,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                    const SizedBox(height: 8),
-                                    Align(
-                                      alignment: Alignment.centerRight,
-                                      child: TextButton.icon(
-                                        onPressed: () =>
-                                            _showFullQuoteDetails(quote),
-                                        style: TextButton.styleFrom(
-                                          padding: const EdgeInsets.symmetric(
-                                            horizontal: 12,
-                                            vertical: 6,
-                                          ),
-                                          minimumSize: Size.zero,
-                                          tapTargetSize:
-                                              MaterialTapTargetSize.shrinkWrap,
-                                        ),
-                                        icon: const Icon(
-                                          Icons.open_in_full,
-                                          size: 14,
-                                          color: Color(0xFF9C27B0),
-                                        ),
-                                        label: const Text(
-                                          '전체보기',
-                                          style: TextStyle(
-                                            fontSize: 12,
-                                            fontWeight: FontWeight.w600,
-                                            color: Color(0xFF9C27B0),
-                                          ),
-                                        ),
-                                      ),
                                     ),
                                   ],
                                 )
@@ -2763,7 +3097,44 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
                   ],
                 ),
                 const SizedBox(height: 8),
-                // 2줄째: 비교 화면 / 중개사 재연락 (기존 로직 유지)
+                // 2줄째: 이 공인중개사랑 계속할래요
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton.icon(
+                    onPressed: quote.isSelectedByUser == true
+                        ? null
+                        : () => _onSelectBroker(quote),
+                    icon: Icon(
+                      quote.isSelectedByUser == true
+                          ? Icons.check_circle
+                          : Icons.handshake,
+                      size: 18,
+                    ),
+                    label: Text(
+                      quote.isSelectedByUser == true
+                          ? '이 공인중개사와 진행 중입니다'
+                          : '이 공인중개사와 계속 진행할래요',
+                      style: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: quote.isSelectedByUser == true
+                          ? Colors.grey[300]
+                          : AppColors.kPrimary,
+                      foregroundColor: quote.isSelectedByUser == true
+                          ? Colors.grey[800]
+                          : Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                // 3줄째: 비교 화면 / 중개사 재연락 (추가 기능)
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton.icon(

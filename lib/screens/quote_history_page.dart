@@ -1867,33 +1867,6 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
                             color: Color(0xFF2C3E50),
                             height: 1.5,
                           ),
-                          maxLines: 3,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        const SizedBox(height: 8),
-                        Align(
-                          alignment: Alignment.centerRight,
-                          child: TextButton.icon(
-                            onPressed: () => _showFullQuoteDetails(quote),
-                            style: TextButton.styleFrom(
-                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                              minimumSize: Size.zero,
-                              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                            ),
-                            icon: const Icon(
-                              Icons.open_in_full,
-                              size: 14,
-                              color: Color(0xFF9C27B0),
-                            ),
-                            label: const Text(
-                              '전체보기',
-                              style: TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w600,
-                                color: Color(0xFF9C27B0),
-                              ),
-                            ),
-                          ),
                         ),
                       ],
                     ),
@@ -2482,33 +2455,6 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
                                         fontSize: 14,
                                         color: Color(0xFF2C3E50),
                                         height: 1.6,
-                                      ),
-                                      maxLines: 5,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                    const SizedBox(height: 8),
-                                    Align(
-                                      alignment: Alignment.centerRight,
-                                      child: TextButton.icon(
-                                        onPressed: () => _showFullQuoteDetails(quote),
-                                        style: TextButton.styleFrom(
-                                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                                          minimumSize: Size.zero,
-                                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                                        ),
-                                        icon: const Icon(
-                                          Icons.open_in_full,
-                                          size: 14,
-                                          color: Color(0xFF9C27B0),
-                                        ),
-                                        label: const Text(
-                                          '전체보기',
-                                          style: TextStyle(
-                                            fontSize: 12,
-                                            fontWeight: FontWeight.w600,
-                                            color: Color(0xFF9C27B0),
-                                          ),
-                                        ),
                                       ),
                                     ),
                                   ],

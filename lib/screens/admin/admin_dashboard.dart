@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:property/constants/app_constants.dart';
 import 'admin_quote_requests_page.dart';
 import 'admin_broker_management.dart';
+import 'admin_user_logs_page.dart';
 import '../main_page.dart';
 
 class AdminDashboard extends StatefulWidget {
@@ -38,6 +39,10 @@ class _AdminDashboardState extends State<AdminDashboard> {
             userId: widget.userId,
             userName: widget.userName,
           ),
+          AdminUserLogsPage(
+            userId: widget.userId,
+            userName: widget.userName,
+          ),
         ],
       ),
     );
@@ -69,6 +74,8 @@ class _AdminDashboardState extends State<AdminDashboard> {
         Expanded(child: _buildNavButton('견적문의', 1, Icons.chat_bubble_outline, isMobile: true)),
         const SizedBox(width: 4),
         Expanded(child: _buildNavButton('공인중개사', 2, Icons.business_rounded, isMobile: true)),
+        const SizedBox(width: 4),
+        Expanded(child: _buildNavButton('로그', 3, Icons.analytics_outlined, isMobile: true)),
       ],
     );
   }
@@ -143,6 +150,8 @@ class _AdminDashboardState extends State<AdminDashboard> {
                   Flexible(child: _buildNavButton('견적문의', 1, Icons.chat_bubble_outline)),
                   SizedBox(width: isNarrow ? 2 : 4),
                   Flexible(child: _buildNavButton('공인중개사', 2, Icons.business_rounded)),
+                  SizedBox(width: isNarrow ? 2 : 4),
+                  Flexible(child: _buildNavButton('활동로그', 3, Icons.analytics_outlined)),
                 ],
               );
             },
@@ -346,6 +355,13 @@ class _AdminDashboardState extends State<AdminDashboard> {
           title: '공인중개사 관리',
           description: '등록된 공인중개사 목록을 확인하고 관리합니다',
           onTap: () => setState(() => _currentIndex = 2),
+        ),
+        const SizedBox(height: 16),
+        _buildCard(
+          icon: Icons.analytics_outlined,
+          title: '사용자 행동 로그',
+          description: '사용자들의 앱 내 활동 내역을 실시간으로 모니터링합니다',
+          onTap: () => setState(() => _currentIndex = 3),
         ),
       ],
     );

@@ -321,6 +321,12 @@ class _QuoteComparisonPageState extends State<QuoteComparisonPage> {
 
     final dateFormat = DateFormat('yyyy.MM.dd');
 
+    // 반응형 레이아웃: PC 화면 고려
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isWeb = screenWidth > 800;
+    final maxWidth = isWeb ? 1400.0 : screenWidth;
+    final horizontalPadding = isWeb ? 24.0 : 16.0;
+
     return Scaffold(
       backgroundColor: AppColors.kBackground,
       appBar: AppBar(
@@ -360,10 +366,13 @@ class _QuoteComparisonPageState extends State<QuoteComparisonPage> {
         ],
       ),
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
+        padding: EdgeInsets.symmetric(horizontal: horizontalPadding, vertical: 16),
+        child: Center(
+          child: Container(
+            constraints: BoxConstraints(maxWidth: maxWidth),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
             // 요약 카드
             Container(
               padding: const EdgeInsets.all(24),
@@ -431,252 +440,311 @@ class _QuoteComparisonPageState extends State<QuoteComparisonPage> {
 
             const SizedBox(height: 16),
 
-            ...quotePrices.map((item) {
-              final quote = item['quote'] as QuoteRequest;
-              final isAlreadySelected = quote.isSelectedByUser == true;
-              final isSelectedHere = _selectedQuoteId == quote.id;
-              final price = item['price'] as int;
-              final priceStr = item['priceStr'] as String?;
-              final isLowest = price == minPrice;
-              final isHighest = price == maxPrice;
+            // 견적 목록 (PC에서는 그리드, 모바일에서는 리스트)
+            isWeb
+                ? Wrap(
+                    spacing: 20,
+                    runSpacing: 20,
+                    children: quotePrices.map((item) {
+                      final quote = item['quote'] as QuoteRequest;
+                      final isAlreadySelected = quote.isSelectedByUser == true;
+                      final isSelectedHere = _selectedQuoteId == quote.id;
+                      final price = item['price'] as int;
+                      final priceStr = item['priceStr'] as String?;
+                      final isLowest = price == minPrice;
+                      final isHighest = price == maxPrice;
 
-              return Container(
-                margin: const EdgeInsets.only(bottom: 16),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(16),
-                  border: isLowest
-                      ? Border.all(color: Colors.green, width: 3)
-                      : Border.all(color: Colors.grey.withValues(alpha: 0.2)),
-                  boxShadow: [
-                    BoxShadow(
-                      color: isLowest
-                          ? Colors.green.withValues(alpha: 0.2)
-                          : Colors.black.withValues(alpha: 0.06),
-                      blurRadius: isLowest ? 12 : 8,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // 헤더
-                    Container(
-                      padding: const EdgeInsets.all(20),
-                      decoration: BoxDecoration(
-                        color: isLowest
-                            ? Colors.green.withValues(alpha: 0.1)
-                            : isHighest
-                                ? Colors.red.withValues(alpha: 0.1)
-                                : Colors.grey.withValues(alpha: 0.05),
-                        borderRadius: const BorderRadius.only(
-                          topLeft: Radius.circular(16),
-                          topRight: Radius.circular(16),
+                      return SizedBox(
+                        width: (maxWidth - 20) / 2, // 2열 그리드
+                        child: _buildQuoteCard(
+                          quote: quote,
+                          isAlreadySelected: isAlreadySelected,
+                          isSelectedHere: isSelectedHere,
+                          price: price,
+                          priceStr: priceStr,
+                          isLowest: isLowest,
+                          isHighest: isHighest,
+                          minPrice: minPrice,
+                          dateFormat: dateFormat,
+                        ),
+                      );
+                    }).toList(),
+                  )
+                : Column(
+                    children: quotePrices.map((item) {
+                      final quote = item['quote'] as QuoteRequest;
+                      final isAlreadySelected = quote.isSelectedByUser == true;
+                      final isSelectedHere = _selectedQuoteId == quote.id;
+                      final price = item['price'] as int;
+                      final priceStr = item['priceStr'] as String?;
+                      final isLowest = price == minPrice;
+                      final isHighest = price == maxPrice;
+
+                      return _buildQuoteCard(
+                        quote: quote,
+                        isAlreadySelected: isAlreadySelected,
+                        isSelectedHere: isSelectedHere,
+                        price: price,
+                        priceStr: priceStr,
+                        isLowest: isLowest,
+                        isHighest: isHighest,
+                        minPrice: minPrice,
+                        dateFormat: dateFormat,
+                      );
+                    }).toList(),
+                  ),
+          ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// 견적 카드 위젯 (재사용 가능하도록 분리)
+  Widget _buildQuoteCard({
+    required QuoteRequest quote,
+    required bool isAlreadySelected,
+    required bool isSelectedHere,
+    required int price,
+    required String? priceStr,
+    required bool isLowest,
+    required bool isHighest,
+    required int minPrice,
+    required DateFormat dateFormat,
+  }) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: isLowest
+            ? Border.all(color: Colors.green, width: 3)
+            : Border.all(color: Colors.grey.withValues(alpha: 0.2)),
+        boxShadow: [
+          BoxShadow(
+            color: isLowest
+                ? Colors.green.withValues(alpha: 0.2)
+                : Colors.black.withValues(alpha: 0.06),
+            blurRadius: isLowest ? 12 : 8,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // 헤더
+          Container(
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: isLowest
+                  ? Colors.green.withValues(alpha: 0.1)
+                  : isHighest
+                      ? Colors.red.withValues(alpha: 0.1)
+                      : Colors.grey.withValues(alpha: 0.05),
+              borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(16),
+                topRight: Radius.circular(16),
+              ),
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        quote.brokerName,
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF2C3E50),
                         ),
                       ),
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  quote.brokerName,
-                                  style: const TextStyle(
-                                    fontSize: 18,
-                                    fontWeight: FontWeight.bold,
-                                    color: Color(0xFF2C3E50),
-                                  ),
-                                ),
-                                if (quote.answerDate != null) ...[
-                                  const SizedBox(height: 4),
-                                  Text(
-                                    '답변일: ${dateFormat.format(quote.answerDate!)}',
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      color: Colors.grey[600],
-                                    ),
-                                  ),
-                                ],
-                              ],
-                            ),
+                      if (quote.answerDate != null) ...[
+                        const SizedBox(height: 4),
+                        Text(
+                          '답변일: ${dateFormat.format(quote.answerDate!)}',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.grey[600],
                           ),
-                          if (isLowest)
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 12,
-                                vertical: 6,
-                              ),
-                              decoration: BoxDecoration(
-                                color: Colors.green,
-                                borderRadius: BorderRadius.circular(20),
-                              ),
-                              child: const Text(
-                                '최저가',
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ),
-                          if (isHighest && !isLowest)
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 12,
-                                vertical: 6,
-                              ),
-                              decoration: BoxDecoration(
-                                color: Colors.red,
-                                borderRadius: BorderRadius.circular(20),
-                              ),
-                              child: const Text(
-                                '최고가',
-                                style: TextStyle(
-                                  color: Colors.white,
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ),
-                        ],
-                      ),
-                    ),
-                    // 가격 정보 + 세부 정보 + 선택 버튼
-                    Padding(
-                      padding: const EdgeInsets.all(20),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.all(16),
-                            decoration: BoxDecoration(
-                              color: isLowest
-                                  ? Colors.green.withValues(alpha: 0.05)
-                                  : const Color(0xFFF8F9FA),
-                              borderRadius: BorderRadius.circular(12),
-                              border: Border.all(
-                                color: isLowest
-                                    ? Colors.green.withValues(alpha: 0.3)
-                                    : Colors.grey.withValues(alpha: 0.2),
-                              ),
-                            ),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                const Text(
-                                  '예상 금액',
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.w600,
-                                    color: Color(0xFF2C3E50),
-                                  ),
-                                ),
-                                Text(
-                                  priceStr ?? _formatPrice(price),
-                                  style: TextStyle(
-                                    fontSize: 24,
-                                    fontWeight: FontWeight.bold,
-                                    color: isLowest
-                                        ? Colors.green[700]
-                                        : const Color(0xFF2C3E50),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-
-                          if (quote.expectedDuration != null &&
-                              quote.expectedDuration!.isNotEmpty) ...[
-                            const SizedBox(height: 16),
-                            _buildInfoRow('예상 거래기간', quote.expectedDuration!),
-                          ],
-
-                          if (quote.commissionRate != null &&
-                              quote.commissionRate!.isNotEmpty) ...[
-                            const SizedBox(height: 12),
-                            _buildInfoRow('수수료율', quote.commissionRate!),
-                          ],
-
-                          if (quote.brokerAnswer != null &&
-                              quote.brokerAnswer!.isNotEmpty) ...[
-                            const SizedBox(height: 16),
-                            Container(
-                              padding: const EdgeInsets.all(12),
-                              decoration: BoxDecoration(
-                                color: Colors.grey.withValues(alpha: 0.05),
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  const Text(
-                                    '추가 메시지',
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.w600,
-                                      color: Colors.grey,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 8),
-                                  Text(
-                                    quote.brokerAnswer!,
-                                    style: const TextStyle(
-                                      fontSize: 14,
-                                      color: Color(0xFF2C3E50),
-                                      height: 1.5,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-
-                          const SizedBox(height: 20),
-                          SizedBox(
-                            width: double.infinity,
-                            child: ElevatedButton.icon(
-                              onPressed: (_isAssigning || isAlreadySelected || isSelectedHere)
-                                  ? null
-                                  : () => _onSelectBroker(quote),
-                              icon: Icon(
-                                isAlreadySelected || isSelectedHere
-                                    ? Icons.check_circle
-                                    : Icons.handshake,
-                              ),
-                              label: Text(
-                                isAlreadySelected || isSelectedHere
-                                    ? '이 공인중개사와 진행 중입니다'
-                                    : '이 공인중개사와 계속 진행할래요',
-                                style: const TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: isAlreadySelected || isSelectedHere
-                                    ? Colors.grey[300]
-                                    : AppColors.kPrimary,
-                                foregroundColor: isAlreadySelected || isSelectedHere
-                                    ? Colors.grey[800]
-                                    : Colors.white,
-                                padding: const EdgeInsets.symmetric(vertical: 12),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(10),
-                                ),
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
+                        ),
+                      ],
+                    ],
+                  ),
                 ),
-              );
-            }).toList(),
-          ],
-        ),
+                if (isLowest)
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 6,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.green,
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: const Text(
+                      '최저가',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                if (isHighest && !isLowest)
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 6,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.red,
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: const Text(
+                      '최고가',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+          // 가격 정보 + 세부 정보 + 선택 버튼
+          Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: isLowest
+                        ? Colors.green.withValues(alpha: 0.05)
+                        : const Color(0xFFF8F9FA),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: isLowest
+                          ? Colors.green.withValues(alpha: 0.3)
+                          : Colors.grey.withValues(alpha: 0.2),
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                        '예상 금액',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          color: Color(0xFF2C3E50),
+                        ),
+                      ),
+                      Text(
+                        priceStr ?? _formatPrice(price),
+                        style: TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                          color: isLowest
+                              ? Colors.green[700]
+                              : const Color(0xFF2C3E50),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+
+                if (quote.expectedDuration != null &&
+                    quote.expectedDuration!.isNotEmpty) ...[
+                  const SizedBox(height: 16),
+                  _buildInfoRow('예상 거래기간', quote.expectedDuration!),
+                ],
+
+                if (quote.commissionRate != null &&
+                    quote.commissionRate!.isNotEmpty) ...[
+                  const SizedBox(height: 12),
+                  _buildInfoRow('수수료율', quote.commissionRate!),
+                ],
+
+                if (quote.brokerAnswer != null &&
+                    quote.brokerAnswer!.isNotEmpty) ...[
+                  const SizedBox(height: 16),
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.grey.withValues(alpha: 0.05),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          '추가 메시지',
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: Colors.grey,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          quote.brokerAnswer!,
+                          style: const TextStyle(
+                            fontSize: 14,
+                            color: Color(0xFF2C3E50),
+                            height: 1.5,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+
+                const SizedBox(height: 20),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton.icon(
+                    onPressed: (_isAssigning || isAlreadySelected || isSelectedHere)
+                        ? null
+                        : () => _onSelectBroker(quote),
+                    icon: Icon(
+                      isAlreadySelected || isSelectedHere
+                          ? Icons.check_circle
+                          : Icons.handshake,
+                    ),
+                    label: Text(
+                      isAlreadySelected || isSelectedHere
+                          ? '이 공인중개사와 진행 중입니다'
+                          : '이 공인중개사와 계속 진행할래요',
+                      style: const TextStyle(
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: isAlreadySelected || isSelectedHere
+                          ? Colors.grey[300]
+                          : AppColors.kPrimary,
+                      foregroundColor: isAlreadySelected || isSelectedHere
+                          ? Colors.grey[800]
+                          : Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }

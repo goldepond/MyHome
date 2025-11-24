@@ -535,6 +535,96 @@ class _BrokerListPageState extends State<BrokerListPage> {
       // 기본 결과 복사
       List<Broker> mergedBrokers = List<Broker>.from(response.brokers);
 
+      // ===================== Firestore 데이터로 보강 =====================
+      // VWorld API 결과와 Firestore의 brokers 컬렉션을 병합하여
+      // 공인중개사가 수정한 정보(전화번호, 사무소명 등)가 반영되도록 함
+      try {
+        // 등록번호 목록 수집
+        final registrationNumbers = mergedBrokers
+            .where((b) => b.registrationNumber.isNotEmpty)
+            .map((b) => b.registrationNumber)
+            .toSet()
+            .toList();
+        
+        // 배치로 Firestore에서 조회 (성능 최적화)
+        final Map<String, Map<String, dynamic>> firestoreDataMap = {};
+        if (registrationNumbers.isNotEmpty) {
+          // Firestore에서 등록번호별로 조회 (배치 처리)
+          final futures = registrationNumbers.map((regNo) async {
+            final data = await _firebaseService.getBrokerByRegistrationNumber(regNo);
+            return MapEntry(regNo, data);
+          });
+          
+          final results = await Future.wait(futures);
+          for (final entry in results) {
+            if (entry.value != null) {
+              firestoreDataMap[entry.key] = entry.value!;
+            }
+          }
+        }
+        
+        // Firestore 데이터로 보강
+        final enhancedBrokers = mergedBrokers.map((broker) {
+          if (broker.registrationNumber.isEmpty) {
+            return broker; // 등록번호 없으면 그대로
+          }
+          
+          final firestoreData = firestoreDataMap[broker.registrationNumber];
+          if (firestoreData == null) {
+            return broker; // Firestore에 없으면 그대로
+          }
+          
+          // Firestore에 저장된 정보로 보강 (우선순위: Firestore > VWorld API)
+          return Broker(
+            name: (firestoreData['businessName'] as String?) ?? 
+                  (firestoreData['ownerName'] as String?) ?? 
+                  broker.name,
+            roadAddress: (firestoreData['roadAddress'] as String?) ?? 
+                        (firestoreData['address'] as String?) ?? 
+                        broker.roadAddress,
+            jibunAddress: broker.jibunAddress,
+            registrationNumber: broker.registrationNumber,
+            etcAddress: broker.etcAddress,
+            employeeCount: broker.employeeCount,
+            registrationDate: broker.registrationDate,
+            latitude: broker.latitude,
+            longitude: broker.longitude,
+            distance: broker.distance,
+            systemRegNo: broker.systemRegNo,
+            ownerName: (firestoreData['ownerName'] as String?) ?? broker.ownerName,
+            businessName: (firestoreData['businessName'] as String?) ?? broker.businessName,
+            phoneNumber: (firestoreData['phoneNumber'] as String?) ?? 
+                        (firestoreData['phone'] as String?) ?? 
+                        broker.phoneNumber, // Firestore 우선
+            businessStatus: (firestoreData['businessStatus'] as String?) ?? 
+                           broker.businessStatus,
+            seoulAddress: broker.seoulAddress,
+            district: broker.district,
+            legalDong: broker.legalDong,
+            sggCode: broker.sggCode,
+            stdgCode: broker.stdgCode,
+            lotnoSe: broker.lotnoSe,
+            mno: broker.mno,
+            sno: broker.sno,
+            roadCode: broker.roadCode,
+            bldg: broker.bldg,
+            bmno: broker.bmno,
+            bsno: broker.bsno,
+            penaltyStartDate: broker.penaltyStartDate,
+            penaltyEndDate: broker.penaltyEndDate,
+            inqCount: broker.inqCount,
+            introduction: (firestoreData['introduction'] as String?) ?? 
+                         broker.introduction, // Firestore 우선
+          );
+        }).toList();
+        
+        mergedBrokers = enhancedBrokers;
+      } catch (e) {
+        // Firestore 보강 실패 시 원본 데이터 사용
+        debugPrint('Firestore 보강 실패: $e');
+      }
+      // ================================================================
+
       // ===================== 테스트 전용 중개사 주입 =====================
       // Firestore `brokers` 컬렉션에 저장된 테스트 중개사(김이택)를
       // 항상 목록에 포함시켜서 견적 요청/대시보드 플로우를 손쉽게 검증하기 위함입니다.
@@ -590,6 +680,7 @@ class _BrokerListPageState extends State<BrokerListPage> {
                   penaltyStartDate: null,
                   penaltyEndDate: null,
                   inqCount: null,
+                  introduction: testData['introduction'] as String?,
                 ),
               );
             }
@@ -778,7 +869,8 @@ class _BrokerListPageState extends State<BrokerListPage> {
     // 웹 최적화: 최대 너비 제한
     final screenWidth = MediaQuery.of(context).size.width;
     final isWeb = screenWidth > 800;
-    final maxWidth = isWeb ? 900.0 : screenWidth;
+    final maxWidth = isWeb ? 1400.0 : screenWidth; // PC 화면에서 더 넓게
+    final horizontalPadding = isWeb ? 24.0 : 0.0; // PC에서 고정 패딩 사용
 
     return Scaffold(
       backgroundColor: const Color(0xFFF8F9FA),
@@ -919,11 +1011,7 @@ class _BrokerListPageState extends State<BrokerListPage> {
             flexibleSpace: FlexibleSpaceBar(
               background: Container(
                 decoration: const BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [AppColors.kPrimary, AppColors.kSecondary],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
+                  gradient: AppGradients.primaryDiagonal,
                 ),
                 child: Center(
                   child: Container(
@@ -964,363 +1052,379 @@ class _BrokerListPageState extends State<BrokerListPage> {
             ),
           ),
 
-          // 컨텐츠
+          // 1. 히어로 섹션 및 필터 UI (SliverToBoxAdapter)
           SliverToBoxAdapter(
-            child: Center(
-              child: Container(
-                constraints: BoxConstraints(maxWidth: maxWidth),
-                padding: const EdgeInsets.all(24),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _buildHeroSection(context, maxWidth),
-                    const SizedBox(height: 32),
+            child: Padding(
+              padding: EdgeInsets.symmetric(horizontal: horizontalPadding > 0 ? horizontalPadding : 0),
+              child: Center(
+                child: Container(
+                  constraints: BoxConstraints(maxWidth: maxWidth),
+                  padding: const EdgeInsets.only(left: 24, right: 24, top: 24, bottom: 0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildHeroSection(context, maxWidth),
+                      const SizedBox(height: 32),
 
-                    // 공인중개사 목록 헤더 - 웹 스타일
-                    if (!isLoading && brokers.isNotEmpty) ...[
-                      // 검색 및 필터 UI
-                      Container(
-                        padding: const EdgeInsets.all(20),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(16),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withValues(alpha: 0.06),
-                              blurRadius: 20,
-                              offset: const Offset(0, 4),
-                            ),
-                          ],
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            // 헤더
-                      Row(
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                            decoration: BoxDecoration(
-                              color: AppColors.kSecondary, // 남색 단색
-                              borderRadius: BorderRadius.circular(24),
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                const Icon(Icons.business, color: Colors.white, size: 20),
-                                const SizedBox(width: 8),
-                                Text(
-                                        '공인중개사 ${filteredBrokers.length}곳',
-                                  style: const TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.white,
-                                  ),
-                                ),
-                              ],
-                            ),
+                      // 공인중개사 목록 헤더 - 웹 스타일
+                      if (!isLoading && brokers.isNotEmpty) ...[
+                        // 검색 및 필터 UI
+                        Container(
+                          padding: const EdgeInsets.all(20),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(16),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: 0.06),
+                                blurRadius: 20,
+                                offset: const Offset(0, 4),
+                              ),
+                            ],
                           ),
-                                if (filteredBrokers.length < brokers.length) ...[
-                                  const SizedBox(width: 8),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              // 헤더
+                              Row(
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                    decoration: BoxDecoration(
+                                      color: AppColors.kSecondary, // 남색 단색
+                                      borderRadius: BorderRadius.circular(24),
+                                    ),
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        const Icon(Icons.business, color: Colors.white, size: 20),
+                                        const SizedBox(width: 8),
+                                        Text(
+                                          '공인중개사 ${filteredBrokers.length}곳',
+                                          style: const TextStyle(
+                                            fontSize: 16,
+                                            fontWeight: FontWeight.bold,
+                                            color: Colors.white,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  if (filteredBrokers.length < brokers.length) ...[
+                                    const SizedBox(width: 8),
+                                    Text(
+                                      '/ 전체 ${brokers.length}곳',
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        color: Colors.grey[600],
+                                      ),
+                                    ),
+                                  ],
+                                ],
+                              ),
+                              
+                              const SizedBox(height: 16),
+                              
+                              // 검색창
+                              TextField(
+                                controller: _searchController,
+                                decoration: InputDecoration(
+                                  hintText: '중개사명, 주소로 검색',
+                                  prefixIcon: const Icon(Icons.search, color: AppColors.kPrimary),
+                                  suffixIcon: searchKeyword.isNotEmpty
+                                      ? IconButton(
+                                          icon: const Icon(Icons.clear, size: 20),
+                                          onPressed: () {
+                                            _searchController.clear();
+                                            searchKeyword = '';
+                                            _applyFilters();
+                                          },
+                                        )
+                                      : null,
+                                  filled: true,
+                                  fillColor: Colors.grey[100],
+                                  border: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                    borderSide: BorderSide.none,
+                                  ),
+                                  focusedBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                    borderSide: const BorderSide(color: AppColors.kPrimary, width: 2),
+                                  ),
+                                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                                ),
+                                onChanged: (value) {
+                                  searchKeyword = value;
+                                  _applyFilters();
+                                },
+                              ),
+                              
+                              const SizedBox(height: 12),
+                              
+                              // 정렬 옵션
+                              Row(
+                                children: [
                                   Text(
-                                    '/ 전체 ${brokers.length}곳',
+                                    '정렬:',
                                     style: TextStyle(
                                       fontSize: 14,
-                                      color: Colors.grey[600],
+                                      fontWeight: FontWeight.w600,
+                                      color: Colors.grey[700],
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Expanded(
+                                    child: Wrap(
+                                      spacing: 8,
+                                      runSpacing: 8,
+                                      children: [
+                                        ChoiceChip(
+                                          label: const Row(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              Icon(Icons.numbers, size: 16),
+                                              SizedBox(width: 4),
+                                              Text('등록번호순'),
+                                            ],
+                                          ),
+                                          selected: _sortOption == 'systemRegNo',
+                                          onSelected: (selected) {
+                                            if (selected) {
+                                              setState(() {
+                                                _sortOption = 'systemRegNo';
+                                                _applyFilters();
+                                              });
+                                            }
+                                          },
+                                          selectedColor: AppColors.kPrimary.withValues(alpha: 0.2),
+                                          checkmarkColor: AppColors.kPrimary,
+                                          backgroundColor: Colors.grey[100],
+                                          labelStyle: TextStyle(
+                                            color: _sortOption == 'systemRegNo' ? AppColors.kPrimary : Colors.grey[700],
+                                            fontWeight: _sortOption == 'systemRegNo' ? FontWeight.bold : FontWeight.normal,
+                                          ),
+                                        ),
+                                        ChoiceChip(
+                                          label: const Row(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              Icon(Icons.near_me, size: 16),
+                                              SizedBox(width: 4),
+                                              Text('거리순'),
+                                            ],
+                                          ),
+                                          selected: _sortOption == 'distance',
+                                          onSelected: (selected) {
+                                            if (selected) {
+                                              setState(() {
+                                                _sortOption = 'distance';
+                                                _applyFilters();
+                                              });
+                                            }
+                                          },
+                                          selectedColor: AppColors.kPrimary.withValues(alpha: 0.2),
+                                          checkmarkColor: AppColors.kPrimary,
+                                          backgroundColor: Colors.grey[100],
+                                          labelStyle: TextStyle(
+                                            color: _sortOption == 'distance' ? AppColors.kPrimary : Colors.grey[700],
+                                            fontWeight: _sortOption == 'distance' ? FontWeight.bold : FontWeight.normal,
+                                          ),
+                                        ),
+                                        ChoiceChip(
+                                          label: const Row(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              Icon(Icons.sort_by_alpha, size: 16),
+                                              SizedBox(width: 4),
+                                              Text('이름순'),
+                                            ],
+                                          ),
+                                          selected: _sortOption == 'name',
+                                          onSelected: (selected) {
+                                            if (selected) {
+                                              setState(() {
+                                                _sortOption = 'name';
+                                                _applyFilters();
+                                              });
+                                            }
+                                          },
+                                          selectedColor: AppColors.kPrimary.withValues(alpha: 0.2),
+                                          checkmarkColor: AppColors.kPrimary,
+                                          backgroundColor: Colors.grey[100],
+                                          labelStyle: TextStyle(
+                                            color: _sortOption == 'name' ? AppColors.kPrimary : Colors.grey[700],
+                                            fontWeight: _sortOption == 'name' ? FontWeight.bold : FontWeight.normal,
+                                          ),
+                                        ),
+                                      ],
                                     ),
                                   ),
                                 ],
-                              ],
-                            ),
-                            
-                            const SizedBox(height: 16),
-                            
-                            // 검색창
-                            TextField(
-                              controller: _searchController,
-                              decoration: InputDecoration(
-                                hintText: '중개사명, 주소로 검색',
-                                prefixIcon: const Icon(Icons.search, color: AppColors.kPrimary),
-                                suffixIcon: searchKeyword.isNotEmpty
-                                    ? IconButton(
-                                        icon: const Icon(Icons.clear, size: 20),
-                                        onPressed: () {
-                                          _searchController.clear();
-                                          searchKeyword = '';
-                                          _applyFilters();
-                                        },
-                                      )
-                                    : null,
-                                filled: true,
-                                fillColor: Colors.grey[100],
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                  borderSide: BorderSide.none,
-                                ),
-                                focusedBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                  borderSide: const BorderSide(color: AppColors.kPrimary, width: 2),
-                                ),
-                                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                               ),
-                              onChanged: (value) {
-                                searchKeyword = value;
-                                _applyFilters();
-                              },
-                            ),
-                            
-                            const SizedBox(height: 12),
-                            
-                            // 정렬 옵션
-                            Row(
-                              children: [
-                                Text(
-                                  '정렬:',
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w600,
-                                    color: Colors.grey[700],
-                                  ),
-                                ),
-                                const SizedBox(width: 8),
-                                Expanded(
-                                  child: Wrap(
-                                    spacing: 8,
-                                    runSpacing: 8,
-                                    children: [
-                                      ChoiceChip(
-                                        label: const Row(
-                                          mainAxisSize: MainAxisSize.min,
-                                          children: [
-                                            Icon(Icons.numbers, size: 16),
-                                            SizedBox(width: 4),
-                                            Text('등록번호순'),
-                                          ],
-                                        ),
-                                        selected: _sortOption == 'systemRegNo',
-                                        onSelected: (selected) {
-                                          if (selected) {
-                                            setState(() {
-                                              _sortOption = 'systemRegNo';
-                                              _applyFilters();
-                                            });
-                                          }
-                                        },
-                                        selectedColor: AppColors.kPrimary.withValues(alpha: 0.2),
-                                        checkmarkColor: AppColors.kPrimary,
-                                        backgroundColor: Colors.grey[100],
-                                        labelStyle: TextStyle(
-                                          color: _sortOption == 'systemRegNo' ? AppColors.kPrimary : Colors.grey[700],
-                                          fontWeight: _sortOption == 'systemRegNo' ? FontWeight.bold : FontWeight.normal,
-                                        ),
-                                      ),
-                                      ChoiceChip(
-                                        label: const Row(
-                                          mainAxisSize: MainAxisSize.min,
-                                          children: [
-                                            Icon(Icons.near_me, size: 16),
-                                            SizedBox(width: 4),
-                                            Text('거리순'),
-                                          ],
-                                        ),
-                                        selected: _sortOption == 'distance',
-                                        onSelected: (selected) {
-                                          if (selected) {
-                                            setState(() {
-                                              _sortOption = 'distance';
-                                              _applyFilters();
-                                            });
-                                          }
-                                        },
-                                        selectedColor: AppColors.kPrimary.withValues(alpha: 0.2),
-                                        checkmarkColor: AppColors.kPrimary,
-                                        backgroundColor: Colors.grey[100],
-                                        labelStyle: TextStyle(
-                                          color: _sortOption == 'distance' ? AppColors.kPrimary : Colors.grey[700],
-                                          fontWeight: _sortOption == 'distance' ? FontWeight.bold : FontWeight.normal,
-                                        ),
-                                      ),
-                                      ChoiceChip(
-                                        label: const Row(
-                                          mainAxisSize: MainAxisSize.min,
-                                          children: [
-                                            Icon(Icons.sort_by_alpha, size: 16),
-                                            SizedBox(width: 4),
-                                            Text('이름순'),
-                                          ],
-                                        ),
-                                        selected: _sortOption == 'name',
-                                        onSelected: (selected) {
-                                          if (selected) {
-                                            setState(() {
-                                              _sortOption = 'name';
-                                              _applyFilters();
-                                            });
-                                          }
-                                        },
-                                        selectedColor: AppColors.kPrimary.withValues(alpha: 0.2),
-                                        checkmarkColor: AppColors.kPrimary,
-                                        backgroundColor: Colors.grey[100],
-                                        labelStyle: TextStyle(
-                                          color: _sortOption == 'name' ? AppColors.kPrimary : Colors.grey[700],
-                                          fontWeight: _sortOption == 'name' ? FontWeight.bold : FontWeight.normal,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ],
-                            ),
-                            
-                            const SizedBox(height: 12),
-                            
-                            // 필터 버튼들
-                            Wrap(
-                              spacing: 8,
-                              runSpacing: 8,
-                              children: [
-                                FilterChip(
-                                  label: const Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      Icon(Icons.phone, size: 16),
-                                      SizedBox(width: 4),
-                                      Text('전화번호 있음'),
-                                    ],
-                                  ),
-                                  selected: showOnlyWithPhone,
-                                  onSelected: (selected) {
-                                    setState(() {
-                                      showOnlyWithPhone = selected;
-                                      _applyFilters();
-                                    });
-                                  },
-                                  selectedColor: AppColors.kPrimary.withValues(alpha: 0.2),
-                                  checkmarkColor: AppColors.kPrimary,
-                                  backgroundColor: Colors.grey[100],
-                                  labelStyle: TextStyle(
-                                    color: showOnlyWithPhone ? AppColors.kPrimary : Colors.grey[700],
-                                    fontWeight: showOnlyWithPhone ? FontWeight.bold : FontWeight.normal,
-                                  ),
-                                ),
-                                FilterChip(
-                                  label: const Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      Icon(Icons.check_circle, size: 16),
-                                      SizedBox(width: 4),
-                                      Text('영업중'),
-                                    ],
-                                  ),
-                                  selected: showOnlyOpen,
-                                  onSelected: (selected) {
-                                    setState(() {
-                                      showOnlyOpen = selected;
-                                      _applyFilters();
-                                    });
-                                  },
-                                  selectedColor: Colors.green.withValues(alpha: 0.2),
-                                  checkmarkColor: Colors.green,
-                                  backgroundColor: Colors.grey[100],
-                                  labelStyle: TextStyle(
-                                    color: showOnlyOpen ? Colors.green[700] : Colors.grey[700],
-                                    fontWeight: showOnlyOpen ? FontWeight.bold : FontWeight.normal,
-                                  ),
-                                ),
-                                if (showOnlyWithPhone || showOnlyOpen || searchKeyword.isNotEmpty)
-                                  ActionChip(
+                              
+                              const SizedBox(height: 12),
+                              
+                              // 필터 버튼들
+                              Wrap(
+                                spacing: 8,
+                                runSpacing: 8,
+                                children: [
+                                  FilterChip(
                                     label: const Row(
                                       mainAxisSize: MainAxisSize.min,
                                       children: [
-                                        Icon(Icons.refresh, size: 16),
+                                        Icon(Icons.phone, size: 16),
                                         SizedBox(width: 4),
-                                        Text('초기화'),
+                                        Text('전화번호 있음'),
                                       ],
                                     ),
-                                    onPressed: () {
+                                    selected: showOnlyWithPhone,
+                                    onSelected: (selected) {
                                       setState(() {
-                                        showOnlyWithPhone = false;
-                                        showOnlyOpen = false;
-                                        searchKeyword = '';
-                                        _searchController.clear();
+                                        showOnlyWithPhone = selected;
                                         _applyFilters();
                                       });
                                     },
-                                    backgroundColor: Colors.orange[100],
+                                    selectedColor: AppColors.kPrimary.withValues(alpha: 0.2),
+                                    checkmarkColor: AppColors.kPrimary,
+                                    backgroundColor: Colors.grey[100],
                                     labelStyle: TextStyle(
-                                      color: Colors.orange[700],
-                                      fontWeight: FontWeight.bold,
+                                      color: showOnlyWithPhone ? AppColors.kPrimary : Colors.grey[700],
+                                      fontWeight: showOnlyWithPhone ? FontWeight.bold : FontWeight.normal,
                                     ),
                                   ),
-                              ],
-                            ),
-                          ],
+                                  FilterChip(
+                                    label: const Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Icon(Icons.check_circle, size: 16),
+                                        SizedBox(width: 4),
+                                        Text('영업중'),
+                                      ],
+                                    ),
+                                    selected: showOnlyOpen,
+                                    onSelected: (selected) {
+                                      setState(() {
+                                        showOnlyOpen = selected;
+                                        _applyFilters();
+                                      });
+                                    },
+                                    selectedColor: Colors.green.withValues(alpha: 0.2),
+                                    checkmarkColor: Colors.green,
+                                    backgroundColor: Colors.grey[100],
+                                    labelStyle: TextStyle(
+                                      color: showOnlyOpen ? Colors.green[700] : Colors.grey[700],
+                                      fontWeight: showOnlyOpen ? FontWeight.bold : FontWeight.normal,
+                                    ),
+                                  ),
+                                  if (showOnlyWithPhone || showOnlyOpen || searchKeyword.isNotEmpty)
+                                    ActionChip(
+                                      label: const Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          Icon(Icons.refresh, size: 16),
+                                          SizedBox(width: 4),
+                                          Text('초기화'),
+                                        ],
+                                      ),
+                                      onPressed: () {
+                                        setState(() {
+                                          showOnlyWithPhone = false;
+                                          showOnlyOpen = false;
+                                          searchKeyword = '';
+                                          _searchController.clear();
+                                          _applyFilters();
+                                        });
+                                      },
+                                      backgroundColor: Colors.orange[100],
+                                      labelStyle: TextStyle(
+                                        color: Colors.orange[700],
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                ],
+                              ),
+                            ],
+                          ),
                         ),
-                      ),
-                      const SizedBox(height: 24),
-                    ],
+                        const SizedBox(height: 24),
+                      ],
 
-                    if (!isLoading && _searchRadiusExpanded)
-                      Padding(
-                        padding: const EdgeInsets.only(bottom: 16),
-                        child: _buildRadiusInfoBanner(),
-                      ),
+                      if (!isLoading && _searchRadiusExpanded)
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: 16),
+                          child: _buildRadiusInfoBanner(),
+                        ),
 
-                    // 로딩 / 에러 / 결과 표시
-                    if (isLoading)
-                      SizedBox(height: 320, child: _buildLoadingSkeleton())
-                    else if (error != null)
-                      RetryView(
-                        message: error!,
-                        onRetry: () {
-                          setState(() {
-                            isLoading = true;
-                            error = null;
-                          });
-                          _searchBrokers();
-                        },
-                      )
-                    else if (brokers.isEmpty)
+                      // 로딩 / 에러 / 결과 표시 (리스트 제외)
+                      if (isLoading)
+                        SizedBox(height: 320, child: _buildLoadingSkeleton())
+                      else if (error != null)
+                        RetryView(
+                          message: error!,
+                          onRetry: () {
+                            setState(() {
+                              isLoading = true;
+                              error = null;
+                            });
+                            _searchBrokers();
+                          },
+                        )
+                      else if (brokers.isEmpty)
                         _buildNoResultsCard()
-                    else if (filteredBrokers.isEmpty)
-                      _buildNoFilterResultsCard()
-                    else ...[
-                      // 웹 그리드 레이아웃 (페이지네이션 적용)
-                      _buildBrokerGrid(isWeb, _visiblePage()),
-                      const SizedBox(height: 16),
-                      _buildPaginationControls(),
+                      else if (filteredBrokers.isEmpty)
+                        _buildNoFilterResultsCard()
                     ],
-
-                    const SizedBox(height: 40),
-                  ],
+                  ),
                 ),
               ),
             ),
           ),
+
+          // 2. 리스트 (SliverMasonryGrid) - Lazy Loading 적용
+          if (!isLoading && error == null && brokers.isNotEmpty && filteredBrokers.isNotEmpty)
+            SliverPadding(
+              padding: EdgeInsets.symmetric(
+                horizontal: (horizontalPadding > 0 ? horizontalPadding : 0) + 24,
+                vertical: 0,
+              ),
+              sliver: SliverMasonryGrid.count(
+                crossAxisCount: isWeb ? 2 : 1,
+                mainAxisSpacing: 16,
+                crossAxisSpacing: 16,
+                childCount: _visiblePage().length,
+                itemBuilder: (context, index) {
+                  final pageItems = _visiblePage();
+                  return _buildBrokerCard(pageItems[index]);
+                },
+              ),
+            ),
+
+          // 3. 하단 여백 및 페이지네이션
+          if (!isLoading && error == null && brokers.isNotEmpty && filteredBrokers.isNotEmpty)
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: EdgeInsets.symmetric(horizontal: horizontalPadding > 0 ? horizontalPadding : 0),
+                child: Center(
+                  child: Container(
+                    constraints: BoxConstraints(maxWidth: maxWidth),
+                    padding: const EdgeInsets.all(24),
+                    child: Column(
+                      children: [
+                        const SizedBox(height: 16),
+                        _buildPaginationControls(),
+                        const SizedBox(height: 40),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
         ],
       ),
     );
   }
 
-  /// 웹 최적화 그리드 레이아웃
-  Widget _buildBrokerGrid(bool isWeb, List<Broker> pageItems) {
-    final crossAxisCount = isWeb ? 2 : 1;
-    return MasonryGridView.count(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      crossAxisCount: crossAxisCount,
-      mainAxisSpacing: 20,
-      crossAxisSpacing: 20,
-      itemCount: pageItems.length,
-      itemBuilder: (context, index) {
-        final card = _buildBrokerCard(pageItems[index]);
-        return ConstrainedBox(
-          constraints: const BoxConstraints(minHeight: 400.0),
-          child: card,
-        );
-      },
-    );
-  }
 
   Widget _buildPaginationControls() {
     if (filteredBrokers.isEmpty) return const SizedBox.shrink();
@@ -1389,205 +1493,285 @@ class _BrokerListPageState extends State<BrokerListPage> {
     super.dispose();
   }
 
-  /// 공인중개사 카드
+  /// 공인중개사 카드 (리뉴얼)
   Widget _buildBrokerCard(Broker broker) {
+    final hasPhone = broker.phoneNumber != null && 
+                     broker.phoneNumber!.isNotEmpty && 
+                     broker.phoneNumber != '-';
+    final isOpen = broker.businessStatus == '영업중';
+    
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.06),
-            blurRadius: 20,
+            color: Colors.black.withValues(alpha: 0.08),
+            blurRadius: 16,
             offset: const Offset(0, 4),
+            spreadRadius: 0,
           ),
         ],
         border: Border.all(
-          color: Colors.grey.withValues(alpha: 0.1),
+          color: Colors.grey.withValues(alpha: 0.15),
+          width: 1,
         ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // 헤더
+          // 헤더 - 핵심 정보 한눈에
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
-            decoration: const BoxDecoration(
-              color: AppColors.kSecondary,
-              borderRadius: BorderRadius.only(
-                topLeft: Radius.circular(20),
-                topRight: Radius.circular(20),
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              gradient: AppGradients.primaryDiagonal,
+              borderRadius: const BorderRadius.only(
+                topLeft: Radius.circular(16),
+                topRight: Radius.circular(16),
               ),
             ),
-            child: Row(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // 선택 모드일 때 체크박스
-                if (_isSelectionMode && widget.userName.isNotEmpty) ...[
-                  // 선택 모드일 때 더 눈에 띄는 체크박스
-                  Container(
-                    padding: const EdgeInsets.all(4),
-                    decoration: BoxDecoration(
-                      color: _selectedBrokerIds.contains(broker.systemRegNo)
-                          ? AppColors.kPrimary
-                          : Colors.white,
-                      shape: BoxShape.circle,
-                      border: Border.all(
-                        color: _selectedBrokerIds.contains(broker.systemRegNo)
-                            ? AppColors.kPrimary
-                            : Colors.grey[400]!,
-                        width: 3,
+                // 첫 번째 줄: 선택 체크박스 + 사업자명
+                Row(
+                  children: [
+                    // 선택 모드일 때 체크박스
+                    if (_isSelectionMode && widget.userName.isNotEmpty) ...[
+                      Container(
+                        padding: const EdgeInsets.all(4),
+                        decoration: BoxDecoration(
+                          color: _selectedBrokerIds.contains(broker.systemRegNo)
+                              ? Colors.white
+                              : Colors.white.withValues(alpha: 0.2),
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: Colors.white,
+                            width: 2,
+                          ),
+                        ),
+                        child: Checkbox(
+                          value: _selectedBrokerIds.contains(broker.systemRegNo),
+                          onChanged: (selected) {
+                            setState(() {
+                              if (selected == true) {
+                                _selectedBrokerIds.add(broker.systemRegNo ?? '');
+                              } else {
+                                _selectedBrokerIds.remove(broker.systemRegNo);
+                              }
+                            });
+                          },
+                          checkColor: AppColors.kPrimary,
+                          fillColor: WidgetStateProperty.resolveWith<Color>((states) {
+                            if (states.contains(WidgetState.selected)) {
+                              return Colors.white;
+                            }
+                            return Colors.transparent;
+                          }),
+                          side: const BorderSide(color: Colors.white, width: 2),
+                        ),
                       ),
-                      boxShadow: _selectedBrokerIds.contains(broker.systemRegNo)
-                          ? [
-                              BoxShadow(
-                                color: AppColors.kPrimary.withValues(alpha: 0.4),
-                                blurRadius: 8,
-                                spreadRadius: 2,
-                              ),
-                            ]
-                          : null,
-                    ),
-                    child: Checkbox(
-                      value: _selectedBrokerIds.contains(broker.systemRegNo),
-                      onChanged: (selected) {
-                        setState(() {
-                          if (selected == true) {
-                            _selectedBrokerIds.add(broker.systemRegNo ?? '');
-                          } else {
-                            _selectedBrokerIds.remove(broker.systemRegNo);
-                          }
-                        });
-                      },
-                      checkColor: Colors.white,
-                      fillColor: WidgetStateProperty.resolveWith<Color>((states) {
-                        if (states.contains(WidgetState.selected)) {
-                          return Colors.white;
-                        }
-                        return Colors.transparent;
-                      }),
-                      side: const BorderSide(color: Colors.white, width: 2),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                ],
-                Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.2),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: const Icon(
-                    Icons.business,
-                    color: Colors.white,
-                    size: 24,
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Text(
-                    broker.name,
-                    style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
-                  ),
-                ),
-                if (broker.distance != null)
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.2),
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                    child: Text(
-                      broker.distanceText,
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 13,
+                      const SizedBox(width: 12),
+                    ],
+                    Expanded(
+                      child: Text(
+                        broker.name,
+                        style: const TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                          letterSpacing: -0.5,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ),
-                  ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                // 두 번째 줄: 핵심 배지들 (거리, 전화번호, 영업상태)
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: [
+                    // 거리 배지
+                    if (broker.distance != null)
+                      _buildHeaderBadge(
+                        icon: Icons.near_me,
+                        text: broker.distanceText,
+                        color: Colors.white.withValues(alpha: 0.25),
+                        textColor: Colors.white,
+                      ),
+                    // 전화번호 배지
+                    if (hasPhone)
+                      _buildHeaderBadge(
+                        icon: Icons.phone,
+                        text: '전화번호 있음',
+                        color: Colors.green[400]!.withValues(alpha: 0.3),
+                        textColor: Colors.white,
+                      )
+                    else
+                      _buildHeaderBadge(
+                        icon: Icons.phone_disabled,
+                        text: '전화번호 없음',
+                        color: Colors.grey[400]!.withValues(alpha: 0.3),
+                        textColor: Colors.white.withValues(alpha: 0.8),
+                      ),
+                    // 영업상태 배지
+                    _buildHeaderBadge(
+                      icon: isOpen ? Icons.check_circle : Icons.pause_circle,
+                      text: broker.businessStatus ?? '정보 없음',
+                      color: isOpen 
+                          ? Colors.green[400]!.withValues(alpha: 0.3)
+                          : Colors.orange[400]!.withValues(alpha: 0.3),
+                      textColor: Colors.white,
+                    ),
+                  ],
+                ),
               ],
             ),
           ),
 
-          // 상세 정보 - 웹 스타일
+          // 상세 정보 - 리뉴얼
           Padding(
-            padding: const EdgeInsets.all(24),
+            padding: const EdgeInsets.all(20),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // 기타 배지 (현재는 표시하지 않음)
-                const SizedBox(height: 16),
-                // 주소 정보 그룹
-                Container(
-                  padding: const EdgeInsets.all(14),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFF9FAFB),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                      color: Colors.grey.withValues(alpha: 0.12),
-                    ),
-                  ),
-                  child: Column(
-                    children: [
-                      _buildBrokerInfo(Icons.location_on, '도로명주소', broker.fullAddress),
-                      const SizedBox(height: 12),
-                      _buildBrokerInfo(Icons.pin_drop, '지번주소', broker.jibunAddress),
-                    ],
-                  ),
-                ),
-
-                const SizedBox(height: 16),
-
-                // 기본 정보
-                Container(
-                  padding: const EdgeInsets.all(14),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFF9FAFB),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                      color: Colors.grey.withValues(alpha: 0.12),
-                    ),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _buildBrokerInfo(Icons.business_center, '사업자상호', broker.businessName),
-                      const SizedBox(height: 12),
-                      _buildBrokerInfo(Icons.person, '대표자명', broker.ownerName),
-                      const SizedBox(height: 12),
-                      _buildBrokerInfo(Icons.phone, '전화번호', broker.phoneNumber),
-                      const SizedBox(height: 12),
-                      _buildBrokerInfo(
-                        Icons.store, 
-                        '영업상태', 
-                        broker.businessStatus,
-                        statusColor: broker.businessStatus == '영업중' ? Colors.green[700] : Colors.orange[700],
+                // 핵심 정보 그리드 (비교하기 쉽게)
+                Row(
+                  children: [
+                    // 전화번호 (있는 경우만)
+                    if (hasPhone)
+                      Expanded(
+                        child: _buildQuickInfoCard(
+                          icon: Icons.phone,
+                          label: '전화번호',
+                          value: broker.phoneNumber ?? '',
+                          color: Colors.green,
+                        ),
                       ),
-                      const SizedBox(height: 12),
-                      _buildBrokerInfo(Icons.badge, '등록번호', broker.registrationNumber),
-                      if (broker.employeeCount.isNotEmpty && broker.employeeCount != '-' && broker.employeeCount != '0') ...[
-                        const SizedBox(height: 12),
-                        _buildBrokerInfo(Icons.people, '고용인원', '${broker.employeeCount}명'),
-                      ],
-                    ],
+                    if (hasPhone) const SizedBox(width: 12),
+                    // 대표자명
+                    Expanded(
+                      child: _buildQuickInfoCard(
+                        icon: Icons.person,
+                        label: '대표자',
+                        value: broker.ownerName ?? '-',
+                        color: AppColors.kPrimary,
+                      ),
+                    ),
+                  ],
+                ),
+                
+                const SizedBox(height: 12),
+                
+                // 주소 정보
+                if (broker.roadAddress.isNotEmpty || broker.jibunAddress.isNotEmpty)
+                  _buildAddressCard(
+                    broker.roadAddress.isNotEmpty
+                        ? broker.fullAddress
+                        : broker.jibunAddress,
                   ),
+                
+                const SizedBox(height: 12),
+                
+                // 추가 정보 (등록번호, 고용인원)
+                Row(
+                  children: [
+                    if (broker.registrationNumber.isNotEmpty)
+                      Expanded(
+                        child: _buildInfoChip(
+                          icon: Icons.badge,
+                          label: '등록번호',
+                          value: broker.registrationNumber,
+                        ),
+                      ),
+                    if (broker.registrationNumber.isNotEmpty && 
+                        broker.employeeCount.isNotEmpty && 
+                        broker.employeeCount != '-' && 
+                        broker.employeeCount != '0')
+                      const SizedBox(width: 8),
+                    if (broker.employeeCount.isNotEmpty && 
+                        broker.employeeCount != '-' && 
+                        broker.employeeCount != '0')
+                      Expanded(
+                        child: _buildInfoChip(
+                          icon: Icons.people,
+                          label: '고용인원',
+                          value: '${broker.employeeCount}명',
+                        ),
+                      ),
+                  ],
                 ),
                 
                 // 행정처분 정보 (있는 경우만 표시)
                 if ((broker.penaltyStartDate != null && broker.penaltyStartDate!.isNotEmpty) ||
                     (broker.penaltyEndDate != null && broker.penaltyEndDate!.isNotEmpty)) ...[
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 12),
                   Container(
-                    padding: const EdgeInsets.all(16),
+                    padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: Colors.orange.withValues(alpha: 0.05),
-                      borderRadius: BorderRadius.circular(12),
+                      color: Colors.orange.withValues(alpha: 0.08),
+                      borderRadius: BorderRadius.circular(10),
                       border: Border.all(
-                        color: Colors.orange.withValues(alpha: 0.3),
+                        color: Colors.orange.withValues(alpha: 0.25),
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(Icons.warning_amber_rounded, color: Colors.orange[700], size: 16),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                '행정처분 이력',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.orange[700],
+                                ),
+                              ),
+                              if (broker.penaltyStartDate != null && broker.penaltyStartDate!.isNotEmpty) ...[
+                                const SizedBox(height: 4),
+                                Text(
+                                  '시작: ${broker.penaltyStartDate!}',
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    color: Colors.grey[700],
+                                  ),
+                                ),
+                              ],
+                              if (broker.penaltyEndDate != null && broker.penaltyEndDate!.isNotEmpty) ...[
+                                const SizedBox(height: 2),
+                                Text(
+                                  '종료: ${broker.penaltyEndDate!}',
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    color: Colors.grey[700],
+                                  ),
+                                ),
+                              ],
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+                
+                // 소개란 (있는 경우만 표시 - 간략하게)
+                if (broker.introduction != null && broker.introduction!.isNotEmpty) ...[
+                  const SizedBox(height: 12),
+                  Container(
+                    padding: const EdgeInsets.all(14),
+                    decoration: BoxDecoration(
+                      color: Colors.grey[50],
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(
+                        color: Colors.grey.withValues(alpha: 0.2),
                       ),
                     ),
                     child: Column(
@@ -1595,25 +1779,31 @@ class _BrokerListPageState extends State<BrokerListPage> {
                       children: [
                         Row(
                           children: [
-                            Icon(Icons.warning_amber_rounded, color: Colors.orange[700], size: 18),
-                            const SizedBox(width: 8),
+                            Icon(Icons.description, color: Colors.grey[700], size: 16),
+                            const SizedBox(width: 6),
                             Text(
-                              '행정처분 이력',
+                              '중개사 소개',
                               style: TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w700,
-                                color: Colors.orange[700],
+                                fontSize: 13,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.grey[700],
                               ),
                             ),
                           ],
                         ),
-                        const SizedBox(height: 12),
-                        if (broker.penaltyStartDate != null && broker.penaltyStartDate!.isNotEmpty)
-                          _buildInfoRow('처분 시작일', broker.penaltyStartDate!),
-                        if (broker.penaltyEndDate != null && broker.penaltyEndDate!.isNotEmpty) ...[
-                          const SizedBox(height: 8),
-                          _buildInfoRow('처분 종료일', broker.penaltyEndDate!),
-                        ],
+                        const SizedBox(height: 8),
+                        Text(
+                          broker.introduction!.length > 80
+                              ? '${broker.introduction!.substring(0, 80)}...'
+                              : broker.introduction!,
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: Colors.grey[700],
+                            height: 1.5,
+                          ),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
                       ],
                     ),
                   ),
@@ -1622,126 +1812,287 @@ class _BrokerListPageState extends State<BrokerListPage> {
             ),
           ),
 
-          // 액션 버튼들 - 웹 스타일 (선택 모드가 아닐 때만 표시)
+          // 액션 버튼들 - 리뉴얼 (선택 모드가 아닐 때만 표시)
           if (!_isSelectionMode || widget.userName.isEmpty)
             Container(
-              padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
+              padding: const EdgeInsets.fromLTRB(20, 20, 20, 20),
               decoration: BoxDecoration(
+                color: Colors.white,
                 border: Border(
                   top: BorderSide(
-                    color: Colors.grey.withValues(alpha: 0.1),
+                    color: Colors.grey.withValues(alpha: 0.2),
                     width: 1,
                   ),
                 ),
               ),
-              child: Padding(
-                padding: const EdgeInsets.only(top: 20),
-                child: Column(
-                  children: [
-                    // 상세 페이지로 이동
-                    SizedBox(
-                      width: double.infinity,
-                      child: TextButton(
-                        onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => BrokerDetailPage(
-                                broker: broker,
-                                currentUserId: widget.userId,
-                                currentUserName: widget.userName,
-                              ),
+              child: Column(
+                children: [
+                  // 주요 액션 버튼들 (2x2 그리드)
+                  Row(
+                    children: [
+                      // 전화문의 (있는 경우만 활성화)
+                      Expanded(
+                        child: ElevatedButton.icon(
+                          onPressed: hasPhone ? () => _makePhoneCall(broker) : null,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: hasPhone ? Colors.green[600] : Colors.grey[300],
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
                             ),
-                          );
-                        },
-                        child: const Text(
-                          '중개사 소개 / 후기 보기',
-                          style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w600,
-                            color: AppColors.kPrimary,
+                            elevation: hasPhone ? 2 : 0,
+                          ),
+                          icon: Icon(Icons.phone, size: 18),
+                          label: const Text(
+                            '전화문의',
+                            style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
                           ),
                         ),
                       ),
-                    ),
-
-                    const SizedBox(height: 16),
-
-                    // 첫 번째 줄: 길찾기
-                    SizedBox(
-                      width: double.infinity,
-                      child: OutlinedButton.icon(
-                        onPressed: () => _findRoute(broker.roadAddress),
-                        style: OutlinedButton.styleFrom(
-                          foregroundColor: AppColors.kPrimary,
-                          side: const BorderSide(color: AppColors.kPrimary, width: 1.5),
-                          padding: const EdgeInsets.symmetric(vertical: 14),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
-                        icon: const Icon(Icons.map, size: 20),
-                        label: const Text('길찾기', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600)),
-                      ),
-                    ),
-                    
-                    const SizedBox(height: 12),
-                    
-                    // 두 번째 줄: 전화문의, 비대면문의
-                    Row(
-                      children: [
-                        // 전화문의 버튼
-                        Expanded(
-                          child: ElevatedButton.icon(
-                            onPressed: () => _makePhoneCall(broker),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.green[600],
-                              foregroundColor: Colors.white,
-                              padding: const EdgeInsets.symmetric(vertical: 14),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              elevation: 2,
-                              shadowColor: Colors.green.withValues(alpha: 0.3),
+                      const SizedBox(width: 8),
+                      // 비대면문의
+                      Expanded(
+                        child: ElevatedButton.icon(
+                          onPressed: () {
+                            if (widget.userName.isEmpty) {
+                              _showLoginRequiredDialog(broker);
+                              return;
+                            }
+                            _requestQuote(broker);
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.kPrimary,
+                            foregroundColor: Colors.white,
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
                             ),
-                            icon: const Icon(Icons.phone, size: 20),
-                            label: const Text('전화문의', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600)),
+                            elevation: 2,
+                          ),
+                          icon: const Icon(Icons.chat_bubble, size: 18),
+                          label: const Text(
+                            '비대면문의',
+                            style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
                           ),
                         ),
-                        
-                    const SizedBox(width: 12),
-                        
-                        // 비대면 문의 버튼
-                    Expanded(
-                      child: ElevatedButton.icon(
-                        onPressed: () {
-                          // 로그인 체크
-                          if (widget.userName.isEmpty) {
-                                _showLoginRequiredDialog(broker);
-                            return;
-                          }
-                              _requestQuote(broker);
-                        },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.kPrimary,
-                          foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(vertical: 14),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          elevation: 2,
-                          shadowColor: AppColors.kPrimary.withValues(alpha: 0.3),
-                        ),
-                        icon: const Icon(Icons.chat_bubble, size: 20),
-                            label: const Text('비대면문의', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600)),
                       ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  Row(
+                    children: [
+                      // 길찾기
+                      Expanded(
+                        child: OutlinedButton.icon(
+                          onPressed: () => _findRoute(broker.roadAddress),
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: AppColors.kPrimary,
+                            side: BorderSide(color: AppColors.kPrimary.withValues(alpha: 0.5), width: 1.5),
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                          ),
+                          icon: const Icon(Icons.map, size: 18),
+                          label: const Text(
+                            '길찾기',
+                            style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+                          ),
                         ),
-                      ],
-                    ),
-                  ],
-                ),
+                      ),
+                      const SizedBox(width: 8),
+                      // 상세보기
+                      Expanded(
+                        child: OutlinedButton.icon(
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => BrokerDetailPage(
+                                  broker: broker,
+                                  currentUserId: widget.userId,
+                                  currentUserName: widget.userName,
+                                ),
+                              ),
+                            );
+                          },
+                          style: OutlinedButton.styleFrom(
+                            foregroundColor: AppColors.kPrimary,
+                            side: BorderSide(color: AppColors.kPrimary.withValues(alpha: 0.5), width: 1.5),
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                          ),
+                          icon: const Icon(Icons.info_outline, size: 18),
+                          label: const Text(
+                            '상세보기',
+                            style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
               ),
             ),
+        ],
+      ),
+    );
+  }
+
+  /// 헤더 배지
+  Widget _buildHeaderBadge({
+    required IconData icon,
+    required String text,
+    required Color color,
+    required Color textColor,
+  }) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: color,
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 14, color: textColor),
+          const SizedBox(width: 4),
+          Text(
+            text,
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              color: textColor,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// 빠른 정보 카드 (전화번호, 대표자명 등)
+  Widget _buildQuickInfoCard({
+    required IconData icon,
+    required String label,
+    required String value,
+    required Color color,
+  }) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(
+          color: color.withValues(alpha: 0.2),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(icon, size: 16, color: color),
+              const SizedBox(width: 6),
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 11,
+                  color: Colors.grey[600],
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 6),
+          Text(
+            value,
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.bold,
+              color: color,
+            ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// 주소 카드
+  Widget _buildAddressCard(String address) {
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.blue.withValues(alpha: 0.05),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(
+          color: Colors.blue.withValues(alpha: 0.15),
+        ),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(Icons.location_on, size: 16, color: Colors.blue[700]),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              address,
+              style: TextStyle(
+                fontSize: 13,
+                color: Colors.grey[800],
+                fontWeight: FontWeight.w500,
+                height: 1.4,
+              ),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// 정보 칩 (등록번호, 고용인원 등)
+  Widget _buildInfoChip({
+    required IconData icon,
+    required String label,
+    required String value,
+  }) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+      decoration: BoxDecoration(
+        color: Colors.grey[100],
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 14, color: Colors.grey[600]),
+          const SizedBox(width: 6),
+          Text(
+            '$label: ',
+            style: TextStyle(
+              fontSize: 11,
+              color: Colors.grey[600],
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+          Flexible(
+            child: Text(
+              value,
+              style: TextStyle(
+                fontSize: 12,
+                color: Colors.grey[800],
+                fontWeight: FontWeight.w600,
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
         ],
       ),
     );
@@ -2511,7 +2862,7 @@ class _BrokerListPageState extends State<BrokerListPage> {
           propertyArea: result['propertyArea'],
           hasTenant: result['hasTenant'] as bool?,
           desiredPrice: result['desiredPrice'] as String?,
-          targetPeriod: result['targetPeriod'] as String?,
+          targetPeriod: null,
           specialNotes: result['specialNotes'] as String?,
         );
         
@@ -2612,7 +2963,7 @@ class _BrokerListPageState extends State<BrokerListPage> {
           propertyArea: result['propertyArea'],
           hasTenant: result['hasTenant'] as bool?,
           desiredPrice: result['desiredPrice'] as String?,
-          targetPeriod: result['targetPeriod'] as String?,
+          targetPeriod: null,
           specialNotes: result['specialNotes'] as String?,
         );
         
@@ -3229,46 +3580,474 @@ class _MultipleQuoteRequestDialog extends StatefulWidget {
 
 class _MultipleQuoteRequestDialogState extends State<_MultipleQuoteRequestDialog> {
   final _formKey = GlobalKey<FormState>();
-  final _desiredPriceController = TextEditingController();
-  final _targetPeriodController = TextEditingController();
-  final _specialNotesController = TextEditingController();
+  
+  // 1️⃣ 기본정보 (자동)
+  String propertyType = '아파트';
+  
+  // 3️⃣ 특이사항 (판매자 입력)
   bool hasTenant = false;
-  String? propertyType;
+  final TextEditingController _desiredPriceController = TextEditingController();
+  final TextEditingController _specialNotesController = TextEditingController();
   bool _agreeToConsent = false;
+  bool _isRequestInfoExpanded = true; // 요청 내용 섹션 접기/펼치기 상태
 
   @override
   void dispose() {
     _desiredPriceController.dispose();
-    _targetPeriodController.dispose();
     _specialNotesController.dispose();
     super.dispose();
   }
-  
-  // 공통 빌더 메서드 (부모 클래스 메서드 재사용)
-  Widget _buildSectionTitle(String title, String subtitle, Color color) {
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      backgroundColor: Colors.white,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      titlePadding: EdgeInsets.zero,
+      title: Container(
+        padding: const EdgeInsets.fromLTRB(24, 24, 24, 16),
+        decoration: const BoxDecoration(
+          color: AppColors.kPrimary,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        ),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.2),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: const Icon(Icons.send_rounded, color: Colors.white, size: 24),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    '${widget.brokerCount}곳에 견적 요청',
+                    style: const TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    '선택한 중개사에게 일괄 전송됩니다',
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: Colors.white.withValues(alpha: 0.9),
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+      contentPadding: const EdgeInsets.fromLTRB(24, 20, 24, 0),
+      content: Container(
+        width: 500, // 적절한 너비 제한
+        color: Colors.white,
+        child: Form(
+          key: _formKey,
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // 매물 정보 요약 카드
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.grey[50],
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: Colors.grey[300]!, width: 1.5),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.05),
+                        blurRadius: 4,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildSummaryRow(Icons.location_on_outlined, widget.address),
+                      if (widget.propertyArea != null && widget.propertyArea != '정보 없음') ...[
+                        const SizedBox(height: 8),
+                        _buildSummaryRow(Icons.square_foot_outlined, widget.propertyArea!),
+                      ],
+                    ],
+                  ),
+                ),
+                
+                const SizedBox(height: 24),
+                
+                // 공인중개사에게 요청할 내용 안내 (접기/펼치기 가능)
+                Container(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                      colors: [
+                        AppColors.kPrimary.withValues(alpha: 0.12),
+                        AppColors.kPrimary.withValues(alpha: 0.06),
+                      ],
+                    ),
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(
+                      color: AppColors.kPrimary.withValues(alpha: 0.3),
+                      width: 2,
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColors.kPrimary.withValues(alpha: 0.1),
+                        blurRadius: 8,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // 헤더 (클릭 가능)
+                      InkWell(
+                        onTap: () {
+                          setState(() {
+                            _isRequestInfoExpanded = !_isRequestInfoExpanded;
+                          });
+                        },
+                        borderRadius: const BorderRadius.vertical(top: Radius.circular(14)),
+                        child: Padding(
+                          padding: const EdgeInsets.all(18),
+                          child: Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(8),
+                                decoration: BoxDecoration(
+                                  color: AppColors.kPrimary,
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: const Icon(
+                                  Icons.info_outline,
+                                  color: Colors.white,
+                                  size: 20,
+                                ),
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Text(
+                                  '공인중개사에게 요청할 내용',
+                                  style: TextStyle(
+                                    fontSize: 17,
+                                    fontWeight: FontWeight.bold,
+                                    color: AppColors.kPrimary,
+                                  ),
+                                ),
+                              ),
+                              AnimatedRotation(
+                                turns: _isRequestInfoExpanded ? 0.5 : 0,
+                                duration: const Duration(milliseconds: 200),
+                                child: Icon(
+                                  Icons.keyboard_arrow_down,
+                                  color: AppColors.kPrimary,
+                                  size: 24,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      // 내용 (접기/펼치기)
+                      AnimatedCrossFade(
+                        firstChild: Padding(
+                          padding: const EdgeInsets.fromLTRB(18, 0, 18, 18),
+                          child: Column(
+                            children: [
+                              _buildRequestItem('💰', '수수료 제안율', '중개 수수료율을 제안해주세요'),
+                              const SizedBox(height: 12),
+                              _buildRequestItem('📊', '권장 매도가', '이 매물의 적정 매도가를 제안해주세요'),
+                              const SizedBox(height: 12),
+                              _buildRequestItem('📢', '홍보 방법', '어떤 방식으로 매물을 홍보할지 알려주세요'),
+                              const SizedBox(height: 12),
+                              _buildRequestItem('📋', '최근 유사 거래 사례', '비슷한 매물의 최근 거래 사례를 공유해주세요'),
+                            ],
+                          ),
+                        ),
+                        secondChild: const SizedBox.shrink(),
+                        crossFadeState: _isRequestInfoExpanded
+                            ? CrossFadeState.showFirst
+                            : CrossFadeState.showSecond,
+                        duration: const Duration(milliseconds: 200),
+                      ),
+                    ],
+                  ),
+                ),
+                
+                const SizedBox(height: 24),
+                
+                // 입력 폼 섹션
+                const Text(
+                  '매물 상세 정보',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: Color(0xFF2C3E50),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                
+                // 매물 유형 선택
+                Container(
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: Colors.grey[300]!, width: 1.5),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.03),
+                        blurRadius: 4,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: DropdownButtonFormField<String>(
+                    value: propertyType,
+                    decoration: _buildInputDecoration('매물 유형'),
+                    items: const [
+                    DropdownMenuItem(value: '아파트', child: Text('아파트')),
+                    DropdownMenuItem(value: '오피스텔', child: Text('오피스텔')),
+                    DropdownMenuItem(value: '원룸', child: Text('원룸')),
+                    DropdownMenuItem(value: '다세대', child: Text('다세대')),
+                    DropdownMenuItem(value: '주택', child: Text('주택')),
+                    DropdownMenuItem(value: '상가', child: Text('상가')),
+                    DropdownMenuItem(value: '기타', child: Text('기타')),
+                  ],
+                  onChanged: (value) => setState(() => propertyType = value!),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                
+                // 세입자 여부 스위치
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    border: Border.all(color: Colors.grey[300]!, width: 1.5),
+                    borderRadius: BorderRadius.circular(12),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.03),
+                        blurRadius: 4,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: Row(
+                    children: [
+                      const Icon(Icons.person_outline, size: 20, color: Colors.grey),
+                      const SizedBox(width: 12),
+                      const Text('세입자 거주 중', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500)),
+                      const Spacer(),
+                      Switch(
+                        value: hasTenant,
+                        onChanged: (v) => setState(() => hasTenant = v),
+                        activeColor: AppColors.kPrimary,
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 12),
+                
+                // 희망가
+                TextFormField(
+                  controller: _desiredPriceController,
+                  decoration: _buildInputDecoration('희망가 (선택)', hint: '예: 11억'),
+                ),
+                const SizedBox(height: 12),
+                
+                // 특이사항
+                TextFormField(
+                  controller: _specialNotesController,
+                  decoration: _buildInputDecoration('특이사항 및 기타 요청사항 (선택)', hint: '기타 요청사항을 입력하세요'),
+                  maxLines: 6,
+                  maxLength: 500,
+                ),
+                
+                const SizedBox(height: 20),
+                
+                // 개인정보 동의
+                GestureDetector(
+                  onTap: () => setState(() => _agreeToConsent = !_agreeToConsent),
+                  child: Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: _agreeToConsent ? AppColors.kPrimary.withValues(alpha: 0.05) : Colors.transparent,
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(
+                        color: _agreeToConsent ? AppColors.kPrimary : Colors.grey[300]!,
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        SizedBox(
+                          width: 24,
+                          height: 24,
+                          child: Checkbox(
+                            value: _agreeToConsent,
+                            onChanged: (v) => setState(() => _agreeToConsent = v ?? false),
+                            activeColor: AppColors.kPrimary,
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        const Expanded(
+                          child: Text(
+                            '개인정보 제3자 제공 동의 (필수)',
+                            style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                const Text(
+                  '중개사에게 문의 처리를 위한 최소한의 정보가 제공됩니다.',
+                  style: TextStyle(fontSize: 12, color: Colors.grey),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+      actionsPadding: const EdgeInsets.all(24),
+      actions: [
+        Row(
+          children: [
+            Expanded(
+              child: OutlinedButton(
+                onPressed: () => Navigator.pop(context),
+                style: OutlinedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  side: BorderSide(color: Colors.grey[300]!),
+                  foregroundColor: Colors.grey[700],
+                ),
+                child: const Text('취소'),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: ElevatedButton(
+                onPressed: () {
+                  if (_formKey.currentState!.validate()) {
+                    if (!_agreeToConsent) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('개인정보 제3자 제공 동의에 체크해주세요.'),
+                          backgroundColor: Colors.red,
+                          behavior: SnackBarBehavior.floating,
+                        ),
+                      );
+                      return;
+                    }
+                    Navigator.pop(context, {
+                      'propertyType': propertyType,
+                      'propertyArea': widget.propertyArea != '정보 없음' ? widget.propertyArea : null,
+                      'hasTenant': hasTenant,
+                      'desiredPrice': _desiredPriceController.text.trim().isNotEmpty
+                          ? _desiredPriceController.text.trim()
+                          : null,
+                      'specialNotes': _specialNotesController.text.trim().isNotEmpty
+                          ? _specialNotesController.text.trim()
+                          : null,
+                      'consentAgreed': true,
+                    });
+                  }
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.kPrimary,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  elevation: 0,
+                ),
+                child: const Text('견적 요청하기', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSummaryRow(IconData icon, String text) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Icon(icon, size: 16, color: Colors.grey[600]),
+        const SizedBox(width: 8),
+        Expanded(
+          child: Text(
+            text,
+            style: TextStyle(
+              fontSize: 14,
+              color: Colors.grey[800],
+              height: 1.2,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  InputDecoration _buildInputDecoration(String label, {String? hint}) {
+    return InputDecoration(
+      labelText: label,
+      hintText: hint,
+      alignLabelWithHint: true,
+      filled: true,
+      fillColor: Colors.white,
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: BorderSide(color: Colors.grey[300]!, width: 1.5),
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: BorderSide(color: Colors.grey[300]!, width: 1.5),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: const BorderSide(color: AppColors.kPrimary, width: 2),
+      ),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+      floatingLabelBehavior: FloatingLabelBehavior.always,
+    );
+  }
+
+  Widget _buildRequestItem(String emoji, String title, String description) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+      padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: color.withValues(alpha: 0.4), width: 2),
-        boxShadow: [
-          BoxShadow(
-            color: color.withValues(alpha: 0.15),
-            blurRadius: 12,
-            offset: const Offset(0, 3),
-          ),
-        ],
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(
+          color: AppColors.kPrimary.withValues(alpha: 0.2),
+          width: 1,
+        ),
       ),
       child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.15),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Icon(Icons.info_outline, color: color, size: 24),
+          Text(
+            emoji,
+            style: const TextStyle(fontSize: 24),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -3278,18 +4057,18 @@ class _MultipleQuoteRequestDialogState extends State<_MultipleQuoteRequestDialog
                 Text(
                   title,
                   style: TextStyle(
-                    fontSize: 18,
+                    fontSize: 15,
                     fontWeight: FontWeight.bold,
-                    color: color,
+                    color: AppColors.kPrimary,
                   ),
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  subtitle,
+                  description,
                   style: TextStyle(
                     fontSize: 13,
-                    color: Colors.grey[600],
-                    fontWeight: FontWeight.w500,
+                    color: Colors.grey[700],
+                    height: 1.4,
                   ),
                 ),
               ],
@@ -3297,393 +4076,7 @@ class _MultipleQuoteRequestDialogState extends State<_MultipleQuoteRequestDialog
           ),
         ],
       ),
-    );
-  }
-  
-  Widget _buildCard(List<Widget> children) {
-    return Container(
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.grey[300]!, width: 1),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.1),
-            blurRadius: 24,
-            offset: const Offset(0, 6),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: children,
-      ),
-    );
-  }
-  
-  Widget _buildTextField({
-    required String label,
-    required TextEditingController controller,
-    required String hint,
-    TextInputType? keyboardType,
-    int maxLines = 1,
-    int? maxLength,
-  }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
-          style: const TextStyle(
-            fontSize: 15,
-            fontWeight: FontWeight.w600,
-            color: Color(0xFF2C3E50),
-          ),
-        ),
-        const SizedBox(height: 8),
-        TextFormField(
-          controller: controller,
-          keyboardType: keyboardType,
-          maxLines: maxLines,
-          maxLength: maxLength,
-          decoration: InputDecoration(
-            hintText: hint,
-            hintStyle: TextStyle(color: Colors.grey[400]),
-            filled: true,
-            fillColor: Colors.white,
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: Colors.grey[300]!, width: 1.5),
-            ),
-            enabledBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide(color: Colors.grey[300]!, width: 1.5),
-            ),
-            focusedBorder: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: const BorderSide(color: AppColors.kPrimary, width: 2.5),
-            ),
-            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-          ),
-        ),
-      ],
-    );
-  }
-  
-  Widget _buildInfoRow(String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          SizedBox(
-            width: 80,
-            child: Text(
-              label,
-              style: TextStyle(
-                fontSize: 14,
-                color: Colors.grey[700],
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ),
-          Expanded(
-            child: Text(
-              value,
-              style: const TextStyle(
-                fontSize: 14,
-                color: Color(0xFF2C3E50),
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return AlertDialog(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-      title: Row(
-        children: [
-          const Icon(Icons.send, color: AppColors.kPrimary, size: 28),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  '${widget.brokerCount}곳에 견적 요청',
-                  style: const TextStyle(
-                    fontSize: 22,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFF2C3E50),
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  '선택한 공인중개사에게 동일한 정보로 견적 요청이 전송됩니다',
-                  style: TextStyle(
-                    fontSize: 13,
-                    color: Colors.grey[600],
-                    fontWeight: FontWeight.normal,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-      content: SizedBox(
-        width: MediaQuery.of(context).size.width * 0.9,
-        child: Form(
-          key: _formKey,
-          child: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const SizedBox(height: 8),
-                
-                // 매물 정보 (자동 입력) - 섹션 제목 스타일 적용
-                _buildSectionTitle('매물 정보', '자동 입력됨', Colors.blue),
-                const SizedBox(height: 16),
-                _buildCard([
-                  _buildInfoRow('주소', widget.address),
-                  if (widget.propertyArea != null && widget.propertyArea != '정보 없음') ...[
-                    const SizedBox(height: 12),
-                    _buildInfoRow('면적', widget.propertyArea!),
-                  ],
-                ]),
-                
-                const SizedBox(height: 24),
-                
-                // 매물 유형
-                _buildSectionTitle('매물 유형', '필수 입력', Colors.green),
-                const SizedBox(height: 16),
-                _buildCard([
-                  DropdownButtonFormField<String>(
-                    initialValue: propertyType,
-                    decoration: InputDecoration(
-                      hintText: '매물 유형을 선택하세요',
-                      hintStyle: TextStyle(color: Colors.grey[400]),
-                      filled: true,
-                      fillColor: Colors.white,
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide(color: Colors.grey[300]!, width: 1.5),
-                      ),
-                      enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide(color: Colors.grey[300]!, width: 1.5),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: const BorderSide(color: AppColors.kPrimary, width: 2.5),
-                      ),
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                    ),
-                    items: const [
-                      DropdownMenuItem(value: '아파트', child: Text('아파트')),
-                      DropdownMenuItem(value: '오피스텔', child: Text('오피스텔')),
-                      DropdownMenuItem(value: '원룸', child: Text('원룸')),
-                      DropdownMenuItem(value: '다세대', child: Text('다세대')),
-                      DropdownMenuItem(value: '주택', child: Text('주택')),
-                      DropdownMenuItem(value: '상가', child: Text('상가')),
-                      DropdownMenuItem(value: '기타', child: Text('기타')),
-                    ],
-                    onChanged: (value) {
-                      setState(() {
-                        propertyType = value;
-                      });
-                    },
-                  ),
-                ]),
-                
-                const SizedBox(height: 24),
-                
-                // 특이사항 섹션
-                _buildSectionTitle('특이사항', '선택 입력', Colors.orange),
-                const SizedBox(height: 16),
-                _buildCard([
-                  Row(
-                    children: [
-                      const Expanded(
-                        child: Text(
-                          '세입자 여부 *',
-                          style: TextStyle(
-                            fontSize: 15,
-                            fontWeight: FontWeight.w600,
-                            color: Color(0xFF2C3E50),
-                          ),
-                        ),
-                      ),
-                      Switch(
-                        value: hasTenant,
-                        onChanged: (value) {
-                          setState(() {
-                            hasTenant = value;
-                          });
-                        },
-                        activeThumbColor: AppColors.kPrimary,
-                      ),
-                      Text(
-                        hasTenant ? '있음' : '없음',
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: Colors.grey[700],
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                  _buildTextField(
-                    label: '희망가',
-                    controller: _desiredPriceController,
-                    hint: '예: 11억 / 협의 가능',
-                    keyboardType: TextInputType.text,
-                  ),
-                  const SizedBox(height: 16),
-                  _buildTextField(
-                    label: '목표기간',
-                    controller: _targetPeriodController,
-                    hint: '예: 2~3개월 내',
-                    keyboardType: TextInputType.text,
-                  ),
-                  const SizedBox(height: 16),
-                  _buildTextField(
-                    label: '특이사항 (300자 이내)',
-                    controller: _specialNotesController,
-                    hint: '기타 요청사항이나 특이사항을 입력하세요',
-                    maxLines: 4,
-                    maxLength: 300,
-                  ),
-                ]),
-
-                const SizedBox(height: 16),
-                // 동의 체크
-                _buildCard([
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Checkbox(
-                        value: _agreeToConsent,
-                        onChanged: (v) => setState(() => _agreeToConsent = v ?? false),
-                        activeColor: AppColors.kPrimary,
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: const [
-                            Text(
-                              '개인정보 제3자 제공 동의 (필수)',
-                              style: TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.w600,
-                                color: Color(0xFF2C3E50),
-                              ),
-                            ),
-                            SizedBox(height: 4),
-                            Text(
-                              '선택한 공인중개사에게 문의 처리 목적의 최소한의 정보가 제공됩니다. '
-                              '자세한 내용은 내 정보 > 정책 및 도움말에서 확인할 수 있습니다.',
-                              style: TextStyle(fontSize: 12, color: AppColors.kTextSecondary, height: 1.5),
-                            ),
-                            SizedBox(height: 6),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ]),
-                const SizedBox(height: 8),
-                Align(
-                  alignment: Alignment.centerLeft,
-                  child: Wrap(
-                    spacing: 8,
-                    children: [
-                      TextButton(
-                        onPressed: () {
-                          Navigator.of(context).push(MaterialPageRoute(builder: (_) => const PrivacyPolicyPage()));
-                        },
-                        child: const Text('개인정보 처리방침 보기'),
-                      ),
-                      TextButton(
-                        onPressed: () {
-                          Navigator.of(context).push(MaterialPageRoute(builder: (_) => const TermsOfServicePage()));
-                        },
-                        child: const Text('이용약관 보기'),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.pop(context),
-          style: TextButton.styleFrom(
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-          ),
-          child: const Text(
-            '취소',
-            style: TextStyle(fontSize: 16, color: Colors.grey),
-          ),
-        ),
-        ElevatedButton.icon(
-          onPressed: () {
-            if (_formKey.currentState!.validate()) {
-              if (!_agreeToConsent) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('개인정보 제3자 제공 동의에 체크해주세요.'),
-                    backgroundColor: Colors.red,
-                  ),
-                );
-                return;
-              }
-              Navigator.pop(context, {
-                'propertyType': propertyType,
-                'propertyArea': widget.propertyArea != '정보 없음' ? widget.propertyArea : null,
-                'hasTenant': hasTenant,
-                'desiredPrice': _desiredPriceController.text.trim().isNotEmpty
-                    ? _desiredPriceController.text.trim()
-                    : null,
-                'targetPeriod': _targetPeriodController.text.trim().isNotEmpty
-                    ? _targetPeriodController.text.trim()
-                    : null,
-                'specialNotes': _specialNotesController.text.trim().isNotEmpty
-                    ? _specialNotesController.text.trim()
-                    : null,
-                'consentAgreed': true,
-              });
-            }
-          },
-          style: ElevatedButton.styleFrom(
-            backgroundColor: AppColors.kPrimary,
-            foregroundColor: Colors.white,
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16),
-            ),
-            elevation: 6,
-            shadowColor: AppColors.kPrimary.withValues(alpha: 0.4),
-          ),
-          icon: const Icon(Icons.send, size: 20),
-          label: const Text(
-            '견적 요청하기',
-            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-          ),
-        ),
-      ],
     );
   }
 }
+

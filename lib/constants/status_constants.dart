@@ -59,7 +59,7 @@ class QuoteLifecycleStatus {
       case collecting:
         return '수집중';
       case comparing:
-        return '비교중';
+        return '검토중';
       case selected:
         return '선택됨';
       case completed:

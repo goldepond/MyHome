@@ -283,6 +283,7 @@ class Broker {
   final String? penaltyStartDate;   // 행정처분 시작일 (PBADMS_DSPS_STRT_DD)
   final String? penaltyEndDate;     // 행정처분 종료일 (PBADMS_DSPS_END_DD)
   final String? inqCount;           // 조회 개수 (INQ_CNT)
+  final String? introduction;        // 공인중개사 소개 (Firestore에서 가져옴)
   
   Broker({
     required this.name,
@@ -315,6 +316,7 @@ class Broker {
     this.penaltyStartDate,
     this.penaltyEndDate,
     this.inqCount,
+    this.introduction,
   });
   
   /// 거리를 읽기 쉬운 형태로 변환

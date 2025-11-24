@@ -2,16 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:property/constants/app_constants.dart';
 import 'package:property/api_request/firebase_service.dart';
 import 'package:property/models/quote_request.dart';
-import 'package:property/models/property.dart';
 import 'package:property/widgets/home_logo_button.dart';
 import 'package:property/api_request/apt_info_service.dart';
 import 'package:property/api_request/vworld_service.dart';
 import 'package:property/api_request/address_service.dart';
-import 'package:property/utils/quote_utils.dart';
 import 'package:property/widgets/broker_quote/api_reference_info_card.dart';
 import 'package:property/widgets/broker_quote/property_info_card.dart';
 import 'package:property/widgets/broker_quote/request_info_card.dart';
 import 'package:property/widgets/broker_quote/selected_quote_card.dart';
+import 'package:property/screens/broker/property_registration_form_page.dart';
 
 /// 공인중개사 견적 상세/답변 페이지
 class BrokerQuoteDetailPage extends StatefulWidget {
@@ -145,143 +144,25 @@ class _BrokerQuoteDetailPageState extends State<BrokerQuoteDetailPage> {
   }
 
   Future<void> _registerProperty() async {
-    // 확인 다이얼로그
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('매물 등록'),
-        content: const Text('이 견적 정보를 바탕으로 매물을 등록하시겠습니까?\n\n등록 버튼을 누르면 내집구매 목록에 즉시 노출됩니다.'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('취소'),
-          ),
-          ElevatedButton(
-            onPressed: () => Navigator.pop(context, true),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.kPrimary,
-              foregroundColor: Colors.white,
-            ),
-            child: const Text('등록'),
-          ),
-        ],
+    // 매물 등록 폼 페이지로 이동
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => PropertyRegistrationFormPage(
+          quote: widget.quote,
+          brokerData: widget.brokerData,
+          aptInfo: _aptInfo,
+          vworldCoordinates: _vworldCoordinates,
+          fullAddrAPIData: _fullAddrAPIData,
+        ),
       ),
     );
 
-    if (confirmed != true) return;
-
-    setState(() {
-      _isSubmitting = true;
-    });
-
-    try {
-      // 가격 추출: 권장 매도가 우선, 없으면 희망가
-      final price = QuoteUtils.extractPrice(widget.quote.recommendedPrice) ?? 
-                    QuoteUtils.extractPrice(widget.quote.desiredPrice) ?? 
-                    0;
-                    
-      // 면적 추출
-      double? area;
-      if (widget.quote.propertyArea != null) {
-        area = QuoteUtils.extractArea(widget.quote.propertyArea!);
-      }
-
-      // 설명 (본문 + 특이사항)
-      String description = '';
-      if (widget.quote.brokerAnswer != null && widget.quote.brokerAnswer!.isNotEmpty) {
-        description += widget.quote.brokerAnswer!;
-      }
-      if (widget.quote.specialNotes != null && widget.quote.specialNotes!.isNotEmpty) {
-        if (description.isNotEmpty) description += '\n\n[특이사항]\n';
-        description += widget.quote.specialNotes!;
-      }
-
-      // Property 객체 생성
-      final newProperty = Property(
-        address: widget.quote.propertyAddress ?? '',
-        transactionType: '매매', // 기본값 매매
-        price: price,
-        area: area,
-        description: description,
-        contractStatus: '진행중', // 매물 등록 시 '진행중'으로 시작
-        status: 'marketing', // PropertyLifecycleStatus.marketing (광고 중)
-        mainContractor: widget.quote.userName, // 의뢰인
-        contractor: '', 
-        registeredBy: widget.brokerData['uid'],
-        registeredByName: widget.brokerData['brokerName'],
-        registeredByInfo: widget.brokerData,
-        brokerInfo: widget.brokerData,
-        brokerId: widget.brokerData['brokerId'] ?? widget.brokerData['uid'],
-        buildingType: widget.quote.propertyType,
-        createdAt: DateTime.now(),
-        updatedAt: DateTime.now(),
-      );
-
-      // 트랜잭션으로 매물 등록 및 상태 업데이트 동시 처리
-      final success = await _firebaseService.registerPropertyFromQuote(
-        property: newProperty,
-        quoteRequestId: widget.quote.id,
-      );
-
-      if (!mounted) return;
-      
-      if (success) {
-        setState(() {
-          _isRegistered = true;
-        });
-        
-        // 성공 후 추가 작업 선택 다이얼로그
-        showDialog(
-          context: context,
-          barrierDismissible: false,
-          builder: (context) => AlertDialog(
-            title: const Text('매물 등록 완료'),
-            content: const Text('매물이 성공적으로 등록되었습니다!\n\n매물 사진이나 상세 정보를 추가하시겠습니까?'),
-            actions: [
-              TextButton(
-                onPressed: () {
-                  Navigator.pop(context); // 다이얼로그 닫기
-                },
-                child: const Text('나중에 하기'),
-              ),
-              ElevatedButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('매물 수정 페이지 기능은 준비 중입니다.')),
-                  );
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.kPrimary,
-                  foregroundColor: Colors.white,
-                ),
-                child: const Text('사진 추가하러 가기'),
-              ),
-            ],
-          ),
-        );
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('매물 등록에 실패했습니다. 이미 등록되었거나 오류가 발생했습니다.'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
-    } catch (e) {
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('매물 등록 중 오류가 발생했습니다: $e'),
-          backgroundColor: Colors.red,
-        ),
-      );
-    } finally {
-      if (mounted) {
-        setState(() {
-          _isSubmitting = false;
-        });
-      }
+    // 등록 완료 시 상태 업데이트
+    if (result == true && mounted) {
+      setState(() {
+        _isRegistered = true;
+      });
     }
   }
 
@@ -372,6 +253,12 @@ class _BrokerQuoteDetailPageState extends State<BrokerQuoteDetailPage> {
 
   @override
   Widget build(BuildContext context) {
+    // 반응형 레이아웃: PC 화면 고려
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isWeb = screenWidth > 800;
+    final maxWidth = isWeb ? 1200.0 : screenWidth;
+    final horizontalPadding = isWeb ? 24.0 : 16.0;
+
     return Scaffold(
       backgroundColor: AppColors.kBackground,
       appBar: AppBar(
@@ -386,10 +273,13 @@ class _BrokerQuoteDetailPageState extends State<BrokerQuoteDetailPage> {
       body: Form(
         key: _formKey,
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
+          padding: EdgeInsets.symmetric(horizontal: horizontalPadding, vertical: 24),
+          child: Center(
+            child: Container(
+              constraints: BoxConstraints(maxWidth: maxWidth),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
               // 1. 선택된 견적 카드 (조건부 표시)
               if (widget.quote.isSelectedByUser == true)
                 SelectedQuoteCard(
@@ -478,7 +368,7 @@ class _BrokerQuoteDetailPageState extends State<BrokerQuoteDetailPage> {
                     _buildTextField(
                       label: '추가 메시지 (본문)',
                       controller: _brokerAnswerController,
-                      hint: '초면 기준으로 판매자에게 전하고 싶은 내용을 자유롭게 작성해주세요.',
+                      hint: '판매자에게 전하고 싶은 내용을 자유롭게 작성해주세요.',
                       icon: Icons.note,
                       maxLines: 4,
                     ),
@@ -610,7 +500,9 @@ class _BrokerQuoteDetailPageState extends State<BrokerQuoteDetailPage> {
               ),
 
               const SizedBox(height: 24),
-            ],
+                ],
+              ),
+            ),
           ),
         ),
       ),

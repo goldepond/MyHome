@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:property/constants/app_constants.dart';
 import 'package:property/api_request/firebase_service.dart';
+import 'package:property/api_request/log_service.dart';
 import 'home_page.dart';
 import 'userInfo/personal_info_page.dart';
 import 'propertyMgmt/house_management_page.dart';
@@ -27,6 +28,7 @@ class MainPage extends StatefulWidget {
 
 class _MainPageState extends State<MainPage> {
   final FirebaseService _firebaseService = FirebaseService();
+  final LogService _logService = LogService();
   bool _isLoading = true;
   int _currentIndex = 0; // 현재 선택된 탭 인덱스
 
@@ -465,6 +467,16 @@ class _MainPageState extends State<MainPage> {
         setState(() {
           _currentIndex = index;
         });
+        
+        // 탭 전환 로깅
+        String tabName = '';
+        switch (index) {
+          case 0: tabName = 'HomePage'; break;
+          case 1: tabName = 'HouseMarketPage'; break;
+          case 2: tabName = 'HouseManagementPage'; break;
+          case 3: tabName = 'PersonalInfoPage'; break;
+        }
+        _logService.logScreenView(tabName, screenClass: 'MainPageTab');
       },
       borderRadius: BorderRadius.circular(8),
       child: Container(

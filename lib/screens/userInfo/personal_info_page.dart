@@ -291,10 +291,13 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
             Expanded(
               child: SingleChildScrollView(
                 padding: const EdgeInsets.all(20),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    // 사용자 정보 카드
+                child: Center(
+                  child: Container(
+                    constraints: const BoxConstraints(maxWidth: 900), // 최대 너비 900px로 제한
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // 사용자 정보 카드
                     Card(
                       elevation: 0,
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
@@ -310,7 +313,7 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
                               style: TextStyle(
                                 fontSize: 20,
                                 fontWeight: FontWeight.bold,
-                                color: AppColors.kBrown,
+                                color: Color(0xFF2C3E50),
                               ),
                             ),
                             const SizedBox(height: 16),
@@ -405,7 +408,7 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
                                 style: TextStyle(
                                   fontSize: 20,
                                   fontWeight: FontWeight.bold,
-                                  color: AppColors.kBrown,
+                                  color: Color(0xFF2C3E50),
                                 ),
                               ),
                               const SizedBox(height: 16),
@@ -449,7 +452,7 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
                                 style: TextStyle(
                                   fontSize: 18,
                                   fontWeight: FontWeight.bold,
-                                  color: AppColors.kBrown,
+                                  color: Color(0xFF2C3E50),
                                 ),
                               ),
                             ),
@@ -496,7 +499,7 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
                               style: TextStyle(
                                 fontSize: 20,
                                 fontWeight: FontWeight.bold,
-                                color: AppColors.kBrown,
+                                color: Color(0xFF2C3E50),
                               ),
                             ),
                             const SizedBox(height: 16),
@@ -555,7 +558,9 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
                 ),
               ),
             ),
-          ],
+          ),
+        ),
+      ],
         ),
       ),
     );
@@ -597,32 +602,43 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
 
   Widget _buildInfoRow(IconData icon, String label, String value) {
     return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
+      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
-        Icon(
-          icon,
-          size: 18,
-          color: AppColors.kBrown,
-        ),
-        const SizedBox(width: 12),
-        SizedBox(
-          width: 90,
-          child: Text(
-            '$label:',
-            style: const TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.bold,
-              color: AppColors.kDarkBrown,
-            ),
+        Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: Colors.grey[200],
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Icon(
+            icon,
+            size: 24,
+            color: AppColors.kPrimary,
           ),
         ),
+        const SizedBox(width: 16),
         Expanded(
-          child: Text(
-            value,
-            style: const TextStyle(
-              fontSize: 14,
-              color: AppColors.kDarkBrown,
-            ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                label,
+                style: const TextStyle(
+                  fontSize: 13,
+                  color: Colors.grey,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                value,
+                style: const TextStyle(
+                  fontSize: 16,
+                  color: Color(0xFF2C3E50),
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
           ),
         ),
       ],

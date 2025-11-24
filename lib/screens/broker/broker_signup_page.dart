@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:property/constants/app_constants.dart';
 import 'package:property/api_request/firebase_service.dart';
 import 'package:property/api_request/broker_verification_service.dart';
@@ -343,7 +344,7 @@ class _BrokerSignupPageState extends State<BrokerSignupPage> {
                       controller: _registrationNumberController,
                       decoration: InputDecoration(
                         labelText: '중개업 등록번호 *',
-                        hintText: '예: 11230-2022-00144',
+                        hintText: '예: 11230202200144',
                         prefixIcon: const Icon(Icons.badge),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
@@ -352,6 +353,10 @@ class _BrokerSignupPageState extends State<BrokerSignupPage> {
                         fillColor: Colors.grey.withValues(alpha: 0.05),
                       ),
                       enabled: !_isValidating,
+                      keyboardType: TextInputType.number,
+                      inputFormatters: [
+                        FilteringTextInputFormatter.allow(RegExp(r'[0-9]')), // 숫자만 입력
+                      ],
                       validator: (value) {
                         if (value == null || value.trim().isEmpty) {
                           return '등록번호를 입력해주세요.';
@@ -561,7 +566,7 @@ class _BrokerSignupPageState extends State<BrokerSignupPage> {
                       controller: _phoneNumberController,
                       decoration: InputDecoration(
                         labelText: '전화번호',
-                        hintText: '예: 02-1234-5678',
+                        hintText: '예: 0212345678',
                         prefixIcon: const Icon(Icons.phone),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
@@ -570,6 +575,9 @@ class _BrokerSignupPageState extends State<BrokerSignupPage> {
                         fillColor: Colors.grey.withValues(alpha: 0.05),
                       ),
                       keyboardType: TextInputType.phone,
+                      inputFormatters: [
+                        FilteringTextInputFormatter.allow(RegExp(r'[0-9]')), // 숫자만 입력
+                      ],
                     ),
                   ],
                 ),

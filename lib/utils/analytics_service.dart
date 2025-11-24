@@ -1,16 +1,13 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/foundation.dart';
+import 'package:property/api_request/log_service.dart';
 import 'analytics_events.dart';
 
 /// 간단한 퍼널/행동 로그 저장용 서비스.
-///
-/// Firebase Analytics 같은 외부 의존성 대신 Firestore 컬렉션(`analyticsEvents`)
-/// 에 이벤트를 적재해 MVP 단계에서 사용자 흐름을 추적할 수 있게 한다.
+/// 기존에는 직접 Firestore에 저장했으나, 이제 LogService로 통합됨.
 class AnalyticsService {
   AnalyticsService._();
   static final AnalyticsService instance = AnalyticsService._();
 
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final LogService _logService = LogService();
 
   Future<void> logEvent(
     String name, {
@@ -21,20 +18,20 @@ class AnalyticsService {
   }) async {
     try {
       final sanitizedParams = _sanitizeParams(params ?? const {});
-      final platform = defaultTargetPlatform.toString().split('.').last.toLowerCase();
-
-      await _firestore.collection('analyticsEvents').add({
-        'name': name,
-        'params': sanitizedParams,
-        'userId': userId,
-        'userName': userName,
-        'platform': platform,
-        'environment': kReleaseMode ? 'release' : 'debug',
-        if (stage != null) 'funnelStage': stage.key,
-        'timestamp': FieldValue.serverTimestamp(),
-      });
+      
+      // LogService를 통해 중앙 집중식 로깅
+      _logService.log(
+        actionType: 'analytics_event', // 또는 name에 따라 분류 가능
+        target: name,
+        metadata: {
+          ...sanitizedParams,
+          if (userName != null) 'userName': userName,
+          if (stage != null) 'funnelStage': stage.key,
+          'source': 'AnalyticsService',
+        },
+      );
     } catch (_) {
-      // MVP 단계에서는 실패를 무시하고 앱 흐름에 영향을 주지 않는다.
+      // 실패 무시
     }
   }
 
@@ -61,4 +58,3 @@ class AnalyticsService {
     return result;
   }
 }
-

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:property/constants/app_constants.dart';
 import 'package:property/api_request/firebase_service.dart';
 
@@ -26,10 +27,10 @@ class _BrokerSettingsPageState extends State<BrokerSettingsPage> {
   // 중개업자 정보 필드들
   final TextEditingController _brokerNameController = TextEditingController();
   final TextEditingController _brokerPhoneController = TextEditingController();
-  final TextEditingController _brokerAddressController = TextEditingController();
   final TextEditingController _brokerLicenseNumberController = TextEditingController();
   final TextEditingController _brokerOfficeNameController = TextEditingController();
   final TextEditingController _brokerOfficeAddressController = TextEditingController();
+  final TextEditingController _brokerIntroductionController = TextEditingController();
 
   @override
   void initState() {
@@ -41,10 +42,10 @@ class _BrokerSettingsPageState extends State<BrokerSettingsPage> {
   void dispose() {
     _brokerNameController.dispose();
     _brokerPhoneController.dispose();
-    _brokerAddressController.dispose();
     _brokerLicenseNumberController.dispose();
     _brokerOfficeNameController.dispose();
     _brokerOfficeAddressController.dispose();
+    _brokerIntroductionController.dispose();
     super.dispose();
   }
 
@@ -62,10 +63,10 @@ class _BrokerSettingsPageState extends State<BrokerSettingsPage> {
         
         _brokerNameController.text = brokerData['ownerName'] ?? brokerData['businessName'] ?? '';
         _brokerPhoneController.text = brokerData['phone'] ?? brokerData['phoneNumber'] ?? '';
-        _brokerAddressController.text = brokerData['address'] ?? brokerData['roadAddress'] ?? '';
         _brokerLicenseNumberController.text = brokerData['brokerRegistrationNumber'] ?? brokerData['registrationNumber'] ?? '';
         _brokerOfficeNameController.text = brokerData['businessName'] ?? brokerData['name'] ?? '';
         _brokerOfficeAddressController.text = brokerData['roadAddress'] ?? brokerData['address'] ?? '';
+        _brokerIntroductionController.text = brokerData['introduction'] ?? '';
       } else {
         
         // users 컬렉션의 brokerInfo에서도 확인
@@ -75,10 +76,10 @@ class _BrokerSettingsPageState extends State<BrokerSettingsPage> {
           
           _brokerNameController.text = brokerInfo['broker_name'] ?? '';
           _brokerPhoneController.text = brokerInfo['broker_phone'] ?? '';
-          _brokerAddressController.text = brokerInfo['broker_address'] ?? '';
           _brokerLicenseNumberController.text = brokerInfo['broker_license_number'] ?? '';
           _brokerOfficeNameController.text = brokerInfo['broker_office_name'] ?? '';
           _brokerOfficeAddressController.text = brokerInfo['broker_office_address'] ?? '';
+          _brokerIntroductionController.text = brokerInfo['broker_introduction'] ?? '';
         }
       }
     } catch (e) {
@@ -112,10 +113,11 @@ class _BrokerSettingsPageState extends State<BrokerSettingsPage> {
       final brokerInfo = {
         'broker_name': _brokerNameController.text.trim(),
         'broker_phone': _brokerPhoneController.text.trim(),
-        'broker_address': _brokerAddressController.text.trim(),
-        'broker_license_number': _brokerLicenseNumberController.text.trim(),
+        // 등록번호는 수정 불가 (고정값)
+        // 'broker_license_number': _brokerLicenseNumberController.text.trim(),
         'broker_office_name': _brokerOfficeNameController.text.trim(),
         'broker_office_address': _brokerOfficeAddressController.text.trim(),
+        'broker_introduction': _brokerIntroductionController.text.trim(),
       };
 
       // brokers 컬렉션 업데이트
@@ -232,16 +234,10 @@ class _BrokerSettingsPageState extends State<BrokerSettingsPage> {
                   _buildTextField(
                     controller: _brokerPhoneController,
                     label: '연락처',
-                    hint: '010-1234-5678',
+                    hint: '01012345678',
                     keyboardType: TextInputType.phone,
                     required: true,
-                  ),
-                  const SizedBox(height: 16),
-                  _buildTextField(
-                    controller: _brokerAddressController,
-                    label: '주소',
-                    hint: '서울시 강남구',
-                    required: true,
+                    numbersOnly: true, // 숫자만 입력
                   ),
                 ],
               ),
@@ -259,6 +255,33 @@ class _BrokerSettingsPageState extends State<BrokerSettingsPage> {
                     label: '중개업자 등록번호',
                     hint: '12345',
                     required: true,
+                    enabled: false, // 읽기 전용
+                  ),
+                  const SizedBox(height: 8),
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.blue.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(
+                        color: Colors.blue.withValues(alpha: 0.3),
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(Icons.info_outline, color: Colors.blue[700], size: 18),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            '등록번호는 변경할 수 없습니다.',
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: Colors.blue[700],
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                   const SizedBox(height: 16),
                   _buildTextField(
@@ -273,6 +296,40 @@ class _BrokerSettingsPageState extends State<BrokerSettingsPage> {
                     label: '사무소 주소',
                     hint: '서울시 강남구 테헤란로 456',
                     required: true,
+                  ),
+                ],
+              ),
+              
+              const SizedBox(height: 16),
+              
+              // 소개 섹션
+              _buildSectionCard(
+                title: '소개',
+                icon: Icons.description_rounded,
+                color: Colors.purple,
+                children: [
+                  TextFormField(
+                    controller: _brokerIntroductionController,
+                    maxLines: 5,
+                    decoration: InputDecoration(
+                      labelText: '공인중개사 소개',
+                      hintText: '자신의 전문성, 경력, 특별한 서비스 등을 자유롭게 작성해주세요.\n예: 10년 이상의 경력으로 강남 지역 부동산 전문...',
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide(color: Colors.grey[300]!),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide(color: Colors.grey[300]!),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: const BorderSide(color: AppColors.kPrimary, width: 2),
+                      ),
+                      filled: true,
+                      fillColor: Colors.grey[50],
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                    ),
                   ),
                 ],
               ),
@@ -378,10 +435,17 @@ class _BrokerSettingsPageState extends State<BrokerSettingsPage> {
     required String hint,
     TextInputType? keyboardType,
     bool required = false,
+    bool enabled = true,
+    bool numbersOnly = false, // 숫자만 입력 허용
   }) {
     return TextFormField(
       controller: controller,
       keyboardType: keyboardType,
+      enabled: enabled,
+      readOnly: !enabled,
+      inputFormatters: numbersOnly
+          ? [FilteringTextInputFormatter.allow(RegExp(r'[0-9]'))]
+          : null,
       decoration: InputDecoration(
         labelText: label + (required ? ' *' : ''),
         hintText: hint,

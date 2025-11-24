@@ -30,6 +30,12 @@ class BrokerDetailPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final firebaseService = FirebaseService();
+    
+    // 반응형 레이아웃: PC 화면 고려
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isWeb = screenWidth > 800;
+    final maxWidth = isWeb ? 1200.0 : screenWidth;
+    final horizontalPadding = isWeb ? 24.0 : 16.0;
 
     return Scaffold(
       appBar: AppBar(
@@ -46,10 +52,13 @@ class BrokerDetailPage extends StatelessWidget {
           final notRecommendCount = reviews.where((r) => !r.recommend).length;
 
           return SingleChildScrollView(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
+            padding: EdgeInsets.symmetric(horizontal: horizontalPadding, vertical: 16),
+            child: Center(
+              child: Container(
+                constraints: BoxConstraints(maxWidth: maxWidth),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
                 _buildHeaderCard(
                   reviewCount: reviews.length,
                   recommendCount: recommendCount,
@@ -85,7 +94,9 @@ class BrokerDetailPage extends StatelessWidget {
                   ),
                 const SizedBox(height: 24),
                 _buildReviewSection(reviews),
-              ],
+                  ],
+                ),
+              ),
             ),
           );
         },
@@ -172,7 +183,7 @@ class BrokerDetailPage extends StatelessWidget {
     );
   }
 
-  /// 공인중개사 기본 정보 카드 (주소 / 전화 / 영업상태 / 행정처분)
+  /// 공인중개사 기본 정보 카드 (주소 / 전화 / 영업상태 / 등록번호 / 고용인원 / 소개란 / 행정처분)
   Widget _buildInfoCard() {
     return Container(
       padding: const EdgeInsets.all(14),
@@ -190,20 +201,91 @@ class BrokerDetailPage extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _infoRow(Icons.location_on, '도로명주소', broker.roadAddress),
-          const SizedBox(height: 8),
-          _infoRow(Icons.pin_drop, '지번주소', broker.jibunAddress),
-          if (broker.phoneNumber != null && broker.phoneNumber!.isNotEmpty) ...[
-            const SizedBox(height: 8),
+          // 전화번호
+          if (broker.phoneNumber != null && broker.phoneNumber!.isNotEmpty && broker.phoneNumber != '-') ...[
             _infoRow(Icons.phone, '전화번호', broker.phoneNumber!),
+            const SizedBox(height: 12),
           ],
+          // 주소 표시: 도로명주소 우선, 없으면 지번주소
+          if (broker.roadAddress.isNotEmpty || broker.jibunAddress.isNotEmpty) ...[
+            _infoRow(
+              Icons.location_on,
+              '주소',
+              broker.roadAddress.isNotEmpty ? broker.roadAddress : broker.jibunAddress,
+            ),
+            const SizedBox(height: 12),
+          ],
+          // 영업상태
           if (broker.businessStatus != null && broker.businessStatus!.isNotEmpty) ...[
-            const SizedBox(height: 8),
             _infoRow(Icons.store, '영업상태', broker.businessStatus!),
+            const SizedBox(height: 12),
           ],
+          // 등록번호와 고용인원 (한 줄에)
+          Row(
+            children: [
+              Expanded(
+                child: _infoRow(Icons.badge, '등록번호', broker.registrationNumber),
+              ),
+              if (broker.employeeCount.isNotEmpty && 
+                  broker.employeeCount != '-' && 
+                  broker.employeeCount != '0') ...[
+                const SizedBox(width: 12),
+                Expanded(
+                  child: _infoRow(
+                    Icons.people,
+                    '고용인원',
+                    '${broker.employeeCount}명',
+                  ),
+                ),
+              ],
+            ],
+          ),
+          // 소개란 (있는 경우만 표시)
+          if (broker.introduction != null && broker.introduction!.isNotEmpty) ...[
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: Colors.grey[50],
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(
+                  color: Colors.grey.withValues(alpha: 0.2),
+                ),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Icon(Icons.description, color: Colors.grey[700], size: 18),
+                      const SizedBox(width: 8),
+                      Text(
+                        '중개사 소개',
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.grey[700],
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    broker.introduction!,
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: Colors.grey[800],
+                      height: 1.5,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+          // 행정처분 정보 (있는 경우만 표시)
           if ((broker.penaltyStartDate != null && broker.penaltyStartDate!.isNotEmpty) ||
               (broker.penaltyEndDate != null && broker.penaltyEndDate!.isNotEmpty)) ...[
-            const SizedBox(height: 16),
+            const SizedBox(height: 12),
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(

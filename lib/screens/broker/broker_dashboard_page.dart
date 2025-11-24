@@ -10,6 +10,7 @@ import '../main_page.dart';
 import 'broker_quote_detail_page.dart';
 import '../login_page.dart';
 import 'broker_settings_page.dart';
+import 'broker_property_list_page.dart';
 import '../notification/notification_page.dart';
 
 /// 공인중개사 대시보드 페이지
@@ -42,7 +43,7 @@ class _BrokerDashboardPageState extends State<BrokerDashboardPage> with SingleTi
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 2, vsync: this);
+    _tabController = TabController(length: 3, vsync: this);
     _brokerRegistrationNumber = widget.brokerData['brokerRegistrationNumber'] as String?;
     _loadQuotes();
   }
@@ -211,6 +212,10 @@ class _BrokerDashboardPageState extends State<BrokerDashboardPage> with SingleTi
                   text: '견적문의',
                 ),
                 Tab(
+                  icon: Icon(Icons.home),
+                  text: '내 매물',
+                ),
+                Tab(
                   icon: Icon(Icons.settings),
                   text: '내 정보',
                 ),
@@ -226,16 +231,25 @@ class _BrokerDashboardPageState extends State<BrokerDashboardPage> with SingleTi
           Column(
             children: [
               // 헤더 (일반 화면 히어로 배너와 동일 그라데이션 사용)
-              Container(
-                padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-                decoration: const BoxDecoration(
-                  gradient: AppGradients.primaryDiagonal,
-                ),
-                child: Padding(
-                    padding: const EdgeInsets.all(20),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
+              Builder(
+                builder: (context) {
+                  final screenWidth = MediaQuery.of(context).size.width;
+                  final isWeb = screenWidth > 800;
+                  final maxWidth = isWeb ? 1400.0 : screenWidth;
+                  final horizontalPadding = isWeb ? 24.0 : 16.0;
+
+                  return Container(
+                    padding: EdgeInsets.fromLTRB(horizontalPadding, 16, horizontalPadding, 8),
+                    decoration: const BoxDecoration(
+                      gradient: AppGradients.primaryDiagonal,
+                    ),
+                    child: Center(
+                      child: Container(
+                        constraints: BoxConstraints(maxWidth: maxWidth),
+                        padding: const EdgeInsets.all(20),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
                         Row(
                           children: [
                             Container(
@@ -299,7 +313,7 @@ class _BrokerDashboardPageState extends State<BrokerDashboardPage> with SingleTi
                             ),
                             const SizedBox(width: 12),
                             _buildStatCard(
-                              '비교중',
+                              '검토중',
                               _quotes
                                   .where((q) =>
                                       QuoteLifecycleStatus.fromQuote(q) ==
@@ -323,16 +337,24 @@ class _BrokerDashboardPageState extends State<BrokerDashboardPage> with SingleTi
                             ),
                           ],
                         ),
-                      ],
+                          ],
+                        ),
+                      ),
                     ),
-                  ),
-                ),
+                  );
+                },
+              ),
 
               // 견적 목록
               Expanded(
                 child: _buildQuoteList(),
               ),
             ],
+          ),
+          // 내 매물 탭
+          BrokerPropertyListPage(
+            brokerId: widget.brokerId,
+            brokerData: widget.brokerData,
           ),
           // 내 정보 탭
           BrokerSettingsPage(

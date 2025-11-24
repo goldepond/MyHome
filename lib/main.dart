@@ -9,6 +9,7 @@ import 'api_request/firebase_service.dart';
 import 'screens/inquiry/broker_inquiry_response_page.dart';
 import 'widgets/retry_view.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'utils/app_analytics_observer.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -102,6 +103,10 @@ class MyApp extends StatelessWidget {
         useMaterial3: true,
         fontFamily: 'NotoSansKR',
       ),
+      // 화면 전환 로깅을 위한 Observer 등록
+      navigatorObservers: [
+        AppAnalyticsObserver(),
+      ],
       // URL 기반 라우팅
       initialRoute: '/',
       onGenerateRoute: (settings) {

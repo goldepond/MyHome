@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:property/constants/app_constants.dart';
 import 'package:property/models/quote_request.dart';
+import 'package:property/utils/call_utils.dart';
 
 class SelectedQuoteCard extends StatelessWidget {
   final QuoteRequest quote;
@@ -59,11 +60,9 @@ class SelectedQuoteCard extends StatelessWidget {
                 value: quote.userName,
               ),
               const SizedBox(height: 12),
-              _buildContactRow(
-                icon: Icons.phone,
-                label: '휴대폰',
-                value: quote.userPhone ?? '미등록',
-                isHighlight: true,
+              _buildPhoneRow(
+                phone: quote.userPhone ?? '미등록',
+                requestId: quote.id,
               ),
               const SizedBox(height: 12),
               _buildContactRow(
@@ -115,6 +114,58 @@ class SelectedQuoteCard extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 24),
+      ],
+    );
+  }
+
+  Widget _buildPhoneRow({
+    required String phone,
+    required String requestId,
+  }) {
+    return Row(
+      children: [
+        Icon(Icons.phone, size: 20, color: Colors.grey[600]),
+        const SizedBox(width: 12),
+        Text(
+          '휴대폰',
+          style: TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.bold,
+            color: Colors.grey[700],
+          ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Row(
+            children: [
+              Text(
+                phone,
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.kPrimary,
+                ),
+              ),
+              if (phone != '미등록' && phone != '-') ...[
+                const SizedBox(width: 12),
+                SizedBox(
+                  height: 32,
+                  child: ElevatedButton.icon(
+                    onPressed: () => CallUtils.makeCall(phone, relatedId: requestId),
+                    icon: const Icon(Icons.call, size: 16),
+                    label: const Text('전화걸기', style: TextStyle(fontSize: 12)),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.green,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                      elevation: 0,
+                    ),
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ),
       ],
     );
   }

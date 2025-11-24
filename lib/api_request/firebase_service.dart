@@ -4,6 +4,7 @@ import 'package:property/models/property.dart';
 import 'package:property/models/quote_request.dart';
 import 'package:property/models/broker_review.dart';
 import 'package:property/models/notification_model.dart';
+import 'package:property/models/chat_model.dart';
 
 class FirebaseService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -14,6 +15,8 @@ class FirebaseService {
   final String _quoteRequestsCollectionName = 'quoteRequests';
   final String _brokerReviewsCollectionName = 'brokerReviews';
   final String _notificationsCollectionName = 'notifications';
+  final String _chatRoomsCollectionName = 'chatRooms';
+  final String _chatMessagesCollectionName = 'chatMessages';
 
   // 사용자 인증 관련 메서드들
   /// 익명 로그인: 로그인 없이도 UID를 발급받아 데이터를 연결할 수 있게 한다.
@@ -532,6 +535,36 @@ class FirebaseService {
     }
   }
 
+  /// 매물 등록 임시 저장 (견적 요청 문서에 저장)
+  Future<bool> savePropertyRegistrationDraft({
+    required String quoteRequestId,
+    required Map<String, dynamic> draftData,
+  }) async {
+    try {
+      await _firestore.collection(_quoteRequestsCollectionName).doc(quoteRequestId).update({
+        'propertyRegistrationDraft': draftData,
+        'propertyRegistrationDraftSavedAt': FieldValue.serverTimestamp(),
+        'updatedAt': FieldValue.serverTimestamp(),
+      });
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  /// 매물 등록 임시 저장 데이터 조회
+  Future<Map<String, dynamic>?> getPropertyRegistrationDraft(String quoteRequestId) async {
+    try {
+      final doc = await _firestore.collection(_quoteRequestsCollectionName).doc(quoteRequestId).get();
+      if (!doc.exists) return null;
+      
+      final data = doc.data();
+      return data?['propertyRegistrationDraft'] as Map<String, dynamic>?;
+    } catch (e) {
+      return null;
+    }
+  }
+
   // Read - 사용자별 부동산 목록
   Stream<List<Property>> getProperties(String userName) {
     return _firestore
@@ -927,17 +960,22 @@ class FirebaseService {
       if (brokerInfo.containsKey('broker_phone')) {
         updateData['phoneNumber'] = brokerInfo['broker_phone'];
       }
-      if (brokerInfo.containsKey('broker_address')) {
-        updateData['address'] = brokerInfo['broker_address'];
-      }
-      if (brokerInfo.containsKey('broker_license_number')) {
-        updateData['brokerRegistrationNumber'] = brokerInfo['broker_license_number'];
-      }
+      // 개인 주소는 제거됨 (사무소 주소만 사용)
+      // if (brokerInfo.containsKey('broker_address')) {
+      //   updateData['address'] = brokerInfo['broker_address'];
+      // }
+      // 등록번호는 업데이트하지 않음 (고정값)
+      // if (brokerInfo.containsKey('broker_license_number')) {
+      //   updateData['brokerRegistrationNumber'] = brokerInfo['broker_license_number'];
+      // }
       if (brokerInfo.containsKey('broker_office_name')) {
         updateData['businessName'] = brokerInfo['broker_office_name'];
       }
       if (brokerInfo.containsKey('broker_office_address')) {
         updateData['roadAddress'] = brokerInfo['broker_office_address'];
+      }
+      if (brokerInfo.containsKey('broker_introduction')) {
+        updateData['introduction'] = brokerInfo['broker_introduction'];
       }
       
       await _firestore.collection(_brokersCollectionName).doc(docId).update(updateData);
@@ -974,6 +1012,64 @@ class FirebaseService {
       return matchingProperties;
     } catch (e) {
       return [];
+    }
+  }
+
+  /// 공인중개사가 등록한 매물 목록 조회 (brokerId 또는 registeredBy 기준)
+  Stream<List<Property>> getPropertiesByBrokerId(String brokerId) {
+    try {
+      return _firestore
+          .collection(_collectionName)
+          .where('brokerId', isEqualTo: brokerId)
+          .snapshots()
+          .map((snapshot) {
+            final properties = snapshot.docs.map((doc) {
+              final data = doc.data();
+              data['firestoreId'] = doc.id;
+              return Property.fromMap(data);
+            }).toList();
+            
+            // 클라이언트에서 정렬 (createdAt 기준 내림차순)
+            properties.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+            return properties;
+          });
+    } catch (e) {
+      // brokerId로 조회 실패 시 registeredBy로도 시도
+      try {
+        return _firestore
+            .collection(_collectionName)
+            .where('registeredBy', isEqualTo: brokerId)
+            .snapshots()
+            .map((snapshot) {
+              final properties = snapshot.docs.map((doc) {
+                final data = doc.data();
+                data['firestoreId'] = doc.id;
+                return Property.fromMap(data);
+              }).toList();
+              
+              // 클라이언트에서 정렬
+              properties.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+              return properties;
+            });
+      } catch (e2) {
+        return Stream.value([]);
+      }
+    }
+  }
+
+  /// 매물 수정
+  Future<bool> updatePropertyByBroker({
+    required String propertyId,
+    required Property property,
+  }) async {
+    try {
+      await _firestore.collection(_collectionName).doc(propertyId).update({
+        ...property.toMap(),
+        'updatedAt': DateTime.now().toIso8601String(),
+      });
+      return true;
+    } catch (e) {
+      return false;
     }
   }
 
@@ -1666,4 +1762,103 @@ class FirebaseService {
     }
   }
 
+  /* =========================================== */
+  /* 채팅 관련 메서드 */
+  /* =========================================== */
+
+  /// 채팅방 생성 또는 조회
+  Future<String?> createOrGetChatRoom({
+    required String quoteRequestId,
+    required String userId,
+    required String brokerId,
+    required String userPhone,
+    required String brokerPhone,
+  }) async {
+    try {
+      // 이미 존재하는 채팅방인지 확인
+      final snapshot = await _firestore
+          .collection(_chatRoomsCollectionName)
+          .where('quoteRequestId', isEqualTo: quoteRequestId)
+          .limit(1)
+          .get();
+
+      if (snapshot.docs.isNotEmpty) {
+        return snapshot.docs.first.id;
+      }
+
+      // 새 채팅방 생성
+      final chatRoom = ChatRoom(
+        id: '',
+        quoteRequestId: quoteRequestId,
+        userId: userId,
+        brokerId: brokerId,
+        userPhone: userPhone,
+        brokerPhone: brokerPhone,
+        createdAt: DateTime.now(),
+        lastMessageAt: DateTime.now(),
+        lastMessage: '대화가 시작되었습니다.',
+        isClosed: false,
+      );
+
+      final docRef = await _firestore.collection(_chatRoomsCollectionName).add(chatRoom.toMap());
+      return docRef.id;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  /// 메시지 전송
+  Future<bool> sendMessage({
+    required String roomId,
+    required String senderId,
+    required String message,
+  }) async {
+    try {
+      // 1. 메시지 저장
+      await _firestore.collection(_chatMessagesCollectionName).add({
+        'roomId': roomId,
+        'senderId': senderId,
+        'message': message,
+        'timestamp': FieldValue.serverTimestamp(),
+        'isRead': false,
+      });
+
+      // 2. 채팅방 마지막 메시지 업데이트
+      await _firestore.collection(_chatRoomsCollectionName).doc(roomId).update({
+        'lastMessage': message,
+        'lastMessageAt': FieldValue.serverTimestamp(),
+      });
+
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  /// 채팅 메시지 스트림
+  Stream<List<ChatMessage>> getChatMessages(String roomId) {
+    return _firestore
+        .collection(_chatMessagesCollectionName)
+        .where('roomId', isEqualTo: roomId)
+        .orderBy('timestamp', descending: true)
+        .snapshots()
+        .map((snapshot) {
+      return snapshot.docs.map((doc) => ChatMessage.fromMap(doc.id, doc.data())).toList();
+    });
+  }
+
+  /// 내 채팅방 목록 조회
+  Stream<List<ChatRoom>> getMyChatRooms(String userId) {
+    return _firestore
+        .collection(_chatRoomsCollectionName)
+        .where(Filter.or(
+          Filter('userId', isEqualTo: userId),
+          Filter('brokerId', isEqualTo: userId),
+        ))
+        .orderBy('lastMessageAt', descending: true)
+        .snapshots()
+        .map((snapshot) {
+      return snapshot.docs.map((doc) => ChatRoom.fromMap(doc.id, doc.data())).toList();
+    });
+  }
 }

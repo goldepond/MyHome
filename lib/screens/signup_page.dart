@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:property/constants/app_constants.dart';
 import 'package:property/api_request/firebase_service.dart';
 import 'package:property/widgets/home_logo_button.dart';
@@ -271,9 +272,12 @@ class _SignupPageState extends State<SignupPage> {
                   TextField(
                     controller: _phoneController,
                     keyboardType: TextInputType.phone,
+                    inputFormatters: [
+                      FilteringTextInputFormatter.allow(RegExp(r'[0-9]')), // 숫자만 입력
+                    ],
                     decoration: InputDecoration(
                       labelText: '휴대폰 번호',
-                      hintText: '예: 010-1234-5678',
+                      hintText: '예: 01012345678',
                       prefixIcon: const Icon(Icons.phone),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
