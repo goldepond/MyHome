@@ -63,15 +63,30 @@ class AptInfoService {
   /// 아파트 기본정보 조회
   static Future<Map<String, dynamic>?> getAptBasisInfo(String kaptCode) async {
     try {
+      // ServiceKey 확인
+      final serviceKey = ApiConstants.data_go_kr_serviceKey;
+      print('=== 아파트 정보 조회 API 호출 ===');
+      print('ServiceKey 존재 여부: ${serviceKey.isNotEmpty}');
+      print('ServiceKey 길이: ${serviceKey.length}');
+      if (serviceKey.isNotEmpty) {
+        print('ServiceKey (처음 10자): ${serviceKey.substring(0, serviceKey.length > 10 ? 10 : serviceKey.length)}...');
+      } else {
+        print('⚠️ DATA_GO_KR_SERVICE_KEY가 설정되지 않았습니다. API 호출을 건너뜁니다.');
+        print('💡 해결 방법: --dart-define=DATA_GO_KR_SERVICE_KEY=여기에_실제_API_키_입력');
+        return null;
+      }
+      
       // ServiceKey URL 인코딩 문제 방지를 위해 queryParameters 사용
       // API 문서에 따르면 Encoding된 인증키를 사용해야 함
       // Uri.replace()가 자동으로 URL 인코딩해줌
       const baseUrl = ApiConstants.aptInfoAPIBaseUrl;
       final queryParams = {
-        'ServiceKey': ApiConstants.data_go_kr_serviceKey, // Decoding된 키 (Uri가 자동 인코딩)
+        'ServiceKey': serviceKey, // Decoding된 키 (Uri가 자동 인코딩)
         'kaptCode': kaptCode,
       };
+      print('요청 파라미터: ServiceKey=${serviceKey.isNotEmpty ? "***설정됨***" : "❌비어있음"}, kaptCode=$kaptCode');
       final uri = Uri.parse(baseUrl).replace(queryParameters: queryParams);
+      print('생성된 URI: ${uri.toString()}');
 
       final proxyUri = Uri.parse(
         '${ApiConstants.proxyRequstAddr}?q=${Uri.encodeComponent(uri.toString())}',
@@ -316,10 +331,17 @@ class AptInfoService {
   static Future<String?> searchKaptCodeByRoadCode(String roadCode) async {
     if (roadCode.isEmpty) return null;
     
+    // ServiceKey 확인
+    final serviceKey = ApiConstants.data_go_kr_serviceKey;
+    if (serviceKey.isEmpty) {
+      print('⚠️ DATA_GO_KR_SERVICE_KEY가 설정되지 않았습니다.');
+      return null;
+    }
+    
     try {
       const baseUrl = 'https://apis.data.go.kr/1613000/AptListService3';
       final queryParams = {
-        'ServiceKey': ApiConstants.data_go_kr_serviceKey,
+        'ServiceKey': serviceKey,
         'roadCode': roadCode,
         '_type': 'json',
         'numOfRows': '10',
@@ -360,11 +382,18 @@ class AptInfoService {
       return null;
     }
     
+    // ServiceKey 확인
+    final serviceKey = ApiConstants.data_go_kr_serviceKey;
+    if (serviceKey.isEmpty) {
+      print('⚠️ DATA_GO_KR_SERVICE_KEY가 설정되지 않았습니다.');
+      return null;
+    }
+    
     try {
       
       const baseUrl = 'https://apis.data.go.kr/1613000/AptListService3';
       final queryParams = {
-        'ServiceKey': ApiConstants.data_go_kr_serviceKey,
+        'ServiceKey': serviceKey,
         'bjdCode': bjdCode,
         '_type': 'json',
         'numOfRows': '10',
@@ -578,10 +607,19 @@ class AptInfoService {
     required String address,
     required Map<String, String> fullAddrAPIData,
   }) async {
+    // ServiceKey 확인
+    final serviceKey = ApiConstants.data_go_kr_serviceKey;
+    if (serviceKey.isEmpty) {
+      return KaptCodeExtractionResult.failure(
+        KaptCodeFailureReason.apiError,
+        'DATA_GO_KR_SERVICE_KEY가 설정되지 않았습니다.',
+      );
+    }
+    
     try {
       const baseUrl = 'https://apis.data.go.kr/1613000/AptListService3';
       final queryParams = {
-        'ServiceKey': ApiConstants.data_go_kr_serviceKey,
+        'ServiceKey': serviceKey,
         'roadCode': roadCode,
         '_type': 'json',
         'numOfRows': '50',
@@ -657,10 +695,19 @@ class AptInfoService {
     required String address,
     required Map<String, String> fullAddrAPIData,
   }) async {
+    // ServiceKey 확인
+    final serviceKey = ApiConstants.data_go_kr_serviceKey;
+    if (serviceKey.isEmpty) {
+      return KaptCodeExtractionResult.failure(
+        KaptCodeFailureReason.apiError,
+        'DATA_GO_KR_SERVICE_KEY가 설정되지 않았습니다.',
+      );
+    }
+    
     try {
       const baseUrl = 'https://apis.data.go.kr/1613000/AptListService3';
       final queryParams = {
-        'ServiceKey': ApiConstants.data_go_kr_serviceKey,
+        'ServiceKey': serviceKey,
         'bjdCode': bjdCode,
         '_type': 'json',
         'numOfRows': '50',
