@@ -90,9 +90,9 @@ class BrokerService {
       //'domain' : VWorldApiConstants.domainCORSParam,
     });
 
-    final proxyUri = Uri.parse(VWorldApiConstants.vworldProxyUrl).replace(queryParameters: {
-      'url': uri.toString()
-    });
+    final proxyUri = Uri.parse(
+      '${ApiConstants.proxyRequstAddr}?q=${Uri.encodeComponent(uri.toString())}',
+    );
     
     final response = await http.get(proxyUri).timeout(
       const Duration(seconds: ApiConstants.requestTimeoutSeconds),
