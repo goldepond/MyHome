@@ -137,6 +137,16 @@ String _getEnv(String key) {
       }
       return value;
     }
+    if (key == 'VWORLD_API_KEY') {
+      // VWorld API 키 (공인중개사 검색 등 WFS 서비스)
+      // VWorld Geocoder와 동일한 키 사용 가능
+      // 개발키: FA0D6750-3DC2-3389-B8F1-0385C5976B96
+      // 발급일: 2025-09-25, 만료일: 2026-03-25
+      if (value.isEmpty) {
+        return 'FA0D6750-3DC2-3389-B8F1-0385C5976B96';
+      }
+      return value;
+    }
     if (key == 'VWORLD_GEOCODER_API_KEY') {
       // VWorld Geocoder API 키 (주소 → 좌표 변환)
       // 개발키: FA0D6750-3DC2-3389-B8F1-0385C5976B96

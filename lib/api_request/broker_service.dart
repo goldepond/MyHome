@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:math';
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import 'package:property/constants/app_constants.dart';
 
@@ -28,19 +29,25 @@ class BrokerService {
     int radiusMeters = 1000,
     bool shouldAutoRetry = true,
   }) async {
+    debugPrint('=== 공인중개사 검색 API 호출 ===');
+    debugPrint('위도: $latitude, 경도: $longitude, 반경: ${radiusMeters}m, 자동 재시도: $shouldAutoRetry');
+    
     try {
       int radiusUsed = radiusMeters;
       bool wasExpanded = false;
 
       // 1단계: VWorld API에서 기본 중개사 정보 조회
+      debugPrint('1단계: VWorld API에서 기본 중개사 정보 조회 시작');
       List<Broker> brokers = await _searchFromVWorld(
         latitude: latitude,
         longitude: longitude,
         radiusMeters: radiusMeters,
       );
+      debugPrint('1단계 결과: ${brokers.length}개 공인중개사 발견');
 
       // 2단계: 결과가 없으면 반경을 넓혀가며 재시도
       if (shouldAutoRetry && brokers.isEmpty && radiusMeters < 10000) {
+        debugPrint('2단계: 결과가 없어 반경을 넓혀가며 재시도 시작');
         final retryResult = await _retryWithExpandedRadius(
           latitude: latitude,
           longitude: longitude,
@@ -49,6 +56,7 @@ class BrokerService {
         brokers = retryResult.brokers;
         radiusUsed = retryResult.radiusMetersUsed;
         wasExpanded = retryResult.wasExpanded;
+        debugPrint('2단계 결과: ${brokers.length}개 공인중개사 발견 (반경 확장: ${wasExpanded ? "예" : "아니오"})');
       }
 
       // 3단계: 서울 지역인 경우 서울시 API 데이터로 보강 (삭제됨)
@@ -56,12 +64,20 @@ class BrokerService {
       //   brokers = await _enhanceWithSeoulData(brokers);
       // }
 
+      debugPrint('=== 공인중개사 검색 완료 ===');
+      debugPrint('최종 결과: ${brokers.length}개, 사용된 반경: ${radiusUsed}m');
+      
       return BrokerSearchResult(
         brokers: brokers,
         radiusMetersUsed: radiusUsed,
         wasExpanded: wasExpanded || radiusUsed != radiusMeters,
       );
-    } catch (e) {
+    } catch (e, stackTrace) {
+      debugPrint('❌ 공인중개사 검색 중 예외 발생');
+      debugPrint('오류 타입: ${e.runtimeType}');
+      debugPrint('오류 메시지: $e');
+      debugPrint('스택 트레이스: $stackTrace');
+      
       return BrokerSearchResult(
         brokers: const [],
         radiusMetersUsed: radiusMeters,
@@ -76,8 +92,12 @@ class BrokerService {
     required double longitude,
     required int radiusMeters,
   }) async {
+    debugPrint('=== 공인중개사 검색 시작 ===');
+    debugPrint('위도: $latitude, 경도: $longitude, 반경: ${radiusMeters}m');
+    
     // BBOX 생성 (EPSG:4326 기준)
     final bbox = _generateEpsg4326Bbox(latitude, longitude, radiusMeters);
+    debugPrint('생성된 BBOX: $bbox');
     
     final uri = Uri.parse(VWorldApiConstants.brokerQueryBaseUrl).replace(queryParameters: {
       'key': VWorldApiConstants.apiKey,
@@ -90,21 +110,68 @@ class BrokerService {
       //'domain' : VWorldApiConstants.domainCORSParam,
     });
 
+    debugPrint('=== 요청 URL 생성 ===');
+    debugPrint('기본 URL: ${VWorldApiConstants.brokerQueryBaseUrl}');
+    debugPrint('요청 파라미터:');
+    debugPrint('  - key: ${VWorldApiConstants.apiKey.isNotEmpty ? "${VWorldApiConstants.apiKey.substring(0, VWorldApiConstants.apiKey.length > 10 ? 10 : VWorldApiConstants.apiKey.length)}..." : "(비어있음)"}');
+    debugPrint('  - typename: ${VWorldApiConstants.brokerQueryTypeName}');
+    debugPrint('  - bbox: $bbox');
+    debugPrint('  - resultType: results');
+    debugPrint('  - srsName: ${VWorldApiConstants.srsName}');
+    debugPrint('  - output: application/json');
+    debugPrint('  - maxFeatures: ${VWorldApiConstants.brokerMaxFeatures}');
+    debugPrint('최종 URI: ${uri.toString().replaceAll(VWorldApiConstants.apiKey, '***API_KEY***')}');
+
     final proxyUri = Uri.parse(
       '${ApiConstants.proxyRequstAddr}?q=${Uri.encodeComponent(uri.toString())}',
     );
     
-    final response = await http.get(proxyUri).timeout(
-      const Duration(seconds: ApiConstants.requestTimeoutSeconds),
-      onTimeout: () {
-        throw Exception('API 타임아웃');
-      },
-    );
+    debugPrint('프록시 URI: ${proxyUri.toString().replaceAll(VWorldApiConstants.apiKey, '***API_KEY***')}');
+    debugPrint('=== HTTP 요청 시작 ===');
+    
+    http.Response response;
+    try {
+      debugPrint('프록시 서버로 요청 전송 중...');
+      response = await http.get(proxyUri).timeout(
+        const Duration(seconds: ApiConstants.requestTimeoutSeconds),
+        onTimeout: () {
+          debugPrint('⏱️ 요청 타임아웃 발생');
+          throw Exception('API 타임아웃');
+        },
+      );
+      
+      debugPrint('=== HTTP 응답 수신 ===');
+      debugPrint('상태 코드: ${response.statusCode}');
+      debugPrint('응답 헤더: ${response.headers}');
+      debugPrint('응답 본문 길이: ${response.body.length} bytes');
+    } catch (e) {
+      debugPrint('❌ HTTP 요청 오류 발생');
+      debugPrint('오류 타입: ${e.runtimeType}');
+      debugPrint('오류 메시지: $e');
+      return [];
+    }
     
     if (response.statusCode == 200) {
-      final jsonText = utf8.decode(response.bodyBytes);
-      return _parseJSON(jsonText, latitude, longitude);
+      debugPrint('✅ HTTP 200 응답 수신');
+      try {
+        final jsonText = utf8.decode(response.bodyBytes);
+        debugPrint('응답 본문 (처음 500자): ${jsonText.length > 500 ? jsonText.substring(0, 500) : jsonText}');
+        
+        final brokers = _parseJSON(jsonText, latitude, longitude);
+        debugPrint('=== 공인중개사 검색 결과 ===');
+        debugPrint('파싱된 공인중개사 수: ${brokers.length}');
+        
+        return brokers;
+      } catch (e, stackTrace) {
+        debugPrint('❌ JSON 파싱 오류 발생');
+        debugPrint('오류 타입: ${e.runtimeType}');
+        debugPrint('오류 메시지: $e');
+        debugPrint('스택 트레이스: $stackTrace');
+        return [];
+      }
     } else {
+      debugPrint('❌ HTTP 상태 코드 오류: ${response.statusCode}');
+      debugPrint('응답 본문: ${response.body.length > 500 ? response.body.substring(0, 500) : response.body}');
       return [];
     }
   }
@@ -164,9 +231,14 @@ class BrokerService {
   static List<Broker> _parseJSON(String jsonText, double baseLat, double baseLon) {
     final brokers = <Broker>[];
 
+    debugPrint('=== JSON 파싱 시작 ===');
     try {
       final data = json.decode(jsonText);
+      debugPrint('파싱된 데이터 타입: ${data.runtimeType}');
+      debugPrint('데이터 키: ${data is Map ? (data as Map).keys.toList() : "N/A"}');
+      
       final List<dynamic> features = data['features'] ?? [];
+      debugPrint('features 개수: ${features.length}');
 
       for (final dynamic featureRaw in features) {
         final feature = featureRaw as Map<String, dynamic>;
@@ -219,10 +291,17 @@ class BrokerService {
         return a.distance!.compareTo(b.distance!);
       });
 
-    } catch (_) {
-      // 서울시 API 병합 실패 시 기존 브로커 리스트 반환
+      debugPrint('✅ JSON 파싱 성공: ${brokers.length}개 공인중개사 파싱 완료');
+
+    } catch (e, stackTrace) {
+      debugPrint('❌ JSON 파싱 오류 발생');
+      debugPrint('오류 타입: ${e.runtimeType}');
+      debugPrint('오류 메시지: $e');
+      debugPrint('스택 트레이스: $stackTrace');
+      // 파싱 실패 시 빈 리스트 반환
     }
 
+    debugPrint('=== JSON 파싱 완료 ===');
     return brokers;
   }
   
