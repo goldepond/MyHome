@@ -6,7 +6,10 @@ echo ========================================
 echo.
 
 echo [1/4] 📦 Flutter 웹 빌드 중...
-flutter build web --release --base-href "/TESTHOME/"
+echo ⚠️  DATA_GO_KR_SERVICE_KEY 환경 변수가 설정되어 있는지 확인하세요
+echo 💡 로컬 빌드 시: set DATA_GO_KR_SERVICE_KEY=여기에_실제_API_키_입력
+echo.
+flutter build web --release --base-href "/TESTHOME/" --dart-define=DATA_GO_KR_SERVICE_KEY=%DATA_GO_KR_SERVICE_KEY%
 
 if errorlevel 1 (
     echo ❌ 빌드 실패!

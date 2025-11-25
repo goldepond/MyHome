@@ -118,6 +118,17 @@ String _getEnv(String key) {
       }
       return value;
     }
+    if (key == 'DATA_GO_KR_SERVICE_KEY') {
+      // Data.go.kr API 키 (공동주택 정보 조회 API)
+      // ⚠️ 보안 주의: 실제 API 키는 --dart-define으로 전달하거나 GitHub Secrets에 저장하세요
+      // 공공데이터포털(data.go.kr)에서 발급받은 서비스 키를 사용하세요
+      if (value.isEmpty) {
+        // 기본값이 필요한 경우 여기에 설정 (보안상 권장하지 않음)
+        // return '여기에_실제_API_키_입력';
+        return ''; // 빈 값 반환 (401 에러 발생)
+      }
+      return value;
+    }
     return value;
   }
   
