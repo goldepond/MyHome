@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 
@@ -91,9 +92,39 @@ class AptInfoService {
       final proxyUri = Uri.parse(
         '${ApiConstants.proxyRequstAddr}?q=${Uri.encodeComponent(uri.toString())}',
       );
-
-      final response = await http.get(proxyUri);
-
+      
+      print('프록시 URI: ${proxyUri.toString()}');
+      
+      print('=== HTTP 요청 시작 ===');
+      http.Response response;
+      try {
+        print('프록시 서버로 요청 전송 중...');
+        response = await http.get(proxyUri).timeout(
+          Duration(seconds: ApiConstants.requestTimeoutSeconds),
+          onTimeout: () {
+            print('⏱️ 요청 타임아웃 발생');
+            throw TimeoutException('아파트 정보 조회 시간이 초과되었습니다.');
+          },
+        );
+        print('=== HTTP 응답 수신 ===');
+        print('상태 코드: ${response.statusCode}');
+        print('응답 헤더: ${response.headers}');
+        print('응답 본문 길이: ${response.body.length} bytes');
+      } catch (e) {
+        print('❌ HTTP 요청 오류 발생');
+        print('오류 타입: ${e.runtimeType}');
+        print('오류 메시지: $e');
+        // HTTP 요청 자체가 실패한 경우
+        if (e is TimeoutException) {
+          print('타임아웃으로 인한 실패');
+          return null;
+        }
+        // 기타 네트워크 오류
+        print('네트워크 오류로 인한 실패');
+        return null;
+      }
+      
+      print('=== 응답 상태 확인 ===');
       // UTF-8 디코딩으로 응답 본문 가져오기
       String responseBody;
       try {
