@@ -64,6 +64,7 @@ class _BrokerListPageState extends State<BrokerListPage> {
   String searchKeyword = '';
   bool showOnlyWithPhone = false;
   bool showOnlyOpen = false;
+  bool showOnlyGlobalBroker = false;
   final TextEditingController _searchController = TextEditingController();
   
   String _sortOption = 'systemRegNo';
@@ -773,6 +774,14 @@ class _BrokerListPageState extends State<BrokerListPage> {
           }
         }
         
+        // 글로벌공인중개사 필터
+        if (showOnlyGlobalBroker) {
+          if (broker.globalBrokerLanguage == null || 
+              broker.globalBrokerLanguage!.isEmpty) {
+            return false;
+          }
+        }
+        
         return true;
       }).toList();
       
@@ -786,6 +795,7 @@ class _BrokerListPageState extends State<BrokerListPage> {
         'searchKeyword': searchKeyword,
         'showOnlyWithPhone': showOnlyWithPhone,
         'showOnlyOpen': showOnlyOpen,
+        'showOnlyGlobalBroker': showOnlyGlobalBroker,
         'sortOption': _sortOption,
         'resultCount': filteredBrokers.length,
       },
@@ -803,6 +813,12 @@ class _BrokerListPageState extends State<BrokerListPage> {
         break;
       case 'name':
         _sortByName(list);
+        break;
+      case 'registrationDate':
+        _sortByRegistrationDate(list);
+        break;
+      case 'globalBroker':
+        _sortByGlobalBroker(list);
         break;
       case 'systemRegNo':
       default:
@@ -848,6 +864,59 @@ class _BrokerListPageState extends State<BrokerListPage> {
     });
   }
 
+  void _sortByRegistrationDate(List<Broker> list) {
+    DateTime? parseDate(String? dateStr) {
+      if (dateStr == null || dateStr.isEmpty) return null;
+      
+      // YYYYMMDD 형식 처리
+      if (dateStr.length == 8 && RegExp(r'^\d{8}$').hasMatch(dateStr)) {
+        final year = int.tryParse(dateStr.substring(0, 4));
+        final month = int.tryParse(dateStr.substring(4, 6));
+        final day = int.tryParse(dateStr.substring(6, 8));
+        if (year != null && month != null && day != null) {
+          try {
+            return DateTime(year, month, day);
+          } catch (e) {
+            return null;
+          }
+        }
+      }
+      
+      // YYYY-MM-DD 등 표준 형식 처리
+      return DateTime.tryParse(dateStr);
+    }
+    
+    list.sort((a, b) {
+      final dateA = parseDate(a.registrationDate);
+      final dateB = parseDate(b.registrationDate);
+      
+      // 날짜가 없는 항목은 뒤로
+      if (dateA == null && dateB == null) return 0;
+      if (dateA == null) return 1;
+      if (dateB == null) return -1;
+      
+      // 최신순 (내림차순)
+      return dateB.compareTo(dateA);
+    });
+  }
+
+  void _sortByGlobalBroker(List<Broker> list) {
+    list.sort((a, b) {
+      final aIsGlobal = a.globalBrokerLanguage != null && a.globalBrokerLanguage!.isNotEmpty;
+      final bIsGlobal = b.globalBrokerLanguage != null && b.globalBrokerLanguage!.isNotEmpty;
+      
+      // 글로벌공인중개사가 있는 것을 먼저
+      if (aIsGlobal && !bIsGlobal) return -1;
+      if (!aIsGlobal && bIsGlobal) return 1;
+      
+      // 둘 다 글로벌이거나 둘 다 일반인 경우, 거리순으로 정렬
+      if (a.distance == null && b.distance == null) return 0;
+      if (a.distance == null) return 1;
+      if (b.distance == null) return -1;
+      return a.distance!.compareTo(b.distance!);
+    });
+  }
+
   List<Broker> _visiblePage() {
     final start = _currentPage * _pageSize;
     if (start >= filteredBrokers.length) return const [];
@@ -870,7 +939,6 @@ class _BrokerListPageState extends State<BrokerListPage> {
     final screenWidth = MediaQuery.of(context).size.width;
     final isWeb = screenWidth > 800;
     final maxWidth = isWeb ? 1400.0 : screenWidth; // PC 화면에서 더 넓게
-    final horizontalPadding = isWeb ? 24.0 : 0.0; // PC에서 고정 패딩 사용
 
     return Scaffold(
       backgroundColor: const Color(0xFFF8F9FA),
@@ -941,8 +1009,11 @@ class _BrokerListPageState extends State<BrokerListPage> {
             )
           : null,
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
-      body: CustomScrollView(
-        slivers: [
+      body: Center(
+        child: Container(
+          constraints: BoxConstraints(maxWidth: maxWidth),
+          child: CustomScrollView(
+            slivers: [
           // 웹 스타일 헤더
           SliverAppBar(
             expandedHeight: 200,
@@ -1055,11 +1126,9 @@ class _BrokerListPageState extends State<BrokerListPage> {
           // 1. 히어로 섹션 및 필터 UI (SliverToBoxAdapter)
           SliverToBoxAdapter(
             child: Padding(
-              padding: EdgeInsets.symmetric(horizontal: horizontalPadding > 0 ? horizontalPadding : 0),
-              child: Center(
-                child: Container(
-                  constraints: BoxConstraints(maxWidth: maxWidth),
-                  padding: const EdgeInsets.only(left: 24, right: 24, top: 24, bottom: 0),
+              padding: const EdgeInsets.symmetric(horizontal: 24),
+              child: Padding(
+                padding: const EdgeInsets.only(top: 24, bottom: 0),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -1256,6 +1325,58 @@ class _BrokerListPageState extends State<BrokerListPage> {
                                             fontWeight: _sortOption == 'name' ? FontWeight.bold : FontWeight.normal,
                                           ),
                                         ),
+                                        ChoiceChip(
+                                          label: const Row(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              Icon(Icons.calendar_today, size: 16),
+                                              SizedBox(width: 4),
+                                              Text('등록일순'),
+                                            ],
+                                          ),
+                                          selected: _sortOption == 'registrationDate',
+                                          onSelected: (selected) {
+                                            if (selected) {
+                                              setState(() {
+                                                _sortOption = 'registrationDate';
+                                                _applyFilters();
+                                              });
+                                            }
+                                          },
+                                          selectedColor: AppColors.kPrimary.withValues(alpha: 0.2),
+                                          checkmarkColor: AppColors.kPrimary,
+                                          backgroundColor: Colors.grey[100],
+                                          labelStyle: TextStyle(
+                                            color: _sortOption == 'registrationDate' ? AppColors.kPrimary : Colors.grey[700],
+                                            fontWeight: _sortOption == 'registrationDate' ? FontWeight.bold : FontWeight.normal,
+                                          ),
+                                        ),
+                                        ChoiceChip(
+                                          label: const Row(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              Icon(Icons.language, size: 16),
+                                              SizedBox(width: 4),
+                                              Text('글로벌 우선'),
+                                            ],
+                                          ),
+                                          selected: _sortOption == 'globalBroker',
+                                          onSelected: (selected) {
+                                            if (selected) {
+                                              setState(() {
+                                                _sortOption = 'globalBroker';
+                                                _applyFilters();
+                                              });
+                                            }
+                                          },
+                                          selectedColor: AppColors.kPrimary.withValues(alpha: 0.2),
+                                          checkmarkColor: AppColors.kPrimary,
+                                          backgroundColor: Colors.grey[100],
+                                          labelStyle: TextStyle(
+                                            color: _sortOption == 'globalBroker' ? AppColors.kPrimary : Colors.grey[700],
+                                            fontWeight: _sortOption == 'globalBroker' ? FontWeight.bold : FontWeight.normal,
+                                          ),
+                                        ),
                                       ],
                                     ),
                                   ),
@@ -1317,7 +1438,31 @@ class _BrokerListPageState extends State<BrokerListPage> {
                                       fontWeight: showOnlyOpen ? FontWeight.bold : FontWeight.normal,
                                     ),
                                   ),
-                                  if (showOnlyWithPhone || showOnlyOpen || searchKeyword.isNotEmpty)
+                                  FilterChip(
+                                    label: const Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Icon(Icons.language, size: 16),
+                                        SizedBox(width: 4),
+                                        Text('글로벌공인중개사'),
+                                      ],
+                                    ),
+                                    selected: showOnlyGlobalBroker,
+                                    onSelected: (selected) {
+                                      setState(() {
+                                        showOnlyGlobalBroker = selected;
+                                        _applyFilters();
+                                      });
+                                    },
+                                    selectedColor: Colors.blue.withValues(alpha: 0.2),
+                                    checkmarkColor: Colors.blue,
+                                    backgroundColor: Colors.grey[100],
+                                    labelStyle: TextStyle(
+                                      color: showOnlyGlobalBroker ? Colors.blue[700] : Colors.grey[700],
+                                      fontWeight: showOnlyGlobalBroker ? FontWeight.bold : FontWeight.normal,
+                                    ),
+                                  ),
+                                  if (showOnlyWithPhone || showOnlyOpen || showOnlyGlobalBroker || searchKeyword.isNotEmpty)
                                     ActionChip(
                                       label: const Row(
                                         mainAxisSize: MainAxisSize.min,
@@ -1331,6 +1476,7 @@ class _BrokerListPageState extends State<BrokerListPage> {
                                         setState(() {
                                           showOnlyWithPhone = false;
                                           showOnlyOpen = false;
+                                          showOnlyGlobalBroker = false;
                                           searchKeyword = '';
                                           _searchController.clear();
                                           _applyFilters();
@@ -1378,14 +1524,13 @@ class _BrokerListPageState extends State<BrokerListPage> {
                   ),
                 ),
               ),
-            ),
           ),
 
           // 2. 리스트 (SliverMasonryGrid) - Lazy Loading 적용
           if (!isLoading && error == null && brokers.isNotEmpty && filteredBrokers.isNotEmpty)
             SliverPadding(
-              padding: EdgeInsets.symmetric(
-                horizontal: (horizontalPadding > 0 ? horizontalPadding : 0) + 24,
+              padding: const EdgeInsets.symmetric(
+                horizontal: 24,
                 vertical: 0,
               ),
               sliver: SliverMasonryGrid.count(
@@ -1404,23 +1549,19 @@ class _BrokerListPageState extends State<BrokerListPage> {
           if (!isLoading && error == null && brokers.isNotEmpty && filteredBrokers.isNotEmpty)
             SliverToBoxAdapter(
               child: Padding(
-                padding: EdgeInsets.symmetric(horizontal: horizontalPadding > 0 ? horizontalPadding : 0),
-                child: Center(
-                  child: Container(
-                    constraints: BoxConstraints(maxWidth: maxWidth),
-                    padding: const EdgeInsets.all(24),
-                    child: Column(
-                      children: [
-                        const SizedBox(height: 16),
-                        _buildPaginationControls(),
-                        const SizedBox(height: 40),
-                      ],
-                    ),
-                  ),
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  children: [
+                    const SizedBox(height: 16),
+                    _buildPaginationControls(),
+                    const SizedBox(height: 40),
+                  ],
                 ),
               ),
             ),
         ],
+          ),
+        ),
       ),
     );
   }
@@ -2290,6 +2431,7 @@ class _BrokerListPageState extends State<BrokerListPage> {
                 setState(() {
                   showOnlyWithPhone = false;
                   showOnlyOpen = false;
+                  showOnlyGlobalBroker = false;
                   searchKeyword = '';
                   _searchController.clear();
                   _applyFilters();
