@@ -138,7 +138,7 @@ class BrokerDetailPage extends StatelessWidget {
           if (broker.ownerName != null && broker.ownerName!.isNotEmpty) ...[
             const SizedBox(height: 4),
             Text(
-              '대표: ${broker.ownerName}',
+              '중개업자명: ${broker.ownerName}',
               style: TextStyle(
                 fontSize: 13,
                 color: Colors.white.withValues(alpha: 0.9),
@@ -321,6 +321,55 @@ class BrokerDetailPage extends StatelessWidget {
                       broker.penaltyEndDate!.isNotEmpty) ...[
                     const SizedBox(height: 4),
                     _smallInfoRow('처분 종료일', broker.penaltyEndDate!),
+                  ],
+                ],
+              ),
+            ),
+          ],
+          // 글로벌공인중개사무소 정보 (있는 경우만 표시)
+          if ((broker.globalBrokerLanguage != null && broker.globalBrokerLanguage!.isNotEmpty) ||
+              (broker.globalBrokerAppnYear != null && broker.globalBrokerAppnYear!.isNotEmpty)) ...[
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.blue.withValues(alpha: 0.06),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(
+                  color: Colors.blue.withValues(alpha: 0.3),
+                ),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Icon(Icons.language, color: Colors.blue[700], size: 18),
+                      const SizedBox(width: 6),
+                      Text(
+                        '글로벌공인중개사무소',
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w700,
+                          color: Colors.blue[700],
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  if (broker.globalBrokerLanguage != null && broker.globalBrokerLanguage!.isNotEmpty)
+                    _smallInfoRow('사용언어', broker.globalBrokerLanguage!),
+                  if (broker.globalBrokerAppnYear != null && broker.globalBrokerAppnYear!.isNotEmpty) ...[
+                    const SizedBox(height: 4),
+                    _smallInfoRow('지정연도', broker.globalBrokerAppnYear!),
+                  ],
+                  if (broker.globalBrokerAppnNo != null && broker.globalBrokerAppnNo!.isNotEmpty) ...[
+                    const SizedBox(height: 4),
+                    _smallInfoRow('지정번호', broker.globalBrokerAppnNo!),
+                  ],
+                  if (broker.globalBrokerAppnDe != null && broker.globalBrokerAppnDe!.isNotEmpty) ...[
+                    const SizedBox(height: 4),
+                    _smallInfoRow('지정일', broker.globalBrokerAppnDe!),
                   ],
                 ],
               ),

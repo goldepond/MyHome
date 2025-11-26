@@ -1652,11 +1652,11 @@ class _BrokerListPageState extends State<BrokerListPage> {
                         ),
                       ),
                     if (hasPhone) const SizedBox(width: 12),
-                    // 대표자명
+                    // 중개업자명
                     Expanded(
                       child: _buildQuickInfoCard(
                         icon: Icons.person,
-                        label: '대표자',
+                        label: '중개업자명',
                         value: broker.ownerName ?? '-',
                         color: AppColors.kPrimary,
                       ),
@@ -1973,7 +1973,7 @@ class _BrokerListPageState extends State<BrokerListPage> {
     );
   }
 
-  /// 빠른 정보 카드 (전화번호, 대표자명 등)
+  /// 빠른 정보 카드 (전화번호, 중개업자명 등)
   Widget _buildQuickInfoCard({
     required IconData icon,
     required String label,

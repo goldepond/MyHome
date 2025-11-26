@@ -34,8 +34,42 @@ class AddressService {
     debugPrint('검색 키워드: $keyword');
     debugPrint('페이지: $page');
     
-    if (keyword.trim().length < 2) {
-      debugPrint('키워드가 너무 짧습니다: ${keyword.trim().length}자');
+    // 키워드가 비어있는지 확인
+    final trimmedKeyword = keyword.trim();
+    if (trimmedKeyword.isEmpty) {
+      debugPrint('검색 키워드가 비어있습니다.');
+      return AddressSearchResult(
+        fullData: [],
+        addresses: [],
+        totalCount: 0,
+        errorMessage: '검색 키워드를 입력해주세요.',
+      );
+    }
+    
+    // 비정상적인 키워드 필터링 (컴파일 에러 메시지, 경고 메시지 등)
+    if (trimmedKeyword.contains('error:') || 
+        trimmedKeyword.contains('warning:') ||
+        trimmedKeyword.contains('at [property]') ||
+        trimmedKeyword.contains('list_element_type_not_assignable') ||
+        trimmedKeyword.contains('unnecessary_cast') ||
+        trimmedKeyword.contains('unused_element') ||
+        trimmedKeyword.contains('unused_field') ||
+        trimmedKeyword.contains('unused_local_variable') ||
+        trimmedKeyword.contains('unused_import') ||
+        trimmedKeyword.contains('unnecessary_null_comparison') ||
+        trimmedKeyword.contains('unnecessary_non_null_assertion') ||
+        trimmedKeyword.length > 500) {
+      debugPrint('⚠️ 비정상적인 검색 키워드 감지: ${trimmedKeyword.length > 100 ? trimmedKeyword.substring(0, 100) + "..." : trimmedKeyword}');
+      return AddressSearchResult(
+        fullData: [],
+        addresses: [],
+        totalCount: 0,
+        errorMessage: '올바른 주소를 입력해주세요.',
+      );
+    }
+    
+    if (trimmedKeyword.length < 2) {
+      debugPrint('키워드가 너무 짧습니다: ${trimmedKeyword.length}자');
       return AddressSearchResult(
         fullData: [],
         addresses: [],
@@ -60,7 +94,7 @@ class AddressService {
         '${ApiConstants.baseJusoUrl}'
         '?currentPage=$page'
         '&countPerPage=${ApiConstants.pageSize}'
-        '&keyword=${Uri.encodeComponent(keyword)}'
+        '&keyword=${Uri.encodeComponent(trimmedKeyword)}'
         '&confmKey=$apiKey'
         '&resultType=json',
       );
@@ -70,7 +104,7 @@ class AddressService {
       debugPrint('요청 파라미터:');
       debugPrint('  - currentPage: $page');
       debugPrint('  - countPerPage: ${ApiConstants.pageSize}');
-      debugPrint('  - keyword: $keyword');
+      debugPrint('  - keyword: $trimmedKeyword');
       debugPrint('  - confmKey: ${apiKey.isNotEmpty ? "${apiKey.substring(0, apiKey.length > 10 ? 10 : apiKey.length)}..." : "(비어있음)"}');
       debugPrint('  - resultType: json');
       debugPrint('최종 URI: ${uri.toString().replaceAll(apiKey, '***API_KEY***')}');

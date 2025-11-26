@@ -314,7 +314,7 @@ class _AdminBrokerManagementState extends State<AdminBrokerManagement> {
                       ),
                       const SizedBox(height: 4),
                       Text(
-                        '대표자: $ownerName',
+                        '중개업자명: $ownerName',
                         style: TextStyle(
                           fontSize: 14,
                           color: Colors.grey[600],

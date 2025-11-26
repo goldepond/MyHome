@@ -89,6 +89,10 @@ class ApiConstants {
 
   // 네이버 지도 API
   static String get naverMapClientId => _getEnv('NAVER_MAP_CLIENT_ID');
+  
+  // 서울시 Open API
+  static String get seoulOpenApiKey => _getEnv('SEOUL_OPEN_API_KEY');
+  static const String seoulGlobalBrokerBaseUrl = 'http://openapi.seoul.go.kr:8088';
 }
 
 // dotenv 안전 접근 헬퍼 함수
@@ -106,6 +110,7 @@ String _getEnv(String key) {
       'CODEF_CLIENT_SECRET': String.fromEnvironment('CODEF_CLIENT_SECRET', defaultValue: ''),
       'CODEF_PUBLIC_KEY': String.fromEnvironment('CODEF_PUBLIC_KEY', defaultValue: ''),
       'REGISTER_API_KEY': String.fromEnvironment('REGISTER_API_KEY', defaultValue: ''),
+      'SEOUL_OPEN_API_KEY': String.fromEnvironment('SEOUL_OPEN_API_KEY', defaultValue: ''),
     };
     
     final value = webApiKeys[key] ?? '';
@@ -153,6 +158,15 @@ String _getEnv(String key) {
       // 발급일: 2025-09-25, 만료일: 2026-03-25
       if (value.isEmpty) {
         return 'FA0D6750-3DC2-3389-B8F1-0385C5976B96';
+      }
+      return value;
+    }
+    if (key == 'SEOUL_OPEN_API_KEY') {
+      // 서울시 Open API 키 (글로벌공인중개사무소 등)
+      // 사용자가 제공한 키 중 하나: 516b44654c676f6c313036564f4c4d66 (2025/10/28)
+      // 또는 다른 키 사용 가능
+      if (value.isEmpty) {
+        return '516b44654c676f6c313036564f4c4d66';
       }
       return value;
     }
