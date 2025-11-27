@@ -1000,14 +1000,11 @@ class _BrokerListPageState extends State<BrokerListPage> {
             )
           : null,
       floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
-      body: Center(
-        child: Container(
-          constraints: BoxConstraints(maxWidth: maxWidth),
-          child: CustomScrollView(
-            slivers: [
+      body: CustomScrollView(
+        slivers: [
           // 웹 스타일 헤더
           SliverAppBar(
-            expandedHeight: 200,
+            expandedHeight: 150,
             floating: false,
             pinned: true,
             backgroundColor: Colors.white,
@@ -1072,6 +1069,7 @@ class _BrokerListPageState extends State<BrokerListPage> {
             ],
             flexibleSpace: FlexibleSpaceBar(
               background: Container(
+                width: double.infinity,
                 decoration: const BoxDecoration(
                   gradient: AppGradients.primaryDiagonal,
                 ),
@@ -1083,26 +1081,26 @@ class _BrokerListPageState extends State<BrokerListPage> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const SizedBox(height: 40),
+                        const SizedBox(height: 12),
                         const Row(
                           children: [
-                            Icon(Icons.business, color: Colors.white, size: 40),
-                            SizedBox(width: 16),
+                            Icon(Icons.business, color: Colors.white, size: 28),
+                            SizedBox(width: 10),
                             Text(
                               '주변 공인중개사 찾기',
                               style: TextStyle(
-                                fontSize: 32,
+                                fontSize: 20,
                                 fontWeight: FontWeight.bold,
                                 color: Colors.white,
                               ),
                             ),
                           ],
                         ),
-                        const SizedBox(height: 12),
+                        const SizedBox(height: 6),
                         Text(
                           '선택한 주소 주변의 공인중개사 정보를 확인하세요',
                           style: TextStyle(
-                            fontSize: 16,
+                            fontSize: 13,
                             color: Colors.white.withValues(alpha: 0.9),
                           ),
                         ),
@@ -1116,11 +1114,14 @@ class _BrokerListPageState extends State<BrokerListPage> {
 
           // 1. 히어로 섹션 및 필터 UI (SliverToBoxAdapter)
           SliverToBoxAdapter(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24),
-              child: Padding(
-                padding: const EdgeInsets.only(top: 24, bottom: 0),
-                  child: Column(
+            child: Center(
+              child: Container(
+                constraints: BoxConstraints(maxWidth: maxWidth),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  child: Padding(
+                    padding: const EdgeInsets.only(top: 24, bottom: 0),
+                    child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       _buildHeroSection(context, maxWidth),
@@ -1490,13 +1491,17 @@ class _BrokerListPageState extends State<BrokerListPage> {
                   ),
                 ),
               ),
+            ),
+          ),
           ),
 
           // 2. 리스트 (SliverMasonryGrid) - Lazy Loading 적용
           if (!isLoading && error == null && brokers.isNotEmpty && filteredBrokers.isNotEmpty)
             SliverPadding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: 24,
+              padding: EdgeInsets.symmetric(
+                horizontal: MediaQuery.of(context).size.width > maxWidth 
+                    ? (MediaQuery.of(context).size.width - maxWidth) / 2 + 24
+                    : 24,
                 vertical: 0,
               ),
               sliver: SliverMasonryGrid.count(
@@ -1514,20 +1519,23 @@ class _BrokerListPageState extends State<BrokerListPage> {
           // 3. 하단 여백 및 페이지네이션
           if (!isLoading && error == null && brokers.isNotEmpty && filteredBrokers.isNotEmpty)
             SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.all(24),
-                child: Column(
-                  children: [
-                    const SizedBox(height: 16),
-                    _buildPaginationControls(),
-                    const SizedBox(height: 40),
-                  ],
+              child: Center(
+                child: Container(
+                  constraints: BoxConstraints(maxWidth: maxWidth),
+                  child: Padding(
+                    padding: const EdgeInsets.all(24),
+                    child: Column(
+                      children: [
+                        const SizedBox(height: 16),
+                        _buildPaginationControls(),
+                        const SizedBox(height: 40),
+                      ],
+                    ),
+                  ),
                 ),
               ),
             ),
         ],
-          ),
-        ),
       ),
     );
   }
@@ -2879,7 +2887,7 @@ class _BrokerListPageState extends State<BrokerListPage> {
     }
   }
 
-  /// 비대면 견적 문의 (매도자 입찰카드)
+  /// 비대면 견적 문의 (중개 상담 요청서)
   void _requestQuote(Broker broker) {
     if (!_isLoggedIn) {
       _showLoginRequiredDialog(broker);
@@ -2961,7 +2969,7 @@ class _BrokerListPageState extends State<BrokerListPage> {
           brokerRegistrationNumber: broker.registrationNumber,
           brokerRoadAddress: broker.roadAddress,
           brokerJibunAddress: broker.jibunAddress,
-          message: '매도자 입찰카드 제안 요청',
+          message: '중개 상담 요청서',
           status: 'pending',
           requestDate: DateTime.now(),
           propertyType: result['propertyType'],
@@ -3062,7 +3070,7 @@ class _BrokerListPageState extends State<BrokerListPage> {
           brokerRegistrationNumber: broker.registrationNumber,
           brokerRoadAddress: broker.roadAddress,
           brokerJibunAddress: broker.jibunAddress,
-          message: '매도자 입찰카드 제안 요청',
+          message: '중개 상담 요청서',
           status: 'pending',
           requestDate: DateTime.now(),
           propertyType: result['propertyType'],
@@ -3123,7 +3131,7 @@ class _BrokerListPageState extends State<BrokerListPage> {
   }
 }
 
-/// 견적문의 폼 페이지 (매도자 입찰카드)
+/// 견적문의 폼 페이지 (중개 상담 요청서)
 class _QuoteRequestFormPage extends StatefulWidget {
   final Broker broker;
   final String userName;
@@ -3152,7 +3160,7 @@ class _QuoteRequestFormPageState extends State<_QuoteRequestFormPage> {
   late String propertyAddress;
   late String propertyArea; // 자동 입력됨
   
-  // 3️⃣ 특이사항 (판매자 입력)
+  // 3️⃣ 추가 정보 (판매자 입력)
   bool hasTenant = false;
   final TextEditingController _desiredPriceController = TextEditingController();
   final TextEditingController _targetPeriodController = TextEditingController();
@@ -3179,7 +3187,7 @@ class _QuoteRequestFormPageState extends State<_QuoteRequestFormPage> {
     return Scaffold(
       backgroundColor: const Color(0xFFE8EAF0), // 배경을 더 진하게
       appBar: AppBar(
-        title: const Text('매도자 입찰카드'),
+        title: const Text('중개 상담 요청서'),
         backgroundColor: AppColors.kPrimary,
         foregroundColor: Colors.white,
         elevation: 0,
@@ -3191,7 +3199,7 @@ class _QuoteRequestFormPageState extends State<_QuoteRequestFormPage> {
           children: [
             // 제목
             const Text(
-              '🏠 중개 제안 요청서',
+              '🏠 중개 상담 요청서',
               style: TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
@@ -3266,8 +3274,8 @@ class _QuoteRequestFormPageState extends State<_QuoteRequestFormPage> {
             
             const SizedBox(height: 24),
             
-            // ========== 3️⃣ 특이사항 (선택 입력) ==========
-            _buildSectionTitle('특이사항', '선택 입력', Colors.orange),
+            // ========== 3️⃣ 추가 정보 (선택 입력) ==========
+            _buildSectionTitle('추가 정보', '선택 입력', Colors.orange),
             const SizedBox(height: 16),
             _buildCard([
               Row(
@@ -3310,17 +3318,10 @@ class _QuoteRequestFormPageState extends State<_QuoteRequestFormPage> {
               ),
               const SizedBox(height: 16),
               _buildTextField(
-                label: '목표기간',
-                controller: _targetPeriodController,
-                hint: '예: 2~3개월 내',
-                keyboardType: TextInputType.text,
-              ),
-              const SizedBox(height: 16),
-              _buildTextField(
-                label: '특이사항 (300자 이내)',
+                label: '추가 정보 (300자 이내)',
                 controller: _specialNotesController,
-                hint: '기타 요청사항이나 특이사항을 입력하세요',
-                maxLines: 4,
+                hint: '기타 요청사항이나 추가 정보를 입력하세요',
+                maxLines: 8,
                 maxLength: 300,
               ),
             ]),
@@ -3604,7 +3605,7 @@ class _QuoteRequestFormPageState extends State<_QuoteRequestFormPage> {
       brokerRegistrationNumber: widget.broker.registrationNumber,
       brokerRoadAddress: widget.broker.roadAddress,
       brokerJibunAddress: widget.broker.jibunAddress,
-      message: '매도자 입찰카드 제안 요청',
+      message: '중개 상담 요청서',
                   status: 'pending',
                   requestDate: DateTime.now(),
       consentAgreed: true,
@@ -3613,10 +3614,10 @@ class _QuoteRequestFormPageState extends State<_QuoteRequestFormPage> {
       propertyType: propertyType,
       propertyAddress: propertyAddress,
       propertyArea: propertyArea != '정보 없음' ? propertyArea : null,
-      // 3️⃣ 특이사항
+      // 3️⃣ 추가 정보
       hasTenant: hasTenant,
       desiredPrice: _desiredPriceController.text.trim().isNotEmpty ? _desiredPriceController.text.trim() : null,
-      targetPeriod: _targetPeriodController.text.trim().isNotEmpty ? _targetPeriodController.text.trim() : null,
+      targetPeriod: null, // 목표기간은 전자계약 이후 단계에서 사용
       specialNotes: _specialNotesController.text.trim().isNotEmpty ? _specialNotesController.text.trim() : null,
     );
     
@@ -3691,7 +3692,7 @@ class _MultipleQuoteRequestDialogState extends State<_MultipleQuoteRequestDialog
   // 1️⃣ 기본정보 (자동)
   String propertyType = '아파트';
   
-  // 3️⃣ 특이사항 (판매자 입력)
+  // 3️⃣ 추가 정보 (판매자 입력)
   bool hasTenant = false;
   final TextEditingController _desiredPriceController = TextEditingController();
   final TextEditingController _specialNotesController = TextEditingController();
@@ -3978,10 +3979,10 @@ class _MultipleQuoteRequestDialogState extends State<_MultipleQuoteRequestDialog
                 ),
                 const SizedBox(height: 12),
                 
-                // 특이사항
+                // 추가 정보
                 TextFormField(
                   controller: _specialNotesController,
-                  decoration: _buildInputDecoration('특이사항 및 기타 요청사항 (선택)', hint: '기타 요청사항을 입력하세요'),
+                  decoration: _buildInputDecoration('추가 정보 및 기타 요청사항 (선택)', hint: '기타 요청사항을 입력하세요'),
                   maxLines: 6,
                   maxLength: 500,
                 ),

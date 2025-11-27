@@ -1,7 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
-/// 견적문의 모델 (매도자 입찰카드)
+/// 견적문의 모델 (중개 상담 요청서)
 class QuoteRequest {
   final String id;
   final String userId;
