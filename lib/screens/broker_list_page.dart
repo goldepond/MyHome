@@ -63,11 +63,10 @@ class _BrokerListPageState extends State<BrokerListPage> {
   
   String searchKeyword = '';
   bool showOnlyWithPhone = false;
-  bool showOnlyOpen = false;
   bool showOnlyGlobalBroker = false;
   final TextEditingController _searchController = TextEditingController();
   
-  String _sortOption = 'systemRegNo';
+  String _sortOption = 'distance';
   
   bool _isSelectionMode = false;
   Set<String> _selectedBrokerIds = {};
@@ -766,13 +765,6 @@ class _BrokerListPageState extends State<BrokerListPage> {
           }
         }
         
-        // 영업상태 필터
-        if (showOnlyOpen) {
-          if (broker.businessStatus == null || 
-              broker.businessStatus != '영업중') {
-            return false;
-          }
-        }
         
         // 글로벌공인중개사 필터
         if (showOnlyGlobalBroker) {
@@ -794,7 +786,6 @@ class _BrokerListPageState extends State<BrokerListPage> {
       params: {
         'searchKeyword': searchKeyword,
         'showOnlyWithPhone': showOnlyWithPhone,
-        'showOnlyOpen': showOnlyOpen,
         'showOnlyGlobalBroker': showOnlyGlobalBroker,
         'sortOption': _sortOption,
         'resultCount': filteredBrokers.length,
@@ -1418,30 +1409,6 @@ class _BrokerListPageState extends State<BrokerListPage> {
                                     label: const Row(
                                       mainAxisSize: MainAxisSize.min,
                                       children: [
-                                        Icon(Icons.check_circle, size: 16),
-                                        SizedBox(width: 4),
-                                        Text('영업중'),
-                                      ],
-                                    ),
-                                    selected: showOnlyOpen,
-                                    onSelected: (selected) {
-                                      setState(() {
-                                        showOnlyOpen = selected;
-                                        _applyFilters();
-                                      });
-                                    },
-                                    selectedColor: Colors.green.withValues(alpha: 0.2),
-                                    checkmarkColor: Colors.green,
-                                    backgroundColor: Colors.grey[100],
-                                    labelStyle: TextStyle(
-                                      color: showOnlyOpen ? Colors.green[700] : Colors.grey[700],
-                                      fontWeight: showOnlyOpen ? FontWeight.bold : FontWeight.normal,
-                                    ),
-                                  ),
-                                  FilterChip(
-                                    label: const Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
                                         Icon(Icons.language, size: 16),
                                         SizedBox(width: 4),
                                         Text('글로벌공인중개사'),
@@ -1462,7 +1429,7 @@ class _BrokerListPageState extends State<BrokerListPage> {
                                       fontWeight: showOnlyGlobalBroker ? FontWeight.bold : FontWeight.normal,
                                     ),
                                   ),
-                                  if (showOnlyWithPhone || showOnlyOpen || showOnlyGlobalBroker || searchKeyword.isNotEmpty)
+                                  if (showOnlyWithPhone || showOnlyGlobalBroker || searchKeyword.isNotEmpty)
                                     ActionChip(
                                       label: const Row(
                                         mainAxisSize: MainAxisSize.min,
@@ -1475,7 +1442,6 @@ class _BrokerListPageState extends State<BrokerListPage> {
                                       onPressed: () {
                                         setState(() {
                                           showOnlyWithPhone = false;
-                                          showOnlyOpen = false;
                                           showOnlyGlobalBroker = false;
                                           searchKeyword = '';
                                           _searchController.clear();
@@ -2430,7 +2396,6 @@ class _BrokerListPageState extends State<BrokerListPage> {
               onPressed: () {
                 setState(() {
                   showOnlyWithPhone = false;
-                  showOnlyOpen = false;
                   showOnlyGlobalBroker = false;
                   searchKeyword = '';
                   _searchController.clear();
