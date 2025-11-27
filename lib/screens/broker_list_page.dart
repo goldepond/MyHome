@@ -526,6 +526,7 @@ class _BrokerListPageState extends State<BrokerListPage> {
     });
 
     try {
+      // 1단계: VWorld API 결과 먼저 가져오기
       final response = await BrokerService.searchNearbyBrokers(
         latitude: widget.latitude,
         longitude: widget.longitude,
@@ -535,101 +536,7 @@ class _BrokerListPageState extends State<BrokerListPage> {
       // 기본 결과 복사
       List<Broker> mergedBrokers = List<Broker>.from(response.brokers);
 
-      // ===================== Firestore 데이터로 보강 =====================
-      // VWorld API 결과와 Firestore의 brokers 컬렉션을 병합하여
-      // 공인중개사가 수정한 정보(전화번호, 사무소명 등)가 반영되도록 함
-      try {
-        // 등록번호 목록 수집
-        final registrationNumbers = mergedBrokers
-            .where((b) => b.registrationNumber.isNotEmpty)
-            .map((b) => b.registrationNumber)
-            .toSet()
-            .toList();
-        
-        // 배치로 Firestore에서 조회 (성능 최적화)
-        final Map<String, Map<String, dynamic>> firestoreDataMap = {};
-        if (registrationNumbers.isNotEmpty) {
-          // Firestore에서 등록번호별로 조회 (배치 처리)
-          final futures = registrationNumbers.map((regNo) async {
-            final data = await _firebaseService.getBrokerByRegistrationNumber(regNo);
-            return MapEntry(regNo, data);
-          });
-          
-          final results = await Future.wait(futures);
-          for (final entry in results) {
-            if (entry.value != null) {
-              firestoreDataMap[entry.key] = entry.value!;
-            }
-          }
-        }
-        
-        // Firestore 데이터로 보강
-        final enhancedBrokers = mergedBrokers.map((broker) {
-          if (broker.registrationNumber.isEmpty) {
-            return broker; // 등록번호 없으면 그대로
-          }
-          
-          final firestoreData = firestoreDataMap[broker.registrationNumber];
-          if (firestoreData == null) {
-            return broker; // Firestore에 없으면 그대로
-          }
-          
-          // Firestore에 저장된 정보로 보강 (우선순위: Firestore > VWorld API)
-          return Broker(
-            name: (firestoreData['businessName'] as String?) ?? 
-                  (firestoreData['ownerName'] as String?) ?? 
-                  broker.name,
-            roadAddress: (firestoreData['roadAddress'] as String?) ?? 
-                        (firestoreData['address'] as String?) ?? 
-                        broker.roadAddress,
-            jibunAddress: broker.jibunAddress,
-            registrationNumber: broker.registrationNumber,
-            etcAddress: broker.etcAddress,
-            employeeCount: broker.employeeCount,
-            registrationDate: broker.registrationDate,
-            latitude: broker.latitude,
-            longitude: broker.longitude,
-            distance: broker.distance,
-            systemRegNo: broker.systemRegNo,
-            ownerName: (firestoreData['ownerName'] as String?) ?? broker.ownerName,
-            businessName: (firestoreData['businessName'] as String?) ?? broker.businessName,
-            phoneNumber: (firestoreData['phoneNumber'] as String?) ?? 
-                        (firestoreData['phone'] as String?) ?? 
-                        broker.phoneNumber, // Firestore 우선
-            businessStatus: (firestoreData['businessStatus'] as String?) ?? 
-                           broker.businessStatus,
-            seoulAddress: broker.seoulAddress,
-            district: broker.district,
-            legalDong: broker.legalDong,
-            sggCode: broker.sggCode,
-            stdgCode: broker.stdgCode,
-            lotnoSe: broker.lotnoSe,
-            mno: broker.mno,
-            sno: broker.sno,
-            roadCode: broker.roadCode,
-            bldg: broker.bldg,
-            bmno: broker.bmno,
-            bsno: broker.bsno,
-            penaltyStartDate: broker.penaltyStartDate,
-            penaltyEndDate: broker.penaltyEndDate,
-            inqCount: broker.inqCount,
-            introduction: (firestoreData['introduction'] as String?) ?? 
-                         broker.introduction, // Firestore 우선
-          );
-        }).toList();
-        
-        mergedBrokers = enhancedBrokers;
-      } catch (e) {
-        // Firestore 보강 실패 시 원본 데이터 사용
-        debugPrint('Firestore 보강 실패: $e');
-      }
-      // ================================================================
-
       // ===================== 테스트 전용 중개사 주입 =====================
-      // Firestore `brokers` 컬렉션에 저장된 테스트 중개사(김이택)를
-      // 항상 목록에 포함시켜서 견적 요청/대시보드 플로우를 손쉽게 검증하기 위함입니다.
-      // 운영 환경에서는 _enableTestBroker 값을 false 로 변경하거나,
-      // 아래 블록 전체를 삭제하면 됩니다.
       if (_enableTestBroker) {
         try {
           final testData = await _firebaseService
@@ -691,6 +598,7 @@ class _BrokerListPageState extends State<BrokerListPage> {
       }
       // ================================================================
 
+      // 2단계: 즉시 UI에 표시 (Firestore 보강 전)
       if (!mounted) return;
 
       setState(() {
@@ -700,7 +608,7 @@ class _BrokerListPageState extends State<BrokerListPage> {
             response.wasExpanded || response.radiusMetersUsed > 1000;
         _sortBySystemRegNo(propertyBrokers);
         brokers = List<Broker>.from(propertyBrokers);
-        isLoading = false;
+        isLoading = false; // 즉시 로딩 종료
         _resetPagination();
         _applyFilters(); // 필터링 및 정렬 적용
       });
@@ -718,6 +626,9 @@ class _BrokerListPageState extends State<BrokerListPage> {
         userName: widget.userName,
         stage: FunnelStage.brokerDiscovery,
       );
+
+      // 3단계: 백그라운드에서 Firestore 데이터로 보강 (비동기)
+      _enhanceWithFirestoreData(mergedBrokers);
     } catch (e) {
       if (!mounted) return;
 
@@ -735,6 +646,100 @@ class _BrokerListPageState extends State<BrokerListPage> {
         userName: widget.userName,
         stage: FunnelStage.brokerDiscovery,
       );
+    }
+  }
+
+  /// Firestore 데이터로 백그라운드 보강
+  /// VWorld API 결과를 먼저 표시한 후, Firestore에 저장된 추가 정보로 보강
+  Future<void> _enhanceWithFirestoreData(List<Broker> brokers) async {
+    try {
+      // 등록번호 목록 수집
+      final registrationNumbers = brokers
+          .where((b) => b.registrationNumber.isNotEmpty)
+          .map((b) => b.registrationNumber)
+          .toSet()
+          .toList();
+
+      if (registrationNumbers.isEmpty) return;
+
+      // 배치로 Firestore에서 조회 (성능 최적화)
+      final firestoreDataMap = await _firebaseService
+          .getBrokersByRegistrationNumbers(registrationNumbers)
+          .timeout(
+            const Duration(seconds: 3),
+            onTimeout: () {
+              debugPrint('Firestore 조회 타임아웃');
+              return <String, Map<String, dynamic>>{};
+            },
+          );
+
+      // Firestore 데이터로 보강
+      final enhancedBrokers = brokers.map((broker) {
+        if (broker.registrationNumber.isEmpty) {
+          return broker; // 등록번호 없으면 그대로
+        }
+
+        final firestoreData = firestoreDataMap[broker.registrationNumber];
+        if (firestoreData == null) {
+          return broker; // Firestore에 없으면 그대로
+        }
+
+        // Firestore에 저장된 정보로 보강 (우선순위: Firestore > VWorld API)
+        return Broker(
+          name: (firestoreData['businessName'] as String?) ??
+              (firestoreData['ownerName'] as String?) ??
+              broker.name,
+          roadAddress: (firestoreData['roadAddress'] as String?) ??
+              (firestoreData['address'] as String?) ??
+              broker.roadAddress,
+          jibunAddress: broker.jibunAddress,
+          registrationNumber: broker.registrationNumber,
+          etcAddress: broker.etcAddress,
+          employeeCount: broker.employeeCount,
+          registrationDate: broker.registrationDate,
+          latitude: broker.latitude,
+          longitude: broker.longitude,
+          distance: broker.distance,
+          systemRegNo: broker.systemRegNo,
+          ownerName: (firestoreData['ownerName'] as String?) ?? broker.ownerName,
+          businessName:
+              (firestoreData['businessName'] as String?) ?? broker.businessName,
+          phoneNumber: (firestoreData['phoneNumber'] as String?) ??
+              (firestoreData['phone'] as String?) ??
+              broker.phoneNumber, // Firestore 우선
+          businessStatus: (firestoreData['businessStatus'] as String?) ??
+              broker.businessStatus,
+          seoulAddress: broker.seoulAddress,
+          district: broker.district,
+          legalDong: broker.legalDong,
+          sggCode: broker.sggCode,
+          stdgCode: broker.stdgCode,
+          lotnoSe: broker.lotnoSe,
+          mno: broker.mno,
+          sno: broker.sno,
+          roadCode: broker.roadCode,
+          bldg: broker.bldg,
+          bmno: broker.bmno,
+          bsno: broker.bsno,
+          penaltyStartDate: broker.penaltyStartDate,
+          penaltyEndDate: broker.penaltyEndDate,
+          inqCount: broker.inqCount,
+          introduction: (firestoreData['introduction'] as String?) ??
+              broker.introduction, // Firestore 우선
+        );
+      }).toList();
+
+      if (!mounted) return;
+
+      setState(() {
+        propertyBrokers = enhancedBrokers;
+        _sortBySystemRegNo(propertyBrokers);
+        brokers = List<Broker>.from(propertyBrokers);
+        _applyFilters(); // 필터링 및 정렬 재적용
+      });
+    } catch (e) {
+      // Firestore 보강 실패 시 원본 데이터 유지 (이미 표시됨)
+      debugPrint('Firestore 보강 실패: $e');
     }
   }
   
@@ -2926,14 +2931,15 @@ class _BrokerListPageState extends State<BrokerListPage> {
     // filteredBrokers는 이미 선택된 정렬 옵션에 따라 정렬되어 있음
     final top10Brokers = filteredBrokers.take(10).toList();
     
-    // 일괄 견적 요청 다이얼로그 표시
-    final result = await showDialog<Map<String, dynamic>>(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) => _MultipleQuoteRequestDialog(
-        brokerCount: top10Brokers.length,
-        address: widget.address,
-        propertyArea: widget.propertyArea,
+    // 일괄 견적 요청 페이지 표시
+    final result = await Navigator.push<Map<String, dynamic>>(
+      context,
+      MaterialPageRoute(
+        builder: (context) => _MultipleQuoteRequestDialog(
+          brokerCount: top10Brokers.length,
+          address: widget.address,
+          propertyArea: widget.propertyArea,
+        ),
       ),
     );
     
@@ -2979,6 +2985,11 @@ class _BrokerListPageState extends State<BrokerListPage> {
           desiredPrice: result['desiredPrice'] as String?,
           targetPeriod: null,
           specialNotes: result['specialNotes'] as String?,
+          // 공인중개사에게 요청할 내용 (선택되지 않은 항목은 null)
+          commissionRate: result['requestCommissionRate'] == true ? '' : null,
+          recommendedPrice: result['requestRecommendedPrice'] == true ? '' : null,
+          promotionMethod: result['requestPromotionMethod'] == true ? '' : null,
+          recentCases: result['requestRecentCases'] == true ? '' : null,
         );
         
         final requestId = await _firebaseService.saveQuoteRequest(quoteRequest);
@@ -3037,14 +3048,15 @@ class _BrokerListPageState extends State<BrokerListPage> {
       return;
     }
     
-    // 일괄 견적 요청 다이얼로그 표시
-    final result = await showDialog<Map<String, dynamic>>(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) => _MultipleQuoteRequestDialog(
-        brokerCount: selectedBrokers.length,
-        address: widget.address,
-        propertyArea: widget.propertyArea,
+    // 일괄 견적 요청 페이지 표시
+    final result = await Navigator.push<Map<String, dynamic>>(
+      context,
+      MaterialPageRoute(
+        builder: (context) => _MultipleQuoteRequestDialog(
+          brokerCount: selectedBrokers.length,
+          address: widget.address,
+          propertyArea: widget.propertyArea,
+        ),
       ),
     );
     
@@ -3167,6 +3179,13 @@ class _QuoteRequestFormPageState extends State<_QuoteRequestFormPage> {
   final TextEditingController _specialNotesController = TextEditingController();
   bool _agreeToConsent = false;
   
+  // 공인중개사에게 요청할 내용 선택 (기본값: 모두 선택)
+  bool _requestCommissionRate = true;
+  bool _requestRecommendedPrice = true;
+  bool _requestPromotionMethod = true;
+  bool _requestRecentCases = true;
+  bool _isRequestInfoExpanded = true;
+  
   @override
   void initState() {
     super.initState();
@@ -3271,6 +3290,146 @@ class _QuoteRequestFormPageState extends State<_QuoteRequestFormPage> {
                 },
               ),
             ]),
+            
+            const SizedBox(height: 24),
+            
+            // ========== 2️⃣ 공인중개사에게 요청할 내용 ==========
+            Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    AppColors.kPrimary.withValues(alpha: 0.12),
+                    AppColors.kPrimary.withValues(alpha: 0.06),
+                  ],
+                ),
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(
+                  color: AppColors.kPrimary.withValues(alpha: 0.3),
+                  width: 2,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColors.kPrimary.withValues(alpha: 0.1),
+                    blurRadius: 8,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // 헤더 (클릭 가능)
+                  InkWell(
+                    onTap: () {
+                      setState(() {
+                        _isRequestInfoExpanded = !_isRequestInfoExpanded;
+                      });
+                    },
+                    borderRadius: const BorderRadius.vertical(top: Radius.circular(14)),
+                    child: Padding(
+                      padding: const EdgeInsets.all(18),
+                      child: Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: AppColors.kPrimary,
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: const Icon(
+                              Icons.info_outline,
+                              color: Colors.white,
+                              size: 20,
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Row(
+                              children: [
+                                Text(
+                                  '공인중개사에게 요청할 내용',
+                                  style: TextStyle(
+                                    fontSize: 17,
+                                    fontWeight: FontWeight.bold,
+                                    color: AppColors.kPrimary,
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                Text(
+                                  '선택 입력',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: Colors.grey[600],
+                                    fontWeight: FontWeight.normal,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          AnimatedRotation(
+                            turns: _isRequestInfoExpanded ? 0.5 : 0,
+                            duration: const Duration(milliseconds: 200),
+                            child: Icon(
+                              Icons.keyboard_arrow_down,
+                              color: AppColors.kPrimary,
+                              size: 24,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                  // 내용 (접기/펼치기)
+                  AnimatedCrossFade(
+                    firstChild: Padding(
+                      padding: const EdgeInsets.fromLTRB(18, 0, 18, 18),
+                      child: Column(
+                        children: [
+                          _buildRequestItem(
+                            '💰', 
+                            '수수료 제안율', 
+                            '중개 수수료율을 제안해주세요',
+                            _requestCommissionRate,
+                            (value) => setState(() => _requestCommissionRate = value),
+                          ),
+                          const SizedBox(height: 12),
+                          _buildRequestItem(
+                            '📊', 
+                            '권장 매도가', 
+                            '이 매물의 적정 매도가를 제안해주세요',
+                            _requestRecommendedPrice,
+                            (value) => setState(() => _requestRecommendedPrice = value),
+                          ),
+                          const SizedBox(height: 12),
+                          _buildRequestItem(
+                            '📢', 
+                            '홍보 방법', 
+                            '어떤 방식으로 매물을 홍보할지 알려주세요',
+                            _requestPromotionMethod,
+                            (value) => setState(() => _requestPromotionMethod = value),
+                          ),
+                          const SizedBox(height: 12),
+                          _buildRequestItem(
+                            '📋', 
+                            '최근 유사 거래 사례', 
+                            '비슷한 매물의 최근 거래 사례를 공유해주세요',
+                            _requestRecentCases,
+                            (value) => setState(() => _requestRecentCases = value),
+                          ),
+                        ],
+                      ),
+                    ),
+                    secondChild: const SizedBox.shrink(),
+                    crossFadeState: _isRequestInfoExpanded
+                        ? CrossFadeState.showFirst
+                        : CrossFadeState.showSecond,
+                    duration: const Duration(milliseconds: 200),
+                  ),
+                ],
+              ),
+            ),
             
             const SizedBox(height: 24),
             
@@ -3580,6 +3739,69 @@ class _QuoteRequestFormPageState extends State<_QuoteRequestFormPage> {
     );
   }
   
+  Widget _buildRequestItem(String emoji, String title, String description, bool value, ValueChanged<bool>? onChanged) {
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(
+          color: value 
+              ? AppColors.kPrimary.withValues(alpha: 0.3)
+              : AppColors.kPrimary.withValues(alpha: 0.2),
+          width: value ? 2 : 1,
+        ),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          if (onChanged != null) ...[
+            SizedBox(
+              width: 24,
+              height: 24,
+              child: Checkbox(
+                value: value,
+                onChanged: (v) => onChanged(v ?? false),
+                activeColor: AppColors.kPrimary,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+              ),
+            ),
+            const SizedBox(width: 12),
+          ],
+          Text(
+            emoji,
+            style: const TextStyle(fontSize: 24),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.kPrimary,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  description,
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: Colors.grey[700],
+                    height: 1.4,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+  
   /// 제출
   Future<void> _submitRequest() async {
     if (!_formKey.currentState!.validate()) {
@@ -3619,6 +3841,11 @@ class _QuoteRequestFormPageState extends State<_QuoteRequestFormPage> {
       desiredPrice: _desiredPriceController.text.trim().isNotEmpty ? _desiredPriceController.text.trim() : null,
       targetPeriod: null, // 목표기간은 전자계약 이후 단계에서 사용
       specialNotes: _specialNotesController.text.trim().isNotEmpty ? _specialNotesController.text.trim() : null,
+      // 공인중개사에게 요청할 내용 (선택되지 않은 항목은 null)
+      commissionRate: _requestCommissionRate ? '' : null,
+      recommendedPrice: _requestRecommendedPrice ? '' : null,
+      promotionMethod: _requestPromotionMethod ? '' : null,
+      recentCases: _requestRecentCases ? '' : null,
     );
     
     // Firebase 저장
@@ -3698,6 +3925,12 @@ class _MultipleQuoteRequestDialogState extends State<_MultipleQuoteRequestDialog
   final TextEditingController _specialNotesController = TextEditingController();
   bool _agreeToConsent = false;
   bool _isRequestInfoExpanded = true; // 요청 내용 섹션 접기/펼치기 상태
+  
+  // 공인중개사에게 요청할 내용 선택 (기본값: 모두 선택)
+  bool _requestCommissionRate = true;
+  bool _requestRecommendedPrice = true;
+  bool _requestPromotionMethod = true;
+  bool _requestRecentCases = true;
 
   @override
   void dispose() {
@@ -3708,148 +3941,162 @@ class _MultipleQuoteRequestDialogState extends State<_MultipleQuoteRequestDialog
 
   @override
   Widget build(BuildContext context) {
-    return AlertDialog(
-      backgroundColor: Colors.white,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-      titlePadding: EdgeInsets.zero,
-      title: Container(
-        padding: const EdgeInsets.fromLTRB(24, 24, 24, 16),
-        decoration: const BoxDecoration(
-          color: AppColors.kPrimary,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+    return Scaffold(
+      backgroundColor: const Color(0xFFE8EAF0),
+      appBar: AppBar(
+        title: Text(widget.brokerCount == 1 
+            ? '중개 상담 요청서'
+            : '${widget.brokerCount}곳에 중개 상담 요청'),
+        backgroundColor: AppColors.kPrimary,
+        foregroundColor: Colors.white,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          onPressed: () => Navigator.pop(context),
         ),
-        child: Row(
+      ),
+      body: Form(
+        key: _formKey,
+        child: ListView(
+          padding: const EdgeInsets.all(20),
           children: [
-            Container(
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.2),
-                borderRadius: BorderRadius.circular(12),
+            // 제목
+            Text(
+              widget.brokerCount == 1 
+                  ? '중개 상담 요청서'
+                  : '${widget.brokerCount}곳에 중개 상담 요청',
+              style: const TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+                color: Color(0xFF2C3E50),
               ),
-              child: const Icon(Icons.send_rounded, color: Colors.white, size: 24),
             ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    '${widget.brokerCount}곳에 견적 요청',
-                    style: const TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
+            const SizedBox(height: 8),
+            Text(
+              widget.brokerCount == 1
+                  ? '중개업자에게 정확한 정보를 전달하여 최적의 제안을 받으세요'
+                  : '선택한 중개사에게 일괄 전송됩니다',
+              style: TextStyle(
+                fontSize: 14,
+                color: Colors.grey[600],
+              ),
+            ),
+            
+            const SizedBox(height: 32),
+            
+            // ========== 1️⃣ 매물 정보 (자동 입력) ==========
+            _buildSectionTitle('매물 정보', '자동 입력됨', Colors.blue),
+            const SizedBox(height: 16),
+            _buildCard([
+              _buildInfoRow('주소', widget.address),
+              if (widget.propertyArea != null && widget.propertyArea != '정보 없음') ...[
+                const SizedBox(height: 12),
+                _buildInfoRow('면적', widget.propertyArea!),
+              ],
+            ]),
+            
+            const SizedBox(height: 24),
+            
+            // ========== 2️⃣ 매물 유형 (필수 입력) ==========
+            _buildSectionTitle('매물 유형', '필수 입력', Colors.green),
+            const SizedBox(height: 16),
+            _buildCard([
+              DropdownButtonFormField<String>(
+                initialValue: propertyType,
+                decoration: InputDecoration(
+                  hintText: '매물 유형을 선택하세요',
+                  hintStyle: TextStyle(color: Colors.grey[400]),
+                  filled: true,
+                  fillColor: Colors.white,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(color: Colors.grey[300]!, width: 1.5),
                   ),
-                  const SizedBox(height: 4),
-                  Text(
-                    '선택한 중개사에게 일괄 전송됩니다',
-                    style: TextStyle(
-                      fontSize: 13,
-                      color: Colors.white.withValues(alpha: 0.9),
-                      fontWeight: FontWeight.w500,
-                    ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(color: Colors.grey[300]!, width: 1.5),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: const BorderSide(color: AppColors.kPrimary, width: 2.5),
+                  ),
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                ),
+                items: const [
+                  DropdownMenuItem(value: '아파트', child: Text('아파트')),
+                  DropdownMenuItem(value: '오피스텔', child: Text('오피스텔')),
+                  DropdownMenuItem(value: '원룸', child: Text('원룸')),
+                  DropdownMenuItem(value: '다세대', child: Text('다세대')),
+                  DropdownMenuItem(value: '주택', child: Text('주택')),
+                  DropdownMenuItem(value: '상가', child: Text('상가')),
+                  DropdownMenuItem(value: '기타', child: Text('기타')),
+                ],
+                onChanged: (value) {
+                  setState(() {
+                    propertyType = value ?? '아파트';
+                  });
+                },
+              ),
+            ]),
+            
+            const SizedBox(height: 24),
+            
+            // 공인중개사에게 요청할 내용 안내 (접기/펼치기 가능)
+            Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    AppColors.kPrimary.withValues(alpha: 0.12),
+                    AppColors.kPrimary.withValues(alpha: 0.06),
+                  ],
+                ),
+                borderRadius: BorderRadius.circular(14),
+                border: Border.all(
+                  color: AppColors.kPrimary.withValues(alpha: 0.3),
+                  width: 2,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColors.kPrimary.withValues(alpha: 0.1),
+                    blurRadius: 8,
+                    offset: const Offset(0, 4),
                   ),
                 ],
               ),
-            ),
-          ],
-        ),
-      ),
-      contentPadding: const EdgeInsets.fromLTRB(24, 20, 24, 0),
-      content: Container(
-        width: 500, // 적절한 너비 제한
-        color: Colors.white,
-        child: Form(
-          key: _formKey,
-          child: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // 매물 정보 요약 카드
-                Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: Colors.grey[50],
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: Colors.grey[300]!, width: 1.5),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.05),
-                        blurRadius: 4,
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      _buildSummaryRow(Icons.location_on_outlined, widget.address),
-                      if (widget.propertyArea != null && widget.propertyArea != '정보 없음') ...[
-                        const SizedBox(height: 8),
-                        _buildSummaryRow(Icons.square_foot_outlined, widget.propertyArea!),
-                      ],
-                    ],
-                  ),
-                ),
-                
-                const SizedBox(height: 24),
-                
-                // 공인중개사에게 요청할 내용 안내 (접기/펼치기 가능)
-                Container(
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: [
-                        AppColors.kPrimary.withValues(alpha: 0.12),
-                        AppColors.kPrimary.withValues(alpha: 0.06),
-                      ],
-                    ),
-                    borderRadius: BorderRadius.circular(14),
-                    border: Border.all(
-                      color: AppColors.kPrimary.withValues(alpha: 0.3),
-                      width: 2,
-                    ),
-                    boxShadow: [
-                      BoxShadow(
-                        color: AppColors.kPrimary.withValues(alpha: 0.1),
-                        blurRadius: 8,
-                        offset: const Offset(0, 4),
-                      ),
-                    ],
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // 헤더 (클릭 가능)
-                      InkWell(
-                        onTap: () {
-                          setState(() {
-                            _isRequestInfoExpanded = !_isRequestInfoExpanded;
-                          });
-                        },
-                        borderRadius: const BorderRadius.vertical(top: Radius.circular(14)),
-                        child: Padding(
-                          padding: const EdgeInsets.all(18),
-                          child: Row(
-                            children: [
-                              Container(
-                                padding: const EdgeInsets.all(8),
-                                decoration: BoxDecoration(
-                                  color: AppColors.kPrimary,
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                child: const Icon(
-                                  Icons.info_outline,
-                                  color: Colors.white,
-                                  size: 20,
-                                ),
-                              ),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                child: Text(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // 헤더 (클릭 가능)
+                  InkWell(
+                    onTap: () {
+                      setState(() {
+                        _isRequestInfoExpanded = !_isRequestInfoExpanded;
+                      });
+                    },
+                    borderRadius: const BorderRadius.vertical(top: Radius.circular(14)),
+                    child: Padding(
+                      padding: const EdgeInsets.all(18),
+                      child: Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: AppColors.kPrimary,
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: const Icon(
+                              Icons.info_outline,
+                              color: Colors.white,
+                              size: 20,
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Row(
+                              children: [
+                                Text(
                                   '공인중개사에게 요청할 내용',
                                   style: TextStyle(
                                     fontSize: 17,
@@ -3857,202 +4104,199 @@ class _MultipleQuoteRequestDialogState extends State<_MultipleQuoteRequestDialog
                                     color: AppColors.kPrimary,
                                   ),
                                 ),
-                              ),
-                              AnimatedRotation(
-                                turns: _isRequestInfoExpanded ? 0.5 : 0,
-                                duration: const Duration(milliseconds: 200),
-                                child: Icon(
-                                  Icons.keyboard_arrow_down,
-                                  color: AppColors.kPrimary,
-                                  size: 24,
+                                const SizedBox(width: 8),
+                                Text(
+                                  '선택 입력',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: Colors.grey[600],
+                                    fontWeight: FontWeight.normal,
+                                  ),
                                 ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
-                        ),
-                      ),
-                      // 내용 (접기/펼치기)
-                      AnimatedCrossFade(
-                        firstChild: Padding(
-                          padding: const EdgeInsets.fromLTRB(18, 0, 18, 18),
-                          child: Column(
-                            children: [
-                              _buildRequestItem('💰', '수수료 제안율', '중개 수수료율을 제안해주세요'),
-                              const SizedBox(height: 12),
-                              _buildRequestItem('📊', '권장 매도가', '이 매물의 적정 매도가를 제안해주세요'),
-                              const SizedBox(height: 12),
-                              _buildRequestItem('📢', '홍보 방법', '어떤 방식으로 매물을 홍보할지 알려주세요'),
-                              const SizedBox(height: 12),
-                              _buildRequestItem('📋', '최근 유사 거래 사례', '비슷한 매물의 최근 거래 사례를 공유해주세요'),
-                            ],
+                          AnimatedRotation(
+                            turns: _isRequestInfoExpanded ? 0.5 : 0,
+                            duration: const Duration(milliseconds: 200),
+                            child: Icon(
+                              Icons.keyboard_arrow_down,
+                              color: AppColors.kPrimary,
+                              size: 24,
+                            ),
                           ),
-                        ),
-                        secondChild: const SizedBox.shrink(),
-                        crossFadeState: _isRequestInfoExpanded
-                            ? CrossFadeState.showFirst
-                            : CrossFadeState.showSecond,
-                        duration: const Duration(milliseconds: 200),
-                      ),
-                    ],
-                  ),
-                ),
-                
-                const SizedBox(height: 24),
-                
-                // 입력 폼 섹션
-                const Text(
-                  '매물 상세 정보',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFF2C3E50),
-                  ),
-                ),
-                const SizedBox(height: 16),
-                
-                // 매물 유형 선택
-                Container(
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: Colors.grey[300]!, width: 1.5),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.03),
-                        blurRadius: 4,
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
-                  ),
-                  child: DropdownButtonFormField<String>(
-                    value: propertyType,
-                    decoration: _buildInputDecoration('매물 유형'),
-                    items: const [
-                    DropdownMenuItem(value: '아파트', child: Text('아파트')),
-                    DropdownMenuItem(value: '오피스텔', child: Text('오피스텔')),
-                    DropdownMenuItem(value: '원룸', child: Text('원룸')),
-                    DropdownMenuItem(value: '다세대', child: Text('다세대')),
-                    DropdownMenuItem(value: '주택', child: Text('주택')),
-                    DropdownMenuItem(value: '상가', child: Text('상가')),
-                    DropdownMenuItem(value: '기타', child: Text('기타')),
-                  ],
-                  onChanged: (value) => setState(() => propertyType = value!),
-                  ),
-                ),
-                const SizedBox(height: 12),
-                
-                // 세입자 여부 스위치
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    border: Border.all(color: Colors.grey[300]!, width: 1.5),
-                    borderRadius: BorderRadius.circular(12),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.03),
-                        blurRadius: 4,
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
-                  ),
-                  child: Row(
-                    children: [
-                      const Icon(Icons.person_outline, size: 20, color: Colors.grey),
-                      const SizedBox(width: 12),
-                      const Text('세입자 거주 중', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w500)),
-                      const Spacer(),
-                      Switch(
-                        value: hasTenant,
-                        onChanged: (v) => setState(() => hasTenant = v),
-                        activeColor: AppColors.kPrimary,
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 12),
-                
-                // 희망가
-                TextFormField(
-                  controller: _desiredPriceController,
-                  decoration: _buildInputDecoration('희망가 (선택)', hint: '예: 11억'),
-                ),
-                const SizedBox(height: 12),
-                
-                // 추가 정보
-                TextFormField(
-                  controller: _specialNotesController,
-                  decoration: _buildInputDecoration('추가 정보 및 기타 요청사항 (선택)', hint: '기타 요청사항을 입력하세요'),
-                  maxLines: 6,
-                  maxLength: 500,
-                ),
-                
-                const SizedBox(height: 20),
-                
-                // 개인정보 동의
-                GestureDetector(
-                  onTap: () => setState(() => _agreeToConsent = !_agreeToConsent),
-                  child: Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: _agreeToConsent ? AppColors.kPrimary.withValues(alpha: 0.05) : Colors.transparent,
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(
-                        color: _agreeToConsent ? AppColors.kPrimary : Colors.grey[300]!,
+                        ],
                       ),
                     ),
-                    child: Row(
-                      children: [
-                        SizedBox(
-                          width: 24,
-                          height: 24,
-                          child: Checkbox(
-                            value: _agreeToConsent,
-                            onChanged: (v) => setState(() => _agreeToConsent = v ?? false),
-                            activeColor: AppColors.kPrimary,
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+                  ),
+                  // 내용 (접기/펼치기)
+                  AnimatedCrossFade(
+                    firstChild: Padding(
+                      padding: const EdgeInsets.fromLTRB(18, 0, 18, 18),
+                      child: Column(
+                        children: [
+                          _buildRequestItem(
+                            '💰', 
+                            '수수료 제안율', 
+                            '중개 수수료율을 제안해주세요',
+                            _requestCommissionRate,
+                            (value) => setState(() => _requestCommissionRate = value),
+                          ),
+                          const SizedBox(height: 12),
+                          _buildRequestItem(
+                            '📊', 
+                            '권장 매도가', 
+                            '이 매물의 적정 매도가를 제안해주세요',
+                            _requestRecommendedPrice,
+                            (value) => setState(() => _requestRecommendedPrice = value),
+                          ),
+                          const SizedBox(height: 12),
+                          _buildRequestItem(
+                            '📢', 
+                            '홍보 방법', 
+                            '어떤 방식으로 매물을 홍보할지 알려주세요',
+                            _requestPromotionMethod,
+                            (value) => setState(() => _requestPromotionMethod = value),
+                          ),
+                          const SizedBox(height: 12),
+                          _buildRequestItem(
+                            '📋', 
+                            '최근 유사 거래 사례', 
+                            '비슷한 매물의 최근 거래 사례를 공유해주세요',
+                            _requestRecentCases,
+                            (value) => setState(() => _requestRecentCases = value),
+                          ),
+                        ],
+                      ),
+                    ),
+                    secondChild: const SizedBox.shrink(),
+                    crossFadeState: _isRequestInfoExpanded
+                        ? CrossFadeState.showFirst
+                        : CrossFadeState.showSecond,
+                    duration: const Duration(milliseconds: 200),
+                  ),
+                ],
+              ),
+            ),
+            
+            const SizedBox(height: 24),
+            
+            // ========== 3️⃣ 추가 정보 (선택 입력) ==========
+            _buildSectionTitle('추가 정보', '선택 입력', Colors.orange),
+            const SizedBox(height: 16),
+            _buildCard([
+              Row(
+                children: [
+                  const Expanded(
+                    child: Text(
+                      '세입자 여부 *',
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600,
+                        color: Color(0xFF2C3E50),
+                      ),
+                    ),
+                  ),
+                  Switch(
+                    value: hasTenant,
+                    onChanged: (value) {
+                      setState(() {
+                        hasTenant = value;
+                      });
+                    },
+                    activeThumbColor: AppColors.kPrimary,
+                  ),
+                  Text(
+                    hasTenant ? '있음' : '없음',
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.grey[700],
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              _buildTextField(
+                label: '희망가',
+                controller: _desiredPriceController,
+                hint: '예: 11억 / 협의 가능',
+                keyboardType: TextInputType.text,
+              ),
+              const SizedBox(height: 16),
+              _buildTextField(
+                label: '추가 정보 (300자 이내)',
+                controller: _specialNotesController,
+                hint: '기타 요청사항이나 추가 정보를 입력하세요',
+                maxLines: 8,
+                maxLength: 300,
+              ),
+            ]),
+            
+            const SizedBox(height: 40),
+            
+            // 제출 버튼
+            // 동의 체크
+            _buildCard([
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Checkbox(
+                    value: _agreeToConsent,
+                    onChanged: (v) => setState(() => _agreeToConsent = v ?? false),
+                    activeColor: AppColors.kPrimary,
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: const [
+                        Text(
+                          '개인정보 제3자 제공 동의 (필수)',
+                          style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            color: Color(0xFF2C3E50),
                           ),
                         ),
-                        const SizedBox(width: 8),
-                        const Expanded(
-                          child: Text(
-                            '개인정보 제3자 제공 동의 (필수)',
-                            style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
-                          ),
+                        SizedBox(height: 4),
+                        Text(
+                          '선택한 공인중개사에게 문의 처리 목적의 최소한의 정보가 제공됩니다. '
+                          '자세한 내용은 내 정보 > 정책 및 도움말에서 확인할 수 있습니다.',
+                          style: TextStyle(fontSize: 12, color: AppColors.kTextSecondary, height: 1.5),
                         ),
+                        SizedBox(height: 6),
                       ],
                     ),
                   ),
-                ),
-                const SizedBox(height: 8),
-                const Text(
-                  '중개사에게 문의 처리를 위한 최소한의 정보가 제공됩니다.',
-                  style: TextStyle(fontSize: 12, color: Colors.grey),
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-      actionsPadding: const EdgeInsets.all(24),
-      actions: [
-        Row(
-          children: [
-            Expanded(
-              child: OutlinedButton(
-                onPressed: () => Navigator.pop(context),
-                style: OutlinedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                  side: BorderSide(color: Colors.grey[300]!),
-                  foregroundColor: Colors.grey[700],
-                ),
-                child: const Text('취소'),
+                ],
+              ),
+            ]),
+            const SizedBox(height: 16),
+            Align(
+              alignment: Alignment.centerLeft,
+              child: Wrap(
+                spacing: 8,
+                children: [
+                  TextButton(
+                    onPressed: () {
+                      Navigator.of(context).push(MaterialPageRoute(builder: (_) => const PrivacyPolicyPage()));
+                    },
+                    child: const Text('개인정보 처리방침 보기'),
+                  ),
+                  TextButton(
+                    onPressed: () {
+                      Navigator.of(context).push(MaterialPageRoute(builder: (_) => const TermsOfServicePage()));
+                    },
+                    child: const Text('이용약관 보기'),
+                  ),
+                ],
               ),
             ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: ElevatedButton(
+
+            SizedBox(
+              height: 60,
+              child: ElevatedButton.icon(
                 onPressed: () {
                   if (_formKey.currentState!.validate()) {
                     if (!_agreeToConsent) {
@@ -4060,7 +4304,6 @@ class _MultipleQuoteRequestDialogState extends State<_MultipleQuoteRequestDialog
                         const SnackBar(
                           content: Text('개인정보 제3자 제공 동의에 체크해주세요.'),
                           backgroundColor: Colors.red,
-                          behavior: SnackBarBehavior.floating,
                         ),
                       );
                       return;
@@ -4076,20 +4319,199 @@ class _MultipleQuoteRequestDialogState extends State<_MultipleQuoteRequestDialog
                           ? _specialNotesController.text.trim()
                           : null,
                       'consentAgreed': true,
+                      // 공인중개사에게 요청할 내용 선택
+                      'requestCommissionRate': _requestCommissionRate,
+                      'requestRecommendedPrice': _requestRecommendedPrice,
+                      'requestPromotionMethod': _requestPromotionMethod,
+                      'requestRecentCases': _requestRecentCases,
                     });
                   }
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.kPrimary,
                   foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                  elevation: 0,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  elevation: 6,
+                  shadowColor: AppColors.kPrimary.withValues(alpha: 0.4),
                 ),
-                child: const Text('견적 요청하기', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                icon: const Icon(Icons.send, size: 24),
+                label: Text(
+                  widget.brokerCount == 1 
+                      ? '중개 상담 요청 전송'
+                      : '${widget.brokerCount}곳에 중개 상담 요청 전송',
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 0.5,
+                  ),
+                ),
               ),
             ),
+            
+            const SizedBox(height: 20),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSectionTitle(String title, String subtitle, Color color) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: color.withValues(alpha: 0.4), width: 2),
+        boxShadow: [
+          BoxShadow(
+            color: color.withValues(alpha: 0.15),
+            blurRadius: 12,
+            offset: const Offset(0, 3),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.15),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Icon(Icons.info_outline, color: color, size: 24),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: color,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  subtitle,
+                  style: TextStyle(
+                    fontSize: 13,
+                    color: Colors.grey[600],
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCard(List<Widget> children) {
+    return Container(
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.grey[300]!, width: 1),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.1),
+            blurRadius: 24,
+            offset: const Offset(0, 6),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: children,
+      ),
+    );
+  }
+
+  Widget _buildInfoRow(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(
+            width: 80,
+            child: Text(
+              label,
+              style: TextStyle(
+                fontSize: 14,
+                color: Colors.grey[700],
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+          Expanded(
+            child: Text(
+              value,
+              style: const TextStyle(
+                fontSize: 14,
+                color: Color(0xFF2C3E50),
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTextField({
+    required String label,
+    required TextEditingController controller,
+    required String hint,
+    TextInputType? keyboardType,
+    int maxLines = 1,
+    int? maxLength,
+    String? suffix,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: const TextStyle(
+            fontSize: 15,
+            fontWeight: FontWeight.w600,
+            color: Color(0xFF2C3E50),
+          ),
+        ),
+        const SizedBox(height: 8),
+        TextFormField(
+          controller: controller,
+          keyboardType: keyboardType,
+          maxLines: maxLines,
+          maxLength: maxLength,
+          decoration: InputDecoration(
+            hintText: hint,
+            hintStyle: TextStyle(color: Colors.grey[400]),
+            suffixText: suffix,
+            filled: true,
+            fillColor: Colors.white,
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(color: Colors.grey[300]!, width: 1.5),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide(color: Colors.grey[300]!, width: 1.5),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: AppColors.kPrimary, width: 2.5),
+            ),
+            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          ),
         ),
       ],
     );
@@ -4139,20 +4561,35 @@ class _MultipleQuoteRequestDialogState extends State<_MultipleQuoteRequestDialog
     );
   }
 
-  Widget _buildRequestItem(String emoji, String title, String description) {
+  Widget _buildRequestItem(String emoji, String title, String description, bool value, ValueChanged<bool>? onChanged) {
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(10),
         border: Border.all(
-          color: AppColors.kPrimary.withValues(alpha: 0.2),
-          width: 1,
+          color: value 
+              ? AppColors.kPrimary.withValues(alpha: 0.3)
+              : AppColors.kPrimary.withValues(alpha: 0.2),
+          width: value ? 2 : 1,
         ),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          if (onChanged != null) ...[
+            SizedBox(
+              width: 24,
+              height: 24,
+              child: Checkbox(
+                value: value,
+                onChanged: (v) => onChanged(v ?? false),
+                activeColor: AppColors.kPrimary,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+              ),
+            ),
+            const SizedBox(width: 12),
+          ],
           Text(
             emoji,
             style: const TextStyle(fontSize: 24),
@@ -4187,4 +4624,5 @@ class _MultipleQuoteRequestDialogState extends State<_MultipleQuoteRequestDialog
     );
   }
 }
+
 

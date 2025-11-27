@@ -1698,6 +1698,42 @@ class FirebaseService {
     }
   }
 
+  /// 여러 공인중개사를 한 번에 조회 (배치 최적화)
+  /// Firestore의 'in' 쿼리를 사용하여 성능 향상
+  Future<Map<String, Map<String, dynamic>>> getBrokersByRegistrationNumbers(
+    List<String> registrationNumbers,
+  ) async {
+    try {
+      if (registrationNumbers.isEmpty) return {};
+      
+      final Map<String, Map<String, dynamic>> result = {};
+      const batchSize = 10; // Firestore 'in' 쿼리는 최대 10개까지만 지원
+      
+      // 10개씩 나누어 배치 조회
+      for (int i = 0; i < registrationNumbers.length; i += batchSize) {
+        final batch = registrationNumbers.skip(i).take(batchSize).toList();
+        
+        final querySnapshot = await _firestore
+            .collection(_brokersCollectionName)
+            .where('brokerRegistrationNumber', whereIn: batch)
+            .get();
+        
+        for (var doc in querySnapshot.docs) {
+          final data = doc.data();
+          final regNo = data['brokerRegistrationNumber'] as String?;
+          if (regNo != null) {
+            result[regNo] = data;
+          }
+        }
+      }
+      
+      return result;
+    } catch (e) {
+      debugPrint('배치 조회 실패: $e');
+      return {};
+    }
+  }
+
   /* =========================================== */
   /* 알림 관리 메서드들 */
   /* =========================================== */
