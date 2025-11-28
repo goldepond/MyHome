@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
-import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter/foundation.dart' show kIsWeb, debugPrint;
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:property/constants/app_constants.dart';
@@ -59,7 +59,7 @@ class _PropertyRegistrationFormPageState extends State<PropertyRegistrationFormP
   // 추가 정보
   final TextEditingController _descriptionController = TextEditingController();
 
-  // 사진 첨부 (필수)
+  // 사진 첨부 (선택)
   List<XFile> _selectedImages = [];
   List<String> _uploadedImageUrls = []; // 업로드된 이미지 URL
   bool _isUploadingImages = false;
@@ -274,7 +274,9 @@ class _PropertyRegistrationFormPageState extends State<PropertyRegistrationFormP
   /// 이미지 업로드 (Firebase Storage)
   /// [propertyId] 매물 ID (등록 전이면 null, 등록 후에는 실제 ID)
   Future<List<String>> _uploadImages({String? propertyId}) async {
-    if (_selectedImages.isEmpty) return [];
+    if (_selectedImages.isEmpty) {
+      return [];
+    }
 
     setState(() {
       _isUploadingImages = true;
@@ -298,8 +300,37 @@ class _PropertyRegistrationFormPageState extends State<PropertyRegistrationFormP
         });
       }
 
+      // 업로드 결과 확인
+      if (urls.length != _selectedImages.length) {
+        // 일부 이미지만 업로드된 경우
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('일부 이미지 업로드에 실패했습니다. (${urls.length}/${_selectedImages.length}개 성공)'),
+              backgroundColor: Colors.orange,
+              duration: const Duration(seconds: 3),
+            ),
+          );
+        }
+      } else if (urls.isNotEmpty) {
+        // 모든 이미지 업로드 성공
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('이미지 업로드가 완료되었습니다.'),
+              backgroundColor: Colors.green,
+              duration: Duration(seconds: 2),
+            ),
+          );
+        }
+      }
+
       return urls;
-    } catch (e) {
+    } catch (e, stackTrace) {
+      // 에러 상세 정보 로깅 (디버깅용)
+      debugPrint('이미지 업로드 오류: $e');
+      debugPrint('스택 트레이스: $stackTrace');
+      
       if (mounted) {
         setState(() {
           _isUploadingImages = false;
@@ -308,6 +339,7 @@ class _PropertyRegistrationFormPageState extends State<PropertyRegistrationFormP
           SnackBar(
             content: Text('이미지 업로드 중 오류가 발생했습니다: $e'),
             backgroundColor: Colors.red,
+            duration: const Duration(seconds: 5),
           ),
         );
       }
@@ -378,17 +410,6 @@ class _PropertyRegistrationFormPageState extends State<PropertyRegistrationFormP
       return;
     }
 
-    // 사진 필수 검증
-    if (_selectedImages.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('매물 사진을 최소 1장 이상 첨부해주세요.'),
-          backgroundColor: Colors.orange,
-        ),
-      );
-      return;
-    }
-
     // 가격 검증
     int? price;
     if (_transactionType == '매매') {
@@ -434,20 +455,37 @@ class _PropertyRegistrationFormPageState extends State<PropertyRegistrationFormP
     });
 
     try {
-      // 1. 이미지 업로드 (먼저 업로드)
-      final imageUrls = await _uploadImages();
-      if (imageUrls.isEmpty && _selectedImages.isNotEmpty) {
-        if (!mounted) return;
-        setState(() {
-          _isSubmitting = false;
-        });
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('이미지 업로드에 실패했습니다. 다시 시도해주세요.'),
-            backgroundColor: Colors.red,
-          ),
-        );
-        return;
+      // 1. 이미지 업로드 (선택사항 - 실패해도 계속 진행)
+      List<String> imageUrls = [];
+      if (_selectedImages.isNotEmpty) {
+        try {
+          imageUrls = await _uploadImages();
+          // 업로드 실패해도 경고만 표시하고 계속 진행 (사진은 선택사항)
+          if (imageUrls.isEmpty && _selectedImages.isNotEmpty) {
+            if (mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('이미지 업로드에 실패했습니다. 사진 없이 등록됩니다.'),
+                  backgroundColor: Colors.orange,
+                  duration: Duration(seconds: 3),
+                ),
+              );
+            }
+            imageUrls = [];
+          }
+        } catch (e) {
+          // 업로드 중 예외 발생해도 경고만 표시하고 계속 진행
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('이미지 업로드 중 오류가 발생했습니다. 사진 없이 등록됩니다.\n$e'),
+                backgroundColor: Colors.orange,
+                duration: const Duration(seconds: 4),
+              ),
+            );
+          }
+          imageUrls = [];
+        }
       }
 
       // 2. 면적 파싱
@@ -459,7 +497,37 @@ class _PropertyRegistrationFormPageState extends State<PropertyRegistrationFormP
       // 3. 이미지 URL을 JSON 문자열로 변환
       final imageUrlsJson = jsonEncode(imageUrls);
 
-      // 4. Property 객체 생성
+      // 4. brokerInfo 형식으로 변환 (brokers 컬렉션 필드명 → brokerInfo 필드명)
+      final brokerInfo = <String, dynamic>{
+        'uid': widget.brokerData['uid'],
+        'brokerId': widget.brokerData['brokerId'] ?? widget.brokerData['uid'],
+        'brokerName': widget.brokerData['ownerName'] ?? 
+                     widget.brokerData['businessName'] ?? 
+                     widget.brokerData['brokerName'] ?? 
+                     widget.brokerData['name'] ?? 
+                     '',
+        'broker_phone': widget.brokerData['phoneNumber'] ?? 
+                       widget.brokerData['phone'] ?? 
+                       widget.brokerData['broker_phone'] ?? 
+                       '',
+        'broker_office_name': widget.brokerData['businessName'] ?? 
+                             widget.brokerData['broker_office_name'] ?? 
+                             widget.brokerData['name'] ?? 
+                             '',
+        'broker_license_number': widget.brokerData['brokerRegistrationNumber'] ?? 
+                                widget.brokerData['registrationNumber'] ?? 
+                                widget.brokerData['broker_license_number'] ?? 
+                                '',
+        'broker_office_address': widget.brokerData['roadAddress'] ?? 
+                               widget.brokerData['address'] ?? 
+                               widget.brokerData['broker_office_address'] ?? 
+                               '',
+        'broker_introduction': widget.brokerData['introduction'] ?? 
+                             widget.brokerData['broker_introduction'] ?? 
+                             '',
+      };
+
+      // 5. Property 객체 생성
       final property = Property(
         address: widget.quote.propertyAddress ?? '',
         transactionType: _transactionType,
@@ -471,10 +539,10 @@ class _PropertyRegistrationFormPageState extends State<PropertyRegistrationFormP
         mainContractor: widget.quote.userName,
         contractor: '',
         registeredBy: widget.brokerData['uid'],
-        registeredByName: widget.brokerData['brokerName'],
+        registeredByName: brokerInfo['brokerName'] as String? ?? '',
         registeredByInfo: widget.brokerData,
-        brokerInfo: widget.brokerData,
-        brokerId: widget.brokerData['brokerId'] ?? widget.brokerData['uid'],
+        brokerInfo: brokerInfo,
+        brokerId: brokerInfo['brokerId'] as String? ?? widget.brokerData['uid'],
         buildingName: _buildingNameController.text.isNotEmpty ? _buildingNameController.text : null,
         buildingType: _buildingTypeController.text.isNotEmpty ? _buildingTypeController.text : widget.quote.propertyType,
         totalFloors: _totalFloorsController.text.isNotEmpty ? int.tryParse(_totalFloorsController.text) : null,
@@ -660,11 +728,11 @@ class _PropertyRegistrationFormPageState extends State<PropertyRegistrationFormP
                   ),
                   const SizedBox(height: 24),
 
-                  // 사진 첨부 섹션 (필수)
-                  _buildSectionTitle('매물 사진 *'),
+                  // 사진 첨부 섹션 (선택)
+                  _buildSectionTitle('매물 사진 (선택)'),
                   const SizedBox(height: 8),
                   Text(
-                    '매물 사진을 최소 1장 이상 첨부해주세요.',
+                    '매물 사진을 첨부해주세요. (선택사항)',
                     style: TextStyle(fontSize: 12, color: Colors.grey[600]),
                   ),
                   const SizedBox(height: 12),
@@ -905,9 +973,7 @@ class _PropertyRegistrationFormPageState extends State<PropertyRegistrationFormP
             ),
             style: OutlinedButton.styleFrom(
               side: BorderSide(
-                color: _selectedImages.isEmpty
-                    ? Colors.red
-                    : AppColors.kPrimary,
+                color: AppColors.kPrimary,
                 width: 2,
               ),
               shape: RoundedRectangleBorder(
@@ -917,17 +983,6 @@ class _PropertyRegistrationFormPageState extends State<PropertyRegistrationFormP
             ),
           ),
         ),
-        if (_selectedImages.isEmpty) ...[
-          const SizedBox(height: 8),
-          Text(
-            '※ 매물 사진은 필수입니다.',
-            style: TextStyle(
-              fontSize: 12,
-              color: Colors.red[600],
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-        ],
         const SizedBox(height: 16),
         // 선택된 사진 미리보기
         if (_selectedImages.isNotEmpty)
