@@ -11,6 +11,7 @@ import 'screens/inquiry/broker_inquiry_response_page.dart';
 import 'widgets/retry_view.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'utils/app_analytics_observer.dart';
+import 'utils/admin_page_loader_actual.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -119,6 +120,18 @@ class MyApp extends StatelessWidget {
       // URL 기반 라우팅
       initialRoute: '/',
       onGenerateRoute: (settings) {
+        // 관리자 페이지 라우팅 (조건부 로드)
+        // 관리자 페이지를 외부로 분리할 때는 AdminPageLoaderActual 파일을 삭제하면
+        // 자동으로 관리자 기능이 비활성화됩니다.
+        try {
+          final adminRoute = AdminPageLoaderActual.createAdminRoute(settings.name);
+          if (adminRoute != null) {
+            return adminRoute;
+          }
+        } catch (e) {
+          // 관리자 페이지 파일이 없는 경우 (외부로 분리된 경우)
+          print('⚠️ [Main] 관리자 페이지를 찾을 수 없습니다. 외부로 분리되었을 수 있습니다.');
+        }
         
         // 공인중개사용 답변 페이지 (/inquiry/:id)
         final uri = Uri.parse(settings.name ?? '/');
