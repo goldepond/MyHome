@@ -5,6 +5,7 @@ import 'package:property/api_request/firebase_service.dart';
 import 'package:property/widgets/empty_state.dart';
 import 'package:property/widgets/loading_overlay.dart';
 import 'package:property/constants/status_constants.dart';
+import 'package:property/utils/call_utils.dart';
 import 'category_property_list_page.dart';
 import 'buyer_property_detail_page.dart';
 
@@ -466,6 +467,125 @@ class _HouseMarketPageState extends State<HouseMarketPage> {
                     ),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+                // 공인중개사 정보 (항상 표시, 접을 수 없음)
+                if (property.brokerInfo != null) ...[
+                  const SizedBox(height: 12),
+                  Builder(
+                    builder: (context) {
+                      // 공인중개사명 찾기 (여러 필드명 확인 - 기존/신규 매물 모두 지원)
+                      final brokerName = property.brokerInfo!['brokerName']?.toString() ?? 
+                                        property.brokerInfo!['broker_office_name']?.toString() ??
+                                        property.brokerInfo!['ownerName']?.toString() ??
+                                        property.brokerInfo!['businessName']?.toString() ??
+                                        property.brokerInfo!['name']?.toString() ??
+                                        property.registeredByName ??
+                                        '공인중개사';
+                      
+                      // 전화번호 찾기 (여러 필드명 확인)
+                      final phoneNumber = property.brokerInfo!['broker_phone']?.toString() ?? 
+                                         property.brokerInfo!['phoneNumber']?.toString() ??
+                                         property.brokerInfo!['phone']?.toString() ??
+                                         '';
+                      final cleanPhoneNumber = phoneNumber.replaceAll(RegExp(r'[^0-9]'), '');
+                      final hasPhoneNumber = cleanPhoneNumber.isNotEmpty && cleanPhoneNumber != '-';
+
+                      return Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: Colors.indigo.withValues(alpha: 0.05),
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(
+                            color: Colors.indigo.withValues(alpha: 0.2),
+                            width: 1,
+                          ),
+                        ),
+                        child: Row(
+                          children: [
+                            const Icon(
+                              Icons.business,
+                              size: 18,
+                              color: Colors.indigo,
+                            ),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    brokerName,
+                                    style: const TextStyle(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.bold,
+                                      color: Color(0xFF2C3E50),
+                                    ),
+                                  ),
+                                  if (hasPhoneNumber) ...[
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      phoneNumber,
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        color: Colors.grey[600],
+                                      ),
+                                    ),
+                                  ],
+                                ],
+                              ),
+                            ),
+                            if (hasPhoneNumber) ...[
+                              const SizedBox(width: 8),
+                              InkWell(
+                                onTap: () async {
+                                  try {
+                                    await CallUtils.makeCall(
+                                      cleanPhoneNumber,
+                                      relatedId: property.firestoreId,
+                                    );
+                                  } catch (e) {
+                                    if (mounted) {
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        SnackBar(
+                                          content: Text('전화 걸기 실패: $e'),
+                                          backgroundColor: Colors.red,
+                                        ),
+                                      );
+                                    }
+                                  }
+                                },
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                                  decoration: BoxDecoration(
+                                    color: Colors.green,
+                                    borderRadius: BorderRadius.circular(6),
+                                  ),
+                                  child: const Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Icon(
+                                        Icons.call,
+                                        size: 16,
+                                        color: Colors.white,
+                                      ),
+                                      SizedBox(width: 4),
+                                      Text(
+                                        '전화',
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          fontWeight: FontWeight.bold,
+                                          color: Colors.white,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ],
+                        ),
+                      );
+                    },
                   ),
                 ],
               ],
