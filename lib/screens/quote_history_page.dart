@@ -1969,6 +1969,7 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
                               quotes: respondedQuotes,
                               userName: widget.userName,
                               userId: widget.userId,
+                              selectedQuote: quote, // 선택된 견적 전달
                             ),
                           ),
                         );

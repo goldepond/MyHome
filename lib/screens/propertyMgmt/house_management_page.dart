@@ -2428,43 +2428,44 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
                   ],
                 ),
                 const SizedBox(height: 8),
-                // 2줄째: 이 공인중개사랑 계속할래요
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton.icon(
-                    onPressed: quote.isSelectedByUser == true
-                        ? null
-                        : () => _onSelectBroker(quote),
-                    icon: Icon(
-                      quote.isSelectedByUser == true
-                          ? Icons.check_circle
-                          : Icons.handshake,
-                      size: 18,
-                    ),
-                    label: Text(
-                      quote.isSelectedByUser == true
-                          ? '이 공인중개사와 진행 중입니다'
-                          : '이 공인중개사와 계속 진행할래요',
-                      style: const TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
+                // 2줄째: 이 공인중개사랑 계속할래요 (응답이 있는 경우에만 표시)
+                if (_hasStructuredData(quote))
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton.icon(
+                      onPressed: quote.isSelectedByUser == true
+                          ? null
+                          : () => _onSelectBroker(quote),
+                      icon: Icon(
+                        quote.isSelectedByUser == true
+                            ? Icons.check_circle
+                            : Icons.handshake,
+                        size: 18,
                       ),
-                    ),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: quote.isSelectedByUser == true
-                          ? Colors.grey[300]
-                          : AppColors.kPrimary,
-                      foregroundColor: quote.isSelectedByUser == true
-                          ? Colors.grey[800]
-                          : Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
+                      label: Text(
+                        quote.isSelectedByUser == true
+                            ? '이 공인중개사와 진행 중입니다'
+                            : '이 공인중개사와 계속 진행할래요',
+                        style: const TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: quote.isSelectedByUser == true
+                            ? Colors.grey[300]
+                            : AppColors.kPrimary,
+                        foregroundColor: quote.isSelectedByUser == true
+                            ? Colors.grey[800]
+                            : Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
                       ),
                     ),
                   ),
-                ),
-                const SizedBox(height: 8),
+                if (_hasStructuredData(quote)) const SizedBox(height: 8),
                 // 3줄째: 비교 화면 / 중개사 재연락 (추가 기능)
                 SizedBox(
                   width: double.infinity,
@@ -2492,6 +2493,7 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
                               quotes: respondedQuotes,
                               userName: widget.userName,
                               userId: widget.userId,
+                              selectedQuote: quote, // 선택된 견적 전달
                             ),
                           ),
                         );
@@ -3097,43 +3099,44 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
                   ],
                 ),
                 const SizedBox(height: 8),
-                // 2줄째: 이 공인중개사랑 계속할래요
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton.icon(
-                    onPressed: quote.isSelectedByUser == true
-                        ? null
-                        : () => _onSelectBroker(quote),
-                    icon: Icon(
-                      quote.isSelectedByUser == true
-                          ? Icons.check_circle
-                          : Icons.handshake,
-                      size: 18,
-                    ),
-                    label: Text(
-                      quote.isSelectedByUser == true
-                          ? '이 공인중개사와 진행 중입니다'
-                          : '이 공인중개사와 계속 진행할래요',
-                      style: const TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
+                // 2줄째: 이 공인중개사랑 계속할래요 (응답이 있는 경우에만 표시)
+                if (_hasStructuredData(quote))
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton.icon(
+                      onPressed: quote.isSelectedByUser == true
+                          ? null
+                          : () => _onSelectBroker(quote),
+                      icon: Icon(
+                        quote.isSelectedByUser == true
+                            ? Icons.check_circle
+                            : Icons.handshake,
+                        size: 18,
                       ),
-                    ),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: quote.isSelectedByUser == true
-                          ? Colors.grey[300]
-                          : AppColors.kPrimary,
-                      foregroundColor: quote.isSelectedByUser == true
-                          ? Colors.grey[800]
-                          : Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
+                      label: Text(
+                        quote.isSelectedByUser == true
+                            ? '이 공인중개사와 진행 중입니다'
+                            : '이 공인중개사와 계속 진행할래요',
+                        style: const TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: quote.isSelectedByUser == true
+                            ? Colors.grey[300]
+                            : AppColors.kPrimary,
+                        foregroundColor: quote.isSelectedByUser == true
+                            ? Colors.grey[800]
+                            : Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
                       ),
                     ),
                   ),
-                ),
-                const SizedBox(height: 8),
+                if (_hasStructuredData(quote)) const SizedBox(height: 8),
                 // 3줄째: 비교 화면 / 중개사 재연락 (추가 기능)
                 SizedBox(
                   width: double.infinity,
@@ -3158,6 +3161,7 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
                                   quotes: respondedQuotes,
                                   userName: widget.userName,
                                   userId: widget.userId,
+                                  selectedQuote: quote, // 선택된 견적 전달
                                 ),
                               ),
                             );
