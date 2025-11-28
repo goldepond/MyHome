@@ -30,6 +30,9 @@ class _QuoteComparisonPageState extends State<QuoteComparisonPage> {
   /// 이 화면에서 사용자가 선택 완료한 견적 ID
   String? _selectedQuoteId;
   bool _isAssigning = false;
+  
+  /// 선택된 매물 주소 (탭 인덱스)
+  int _selectedPropertyIndex = 0;
 
   @override
   void initState() {
@@ -221,6 +224,83 @@ class _QuoteComparisonPageState extends State<QuoteComparisonPage> {
     return '$price원';
   }
 
+  /// 주소 정규화 함수 (공백 제거, 대소문자 통일, 약칭 통일)
+  String _normalizeAddress(String address) {
+    return address
+        .replaceAll(RegExp(r'\s+'), '') // 모든 공백 제거
+        .replaceAll('서울시', '서울특별시')
+        .replaceAll('부산시', '부산광역시')
+        .replaceAll('대구시', '대구광역시')
+        .replaceAll('인천시', '인천광역시')
+        .replaceAll('광주시', '광주광역시')
+        .replaceAll('대전시', '대전광역시')
+        .replaceAll('울산시', '울산광역시')
+        .replaceAll('경기', '경기도')
+        .toLowerCase();
+  }
+
+  /// 매물 식별 키 생성 (주소 + 유형 + 면적)
+  String _getPropertyKey(QuoteRequest quote) {
+    final address = quote.propertyAddress ?? '주소없음';
+    final type = quote.propertyType ?? '';
+    final area = quote.propertyArea ?? '';
+    
+    // 주소 정규화
+    final normalizedAddress = _normalizeAddress(address);
+    
+    // 키 생성: 주소 + 유형 + 면적 (면적은 반올림하여 유사한 면적은 같은 그룹으로)
+    String areaKey = '';
+    if (area.isNotEmpty) {
+      final areaNum = double.tryParse(area.replaceAll(RegExp(r'[^0-9.]'), ''));
+      if (areaNum != null) {
+        // 5㎡ 단위로 반올림 (예: 84㎡와 86㎡는 같은 그룹)
+        final roundedArea = (areaNum / 5).round() * 5;
+        areaKey = '${roundedArea.toInt()}㎡';
+      }
+    }
+    
+    return '$normalizedAddress|$type|$areaKey';
+  }
+
+  /// 매물별로 견적 그룹화 (주소 + 유형 + 면적 기준)
+  Map<String, List<QuoteRequest>> _groupQuotesByProperty(List<QuoteRequest> quotes) {
+    final Map<String, List<QuoteRequest>> grouped = {};
+    
+    for (final quote in quotes) {
+      if (quote.propertyAddress == null || quote.propertyAddress!.isEmpty) {
+        // 주소가 없는 견적은 별도 그룹
+        const key = '주소없음';
+        grouped.putIfAbsent(key, () => []);
+        grouped[key]!.add(quote);
+      } else {
+        final key = _getPropertyKey(quote);
+        grouped.putIfAbsent(key, () => []);
+        grouped[key]!.add(quote);
+      }
+    }
+    
+    return grouped;
+  }
+
+  /// 매물 표시 이름 생성 (주소 + 유형 + 면적)
+  String _buildPropertyDisplayName(QuoteRequest quote) {
+    final parts = <String>[];
+    
+    if (quote.propertyAddress != null && quote.propertyAddress!.isNotEmpty) {
+      parts.add(quote.propertyAddress!);
+    }
+    
+    if (quote.propertyType != null && quote.propertyType!.isNotEmpty) {
+      parts.add(quote.propertyType!);
+    }
+    
+    if (quote.propertyArea != null && quote.propertyArea!.isNotEmpty) {
+      parts.add('${quote.propertyArea}㎡');
+    }
+    
+    return parts.join(' · ');
+  }
+
   @override
   Widget build(BuildContext context) {
     // 답변 완료된 견적만 필터 (recommendedPrice 또는 minimumPrice가 있는 것)
@@ -274,9 +354,72 @@ class _QuoteComparisonPageState extends State<QuoteComparisonPage> {
       );
     }
 
-    // 가격 추출 및 정렬
-    final quotePrices = respondedQuotes.map((q) {
-      // recommendedPrice 우선, 없으면 minimumPrice
+    // 매물별로 견적 그룹화
+    final groupedQuotes = _groupQuotesByProperty(respondedQuotes);
+    final propertyKeys = groupedQuotes.keys.toList();
+    
+    // 주소가 없는 견적이 있으면 경고 표시
+    final hasNoAddressQuotes = groupedQuotes.containsKey('주소없음');
+    if (hasNoAddressQuotes && groupedQuotes.length > 1) {
+      // 주소 없는 견적 제외하고 표시
+      propertyKeys.remove('주소없음');
+    }
+    
+    if (propertyKeys.isEmpty) {
+      return Scaffold(
+        backgroundColor: AppColors.kBackground,
+        appBar: AppBar(
+          backgroundColor: Colors.white,
+          foregroundColor: AppColors.kPrimary,
+          elevation: 0.5,
+          title: const HomeLogoButton(
+            fontSize: 18,
+            color: AppColors.kPrimary,
+          ),
+        ),
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                Icons.warning_amber_rounded,
+                size: 80,
+                color: Colors.orange[400],
+              ),
+              const SizedBox(height: 24),
+              Text(
+                '비교할 견적이 없습니다',
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.grey[600],
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                '매물 주소 정보가 있는 견적만 비교할 수 있습니다',
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 14,
+                  color: Colors.grey[500],
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+    
+    // 선택된 매물이 유효한지 확인
+    if (_selectedPropertyIndex >= propertyKeys.length) {
+      _selectedPropertyIndex = 0;
+    }
+    
+    final selectedPropertyKey = propertyKeys[_selectedPropertyIndex];
+    final selectedPropertyQuotes = groupedQuotes[selectedPropertyKey]!;
+    
+    // 선택된 매물의 견적에서 가격 추출 및 정렬
+    final quotePrices = selectedPropertyQuotes.map((q) {
       final priceStr = q.recommendedPrice ?? q.minimumPrice;
       final price = _extractPrice(priceStr);
       return {
@@ -326,6 +469,9 @@ class _QuoteComparisonPageState extends State<QuoteComparisonPage> {
     final isWeb = screenWidth > 800;
     final maxWidth = isWeb ? 1400.0 : screenWidth;
     final horizontalPadding = isWeb ? 24.0 : 16.0;
+    
+    // 표시용 이름 생성
+    final displayName = _buildPropertyDisplayName(selectedPropertyQuotes.first);
 
     return Scaffold(
       backgroundColor: AppColors.kBackground,
@@ -346,12 +492,14 @@ class _QuoteComparisonPageState extends State<QuoteComparisonPage> {
                 context: context,
                 builder: (context) => AlertDialog(
                   title: const Text('견적 비교 가이드'),
-                  content: const Text(
-                    '공인중개사로부터 받은 견적을 한눈에 비교할 수 있습니다.\n\n'
+                  content: Text(
+                    '공인중개사로부터 받은 견적을 매물별로 비교할 수 있습니다.\n\n'
+                    '• 매물별로 탭을 선택하여 각 매물의 견적을 비교하세요\n'
                     '• 최저가: 가장 낮은 견적\n'
                     '• 평균가: 모든 견적의 평균\n'
                     '• 최고가: 가장 높은 견적\n\n'
-                    '최저가 견적은 초록색으로 강조되어 표시됩니다.',
+                    '최저가 견적은 초록색으로 강조되어 표시됩니다.\n\n'
+                    '다른 매물의 견적은 함께 비교되지 않습니다.',
                   ),
                   actions: [
                     TextButton(
@@ -365,15 +513,183 @@ class _QuoteComparisonPageState extends State<QuoteComparisonPage> {
           ),
         ],
       ),
-      body: SingleChildScrollView(
-        padding: EdgeInsets.symmetric(horizontal: horizontalPadding, vertical: 16),
-        child: Center(
-          child: Container(
-            constraints: BoxConstraints(maxWidth: maxWidth),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-            // 요약 카드
+      body: Column(
+        children: [
+          // 주소 없는 견적 경고 (있는 경우)
+          if (hasNoAddressQuotes && groupedQuotes['주소없음']!.isNotEmpty)
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              color: Colors.orange[50],
+              child: Row(
+                children: [
+                  Icon(Icons.warning_amber_rounded, color: Colors.orange[700], size: 20),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      '주소 정보가 없는 견적 ${groupedQuotes['주소없음']!.length}개가 제외되었습니다.',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.orange[900],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          
+          // 매물 선택 탭 (여러 매물이 있는 경우에만 표시)
+          if (propertyKeys.length > 1)
+            Container(
+              color: Colors.white,
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              child: SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  children: List.generate(propertyKeys.length, (index) {
+                    final key = propertyKeys[index];
+                    final quotes = groupedQuotes[key]!;
+                    final isSelected = index == _selectedPropertyIndex;
+                    final quoteCount = quotes.length;
+                    final displayName = _buildPropertyDisplayName(quotes.first);
+                    
+                    return Padding(
+                      padding: const EdgeInsets.only(right: 8),
+                      child: ChoiceChip(
+                        label: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Flexible(
+                              child: Text(
+                                displayName.length > 25 ? '${displayName.substring(0, 25)}...' : displayName,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(
+                                  fontSize: 13,
+                                  fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 4),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                              decoration: BoxDecoration(
+                                color: isSelected 
+                                    ? Colors.white.withValues(alpha: 0.3)
+                                    : Colors.grey.withValues(alpha: 0.2),
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              child: Text(
+                                '$quoteCount',
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.bold,
+                                  color: isSelected ? Colors.white : Colors.grey[700],
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        selected: isSelected,
+                        onSelected: (selected) {
+                          if (selected) {
+                            setState(() {
+                              _selectedPropertyIndex = index;
+                            });
+                          }
+                        },
+                        selectedColor: AppColors.kPrimary,
+                        labelStyle: TextStyle(
+                          color: isSelected ? Colors.white : Colors.grey[700],
+                        ),
+                        backgroundColor: Colors.grey[200],
+                      ),
+                    );
+                  }),
+                ),
+              ),
+            ),
+          
+          // 견적 비교 내용
+          Expanded(
+            child: SingleChildScrollView(
+              padding: EdgeInsets.symmetric(horizontal: horizontalPadding, vertical: 16),
+              child: Center(
+                child: Container(
+                  constraints: BoxConstraints(maxWidth: maxWidth),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // 선택된 매물 정보 표시 (여러 매물이 있거나 상세 정보가 있는 경우)
+                      if (propertyKeys.length > 1 || 
+                          selectedPropertyQuotes.first.propertyType != null ||
+                          selectedPropertyQuotes.first.propertyArea != null)
+                        Container(
+                          padding: const EdgeInsets.all(16),
+                          margin: const EdgeInsets.only(bottom: 16),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: AppColors.kPrimary.withValues(alpha: 0.3)),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  Icon(Icons.home, color: AppColors.kPrimary, size: 20),
+                                  const SizedBox(width: 8),
+                                  Expanded(
+                                    child: Text(
+                                      displayName,
+                                      style: const TextStyle(
+                                        fontSize: 14,
+                                        fontWeight: FontWeight.w600,
+                                        color: Color(0xFF2C3E50),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              // 매물 상세 정보 (유형, 면적)
+                              if (selectedPropertyQuotes.first.propertyType != null ||
+                                  selectedPropertyQuotes.first.propertyArea != null) ...[
+                                const SizedBox(height: 8),
+                                Row(
+                                  children: [
+                                    if (selectedPropertyQuotes.first.propertyType != null) ...[
+                                      Container(
+                                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                        decoration: BoxDecoration(
+                                          color: AppColors.kPrimary.withValues(alpha: 0.1),
+                                          borderRadius: BorderRadius.circular(6),
+                                        ),
+                                        child: Text(
+                                          selectedPropertyQuotes.first.propertyType!,
+                                          style: TextStyle(
+                                            fontSize: 12,
+                                            color: AppColors.kPrimary,
+                                            fontWeight: FontWeight.w500,
+                                          ),
+                                        ),
+                                      ),
+                                      const SizedBox(width: 8),
+                                    ],
+                                    if (selectedPropertyQuotes.first.propertyArea != null)
+                                      Text(
+                                        '${selectedPropertyQuotes.first.propertyArea}㎡',
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          color: Colors.grey[600],
+                                        ),
+                                      ),
+                                  ],
+                                ),
+                              ],
+                            ],
+                          ),
+                        ),
+                      
+                      // 요약 카드
             Container(
               padding: const EdgeInsets.all(24),
               decoration: BoxDecoration(
