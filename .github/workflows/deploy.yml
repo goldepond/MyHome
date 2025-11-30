@@ -6,7 +6,7 @@ on:
   workflow_dispatch:  # 수동 배포도 가능하게
 
 permissions:
-  contents: read
+  contents: write
   pages: write
   id-token: write
 

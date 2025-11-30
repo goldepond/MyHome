@@ -110,18 +110,112 @@
 
 ### 6. 모니터링 설정 ⚠️
 
+#### 6.1 GitHub 배포 모니터링 ✅
+
+- [x] **GitHub Actions 배포 상태 확인**
+  - [x] 자동 배포 워크플로우 설정 완료
+  - [ ] **배포 후 Actions 탭에서 성공 여부 확인**
+    - 확인 위치: https://github.com/goldepond/TESTHOME/actions
+    - 배포 실패 시 로그 확인 및 수정
+  - [ ] **배포 알림 설정** (선택사항)
+    - GitHub 이메일 알림 활성화
+    - Slack/Discord 웹훅 연동 (선택사항)
+
+- [ ] **웹 사이트 가용성 모니터링**
+  - [ ] 배포 후 사이트 접속 확인
+    - URL: https://goldepond.github.io/TESTHOME/
+    - 주요 페이지 동작 확인
+  - [ ] **자동 가용성 모니터링 도구 설정** (선택사항)
+    - UptimeRobot (무료, 5분 간격)
+    - Pingdom (유료)
+    - Google Search Console 등록
+
+#### 6.2 Firebase 모니터링
+
 - [x] **Crashlytics 코드**
   - [x] main.dart에 Crashlytics 설정 완료
   - [ ] **Firebase Console에서 Crashlytics 활성화**
+    1. Firebase Console 접속: https://console.firebase.google.com
+    2. 프로젝트 선택
+    3. 왼쪽 메뉴에서 **Crashlytics** 클릭
+    4. **시작하기** 버튼 클릭하여 활성화
   - [ ] **테스트 크래시 발생 및 확인**
+    ```dart
+    // 테스트용 코드 (프로덕션에서는 제거)
+    FirebaseCrashlytics.instance.crash();
+    ```
+
+- [ ] **Firebase Analytics 설정**
+  - [ ] Firebase Console에서 Analytics 활성화
+  - [ ] 주요 이벤트 추적 설정
+    - 페이지 조회
+    - 버튼 클릭
+    - 사용자 액션
+  - [ ] 대시보드 확인 방법
+    - Firebase Console > Analytics > 대시보드
 
 - [ ] **에러 로깅**
   - [x] Logger 시스템 구축
   - [ ] 프로덕션 환경 로그 수집 확인
+  - [ ] Firebase Console에서 로그 확인
+    - Firebase Console > Crashlytics > 로그
+  - [ ] 에러 알림 설정 (선택사항)
+    - 이메일 알림
+    - Slack/Discord 웹훅
 
 - [ ] **성능 모니터링**
   - [ ] Firebase Performance Monitoring 설정 (선택사항)
+    1. Firebase Console > Performance 활성화
+    2. 코드에 성능 추적 추가
+    ```dart
+    final trace = FirebasePerformance.instance.newTrace('screen_load');
+    await trace.start();
+    // ... 작업 수행 ...
+    await trace.stop();
+    ```
   - [ ] 주요 기능 성능 측정
+    - 페이지 로딩 시간
+    - API 호출 시간
+    - 사용자 인터랙션 응답 시간
+
+#### 6.3 실시간 모니터링 체크리스트
+
+**배포 직후 확인 (5분 내)**
+- [ ] GitHub Actions 배포 성공 확인
+- [ ] 사이트 접속 가능 여부 확인
+- [ ] 주요 기능 동작 확인
+- [ ] 브라우저 콘솔 에러 확인 (F12 > Console)
+
+**배포 후 1시간 내**
+- [ ] Firebase Analytics에서 트래픽 확인
+- [ ] Crashlytics에서 에러 확인
+- [ ] 사용자 피드백 확인 (있다면)
+
+**일일 모니터링 (출시 후 1주일)**
+- [ ] Firebase Analytics 대시보드 확인
+- [ ] Crashlytics 에러 리포트 확인
+- [ ] 사이트 가용성 확인
+- [ ] 주요 기능 사용량 확인
+
+#### 6.4 모니터링 도구 및 대시보드
+
+**필수 확인 위치:**
+1. **GitHub Actions**: https://github.com/goldepond/TESTHOME/actions
+   - 배포 상태, 빌드 로그 확인
+
+2. **Firebase Console**: https://console.firebase.google.com
+   - Crashlytics: 크래시 및 에러 확인
+   - Analytics: 사용자 활동 및 이벤트 확인
+   - Performance: 성능 지표 확인 (활성화 시)
+
+3. **배포된 사이트**: https://goldepond.github.io/TESTHOME/
+   - 직접 접속하여 동작 확인
+
+**추가 모니터링 도구 (선택사항):**
+- Google Search Console: SEO 및 검색 성능
+- Google Analytics: 상세한 사용자 분석
+- Sentry: 고급 에러 추적 (유료)
+- LogRocket: 사용자 세션 재생 (유료)
 
 ### 7. 문서화 ✅
 
@@ -225,17 +319,30 @@
 
 ### 출시 직후 필수 (1주일 내)
 
-1. [ ] **Crashlytics 연동 확인**
-   - Firebase Console에서 활성화
-   - 테스트 크래시 발생 및 확인
+1. [ ] **배포 확인 (즉시)**
+   - [ ] GitHub Actions 배포 성공 확인
+     - https://github.com/goldepond/TESTHOME/actions
+   - [ ] 사이트 접속 확인
+     - https://goldepond.github.io/TESTHOME/
+   - [ ] 주요 기능 동작 확인
+   - [ ] 브라우저 콘솔 에러 확인 (F12)
 
-2. [ ] **모니터링 설정**
-   - 에러 로깅 확인
-   - 사용자 활동 로깅 확인
+2. [ ] **Crashlytics 연동 확인**
+   - [ ] Firebase Console에서 Crashlytics 활성화
+     - https://console.firebase.google.com > Crashlytics > 시작하기
+   - [ ] 테스트 크래시 발생 및 확인
+   - [ ] 에러 로그가 Firebase에 전송되는지 확인
 
-3. [ ] **사용자 피드백 수집**
-   - 피드백 수집 방법 구축
-   - 버그 리포트 시스템 구축
+3. [ ] **모니터링 설정 완료**
+   - [ ] Firebase Analytics 활성화 및 확인
+   - [ ] 에러 로깅 확인 (Firebase Console)
+   - [ ] 사용자 활동 로깅 확인 (Analytics 대시보드)
+   - [ ] 일일 모니터링 루틴 설정
+
+4. [ ] **사용자 피드백 수집**
+   - [ ] 피드백 수집 방법 구축
+   - [ ] 버그 리포트 시스템 구축
+   - [ ] 사용자 문의 채널 확인 (이메일, GitHub Issues 등)
 
 ---
 
