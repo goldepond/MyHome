@@ -17,7 +17,6 @@ void main() async {
       await dotenv.load(fileName: ".env");
     } catch (e) {
       // .env 파일이 없어도 앱은 실행 가능
-      print("Warning: .env file not found, continuing without it");
     }
   }
 
@@ -108,7 +107,7 @@ class _AdminAuthGateState extends State<AdminAuthGate> {
       // 실제 운영 시에는 이메일/비밀번호 로그인 폼으로 대체 권장
       await FirebaseService().signInAnonymously();
     } catch (e) {
-      debugPrint('관리자 로그인 실패: $e');
+      // 익명 로그인 실패는 무시 (관리자는 다른 방법으로 로그인 가능)
     } finally {
       if (mounted) {
         setState(() {

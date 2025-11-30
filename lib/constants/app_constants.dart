@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/foundation.dart' show kIsWeb, kDebugMode;
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 // 색상 상수 - HouseMVP 통합 디자인
@@ -127,15 +127,6 @@ String _getEnv(String key) {
       // Data.go.kr API 키 (공동주택 정보 조회 API)
       // ⚠️ 보안 주의: 실제 API 키는 --dart-define으로 전달하거나 GitHub Secrets에 저장하세요
       // 공공데이터포털(data.go.kr)에서 발급받은 서비스 키를 사용하세요
-      if (kDebugMode) {
-        print('🔑 DATA_GO_KR_SERVICE_KEY 확인:');
-        print('  - 환경 변수에서 읽은 값 길이: ${value.length}');
-        print('  - 값이 비어있는지: ${value.isEmpty}');
-        if (value.isEmpty) {
-          print('  ⚠️ DATA_GO_KR_SERVICE_KEY가 설정되지 않았습니다!');
-          print('  💡 해결 방법: --dart-define=DATA_GO_KR_SERVICE_KEY=여기에_실제_API_키_입력');
-        }
-      }
       if (value.isEmpty) {
         // 기본값 설정 (이전 버전과 동일하게 작동하도록 복원)
         return 'lkFNy5FKYttNQrsdPfqBSmg8frydGZUlWeH5sHrmuILv0cwLvMSCDh+Tl1KORZJXQTqih1BTBLpxfdixxY0mUQ==';

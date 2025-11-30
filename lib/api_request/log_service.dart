@@ -58,7 +58,7 @@ class LogService with WidgetsBindingObserver {
         _flushQueue();
       }
     } catch (e) {
-      debugPrint('Logging queue failed: $e');
+      // 로그 큐 실패는 무시 (비동기 작업)
     }
   }
 
@@ -93,9 +93,7 @@ class LogService with WidgetsBindingObserver {
 
       // 한 번에 전송 (비동기)
       await batch.commit();
-      debugPrint('✅ Flushed ${logsToSend.length} logs.');
     } catch (e) {
-      debugPrint('❌ Failed to flush logs: $e');
       // 실패 시 다시 큐에 넣을지 여부는 정책에 따라 결정 (여기선 버림/단순 로깅)
       // 재시도 로직을 넣으면 큐가 무한히 커질 위험이 있어 조심해야 함.
     } finally {

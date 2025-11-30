@@ -64,7 +64,6 @@ class _AdminAuthGateState extends State<_AdminAuthGate> {
       // 실제 운영 시에는 이메일/비밀번호 로그인 폼으로 대체 권장
       await FirebaseService().signInAnonymously();
     } catch (e) {
-      debugPrint('관리자 로그인 실패: $e');
     } finally {
       if (mounted) {
         setState(() {

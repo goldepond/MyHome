@@ -4,7 +4,6 @@ import 'package:property/api_request/firebase_service.dart';
 import 'package:property/constants/app_constants.dart';
 import 'package:property/utils/address_utils.dart';
 import 'package:property/constants/status_constants.dart';
-import 'house_detail_page.dart';
 import 'buyer_property_detail_page.dart';
 
 class CategoryPropertyListPage extends StatefulWidget {

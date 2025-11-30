@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
-import 'package:flutter/foundation.dart' show kIsWeb, debugPrint;
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:property/constants/app_constants.dart';
@@ -326,11 +326,7 @@ class _PropertyRegistrationFormPageState extends State<PropertyRegistrationFormP
       }
 
       return urls;
-    } catch (e, stackTrace) {
-      // 에러 상세 정보 로깅 (디버깅용)
-      debugPrint('이미지 업로드 오류: $e');
-      debugPrint('스택 트레이스: $stackTrace');
-      
+    } catch (e) {
       if (mounted) {
         setState(() {
           _isUploadingImages = false;

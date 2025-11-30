@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/foundation.dart';
 import 'dart:async';
 
 import 'package:property/constants/app_constants.dart';
@@ -63,13 +62,7 @@ class _AddressSearchScreenState extends State<AddressSearchScreen> {
           _selectAddress(singleAddress);
         });
       }
-    } catch (e, stackTrace) {
-      // 디버그 모드에서 상세 로깅
-      debugPrint('주소 검색 화면 예외 발생:');
-      debugPrint('예외 타입: ${e.runtimeType}');
-      debugPrint('예외 메시지: $e');
-      debugPrint('스택 트레이스: $stackTrace');
-      
+    } catch (e) {
       // 예외 메시지를 안전하게 추출
       String errorMsg = '알 수 없는 오류가 발생했습니다.';
       try {
@@ -92,7 +85,6 @@ class _AddressSearchScreenState extends State<AddressSearchScreen> {
         }
       } catch (_) {
         // 예외 처리 중 오류 발생 시 기본 메시지 사용
-        debugPrint('예외 메시지 추출 중 오류 발생');
       }
       
       setState(() {

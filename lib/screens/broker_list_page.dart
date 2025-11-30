@@ -668,7 +668,6 @@ class _BrokerListPageState extends State<BrokerListPage> {
           .timeout(
             const Duration(seconds: 3),
             onTimeout: () {
-              debugPrint('Firestore 조회 타임아웃');
               return <String, Map<String, dynamic>>{};
             },
           );
@@ -739,7 +738,6 @@ class _BrokerListPageState extends State<BrokerListPage> {
       });
     } catch (e) {
       // Firestore 보강 실패 시 원본 데이터 유지 (이미 표시됨)
-      debugPrint('Firestore 보강 실패: $e');
     }
   }
   

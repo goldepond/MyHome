@@ -542,7 +542,6 @@ class _QuoteComparisonPageState extends State<QuoteComparisonPage> {
 
     // 반응형 레이아웃: PC 화면 고려
     final screenWidth = MediaQuery.of(context).size.width;
-    final screenHeight = MediaQuery.of(context).size.height;
     final isWeb = screenWidth > 800;
     final isLargeScreen = screenWidth > 1200;
     final maxWidth = isWeb ? (isLargeScreen ? 1600.0 : 1400.0) : screenWidth;
