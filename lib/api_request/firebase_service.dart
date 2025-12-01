@@ -447,6 +447,21 @@ class FirebaseService {
     }
   }
 
+  // 사용자 전화번호 업데이트
+  Future<bool> updateUserPhone(String id, String newPhone) async {
+    try {
+      
+      await _firestore.collection(_usersCollectionName).doc(id).update({
+        'phone': newPhone,
+        'updatedAt': DateTime.now().toIso8601String(),
+      });
+      
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+
   // 모든 사용자 조회
   Future<List<Map<String, dynamic>>> getAllUsers() async {
     try {

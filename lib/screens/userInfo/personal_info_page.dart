@@ -365,17 +365,19 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
                               ],
                               if (_userData?['phone'] != null && _userData!['phone'].toString().isNotEmpty) ...[
                                 const SizedBox(height: 12),
-                                _buildInfoRow(
+                                _buildEditableInfoRow(
                                   Icons.phone_outlined, 
                                   '전화번호', 
                                   _userData!['phone'],
+                                  onEdit: () => _showEditPhoneDialog(),
                                 ),
                               ],
                               const SizedBox(height: 12),
-                              _buildInfoRow(
+                              _buildEditableInfoRow(
                                 Icons.person, 
                                 '이름', 
                                 _userData?['name'] ?? widget.userName,
+                                onEdit: () => _showEditNameDialog(),
                               ),
                               const SizedBox(height: 12),
                               _buildInfoRow(
@@ -643,6 +645,267 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
         ),
       ],
     );
+  }
+
+  Widget _buildEditableInfoRow(IconData icon, String label, String value, {required VoidCallback onEdit}) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: Colors.grey[200],
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Icon(
+            icon,
+            size: 24,
+            color: AppColors.kPrimary,
+          ),
+        ),
+        const SizedBox(width: 16),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                label,
+                style: const TextStyle(
+                  fontSize: 13,
+                  color: Colors.grey,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                value,
+                style: const TextStyle(
+                  fontSize: 16,
+                  color: Color(0xFF2C3E50),
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
+        ),
+        IconButton(
+          icon: const Icon(Icons.edit, color: AppColors.kPrimary),
+          onPressed: onEdit,
+          tooltip: '$label 수정',
+        ),
+      ],
+    );
+  }
+
+  /// 이름 수정 다이얼로그
+  Future<void> _showEditNameDialog() async {
+    final nameController = TextEditingController(
+      text: _userData?['name'] ?? widget.userName ?? '',
+    );
+
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('이름 수정'),
+        content: TextField(
+          controller: nameController,
+          decoration: const InputDecoration(
+            labelText: '이름',
+            border: OutlineInputBorder(),
+            hintText: '이름을 입력하세요',
+          ),
+          autofocus: true,
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('취소'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              if (nameController.text.trim().isEmpty) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('이름을 입력해주세요.'),
+                    backgroundColor: Colors.red,
+                  ),
+                );
+                return;
+              }
+              Navigator.pop(context, true);
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.kPrimary,
+              foregroundColor: Colors.white,
+            ),
+            child: const Text('저장'),
+          ),
+        ],
+      ),
+    );
+
+    if (result == true) {
+      await _updateName(nameController.text.trim());
+    }
+
+    nameController.dispose();
+  }
+
+  /// 이름 업데이트
+  Future<void> _updateName(String newName) async {
+    try {
+      final success = await _firebaseService.updateUserName(widget.userId, newName);
+
+      if (mounted) {
+        if (success) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('이름이 수정되었습니다.'),
+              backgroundColor: Colors.green,
+            ),
+          );
+          // 정보 다시 로드
+          _loadUserData();
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('이름 수정에 실패했습니다.'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('오류가 발생했습니다: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  /// 휴대폰 번호 수정 다이얼로그
+  Future<void> _showEditPhoneDialog() async {
+    final phoneController = TextEditingController(
+      text: _userData?['phone'] ?? '',
+    );
+
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('휴대폰 번호 수정'),
+        content: TextField(
+          controller: phoneController,
+          decoration: const InputDecoration(
+            labelText: '휴대폰 번호',
+            border: OutlineInputBorder(),
+            hintText: '010-1234-5678',
+            helperText: '하이픈(-) 없이 숫자만 입력하거나 하이픈 포함 입력 가능',
+          ),
+          keyboardType: TextInputType.phone,
+          autofocus: true,
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('취소'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              final phone = phoneController.text.trim();
+              if (phone.isEmpty) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('휴대폰 번호를 입력해주세요.'),
+                    backgroundColor: Colors.red,
+                  ),
+                );
+                return;
+              }
+
+              // 간단한 전화번호 형식 검증 (하이픈 제거 후 검증)
+              final cleanPhone = phone.replaceAll('-', '').replaceAll(' ', '').replaceAll('(', '').replaceAll(')', '');
+              if (cleanPhone.length < 10 || cleanPhone.length > 11) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('올바른 휴대폰 번호 형식이 아닙니다.\n예: 010-1234-5678 또는 01012345678'),
+                    backgroundColor: Colors.red,
+                  ),
+                );
+                return;
+              }
+              // 010, 011, 016, 017, 018, 019로 시작하는지 확인
+              if (!cleanPhone.startsWith('010') && 
+                  !cleanPhone.startsWith('011') && 
+                  !cleanPhone.startsWith('016') && 
+                  !cleanPhone.startsWith('017') && 
+                  !cleanPhone.startsWith('018') && 
+                  !cleanPhone.startsWith('019')) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('휴대폰 번호는 010, 011, 016, 017, 018, 019로 시작해야 합니다.'),
+                    backgroundColor: Colors.red,
+                  ),
+                );
+                return;
+              }
+
+              Navigator.pop(context, true);
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.kPrimary,
+              foregroundColor: Colors.white,
+            ),
+            child: const Text('저장'),
+          ),
+        ],
+      ),
+    );
+
+    if (result == true) {
+      await _updatePhone(phoneController.text.trim());
+    }
+
+    phoneController.dispose();
+  }
+
+  /// 휴대폰 번호 업데이트
+  Future<void> _updatePhone(String newPhone) async {
+    try {
+      final success = await _firebaseService.updateUserPhone(widget.userId, newPhone);
+
+      if (mounted) {
+        if (success) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('휴대폰 번호가 수정되었습니다.'),
+              backgroundColor: Colors.green,
+            ),
+          );
+          // 정보 다시 로드
+          _loadUserData();
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('휴대폰 번호 수정에 실패했습니다.'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('오류가 발생했습니다: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
   }
 
 } 
