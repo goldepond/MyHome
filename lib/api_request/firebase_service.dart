@@ -1634,6 +1634,43 @@ class FirebaseService {
     }
   }
 
+  /// 공인중개사 삭제 (관리자용)
+  /// [brokerIdOrUid] brokerId 또는 문서 ID
+  Future<bool> deleteBroker(String brokerIdOrUid) async {
+    try {
+      // 먼저 문서 ID 찾기
+      String? docId;
+      
+      // UID로 조회
+      final brokerDoc = await _firestore.collection(_brokersCollectionName).doc(brokerIdOrUid).get();
+      if (brokerDoc.exists) {
+        docId = brokerIdOrUid;
+      } else {
+        // brokerId로 조회
+        final querySnapshot = await _firestore
+            .collection(_brokersCollectionName)
+            .where('brokerId', isEqualTo: brokerIdOrUid)
+            .limit(1)
+            .get();
+        
+        if (querySnapshot.docs.isNotEmpty) {
+          docId = querySnapshot.docs.first.id;
+        }
+      }
+      
+      if (docId == null) {
+        return false;
+      }
+      
+      // 중개사 문서 삭제
+      await _firestore.collection(_brokersCollectionName).doc(docId).delete();
+      
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+
   /// 공인중개사에게 온 견적문의 조회
   /// [brokerRegistrationNumber] 공인중개사 등록번호
   Stream<List<QuoteRequest>> getBrokerQuoteRequests(String brokerRegistrationNumber) {

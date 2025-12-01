@@ -331,6 +331,34 @@ class _AdminBrokerManagementState extends State<AdminBrokerManagement> {
             _buildInfoRow(Icons.phone, '전화번호', phone),
             const SizedBox(height: 8),
             _buildInfoRow(Icons.location_on, '주소', address),
+            const SizedBox(height: 16),
+            // 수정/삭제 버튼
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                ElevatedButton.icon(
+                  onPressed: () => _showEditDialog(broker),
+                  icon: const Icon(Icons.edit, size: 18),
+                  label: const Text('수정'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.kPrimary,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                ElevatedButton.icon(
+                  onPressed: () => _showDeleteConfirmDialog(broker),
+                  icon: const Icon(Icons.delete, size: 18),
+                  label: const Text('삭제'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.red,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  ),
+                ),
+              ],
+            ),
           ],
         ),
       ),
@@ -365,6 +393,251 @@ class _AdminBrokerManagementState extends State<AdminBrokerManagement> {
         ),
       ],
     );
+  }
+
+  /// 중개사 정보 수정 다이얼로그
+  Future<void> _showEditDialog(Map<String, dynamic> broker) async {
+    final businessNameController = TextEditingController(
+      text: broker['businessName'] ?? broker['name'] ?? '',
+    );
+    final ownerNameController = TextEditingController(
+      text: broker['ownerName'] ?? '',
+    );
+    final phoneController = TextEditingController(
+      text: broker['phone'] ?? broker['phoneNumber'] ?? '',
+    );
+    final addressController = TextEditingController(
+      text: broker['roadAddress'] ?? broker['address'] ?? '',
+    );
+    final introductionController = TextEditingController(
+      text: broker['introduction'] ?? '',
+    );
+
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('중개사 정보 수정'),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: businessNameController,
+                decoration: const InputDecoration(
+                  labelText: '사업자명',
+                  border: OutlineInputBorder(),
+                ),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: ownerNameController,
+                decoration: const InputDecoration(
+                  labelText: '중개업자명',
+                  border: OutlineInputBorder(),
+                ),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: phoneController,
+                decoration: const InputDecoration(
+                  labelText: '전화번호',
+                  border: OutlineInputBorder(),
+                ),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: addressController,
+                decoration: const InputDecoration(
+                  labelText: '주소',
+                  border: OutlineInputBorder(),
+                ),
+                maxLines: 2,
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: introductionController,
+                decoration: const InputDecoration(
+                  labelText: '소개',
+                  border: OutlineInputBorder(),
+                ),
+                maxLines: 3,
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('취소'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.kPrimary,
+              foregroundColor: Colors.white,
+            ),
+            child: const Text('저장'),
+          ),
+        ],
+      ),
+    );
+
+    if (result == true) {
+      await _updateBroker(
+        broker,
+        businessNameController.text.trim(),
+        ownerNameController.text.trim(),
+        phoneController.text.trim(),
+        addressController.text.trim(),
+        introductionController.text.trim(),
+      );
+    }
+
+    businessNameController.dispose();
+    ownerNameController.dispose();
+    phoneController.dispose();
+    addressController.dispose();
+    introductionController.dispose();
+  }
+
+  /// 중개사 정보 업데이트
+  Future<void> _updateBroker(
+    Map<String, dynamic> broker,
+    String businessName,
+    String ownerName,
+    String phone,
+    String address,
+    String introduction,
+  ) async {
+    try {
+      final brokerId = broker['id'] ?? broker['brokerId'] ?? '';
+      if (brokerId.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('중개사 ID를 찾을 수 없습니다.'),
+            backgroundColor: Colors.red,
+          ),
+        );
+        return;
+      }
+
+      final brokerInfo = {
+        'broker_office_name': businessName,
+        'broker_name': ownerName,
+        'broker_phone': phone,
+        'broker_office_address': address,
+        'broker_introduction': introduction,
+      };
+
+      final success = await _firebaseService.updateBrokerInfo(brokerId, brokerInfo);
+
+      if (mounted) {
+        if (success) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('중개사 정보가 수정되었습니다.'),
+              backgroundColor: Colors.green,
+            ),
+          );
+          // 목록 다시 로드
+          _loadBrokers();
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('정보 수정에 실패했습니다.'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('오류가 발생했습니다: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
+  }
+
+  /// 중개사 삭제 확인 다이얼로그
+  Future<void> _showDeleteConfirmDialog(Map<String, dynamic> broker) async {
+    final businessName = broker['businessName'] ?? broker['name'] ?? '정보 없음';
+    
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('중개사 삭제'),
+        content: Text('정말로 "$businessName"을(를) 삭제하시겠습니까?\n\n이 작업은 되돌릴 수 없습니다.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('취소'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+              foregroundColor: Colors.white,
+            ),
+            child: const Text('삭제'),
+          ),
+        ],
+      ),
+    );
+
+    if (result == true) {
+      await _deleteBroker(broker);
+    }
+  }
+
+  /// 중개사 삭제
+  Future<void> _deleteBroker(Map<String, dynamic> broker) async {
+    try {
+      final brokerId = broker['id'] ?? broker['brokerId'] ?? '';
+      if (brokerId.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('중개사 ID를 찾을 수 없습니다.'),
+            backgroundColor: Colors.red,
+          ),
+        );
+        return;
+      }
+
+      final success = await _firebaseService.deleteBroker(brokerId);
+
+      if (mounted) {
+        if (success) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('중개사가 삭제되었습니다.'),
+              backgroundColor: Colors.green,
+            ),
+          );
+          // 목록 다시 로드
+          _loadBrokers();
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('중개사 삭제에 실패했습니다.'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('오류가 발생했습니다: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
   }
 }
 
