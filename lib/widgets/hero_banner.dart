@@ -66,7 +66,7 @@ class _HeroBannerState extends State<HeroBanner> {
     }
   }
 
-  Widget _buildStepChip(int step, String label, {bool isVerySmallScreen = false}) {
+  Widget _buildStepChip(int step, String label, {bool isVerySmallScreen = false, bool isTinyScreen = false}) {
     final bool isSelected = _currentHeroStep == step;
 
     return InkWell(
@@ -78,15 +78,15 @@ class _HeroBannerState extends State<HeroBanner> {
       borderRadius: BorderRadius.circular(999),
       child: Padding(
         padding: EdgeInsets.symmetric(
-          horizontal: isVerySmallScreen ? 2 : 4,
+          horizontal: isTinyScreen ? 1 : (isVerySmallScreen ? 2 : 4),
           vertical: 4,
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
             Container(
-              width: isVerySmallScreen ? 18 : 20,
-              height: isVerySmallScreen ? 18 : 20,
+              width: isTinyScreen ? 16 : (isVerySmallScreen ? 18 : 20),
+              height: isTinyScreen ? 16 : (isVerySmallScreen ? 18 : 20),
               alignment: Alignment.center,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
@@ -97,7 +97,7 @@ class _HeroBannerState extends State<HeroBanner> {
               child: Text(
                 '$step',
                 style: TextStyle(
-                  fontSize: isVerySmallScreen ? 10 : 11,
+                  fontSize: isTinyScreen ? 9 : (isVerySmallScreen ? 10 : 11),
                   fontWeight: FontWeight.bold,
                   color: isSelected
                       ? AppColors.kPrimary
@@ -105,16 +105,17 @@ class _HeroBannerState extends State<HeroBanner> {
                 ),
               ),
             ),
-            SizedBox(width: isVerySmallScreen ? 4 : 6),
+            SizedBox(width: isTinyScreen ? 3 : (isVerySmallScreen ? 4 : 6)),
             Flexible(
               child: Text(
                 label,
                 style: TextStyle(
-                  fontSize: isVerySmallScreen ? 11 : 12,
+                  fontSize: isTinyScreen ? 10 : (isVerySmallScreen ? 11 : 12),
                   fontWeight: FontWeight.w600,
                   color: isSelected
                       ? Colors.white
                       : Colors.white.withValues(alpha: 0.8),
+                  letterSpacing: isTinyScreen ? -0.3 : 0,
                 ),
                 overflow: TextOverflow.ellipsis,
                 maxLines: 1,
@@ -141,11 +142,15 @@ class _HeroBannerState extends State<HeroBanner> {
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
     final isVerySmallScreen = screenWidth < 400;
+    final isTinyScreen = screenWidth < 370;
 
     return AnimatedContainer(
       height: 360,
       width: double.infinity,
-      padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 24),
+      padding: EdgeInsets.symmetric(
+        vertical: 32,
+        horizontal: isTinyScreen ? 12 : (isVerySmallScreen ? 16 : 24),
+      ),
       duration: const Duration(milliseconds: 450),
       curve: Curves.easeInOutCubic,
       decoration: BoxDecoration(
@@ -202,7 +207,7 @@ class _HeroBannerState extends State<HeroBanner> {
           const SizedBox(height: 20),
           Container(
             padding: EdgeInsets.symmetric(
-              horizontal: isVerySmallScreen ? 8 : 18,
+              horizontal: isTinyScreen ? 4 : (isVerySmallScreen ? 8 : 18),
               vertical: 10,
             ),
             decoration: BoxDecoration(
@@ -215,15 +220,30 @@ class _HeroBannerState extends State<HeroBanner> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Flexible(
-                  child: _buildStepChip(1, '주소 입력', isVerySmallScreen: isVerySmallScreen),
+                  child: _buildStepChip(
+                    1, 
+                    isTinyScreen ? '입력' : '주소 입력',
+                    isVerySmallScreen: isVerySmallScreen,
+                    isTinyScreen: isTinyScreen,
+                  ),
                 ),
                 _buildStepDivider(),
                 Flexible(
-                  child: _buildStepChip(2, '주소 선택', isVerySmallScreen: isVerySmallScreen),
+                  child: _buildStepChip(
+                    2,
+                    isTinyScreen ? '선택' : '주소 선택',
+                    isVerySmallScreen: isVerySmallScreen,
+                    isTinyScreen: isTinyScreen,
+                  ),
                 ),
                 _buildStepDivider(),
                 Flexible(
-                  child: _buildStepChip(3, isVerySmallScreen ? '중개사찾기' : '공인중개사 찾기', isVerySmallScreen: isVerySmallScreen),
+                  child: _buildStepChip(
+                    3,
+                    isTinyScreen ? '중개사' : (isVerySmallScreen ? '중개사찾기' : '공인중개사 찾기'),
+                    isVerySmallScreen: isVerySmallScreen,
+                    isTinyScreen: isTinyScreen,
+                  ),
                 ),
               ],
             ),

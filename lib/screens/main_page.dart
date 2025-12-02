@@ -198,14 +198,16 @@ class _MainPageState extends State<MainPage> {
 
   Widget _buildMobileHeader() {
     final screenWidth = MediaQuery.of(context).size.width;
-    final isVerySmallScreen = screenWidth < 400;
-    final horizontalGap = isVerySmallScreen ? 3.0 : 6.0;
+    // 450px 미만: 작은 화면 최적화
+    final isSmallScreen = screenWidth < 450;
+    // 370px 미만: 초소형 화면 - 아이콘만 표시 고려
+    final isTinyScreen = screenWidth < 370;
+    final horizontalGap = isSmallScreen ? 2.0 : 6.0;
 
     // 모바일에서는 항상 화면 폭 안에 4개의 탭이 모두 보이도록
     // 가로 스크롤을 없애고 Expanded 로 균등 분배한다.
-    // 400px 미만 화면에서는 폰트/패딩을 줄여 가독성을 유지한다.
     return Padding(
-      padding: EdgeInsets.symmetric(horizontal: isVerySmallScreen ? 2 : 4),
+      padding: EdgeInsets.symmetric(horizontal: isSmallScreen ? 1 : 4),
       child: Row(
         children: [
           Expanded(
@@ -214,7 +216,7 @@ class _MainPageState extends State<MainPage> {
               0,
               Icons.add_home_rounded,
               isMobile: true,
-              showLabelOnly: true,
+              showLabelOnly: !isTinyScreen,
             ),
           ),
           SizedBox(width: horizontalGap),
@@ -224,7 +226,7 @@ class _MainPageState extends State<MainPage> {
               1,
               Icons.search_rounded,
               isMobile: true,
-              showLabelOnly: true,
+              showLabelOnly: !isTinyScreen,
             ),
           ),
           SizedBox(width: horizontalGap),
@@ -234,7 +236,7 @@ class _MainPageState extends State<MainPage> {
               2,
               Icons.home_work_rounded,
               isMobile: true,
-              showLabelOnly: true,
+              showLabelOnly: !isTinyScreen,
             ),
           ),
           SizedBox(width: horizontalGap),
@@ -244,7 +246,7 @@ class _MainPageState extends State<MainPage> {
               3,
               Icons.person_rounded,
               isMobile: true,
-              showLabelOnly: true,
+              showLabelOnly: !isTinyScreen,
             ),
           ),
         ],
@@ -485,10 +487,13 @@ class _MainPageState extends State<MainPage> {
       borderRadius: BorderRadius.circular(8),
       child: LayoutBuilder(
         builder: (context, constraints) {
-          final isVerySmallScreen = MediaQuery.of(context).size.width < 400;
-          final fontSize = isVerySmallScreen ? 11.5 : (isMobile ? 13.0 : 15.0);
-          final iconSize = isVerySmallScreen ? 19.0 : (isMobile ? 22.0 : 20.0);
-          final horizontalPadding = isVerySmallScreen ? 2.0 : (isMobile ? 4.0 : 16.0);
+          final screenWidth = MediaQuery.of(context).size.width;
+          // 화면 크기별 세밀한 조정
+          final isSmallScreen = screenWidth < 450;
+          final fontSize = isSmallScreen ? 10.5 : (isMobile ? 13.0 : 15.0);
+          final iconSize = isSmallScreen ? 18.0 : (isMobile ? 22.0 : 20.0);
+          final horizontalPadding = isSmallScreen ? 1.0 : (isMobile ? 4.0 : 16.0);
+          final iconTextGap = isSmallScreen ? 2.0 : (isMobile ? 4.0 : 6.0);
           
           return Container(
             padding: EdgeInsets.symmetric(
@@ -513,7 +518,7 @@ class _MainPageState extends State<MainPage> {
                   size: iconSize,
                 ),
                 if (showLabelOnly) ...[
-                  SizedBox(width: isVerySmallScreen ? 3 : (isMobile ? 4 : 6)),
+                  SizedBox(width: iconTextGap),
                   Flexible(
                     child: Text(
                       label,
@@ -521,6 +526,7 @@ class _MainPageState extends State<MainPage> {
                         color: isSelected ? AppColors.kPrimary : Colors.grey[700],
                         fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
                         fontSize: fontSize,
+                        letterSpacing: isSmallScreen ? -0.3 : 0,
                       ),
                       overflow: TextOverflow.ellipsis,
                       maxLines: 1,
