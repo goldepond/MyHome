@@ -198,14 +198,14 @@ class _MainPageState extends State<MainPage> {
 
   Widget _buildMobileHeader() {
     final screenWidth = MediaQuery.of(context).size.width;
-    final isVerySmallScreen = screenWidth < 360;
-    final horizontalGap = isVerySmallScreen ? 4.0 : 6.0;
+    final isVerySmallScreen = screenWidth < 400;
+    final horizontalGap = isVerySmallScreen ? 3.0 : 6.0;
 
-    // 모바일에서는 항상 화면 폭 안에 3개의 탭이 모두 보이도록
+    // 모바일에서는 항상 화면 폭 안에 4개의 탭이 모두 보이도록
     // 가로 스크롤을 없애고 Expanded 로 균등 분배한다.
-    // 아주 좁은 화면에서는 아이콘만 보이도록 처리해 가독성을 유지한다.
+    // 400px 미만 화면에서는 폰트/패딩을 줄여 가독성을 유지한다.
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 4),
+      padding: EdgeInsets.symmetric(horizontal: isVerySmallScreen ? 2 : 4),
       child: Row(
         children: [
           Expanded(
@@ -214,7 +214,7 @@ class _MainPageState extends State<MainPage> {
               0,
               Icons.add_home_rounded,
               isMobile: true,
-              showLabelOnly: !isVerySmallScreen,
+              showLabelOnly: true,
             ),
           ),
           SizedBox(width: horizontalGap),
@@ -224,7 +224,7 @@ class _MainPageState extends State<MainPage> {
               1,
               Icons.search_rounded,
               isMobile: true,
-              showLabelOnly: !isVerySmallScreen,
+              showLabelOnly: true,
             ),
           ),
           SizedBox(width: horizontalGap),
@@ -234,7 +234,7 @@ class _MainPageState extends State<MainPage> {
               2,
               Icons.home_work_rounded,
               isMobile: true,
-              showLabelOnly: !isVerySmallScreen,
+              showLabelOnly: true,
             ),
           ),
           SizedBox(width: horizontalGap),
@@ -244,7 +244,7 @@ class _MainPageState extends State<MainPage> {
               3,
               Icons.person_rounded,
               isMobile: true,
-              showLabelOnly: !isVerySmallScreen,
+              showLabelOnly: true,
             ),
           ),
         ],
@@ -483,46 +483,55 @@ class _MainPageState extends State<MainPage> {
         _logService.logScreenView(tabName, screenClass: 'MainPageTab');
       },
       borderRadius: BorderRadius.circular(8),
-      child: Container(
-        padding: EdgeInsets.symmetric(
-          horizontal: isMobile ? 4 : 16,
-          vertical: isMobile ? 6 : 10,
-        ),
-        decoration: BoxDecoration(
-          color: isSelected ? Colors.white : Colors.transparent,
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(
-            color: isSelected ? AppColors.kPrimary.withValues(alpha: 0.7) : Colors.transparent,
-            width: isSelected ? 1.5 : 1,
-          ),
-        ),
-        child: Row(
-          mainAxisSize: isMobile ? MainAxisSize.max : MainAxisSize.min,
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              icon,
-              color: isSelected ? AppColors.kPrimary : Colors.grey[700],
-              size: isMobile ? 22 : 20,
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final isVerySmallScreen = MediaQuery.of(context).size.width < 400;
+          final fontSize = isVerySmallScreen ? 11.5 : (isMobile ? 13 : 15);
+          final iconSize = isVerySmallScreen ? 19 : (isMobile ? 22 : 20);
+          final horizontalPadding = isVerySmallScreen ? 2.0 : (isMobile ? 4.0 : 16.0);
+          
+          return Container(
+            padding: EdgeInsets.symmetric(
+              horizontal: horizontalPadding,
+              vertical: isMobile ? 6 : 10,
             ),
-            if (showLabelOnly) ...[
-              SizedBox(width: isMobile ? 4 : 6),
-              Flexible(
-                child: Text(
-                  label,
-                  style: TextStyle(
-                    color: isSelected ? AppColors.kPrimary : Colors.grey[700],
-                    fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-                    fontSize: isMobile ? 13 : 15,
-                  ),
-                  overflow: TextOverflow.ellipsis,
-                  maxLines: 1,
-                  textAlign: TextAlign.center,
-                ),
+            decoration: BoxDecoration(
+              color: isSelected ? Colors.white : Colors.transparent,
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(
+                color: isSelected ? AppColors.kPrimary.withValues(alpha: 0.7) : Colors.transparent,
+                width: isSelected ? 1.5 : 1,
               ),
-            ],
-          ],
-        ),
+            ),
+            child: Row(
+              mainAxisSize: isMobile ? MainAxisSize.max : MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  icon,
+                  color: isSelected ? AppColors.kPrimary : Colors.grey[700],
+                  size: iconSize,
+                ),
+                if (showLabelOnly) ...[
+                  SizedBox(width: isVerySmallScreen ? 3 : (isMobile ? 4 : 6)),
+                  Flexible(
+                    child: Text(
+                      label,
+                      style: TextStyle(
+                        color: isSelected ? AppColors.kPrimary : Colors.grey[700],
+                        fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                        fontSize: fontSize,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                      maxLines: 1,
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          );
+        },
       ),
     );
   }

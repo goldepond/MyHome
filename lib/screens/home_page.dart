@@ -791,7 +791,8 @@ class _HomePageState extends State<HomePage> {
                     }
                   },
                   style: OutlinedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    minimumSize: const Size(0, 48),
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
                     side: BorderSide(color: AppColors.kSecondary.withValues(alpha: 0.25)),
                     foregroundColor: AppColors.kSecondary.withValues(alpha: 0.8),
                     backgroundColor: AppColors.kSecondary.withValues(alpha: 0.08),
@@ -817,9 +818,10 @@ class _HomePageState extends State<HomePage> {
                     await _navigateToLoginAndRefresh();
                   },
                   style: ElevatedButton.styleFrom(
+                    minimumSize: const Size(0, 48),
                     backgroundColor: AppColors.kSecondary,
                     foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                   ),
                   icon: const Icon(Icons.login, size: 18),
