@@ -1848,37 +1848,6 @@ class FirebaseService {
     }
   }
 
-  /// 알림 삭제
-  Future<bool> deleteNotification(String notificationId) async {
-    try {
-      await _firestore.collection(_notificationsCollectionName).doc(notificationId).delete();
-      return true;
-    } catch (e) {
-      return false;
-    }
-  }
-
-  /// 모든 읽은 알림 삭제
-  Future<bool> deleteAllReadNotifications(String userId) async {
-    try {
-      final batch = _firestore.batch();
-      final snapshot = await _firestore
-          .collection(_notificationsCollectionName)
-          .where('userId', isEqualTo: userId)
-          .where('isRead', isEqualTo: true)
-          .get();
-
-      for (final doc in snapshot.docs) {
-        batch.delete(doc.reference);
-      }
-
-      await batch.commit();
-      return true;
-    } catch (e) {
-      return false;
-    }
-  }
-
   /* =========================================== */
   /* 채팅 관련 메서드 */
   /* =========================================== */

@@ -159,55 +159,7 @@ class _NotificationPageState extends State<NotificationPage> {
   Widget _buildNotificationItem(NotificationModel notification) {
     final dateFormat = DateFormat('MM.dd HH:mm');
     
-    return Dismissible(
-      key: Key(notification.id),
-      background: Container(
-        color: Colors.red,
-        alignment: Alignment.centerRight,
-        padding: const EdgeInsets.only(right: 20),
-        child: const Icon(Icons.delete, color: Colors.white),
-      ),
-      direction: DismissDirection.endToStart,
-      onDismissed: (direction) async {
-        // 알림 삭제
-        await _firebaseService.deleteNotification(notification.id);
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: const Text('알림이 삭제되었습니다'),
-              duration: const Duration(seconds: 2),
-              action: SnackBarAction(
-                label: '취소',
-                onPressed: () {
-                  // 삭제 취소는 복잡하므로 일단 메시지만 표시
-                },
-              ),
-            ),
-          );
-        }
-      },
-      confirmDismiss: (direction) async {
-        // 삭제 확인 다이얼로그
-        return await showDialog<bool>(
-          context: context,
-          builder: (context) => AlertDialog(
-            title: const Text('알림 삭제'),
-            content: const Text('이 알림을 삭제하시겠습니까?'),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context, false),
-                child: const Text('취소'),
-              ),
-              TextButton(
-                onPressed: () => Navigator.pop(context, true),
-                style: TextButton.styleFrom(foregroundColor: Colors.red),
-                child: const Text('삭제'),
-              ),
-            ],
-          ),
-        );
-      },
-      child: InkWell(
+    return InkWell(
         onTap: () {
           if (!notification.isRead) {
             _firebaseService.markNotificationAsRead(notification.id);
