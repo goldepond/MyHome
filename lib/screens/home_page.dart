@@ -825,7 +825,7 @@ class _HomePageState extends State<HomePage> {
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                   ),
                   icon: const Icon(Icons.login, size: 18),
-                  label: const Text('로그인하고 시작하기', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
+                  label: const Text('로그인', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
                 ),
               ),
             ],
