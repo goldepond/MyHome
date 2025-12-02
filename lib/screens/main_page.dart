@@ -486,8 +486,8 @@ class _MainPageState extends State<MainPage> {
       child: LayoutBuilder(
         builder: (context, constraints) {
           final isVerySmallScreen = MediaQuery.of(context).size.width < 400;
-          final fontSize = isVerySmallScreen ? 11.5 : (isMobile ? 13 : 15);
-          final iconSize = isVerySmallScreen ? 19 : (isMobile ? 22 : 20);
+          final fontSize = isVerySmallScreen ? 11.5 : (isMobile ? 13.0 : 15.0);
+          final iconSize = isVerySmallScreen ? 19.0 : (isMobile ? 22.0 : 20.0);
           final horizontalPadding = isVerySmallScreen ? 2.0 : (isMobile ? 4.0 : 16.0);
           
           return Container(
