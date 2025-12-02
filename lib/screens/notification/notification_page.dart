@@ -18,6 +18,7 @@ class NotificationPage extends StatefulWidget {
 
 class _NotificationPageState extends State<NotificationPage> {
   final FirebaseService _firebaseService = FirebaseService();
+  bool _showReadNotifications = false; // 읽은 알림 표시 여부
 
   @override
   Widget build(BuildContext context) {
@@ -35,9 +36,52 @@ class _NotificationPageState extends State<NotificationPage> {
         elevation: 0.5,
         foregroundColor: Colors.black87,
         actions: [
+          IconButton(
+            icon: Icon(
+              _showReadNotifications ? Icons.visibility : Icons.visibility_off,
+              size: 20,
+            ),
+            tooltip: _showReadNotifications ? '읽은 알림 숨기기' : '읽은 알림 보기',
+            onPressed: () {
+              setState(() {
+                _showReadNotifications = !_showReadNotifications;
+              });
+            },
+          ),
           TextButton(
             onPressed: () async {
-              await _firebaseService.markAllNotificationsAsRead(widget.userId);
+              final confirmed = await showDialog<bool>(
+                context: context,
+                builder: (context) => AlertDialog(
+                  title: const Text('모두 읽음'),
+                  content: const Text('읽지 않은 모든 알림을 읽음 처리하시겠습니까?\n\n읽은 알림은 자동으로 숨겨집니다.'),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(context, false),
+                      child: const Text('취소'),
+                    ),
+                    TextButton(
+                      onPressed: () => Navigator.pop(context, true),
+                      child: const Text('확인'),
+                    ),
+                  ],
+                ),
+              );
+              
+              if (confirmed == true) {
+                await _firebaseService.markAllNotificationsAsRead(widget.userId);
+                if (mounted) {
+                  setState(() {
+                    _showReadNotifications = false; // 자동으로 읽은 알림 숨기기
+                  });
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('모든 알림을 읽음 처리했습니다'),
+                      duration: Duration(seconds: 2),
+                    ),
+                  );
+                }
+              }
             },
             child: const Text('모두 읽음'),
           ),
@@ -54,23 +98,48 @@ class _NotificationPageState extends State<NotificationPage> {
             return const Center(child: CircularProgressIndicator());
           }
 
-          final notifications = snapshot.data ?? [];
+          final allNotifications = snapshot.data ?? [];
+          
+          // 읽은 알림 필터링
+          final notifications = _showReadNotifications
+              ? allNotifications
+              : allNotifications.where((n) => !n.isRead).toList();
 
           if (notifications.isEmpty) {
-            return const Center(
+            return Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.notifications_off_outlined, size: 64, color: Colors.grey),
-                  SizedBox(height: 16),
+                  Icon(
+                    _showReadNotifications 
+                        ? Icons.notifications_off_outlined 
+                        : Icons.mark_email_read_outlined,
+                    size: 64,
+                    color: Colors.grey,
+                  ),
+                  const SizedBox(height: 16),
                   Text(
-                    '새로운 알림이 없습니다',
-                    style: TextStyle(
+                    _showReadNotifications
+                        ? '알림이 없습니다'
+                        : '읽지 않은 알림이 없습니다',
+                    style: const TextStyle(
                       fontSize: 16,
                       color: Colors.grey,
                       fontWeight: FontWeight.w500,
                     ),
                   ),
+                  if (!_showReadNotifications && allNotifications.isNotEmpty) ...[
+                    const SizedBox(height: 8),
+                    TextButton.icon(
+                      onPressed: () {
+                        setState(() {
+                          _showReadNotifications = true;
+                        });
+                      },
+                      icon: const Icon(Icons.visibility, size: 18),
+                      label: const Text('읽은 알림 보기'),
+                    ),
+                  ],
                 ],
               ),
             );
@@ -99,14 +168,44 @@ class _NotificationPageState extends State<NotificationPage> {
         child: const Icon(Icons.delete, color: Colors.white),
       ),
       direction: DismissDirection.endToStart,
-      onDismissed: (direction) {
-        // 실제 삭제 기능은 FirebaseService에 추가 필요 (여기서는 UI만 처리하거나 생략)
-        // 이번 구현에서는 읽음 처리만 하므로 스와이프 삭제는 비활성화하거나 추가 구현
+      onDismissed: (direction) async {
+        // 알림 삭제
+        await _firebaseService.deleteNotification(notification.id);
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: const Text('알림이 삭제되었습니다'),
+              duration: const Duration(seconds: 2),
+              action: SnackBarAction(
+                label: '취소',
+                onPressed: () {
+                  // 삭제 취소는 복잡하므로 일단 메시지만 표시
+                },
+              ),
+            ),
+          );
+        }
       },
       confirmDismiss: (direction) async {
-        // 읽음 처리만 하고 삭제는 안 함 (또는 삭제 기능 추가)
-        // 여기서는 스와이프로 읽음 처리한다고 가정하거나 막아둠
-        return false; 
+        // 삭제 확인 다이얼로그
+        return await showDialog<bool>(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('알림 삭제'),
+            content: const Text('이 알림을 삭제하시겠습니까?'),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context, false),
+                child: const Text('취소'),
+              ),
+              TextButton(
+                onPressed: () => Navigator.pop(context, true),
+                style: TextButton.styleFrom(foregroundColor: Colors.red),
+                child: const Text('삭제'),
+              ),
+            ],
+          ),
+        );
       },
       child: InkWell(
         onTap: () {
