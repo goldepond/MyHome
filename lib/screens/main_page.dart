@@ -497,7 +497,7 @@ class _MainPageState extends State<MainPage> {
           ),
         ),
         child: Row(
-          mainAxisSize: MainAxisSize.min,
+          mainAxisSize: isMobile ? MainAxisSize.max : MainAxisSize.min,
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(
@@ -516,6 +516,7 @@ class _MainPageState extends State<MainPage> {
                     fontSize: isMobile ? 13 : 15,
                   ),
                   overflow: TextOverflow.ellipsis,
+                  maxLines: 1,
                   textAlign: TextAlign.center,
                 ),
               ),
