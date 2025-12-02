@@ -66,7 +66,7 @@ class _HeroBannerState extends State<HeroBanner> {
     }
   }
 
-  Widget _buildStepChip(int step, String label) {
+  Widget _buildStepChip(int step, String label, {bool isVerySmallScreen = false}) {
     final bool isSelected = _currentHeroStep == step;
 
     return InkWell(
@@ -77,13 +77,16 @@ class _HeroBannerState extends State<HeroBanner> {
       },
       borderRadius: BorderRadius.circular(999),
       child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+        padding: EdgeInsets.symmetric(
+          horizontal: isVerySmallScreen ? 2 : 4,
+          vertical: 4,
+        ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
             Container(
-              width: 20,
-              height: 20,
+              width: isVerySmallScreen ? 18 : 20,
+              height: isVerySmallScreen ? 18 : 20,
               alignment: Alignment.center,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
@@ -94,7 +97,7 @@ class _HeroBannerState extends State<HeroBanner> {
               child: Text(
                 '$step',
                 style: TextStyle(
-                  fontSize: 11,
+                  fontSize: isVerySmallScreen ? 10 : 11,
                   fontWeight: FontWeight.bold,
                   color: isSelected
                       ? AppColors.kPrimary
@@ -102,15 +105,19 @@ class _HeroBannerState extends State<HeroBanner> {
                 ),
               ),
             ),
-            const SizedBox(width: 6),
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
-                color: isSelected
-                    ? Colors.white
-                    : Colors.white.withValues(alpha: 0.8),
+            SizedBox(width: isVerySmallScreen ? 4 : 6),
+            Flexible(
+              child: Text(
+                label,
+                style: TextStyle(
+                  fontSize: isVerySmallScreen ? 11 : 12,
+                  fontWeight: FontWeight.w600,
+                  color: isSelected
+                      ? Colors.white
+                      : Colors.white.withValues(alpha: 0.8),
+                ),
+                overflow: TextOverflow.ellipsis,
+                maxLines: 1,
               ),
             ),
           ],
@@ -132,6 +139,9 @@ class _HeroBannerState extends State<HeroBanner> {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isVerySmallScreen = screenWidth < 400;
+
     return AnimatedContainer(
       height: 360,
       width: double.infinity,
@@ -191,7 +201,10 @@ class _HeroBannerState extends State<HeroBanner> {
           ),
           const SizedBox(height: 20),
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+            padding: EdgeInsets.symmetric(
+              horizontal: isVerySmallScreen ? 8 : 18,
+              vertical: 10,
+            ),
             decoration: BoxDecoration(
               color: Colors.white.withValues(alpha: 0.12),
               borderRadius: BorderRadius.circular(999),
@@ -201,11 +214,17 @@ class _HeroBannerState extends State<HeroBanner> {
               mainAxisSize: MainAxisSize.min,
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                _buildStepChip(1, '주소 입력'),
+                Flexible(
+                  child: _buildStepChip(1, '주소 입력', isVerySmallScreen: isVerySmallScreen),
+                ),
                 _buildStepDivider(),
-                _buildStepChip(2, '주소 선택'),
+                Flexible(
+                  child: _buildStepChip(2, '주소 선택', isVerySmallScreen: isVerySmallScreen),
+                ),
                 _buildStepDivider(),
-                _buildStepChip(3, '공인중개사 찾기'),
+                Flexible(
+                  child: _buildStepChip(3, isVerySmallScreen ? '중개사찾기' : '공인중개사 찾기', isVerySmallScreen: isVerySmallScreen),
+                ),
               ],
             ),
           ),
