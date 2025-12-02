@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:property/constants/app_constants.dart';
+import 'package:property/widgets/home_logo_button.dart';
 import 'admin_quote_requests_page.dart';
 import 'admin_broker_management.dart';
 import 'admin_user_logs_page.dart';
@@ -97,16 +98,11 @@ class _AdminDashboardState extends State<AdminDashboard> {
             // 로고 + 관리자 배지
             Row(
               children: [
-                InkWell(
+                LogoWithText(
+                  fontSize: 24,
+                  logoHeight: 60,
+                  textColor: AppColors.kPrimary,
                   onTap: _goToHome,
-                  child: const Text(
-                    'MyHome',
-                    style: TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.kPrimary,
-                    ),
-                  ),
                 ),
                 const SizedBox(width: 8),
                 Container(

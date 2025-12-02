@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:property/constants/app_constants.dart';
 import 'package:property/api_request/firebase_service.dart';
 import 'package:property/api_request/log_service.dart';
+import 'package:property/widgets/home_logo_button.dart';
 import 'home_page.dart';
 import 'userInfo/personal_info_page.dart';
 import 'propertyMgmt/house_management_page.dart';
@@ -257,13 +258,16 @@ class _MainPageState extends State<MainPage> {
     return Row(
       children: [
         // 로고
-        const Text(
-          'MyHome',
-          style: TextStyle(
-            fontSize: 24,
-            fontWeight: FontWeight.bold,
-            color: AppColors.kPrimary,
-          ),
+        LogoWithText(
+          fontSize: 24,
+          logoHeight: 60,
+          textColor: AppColors.kPrimary,
+          onTap: () {
+            // 첫 번째 탭(홈)으로 이동
+            setState(() {
+              _currentIndex = 0;
+            });
+          },
         ),
         const SizedBox(width: 24),
 
