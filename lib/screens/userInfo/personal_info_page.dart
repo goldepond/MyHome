@@ -237,63 +237,68 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
 
   @override
   Widget build(BuildContext context) {
+    const double bannerHeight = 360;
+    const double overlapHeight = 80;
+
     return Scaffold(
       backgroundColor: AppColors.kBackground,
       body: SafeArea(
-        child: Column(
-          children: [
-            // 상단 헤더 영역 (home_page와 통일)
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 24),
-              decoration: BoxDecoration(
-                gradient: AppGradients.primaryDiagonal,
-                boxShadow: [
-                  BoxShadow(
-                    color: AppColors.kPrimary.withValues(alpha: 0.3),
-                    offset: const Offset(0, 4),
-                    blurRadius: 12,
-                  ),
-                ],
-              ),
-              child: Column(
-                children: [
-                  const Icon(
-                    Icons.person_rounded,
-                    size: 40,
-                    color: Colors.white,
-                  ),
-                  const SizedBox(height: 12),
-                  const Text(
-                    '내 정보',
-                    style: TextStyle(
-                      fontSize: 28,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                      letterSpacing: -0.5,
+        child: SingleChildScrollView(
+          child: Stack(
+            alignment: Alignment.topCenter,
+            children: [
+              // 히어로 배너
+              Container(
+                height: bannerHeight,
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 24),
+                decoration: BoxDecoration(
+                  gradient: AppGradients.primaryDiagonal,
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.kPrimary.withValues(alpha: 0.3),
+                      offset: const Offset(0, 12),
+                      blurRadius: 28,
                     ),
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    '내 계정 정보를 확인하고 관리하세요',
-                    style: TextStyle(
-                      fontSize: 15,
-                      color: Colors.white.withValues(alpha: 0.9),
-                      fontWeight: FontWeight.w500,
+                  ],
+                ),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Text(
+                      '내 정보',
+                      style: TextStyle(
+                        fontSize: 34,
+                        fontWeight: FontWeight.w900,
+                        color: Colors.white,
+                        letterSpacing: -0.8,
+                        height: 1.2,
+                      ),
+                      textAlign: TextAlign.center,
                     ),
-                    textAlign: TextAlign.center,
-                  ),
-                ],
+                    const SizedBox(height: 10),
+                    Text(
+                      '내 계정 정보를 확인하고 관리하세요',
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: Colors.white.withValues(alpha: 0.92),
+                        fontWeight: FontWeight.w500,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                    // 컨텐츠와 겹치는 부분 고려하여 여백 추가
+                    const SizedBox(height: 60),
+                  ],
+                ),
               ),
-            ),
-            // 메인 콘텐츠
-            Expanded(
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.all(20),
+
+              // 메인 콘텐츠 (배너와 겹치게 배치)
+              Padding(
+                padding: const EdgeInsets.only(top: bannerHeight - overlapHeight), // 360 - 80 = 280
                 child: Center(
                   child: Container(
-                    constraints: const BoxConstraints(maxWidth: 900), // 최대 너비 900px로 제한
+                    constraints: const BoxConstraints(maxWidth: 900),
+                    padding: const EdgeInsets.symmetric(horizontal: 24),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -556,13 +561,14 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
                         ),
                       ),
                     ),
-                  ],
+                        const SizedBox(height: 24),
+                      ],
+                    ),
+                  ),
                 ),
               ),
-            ),
+            ],
           ),
-        ),
-      ],
         ),
       ),
     );
