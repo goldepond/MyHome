@@ -31,6 +31,14 @@ class _BrokerSignupPageState extends State<BrokerSignupPage> {
   BrokerInfo? _validatedBrokerInfo;
 
   final FirebaseService _firebaseService = FirebaseService();
+  
+  // 각 필드별 에러 메시지
+  String? _emailError;
+  String? _passwordError;
+  String? _passwordConfirmError;
+  String? _ownerNameError;
+  String? _businessNameError;
+  String? _phoneNumberError;
 
   @override
   void dispose() {
@@ -151,18 +159,68 @@ class _BrokerSignupPageState extends State<BrokerSignupPage> {
 
   /// 회원가입 제출
   Future<void> _submitSignup() async {
-    if (!_formKey.currentState!.validate()) {
+    // 모든 에러 초기화
+    setState(() {
+      _emailError = null;
+      _passwordError = null;
+      _passwordConfirmError = null;
+      _ownerNameError = null;
+      _businessNameError = null;
+      _phoneNumberError = null;
+    });
+    
+    bool hasError = false;
+    
+    // 이메일 검증
+    if (_emailController.text.isEmpty) {
+      setState(() => _emailError = '이메일을 입력해주세요');
+      hasError = true;
+    } else if (!ValidationUtils.isValidEmail(_emailController.text)) {
+      setState(() => _emailError = '올바른 이메일 형식이 아닙니다');
+      hasError = true;
+    }
+    
+    // 비밀번호 검증
+    if (_passwordController.text.isEmpty) {
+      setState(() => _passwordError = '비밀번호를 입력해주세요');
+      hasError = true;
+    } else if (!ValidationUtils.isValidPasswordLength(_passwordController.text)) {
+      setState(() => _passwordError = '비밀번호는 6자 이상이어야 합니다');
+      hasError = true;
+    }
+    
+    // 비밀번호 확인 검증
+    if (_passwordConfirmController.text.isEmpty) {
+      setState(() => _passwordConfirmError = '비밀번호 확인을 입력해주세요');
+      hasError = true;
+    } else if (!ValidationUtils.doPasswordsMatch(_passwordController.text, _passwordConfirmController.text)) {
+      setState(() => _passwordConfirmError = '비밀번호가 일치하지 않습니다');
+      hasError = true;
+    }
+    
+    // 소유자 이름 검증
+    if (_ownerNameController.text.isEmpty) {
+      setState(() => _ownerNameError = '소유자 이름을 입력해주세요');
+      hasError = true;
+    }
+    
+    // 사무소명 검증
+    if (_businessNameController.text.isEmpty) {
+      setState(() => _businessNameError = '사무소명을 입력해주세요');
+      hasError = true;
+    }
+    
+    // 전화번호 검증
+    if (_phoneNumberController.text.isEmpty) {
+      setState(() => _phoneNumberError = '전화번호를 입력해주세요');
+      hasError = true;
+    }
+    
+    if (hasError) {
       return;
     }
-
-    // 비밀번호 확인
-    if (!ValidationUtils.doPasswordsMatch(_passwordController.text, _passwordConfirmController.text)) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('비밀번호가 일치하지 않습니다.'),
-          backgroundColor: Colors.red,
-        ),
-      );
+    
+    if (!_formKey.currentState!.validate()) {
       return;
     }
 
@@ -463,6 +521,11 @@ class _BrokerSignupPageState extends State<BrokerSignupPage> {
                     const SizedBox(height: 20),
                     TextFormField(
                       controller: _emailController,
+                      onChanged: (value) {
+                        if (_emailError != null) {
+                          setState(() => _emailError = null);
+                        }
+                      },
                       decoration: InputDecoration(
                         labelText: '이메일 또는 ID *',
                         hintText: '예: broker@example.com 또는 broker123',
@@ -470,13 +533,36 @@ class _BrokerSignupPageState extends State<BrokerSignupPage> {
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(
+                            color: _emailError != null ? Colors.red : Colors.grey[300]!,
+                          ),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(
+                            color: _emailError != null ? Colors.red : AppColors.kPrimary,
+                            width: 2,
+                          ),
+                        ),
+                        errorBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: const BorderSide(color: Colors.red, width: 2),
+                        ),
+                        focusedErrorBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: const BorderSide(color: Colors.red, width: 2),
+                        ),
                         filled: true,
                         fillColor: Colors.grey.withValues(alpha: 0.05),
+                        errorText: _emailError,
+                        errorStyle: const TextStyle(fontSize: 12),
                       ),
                       keyboardType: TextInputType.emailAddress,
                       validator: (value) {
                         if (value == null || value.trim().isEmpty) {
-                          return '이메일 또는 ID를 입력해주세요.';
+                          return '이메일 또는 ID를 입력해주세요';
                         }
                         return null;
                       },
@@ -484,6 +570,11 @@ class _BrokerSignupPageState extends State<BrokerSignupPage> {
                     const SizedBox(height: 16),
                     TextFormField(
                       controller: _passwordController,
+                      onChanged: (value) {
+                        if (_passwordError != null) {
+                          setState(() => _passwordError = null);
+                        }
+                      },
                       decoration: InputDecoration(
                         labelText: '비밀번호 *',
                         hintText: '6자 이상',
@@ -503,16 +594,39 @@ class _BrokerSignupPageState extends State<BrokerSignupPage> {
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(
+                            color: _passwordError != null ? Colors.red : Colors.grey[300]!,
+                          ),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(
+                            color: _passwordError != null ? Colors.red : AppColors.kPrimary,
+                            width: 2,
+                          ),
+                        ),
+                        errorBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: const BorderSide(color: Colors.red, width: 2),
+                        ),
+                        focusedErrorBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: const BorderSide(color: Colors.red, width: 2),
+                        ),
                         filled: true,
                         fillColor: Colors.grey.withValues(alpha: 0.05),
+                        errorText: _passwordError,
+                        errorStyle: const TextStyle(fontSize: 12),
                       ),
                       obscureText: _obscurePassword,
                       validator: (value) {
                         if (value == null || value.isEmpty) {
-                          return '비밀번호를 입력해주세요.';
+                          return '비밀번호를 입력해주세요';
                         }
                         if (!ValidationUtils.isValidPasswordLength(value)) {
-                          return '비밀번호는 6자 이상이어야 합니다.';
+                          return '비밀번호는 6자 이상이어야 합니다';
                         }
                         return null;
                       },
@@ -520,6 +634,11 @@ class _BrokerSignupPageState extends State<BrokerSignupPage> {
                     const SizedBox(height: 16),
                     TextFormField(
                       controller: _passwordConfirmController,
+                      onChanged: (value) {
+                        if (_passwordConfirmError != null) {
+                          setState(() => _passwordConfirmError = null);
+                        }
+                      },
                       decoration: InputDecoration(
                         labelText: '비밀번호 확인 *',
                         hintText: '비밀번호를 다시 입력하세요',
@@ -539,16 +658,39 @@ class _BrokerSignupPageState extends State<BrokerSignupPage> {
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(
+                            color: _passwordConfirmError != null ? Colors.red : Colors.grey[300]!,
+                          ),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(
+                            color: _passwordConfirmError != null ? Colors.red : AppColors.kPrimary,
+                            width: 2,
+                          ),
+                        ),
+                        errorBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: const BorderSide(color: Colors.red, width: 2),
+                        ),
+                        focusedErrorBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: const BorderSide(color: Colors.red, width: 2),
+                        ),
                         filled: true,
                         fillColor: Colors.grey.withValues(alpha: 0.05),
+                        errorText: _passwordConfirmError,
+                        errorStyle: const TextStyle(fontSize: 12),
                       ),
                       obscureText: _obscurePasswordConfirm,
                       validator: (value) {
                         if (value == null || value.isEmpty) {
-                          return '비밀번호 확인을 입력해주세요.';
+                          return '비밀번호 확인을 입력해주세요';
                         }
                         if (!ValidationUtils.doPasswordsMatch(_passwordController.text, value)) {
-                          return '비밀번호가 일치하지 않습니다.';
+                          return '비밀번호가 일치하지 않습니다';
                         }
                         return null;
                       },
@@ -556,6 +698,11 @@ class _BrokerSignupPageState extends State<BrokerSignupPage> {
                     const SizedBox(height: 16),
                     TextFormField(
                       controller: _businessNameController,
+                      onChanged: (value) {
+                        if (_businessNameError != null) {
+                          setState(() => _businessNameError = null);
+                        }
+                      },
                       decoration: InputDecoration(
                         labelText: '사업자상호 *',
                         hintText: '예: ○○부동산',

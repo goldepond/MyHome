@@ -23,6 +23,12 @@ class _SignupPageState extends State<SignupPage> {
   bool _agreeToPrivacy = false;
   bool _agreeToMarketing = false;
   final FirebaseService _firebaseService = FirebaseService();
+  
+  // 각 필드별 에러 메시지
+  String? _emailError;
+  String? _phoneError;
+  String? _passwordError;
+  String? _passwordConfirmError;
 
   @override
   void dispose() {
@@ -41,74 +47,80 @@ class _SignupPageState extends State<SignupPage> {
   }
 
   Future<void> _signup() async {
-    // 필수 입력 검증 (이메일, 비밀번호만)
-    if (_emailController.text.isEmpty ||
-        _passwordController.text.isEmpty ||
-        _passwordConfirmController.text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('이메일과 비밀번호를 입력해주세요.'),
-          backgroundColor: Colors.orange,
-        ),
-      );
-      return;
+    // 모든 에러 초기화
+    setState(() {
+      _emailError = null;
+      _phoneError = null;
+      _passwordError = null;
+      _passwordConfirmError = null;
+    });
+    
+    bool hasError = false;
+    
+    // 이메일 검증
+    if (_emailController.text.isEmpty) {
+      setState(() {
+        _emailError = '이메일을 입력해주세요';
+      });
+      hasError = true;
+    } else if (!ValidationUtils.isValidEmail(_emailController.text)) {
+      setState(() {
+        _emailError = '올바른 이메일 형식이 아닙니다 (예: user@example.com)';
+      });
+      hasError = true;
     }
     
-    // 이메일 형식 검증
-    if (!ValidationUtils.isValidEmail(_emailController.text)) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('올바른 이메일 형식을 입력해주세요.'),
-          backgroundColor: Colors.orange,
-        ),
-      );
-      return;
-    }
-    
-    // 휴대폰 번호 형식 검증 (입력된 경우만)
+    // 휴대폰 번호 검증 (입력된 경우만)
     if (_phoneController.text.isNotEmpty) {
       final phone = _phoneController.text.replaceAll('-', '').replaceAll(' ', '');
       if (!RegExp(r'^01[0-9]{8,9}$').hasMatch(phone)) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('올바른 휴대폰 번호를 입력해주세요. (예: 010-1234-5678)'),
-            backgroundColor: Colors.orange,
-          ),
-        );
-        return;
+        setState(() {
+          _phoneError = '올바른 휴대폰 번호를 입력해주세요 (예: 01012345678)';
+        });
+        hasError = true;
       }
     }
 
-    // 비밀번호 길이 검증 (6자 이상)
-    if (!ValidationUtils.isValidPasswordLength(_passwordController.text)) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('비밀번호는 6자 이상 입력해주세요.'),
-          backgroundColor: Colors.orange,
-        ),
-      );
-      return;
+    // 비밀번호 검증
+    if (_passwordController.text.isEmpty) {
+      setState(() {
+        _passwordError = '비밀번호를 입력해주세요';
+      });
+      hasError = true;
+    } else if (!ValidationUtils.isValidPasswordLength(_passwordController.text)) {
+      setState(() {
+        _passwordError = '비밀번호는 6자 이상이어야 합니다';
+      });
+      hasError = true;
     }
 
-    // 비밀번호 일치 확인
-    if (!ValidationUtils.doPasswordsMatch(_passwordController.text, _passwordConfirmController.text)) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('비밀번호가 일치하지 않습니다.'),
-          backgroundColor: Colors.red,
-        ),
-      );
-      return;
+    // 비밀번호 확인 검증
+    if (_passwordConfirmController.text.isEmpty) {
+      setState(() {
+        _passwordConfirmError = '비밀번호 확인을 입력해주세요';
+      });
+      hasError = true;
+    } else if (!ValidationUtils.doPasswordsMatch(_passwordController.text, _passwordConfirmController.text)) {
+      setState(() {
+        _passwordConfirmError = '비밀번호가 일치하지 않습니다';
+      });
+      hasError = true;
     }
     
     // 약관 동의 확인
     if (!_agreeToTerms || !_agreeToPrivacy) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('필수 약관에 동의해주세요.'),
+          content: Text('필수 약관에 동의해주세요'),
           backgroundColor: Colors.red,
+          duration: Duration(seconds: 2),
         ),
       );
+      hasError = true;
+    }
+    
+    // 에러가 있으면 중단
+    if (hasError) {
       return;
     }
 
@@ -257,6 +269,13 @@ class _SignupPageState extends State<SignupPage> {
                   TextField(
                     controller: _emailController,
                     keyboardType: TextInputType.emailAddress,
+                    onChanged: (value) {
+                      if (_emailError != null) {
+                        setState(() {
+                          _emailError = null;
+                        });
+                      }
+                    },
                     decoration: InputDecoration(
                       labelText: '이메일 *',
                       hintText: '예: user@example.com',
@@ -266,15 +285,30 @@ class _SignupPageState extends State<SignupPage> {
                       ),
                       enabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide(color: Colors.grey[300]!),
+                        borderSide: BorderSide(
+                          color: _emailError != null ? Colors.red : Colors.grey[300]!,
+                        ),
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
-                        borderSide: const BorderSide(color: AppColors.kPrimary, width: 2),
+                        borderSide: BorderSide(
+                          color: _emailError != null ? Colors.red : AppColors.kPrimary, 
+                          width: 2,
+                        ),
+                      ),
+                      errorBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: const BorderSide(color: Colors.red, width: 2),
+                      ),
+                      focusedErrorBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: const BorderSide(color: Colors.red, width: 2),
                       ),
                       filled: true,
                       fillColor: Colors.grey.withValues(alpha: 0.05),
-                      helperText: '이메일이 로그인 ID로 사용됩니다',
+                      errorText: _emailError,
+                      errorStyle: const TextStyle(fontSize: 12),
+                      helperText: _emailError == null ? '이메일이 로그인 ID로 사용됩니다' : null,
                       helperStyle: TextStyle(fontSize: 12, color: AppColors.kTextLight),
                     ),
                   ),
@@ -287,6 +321,13 @@ class _SignupPageState extends State<SignupPage> {
                     inputFormatters: [
                       FilteringTextInputFormatter.allow(RegExp(r'[0-9]')), // 숫자만 입력
                     ],
+                    onChanged: (value) {
+                      if (_phoneError != null) {
+                        setState(() {
+                          _phoneError = null;
+                        });
+                      }
+                    },
                     decoration: InputDecoration(
                       labelText: '휴대폰 번호',
                       hintText: '예: 01012345678',
@@ -296,15 +337,30 @@ class _SignupPageState extends State<SignupPage> {
                       ),
                       enabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide(color: Colors.grey[300]!),
+                        borderSide: BorderSide(
+                          color: _phoneError != null ? Colors.red : Colors.grey[300]!,
+                        ),
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
-                        borderSide: const BorderSide(color: AppColors.kPrimary, width: 2),
+                        borderSide: BorderSide(
+                          color: _phoneError != null ? Colors.red : AppColors.kPrimary, 
+                          width: 2,
+                        ),
+                      ),
+                      errorBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: const BorderSide(color: Colors.red, width: 2),
+                      ),
+                      focusedErrorBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: const BorderSide(color: Colors.red, width: 2),
                       ),
                       filled: true,
                       fillColor: Colors.grey.withValues(alpha: 0.05),
-                      helperText: '본인 확인 및 비밀번호 찾기에 사용됩니다',
+                      errorText: _phoneError,
+                      errorStyle: const TextStyle(fontSize: 12),
+                      helperText: _phoneError == null ? '본인 확인 및 비밀번호 찾기에 사용됩니다' : null,
                       helperStyle: TextStyle(fontSize: 12, color: AppColors.kTextLight),
                     ),
                   ),
@@ -314,7 +370,13 @@ class _SignupPageState extends State<SignupPage> {
                   TextField(
                     controller: _passwordController,
                     obscureText: true,
-                    onChanged: (value) => setState(() {}), // 강도 표시 업데이트
+                    onChanged: (value) {
+                      setState(() {
+                        if (_passwordError != null) {
+                          _passwordError = null;
+                        }
+                      });
+                    },
                     decoration: InputDecoration(
                       labelText: '비밀번호 *',
                       hintText: '6자 이상 (영문, 숫자, 특수문자 조합 권장)',
@@ -324,14 +386,29 @@ class _SignupPageState extends State<SignupPage> {
                       ),
                       enabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide(color: Colors.grey[300]!),
+                        borderSide: BorderSide(
+                          color: _passwordError != null ? Colors.red : Colors.grey[300]!,
+                        ),
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
-                        borderSide: const BorderSide(color: AppColors.kPrimary, width: 2),
+                        borderSide: BorderSide(
+                          color: _passwordError != null ? Colors.red : AppColors.kPrimary, 
+                          width: 2,
+                        ),
+                      ),
+                      errorBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: const BorderSide(color: Colors.red, width: 2),
+                      ),
+                      focusedErrorBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: const BorderSide(color: Colors.red, width: 2),
                       ),
                       filled: true,
                       fillColor: Colors.grey.withValues(alpha: 0.05),
+                      errorText: _passwordError,
+                      errorStyle: const TextStyle(fontSize: 12),
                     ),
                   ),
                   
@@ -371,6 +448,13 @@ class _SignupPageState extends State<SignupPage> {
                   TextField(
                     controller: _passwordConfirmController,
                     obscureText: true,
+                    onChanged: (value) {
+                      if (_passwordConfirmError != null) {
+                        setState(() {
+                          _passwordConfirmError = null;
+                        });
+                      }
+                    },
                     decoration: InputDecoration(
                       labelText: '비밀번호 확인 *',
                       hintText: '비밀번호를 다시 입력하세요',
@@ -380,14 +464,29 @@ class _SignupPageState extends State<SignupPage> {
                       ),
                       enabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide(color: Colors.grey[300]!),
+                        borderSide: BorderSide(
+                          color: _passwordConfirmError != null ? Colors.red : Colors.grey[300]!,
+                        ),
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
-                        borderSide: const BorderSide(color: AppColors.kPrimary, width: 2),
+                        borderSide: BorderSide(
+                          color: _passwordConfirmError != null ? Colors.red : AppColors.kPrimary, 
+                          width: 2,
+                        ),
+                      ),
+                      errorBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: const BorderSide(color: Colors.red, width: 2),
+                      ),
+                      focusedErrorBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: const BorderSide(color: Colors.red, width: 2),
                       ),
                       filled: true,
                       fillColor: Colors.grey.withValues(alpha: 0.05),
+                      errorText: _passwordConfirmError,
+                      errorStyle: const TextStyle(fontSize: 12),
                     ),
                   ),
                   
