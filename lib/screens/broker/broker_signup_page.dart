@@ -235,24 +235,36 @@ class _BrokerSignupPageState extends State<BrokerSignupPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.kBackground,
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        foregroundColor: AppColors.kPrimary,
-        elevation: 0.5,
-        title: const HomeLogoButton(
-          fontSize: 18,
-          color: AppColors.kPrimary,
+    return GestureDetector(
+      onTap: () => FocusScope.of(context).unfocus(),
+      child: Scaffold(
+        backgroundColor: AppColors.kBackground,
+        resizeToAvoidBottomInset: true,
+        appBar: AppBar(
+          backgroundColor: Colors.white,
+          foregroundColor: AppColors.kPrimary,
+          elevation: 0.5,
+          title: const HomeLogoButton(
+            fontSize: 18,
+            color: AppColors.kPrimary,
+          ),
         ),
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
+        body: SafeArea(
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              return SingleChildScrollView(
+                physics: const ClampingScrollPhysics(),
+                padding: const EdgeInsets.all(24),
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(
+                    minHeight: constraints.maxHeight - 48,
+                  ),
+                  child: IntrinsicHeight(
+                    child: Form(
+                      key: _formKey,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
               // 제목
               const Text(
                 '공인중개사 회원가입',
@@ -634,7 +646,13 @@ class _BrokerSignupPageState extends State<BrokerSignupPage> {
                   ),
                 ),
               ),
-            ],
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              );
+            },
           ),
         ),
       ),

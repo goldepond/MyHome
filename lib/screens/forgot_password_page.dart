@@ -86,30 +86,41 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: AppGradients.primaryDiagonal,
-        ),
-        child: SafeArea(
-          child: Stack(
-            children: [
-              // 뒤로가기 버튼
-              Positioned(
-                top: 16,
-                left: 16,
-                child: IconButton(
-                  icon: const Icon(Icons.arrow_back, color: Colors.white, size: 28),
-                  onPressed: () => Navigator.of(context).pop(),
+    return GestureDetector(
+      onTap: () => FocusScope.of(context).unfocus(),
+      child: Scaffold(
+        resizeToAvoidBottomInset: true,
+        body: Container(
+          decoration: const BoxDecoration(
+            gradient: AppGradients.primaryDiagonal,
+          ),
+          child: SafeArea(
+            child: Stack(
+              children: [
+                // 뒤로가기 버튼
+                Positioned(
+                  top: 16,
+                  left: 16,
+                  child: IconButton(
+                    icon: const Icon(Icons.arrow_back, color: Colors.white, size: 28),
+                    onPressed: () => Navigator.of(context).pop(),
+                  ),
                 ),
-              ),
-              // 메인 콘텐츠
-              Center(
-                child: SingleChildScrollView(
-                  padding: const EdgeInsets.all(24),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
+                // 메인 콘텐츠
+                LayoutBuilder(
+                  builder: (context, constraints) {
+                    return Center(
+                      child: SingleChildScrollView(
+                        physics: const ClampingScrollPhysics(),
+                        padding: const EdgeInsets.all(24),
+                        child: ConstrainedBox(
+                          constraints: BoxConstraints(
+                            minHeight: constraints.maxHeight - 48,
+                          ),
+                          child: IntrinsicHeight(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
                       // 로고 영역
                       Container(
                         padding: const EdgeInsets.all(20),
@@ -317,12 +328,16 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                             ],
                           ),
                         ),
-                      ],
-                    ],
-                  ),
+                              ],
+                            ],
+                          ),
+                        ),
+                      ),
+                    );
+                  },
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
