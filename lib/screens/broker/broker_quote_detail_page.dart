@@ -512,8 +512,14 @@ class _BrokerQuoteDetailPageState extends State<BrokerQuoteDetailPage> {
               ),
 
               const SizedBox(height: 24),
-                ],
-              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                );
+              },
             ),
           ),
         ),

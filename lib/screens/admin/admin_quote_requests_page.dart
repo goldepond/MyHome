@@ -116,6 +116,8 @@ class _AdminQuoteRequestsPageState extends State<AdminQuoteRequestsPage> {
           );
         },
       ),
+        ),
+      ),
     );
   }
   
