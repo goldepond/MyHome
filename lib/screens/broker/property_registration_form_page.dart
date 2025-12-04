@@ -632,17 +632,17 @@ class _PropertyRegistrationFormPageState extends State<PropertyRegistrationFormP
         child: GestureDetector(
           onTap: () => FocusScope.of(context).unfocus(),
           child: Form(
-            key: _formKey,
+        key: _formKey,
             child: SafeArea(
-              child: SingleChildScrollView(
+        child: SingleChildScrollView(
                 physics: const AlwaysScrollableScrollPhysics(),
-                padding: EdgeInsets.symmetric(horizontal: horizontalPadding, vertical: 16),
-                child: Center(
-                  child: Container(
-                    constraints: BoxConstraints(maxWidth: maxWidth),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
+          padding: EdgeInsets.symmetric(horizontal: horizontalPadding, vertical: 16),
+          child: Center(
+            child: Container(
+              constraints: BoxConstraints(maxWidth: maxWidth),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
                   // 안내 문구
                   Container(
                     padding: const EdgeInsets.all(16),
@@ -898,7 +898,7 @@ class _PropertyRegistrationFormPageState extends State<PropertyRegistrationFormP
                     ),
                   ),
                   const SizedBox(height: 24),
-                      ],
+                ],
                     ),
                   ),
                 ),

@@ -1422,14 +1422,14 @@ class _HomePageState extends State<HomePage> {
                 const SizedBox(height: 56),
 
               _buildRegisterResultCard(isLoggedIn),
-              ],
+            ],
+            ),
+          ),
             ),
           ),
         ),
       ),
-    ),
-  ),
-  );
+    );
   }
   
   // 정보 카드 위젯

@@ -216,10 +216,10 @@ class _SignupPageState extends State<SignupPage> {
         body: SafeArea(
           child: SingleChildScrollView(
             physics: const AlwaysScrollableScrollPhysics(),
-            padding: const EdgeInsets.all(24),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
             // 제목
             const Text(
               '일반 회원가입',
@@ -586,12 +586,12 @@ class _SignupPageState extends State<SignupPage> {
                 ),
               ),
             ),
-              ],
+          ],
             ),
           ),
         ),
+        ),
       ),
-    ),
     );
   }
 }
