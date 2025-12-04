@@ -3745,64 +3745,70 @@ class _QuoteRequestFormPageState extends State<_QuoteRequestFormPage> {
   }
   
   Widget _buildRequestItem(String emoji, String title, String description, bool value, ValueChanged<bool>? onChanged) {
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(
-          color: value 
-              ? AppColors.kPrimary.withValues(alpha: 0.3)
-              : AppColors.kPrimary.withValues(alpha: 0.2),
-          width: value ? 2 : 1,
+    return InkWell(
+      onTap: onChanged != null ? () => onChanged(!value) : null,
+      borderRadius: BorderRadius.circular(10),
+      child: Container(
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(
+            color: value 
+                ? AppColors.kPrimary.withValues(alpha: 0.3)
+                : AppColors.kPrimary.withValues(alpha: 0.2),
+            width: value ? 2 : 1,
+          ),
         ),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          if (onChanged != null) ...[
-            SizedBox(
-              width: 24,
-              height: 24,
-              child: Checkbox(
-                value: value,
-                onChanged: (v) => onChanged(v ?? false),
-                activeColor: AppColors.kPrimary,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (onChanged != null) ...[
+              IgnorePointer(
+                child: SizedBox(
+                  width: 24,
+                  height: 24,
+                  child: Checkbox(
+                    value: value,
+                    onChanged: null,
+                    activeColor: AppColors.kPrimary,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+                  ),
+                ),
               ),
+              const SizedBox(width: 12),
+            ],
+            Text(
+              emoji,
+              style: const TextStyle(fontSize: 24),
             ),
             const SizedBox(width: 12),
-          ],
-          Text(
-            emoji,
-            style: const TextStyle(fontSize: 24),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.kPrimary,
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.kPrimary,
+                    ),
                   ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  description,
-                  style: TextStyle(
-                    fontSize: 13,
-                    color: Colors.grey[700],
-                    height: 1.4,
+                  const SizedBox(height: 4),
+                  Text(
+                    description,
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: Colors.grey[700],
+                      height: 1.4,
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -4567,64 +4573,70 @@ class _MultipleQuoteRequestDialogState extends State<_MultipleQuoteRequestDialog
   }
 
   Widget _buildRequestItem(String emoji, String title, String description, bool value, ValueChanged<bool>? onChanged) {
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(10),
-        border: Border.all(
-          color: value 
-              ? AppColors.kPrimary.withValues(alpha: 0.3)
-              : AppColors.kPrimary.withValues(alpha: 0.2),
-          width: value ? 2 : 1,
+    return InkWell(
+      onTap: onChanged != null ? () => onChanged(!value) : null,
+      borderRadius: BorderRadius.circular(10),
+      child: Container(
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(
+            color: value 
+                ? AppColors.kPrimary.withValues(alpha: 0.3)
+                : AppColors.kPrimary.withValues(alpha: 0.2),
+            width: value ? 2 : 1,
+          ),
         ),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          if (onChanged != null) ...[
-            SizedBox(
-              width: 24,
-              height: 24,
-              child: Checkbox(
-                value: value,
-                onChanged: (v) => onChanged(v ?? false),
-                activeColor: AppColors.kPrimary,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            if (onChanged != null) ...[
+              IgnorePointer(
+                child: SizedBox(
+                  width: 24,
+                  height: 24,
+                  child: Checkbox(
+                    value: value,
+                    onChanged: null,
+                    activeColor: AppColors.kPrimary,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+                  ),
+                ),
               ),
+              const SizedBox(width: 12),
+            ],
+            Text(
+              emoji,
+              style: const TextStyle(fontSize: 24),
             ),
             const SizedBox(width: 12),
-          ],
-          Text(
-            emoji,
-            style: const TextStyle(fontSize: 24),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.kPrimary,
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.kPrimary,
+                    ),
                   ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  description,
-                  style: TextStyle(
-                    fontSize: 13,
-                    color: Colors.grey[700],
-                    height: 1.4,
+                  const SizedBox(height: 4),
+                  Text(
+                    description,
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: Colors.grey[700],
+                      height: 1.4,
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
