@@ -3201,19 +3201,24 @@ class _QuoteRequestFormPageState extends State<_QuoteRequestFormPage> {
   
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: const Color(0xFFE8EAF0), // 배경을 더 진하게
-      appBar: AppBar(
-        title: const Text('중개 상담 요청서'),
-        backgroundColor: AppColors.kPrimary,
-        foregroundColor: Colors.white,
-        elevation: 0,
-      ),
-      body: Form(
-        key: _formKey,
-        child: ListView(
-          padding: const EdgeInsets.all(20),
-          children: [
+    return GestureDetector(
+      onTap: () => FocusScope.of(context).unfocus(),
+      child: Scaffold(
+        backgroundColor: const Color(0xFFE8EAF0), // 배경을 더 진하게
+        resizeToAvoidBottomInset: true,
+        appBar: AppBar(
+          title: const Text('중개 상담 요청서'),
+          backgroundColor: AppColors.kPrimary,
+          foregroundColor: Colors.white,
+          elevation: 0,
+        ),
+        body: Form(
+          key: _formKey,
+          child: SafeArea(
+            child: ListView(
+              physics: const ClampingScrollPhysics(),
+              padding: const EdgeInsets.all(20),
+              children: [
             // 제목
             const Text(
               '🏠 중개 상담 요청서',
