@@ -282,17 +282,29 @@ class _BrokerInquiryResponsePageState extends State<BrokerInquiryResponsePage> {
 
     final quoteRequest = QuoteRequest.fromMap(_inquiryData!['id'], _inquiryData!);
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('문의 답변'),
-        backgroundColor: AppColors.kPrimary,
-        foregroundColor: Colors.white,
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
+    return GestureDetector(
+      onTap: () => FocusScope.of(context).unfocus(),
+      child: Scaffold(
+        appBar: AppBar(
+          title: const Text('문의 답변'),
+          backgroundColor: AppColors.kPrimary,
+          foregroundColor: Colors.white,
+        ),
+        resizeToAvoidBottomInset: true,
+        body: SafeArea(
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              return SingleChildScrollView(
+                physics: const ClampingScrollPhysics(),
+                padding: const EdgeInsets.all(20),
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(
+                    minHeight: constraints.maxHeight - 40,
+                  ),
+                  child: IntrinsicHeight(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
             // 안내 메시지
             Container(
               padding: const EdgeInsets.all(16),
@@ -979,8 +991,14 @@ class _BrokerInquiryResponsePageState extends State<BrokerInquiryResponsePage> {
                   ],
                 ),
               ),
-          ],
-        ],
+                      ],
+                    ),
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
       ),
     );
   }
