@@ -3436,15 +3436,15 @@ class _QuoteRequestFormPageState extends State<_QuoteRequestFormPage> {
             
             const SizedBox(height: 24),
             
-            // ========== 3️⃣ 추가 정보 (선택 입력) ==========
-            _buildSectionTitle('추가 정보', '선택 입력', Colors.orange),
+            // ========== 3️⃣ 추가 요청사항 (선택) ==========
+            _buildSectionTitle('궁금한 점이 있으신가요?', '선택사항', AppColors.kPrimary),
             const SizedBox(height: 16),
             _buildCard([
               Row(
                 children: [
                   const Expanded(
                     child: Text(
-                      '세입자 여부 *',
+                      '현재 세입자가 있나요? *',
                       style: TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.w600,
@@ -3473,16 +3473,16 @@ class _QuoteRequestFormPageState extends State<_QuoteRequestFormPage> {
               ),
               const SizedBox(height: 16),
               _buildTextField(
-                label: '희망가',
+                label: '희망 매도가',
                 controller: _desiredPriceController,
                 hint: '예: 11억 / 협의 가능',
                 keyboardType: TextInputType.text,
               ),
               const SizedBox(height: 16),
               _buildTextField(
-                label: '추가 정보 (300자 이내)',
+                label: '기타 요청사항 (300자 이내)',
                 controller: _specialNotesController,
-                hint: '기타 요청사항이나 추가 정보를 입력하세요',
+                hint: '추가로 궁금하신 점이나 특별히 확인하고 싶은 사항을 자유롭게 적어주세요',
                 maxLines: 8,
                 maxLength: 300,
               ),
@@ -4186,15 +4186,15 @@ class _MultipleQuoteRequestDialogState extends State<_MultipleQuoteRequestDialog
             
             const SizedBox(height: 24),
             
-            // ========== 3️⃣ 추가 정보 (선택 입력) ==========
-            _buildSectionTitle('추가 정보', '선택 입력', Colors.orange),
+            // ========== 3️⃣ 추가 요청사항 (선택) ==========
+            _buildSectionTitle('궁금한 점이 있으신가요?', '선택사항', AppColors.kPrimary),
             const SizedBox(height: 16),
             _buildCard([
               Row(
                 children: [
                   const Expanded(
                     child: Text(
-                      '세입자 여부 *',
+                      '현재 세입자가 있나요? *',
                       style: TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.w600,
@@ -4223,16 +4223,16 @@ class _MultipleQuoteRequestDialogState extends State<_MultipleQuoteRequestDialog
               ),
               const SizedBox(height: 16),
               _buildTextField(
-                label: '희망가',
+                label: '희망 매도가',
                 controller: _desiredPriceController,
                 hint: '예: 11억 / 협의 가능',
                 keyboardType: TextInputType.text,
               ),
               const SizedBox(height: 16),
               _buildTextField(
-                label: '추가 정보 (300자 이내)',
+                label: '기타 요청사항 (300자 이내)',
                 controller: _specialNotesController,
-                hint: '기타 요청사항이나 추가 정보를 입력하세요',
+                hint: '추가로 궁금하신 점이나 특별히 확인하고 싶은 사항을 자유롭게 적어주세요',
                 maxLines: 8,
                 maxLength: 300,
               ),
