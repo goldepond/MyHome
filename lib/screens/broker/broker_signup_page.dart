@@ -317,23 +317,14 @@ class _BrokerSignupPageState extends State<BrokerSignupPage> {
         ),
       ),
         body: SafeArea(
-          child: LayoutBuilder(
-            builder: (context, constraints) {
-              final viewInsets = MediaQuery.of(context).viewInsets;
-              final actualHeight = constraints.maxHeight - viewInsets.bottom;
-              
-              return SingleChildScrollView(
-                physics: const ClampingScrollPhysics(),
-        padding: const EdgeInsets.all(24),
-                child: ConstrainedBox(
-                  constraints: BoxConstraints(
-                    minHeight: actualHeight - 48,
-                  ),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
+          child: SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: const EdgeInsets.all(24),
+            child: Form(
+              key: _formKey,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
               // 제목
               const Text(
                 '공인중개사 회원가입',
@@ -804,11 +795,9 @@ class _BrokerSignupPageState extends State<BrokerSignupPage> {
                   ),
                 ),
               ),
-                    ],
-                  ),
-                ),
-              );
-            },
+                ],
+              ),
+            ),
           ),
         ),
       ),
