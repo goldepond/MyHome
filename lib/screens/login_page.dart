@@ -484,14 +484,12 @@ class _LoginPageState extends State<LoginPage> {
                     ),
                     
                     // 하단 링크 블록 제거 (중복 방지)
-                          ],
-                        ),
-                      ),
-                    ),
-                  );
-                },
+                  ],
+                ),
               ),
-            ),
+                ),
+              );
+            },
           ),
         ),
       ),
