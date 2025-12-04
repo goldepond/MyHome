@@ -3805,9 +3805,9 @@ class _QuoteRequestFormPageState extends State<_QuoteRequestFormPage> {
                   Text(
                     title,
                     style: TextStyle(
-                      fontSize: 15,
+                      fontSize: 16,
                       fontWeight: FontWeight.bold,
-                      color: AppColors.kPrimary,
+                      color: value ? const Color(0xFF1A1A1A) : AppColors.kPrimary,
                     ),
                   ),
                   const SizedBox(height: 4),
@@ -3815,7 +3815,8 @@ class _QuoteRequestFormPageState extends State<_QuoteRequestFormPage> {
                     description,
                     style: TextStyle(
                       fontSize: 13,
-                      color: Colors.grey[700],
+                      fontWeight: value ? FontWeight.w600 : FontWeight.normal,
+                      color: value ? const Color(0xFF2C3E50) : Colors.grey[700],
                       height: 1.4,
                     ),
                   ),
@@ -4646,9 +4647,9 @@ class _MultipleQuoteRequestDialogState extends State<_MultipleQuoteRequestDialog
                   Text(
                     title,
                     style: TextStyle(
-                      fontSize: 15,
+                      fontSize: 16,
                       fontWeight: FontWeight.bold,
-                      color: AppColors.kPrimary,
+                      color: value ? const Color(0xFF1A1A1A) : AppColors.kPrimary,
                     ),
                   ),
                   const SizedBox(height: 4),
@@ -4656,7 +4657,8 @@ class _MultipleQuoteRequestDialogState extends State<_MultipleQuoteRequestDialog
                     description,
                     style: TextStyle(
                       fontSize: 13,
-                      color: Colors.grey[700],
+                      fontWeight: value ? FontWeight.w600 : FontWeight.normal,
+                      color: value ? const Color(0xFF2C3E50) : Colors.grey[700],
                       height: 1.4,
                     ),
                   ),
