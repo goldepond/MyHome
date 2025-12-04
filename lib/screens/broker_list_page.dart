@@ -3753,51 +3753,45 @@ class _QuoteRequestFormPageState extends State<_QuoteRequestFormPage> {
   Widget _buildRequestItem(String emoji, String title, String description, bool value, ValueChanged<bool>? onChanged) {
     return InkWell(
       onTap: onChanged != null ? () => onChanged(!value) : null,
-      borderRadius: BorderRadius.circular(10),
+      borderRadius: BorderRadius.circular(12),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.all(14),
+        padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           color: value 
-              ? AppColors.kPrimary.withValues(alpha: 0.08)
+              ? AppColors.kPrimary.withValues(alpha: 0.15)
               : Colors.white,
-          borderRadius: BorderRadius.circular(10),
+          borderRadius: BorderRadius.circular(12),
           border: Border.all(
             color: value 
-                ? AppColors.kPrimary.withValues(alpha: 0.5)
+                ? AppColors.kPrimary
                 : Colors.grey.withValues(alpha: 0.3),
-            width: value ? 2.5 : 1,
+            width: value ? 3 : 1,
           ),
-          boxShadow: value ? [
-            BoxShadow(
-              color: AppColors.kPrimary.withValues(alpha: 0.15),
-              blurRadius: 8,
-              offset: const Offset(0, 2),
-            ),
-          ] : [],
         ),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             if (onChanged != null) ...[
               IgnorePointer(
-                child: Container(
-                  width: 28,
-                  height: 28,
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 200),
+                  width: 32,
+                  height: 32,
                   decoration: BoxDecoration(
                     color: value ? AppColors.kPrimary : Colors.white,
-                    borderRadius: BorderRadius.circular(6),
+                    borderRadius: BorderRadius.circular(8),
                     border: Border.all(
-                      color: value ? AppColors.kPrimary : Colors.grey.withValues(alpha: 0.4),
-                      width: 2,
+                      color: value ? AppColors.kPrimary : Colors.grey.withValues(alpha: 0.5),
+                      width: 2.5,
                     ),
                   ),
                   child: value 
-                    ? const Icon(Icons.check, color: Colors.white, size: 18)
+                    ? const Icon(Icons.check_rounded, color: Colors.white, size: 22, weight: 700)
                     : null,
                 ),
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: 14),
             ],
             Text(
               emoji,
@@ -4600,51 +4594,45 @@ class _MultipleQuoteRequestDialogState extends State<_MultipleQuoteRequestDialog
   Widget _buildRequestItem(String emoji, String title, String description, bool value, ValueChanged<bool>? onChanged) {
     return InkWell(
       onTap: onChanged != null ? () => onChanged(!value) : null,
-      borderRadius: BorderRadius.circular(10),
+      borderRadius: BorderRadius.circular(12),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.all(14),
+        padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           color: value 
-              ? AppColors.kPrimary.withValues(alpha: 0.08)
+              ? AppColors.kPrimary.withValues(alpha: 0.15)
               : Colors.white,
-          borderRadius: BorderRadius.circular(10),
+          borderRadius: BorderRadius.circular(12),
           border: Border.all(
             color: value 
-                ? AppColors.kPrimary.withValues(alpha: 0.5)
+                ? AppColors.kPrimary
                 : Colors.grey.withValues(alpha: 0.3),
-            width: value ? 2.5 : 1,
+            width: value ? 3 : 1,
           ),
-          boxShadow: value ? [
-            BoxShadow(
-              color: AppColors.kPrimary.withValues(alpha: 0.15),
-              blurRadius: 8,
-              offset: const Offset(0, 2),
-            ),
-          ] : [],
         ),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             if (onChanged != null) ...[
               IgnorePointer(
-                child: Container(
-                  width: 28,
-                  height: 28,
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 200),
+                  width: 32,
+                  height: 32,
                   decoration: BoxDecoration(
                     color: value ? AppColors.kPrimary : Colors.white,
-                    borderRadius: BorderRadius.circular(6),
+                    borderRadius: BorderRadius.circular(8),
                     border: Border.all(
-                      color: value ? AppColors.kPrimary : Colors.grey.withValues(alpha: 0.4),
-                      width: 2,
+                      color: value ? AppColors.kPrimary : Colors.grey.withValues(alpha: 0.5),
+                      width: 2.5,
                     ),
                   ),
                   child: value 
-                    ? const Icon(Icons.check, color: Colors.white, size: 18)
+                    ? const Icon(Icons.check_rounded, color: Colors.white, size: 22, weight: 700)
                     : null,
                 ),
               ),
-              const SizedBox(width: 12),
+              const SizedBox(width: 14),
             ],
             Text(
               emoji,
