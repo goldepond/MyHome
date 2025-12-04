@@ -3754,32 +3754,47 @@ class _QuoteRequestFormPageState extends State<_QuoteRequestFormPage> {
     return InkWell(
       onTap: onChanged != null ? () => onChanged(!value) : null,
       borderRadius: BorderRadius.circular(10),
-      child: Container(
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: value 
+              ? AppColors.kPrimary.withValues(alpha: 0.08)
+              : Colors.white,
           borderRadius: BorderRadius.circular(10),
           border: Border.all(
             color: value 
-                ? AppColors.kPrimary.withValues(alpha: 0.3)
-                : AppColors.kPrimary.withValues(alpha: 0.2),
-            width: value ? 2 : 1,
+                ? AppColors.kPrimary.withValues(alpha: 0.5)
+                : Colors.grey.withValues(alpha: 0.3),
+            width: value ? 2.5 : 1,
           ),
+          boxShadow: value ? [
+            BoxShadow(
+              color: AppColors.kPrimary.withValues(alpha: 0.15),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
+          ] : [],
         ),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             if (onChanged != null) ...[
               IgnorePointer(
-                child: SizedBox(
-                  width: 24,
-                  height: 24,
-                  child: Checkbox(
-                    value: value,
-                    onChanged: null,
-                    activeColor: AppColors.kPrimary,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+                child: Container(
+                  width: 28,
+                  height: 28,
+                  decoration: BoxDecoration(
+                    color: value ? AppColors.kPrimary : Colors.white,
+                    borderRadius: BorderRadius.circular(6),
+                    border: Border.all(
+                      color: value ? AppColors.kPrimary : Colors.grey.withValues(alpha: 0.4),
+                      width: 2,
+                    ),
                   ),
+                  child: value 
+                    ? const Icon(Icons.check, color: Colors.white, size: 18)
+                    : null,
                 ),
               ),
               const SizedBox(width: 12),
@@ -4586,32 +4601,47 @@ class _MultipleQuoteRequestDialogState extends State<_MultipleQuoteRequestDialog
     return InkWell(
       onTap: onChanged != null ? () => onChanged(!value) : null,
       borderRadius: BorderRadius.circular(10),
-      child: Container(
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: value 
+              ? AppColors.kPrimary.withValues(alpha: 0.08)
+              : Colors.white,
           borderRadius: BorderRadius.circular(10),
           border: Border.all(
             color: value 
-                ? AppColors.kPrimary.withValues(alpha: 0.3)
-                : AppColors.kPrimary.withValues(alpha: 0.2),
-            width: value ? 2 : 1,
+                ? AppColors.kPrimary.withValues(alpha: 0.5)
+                : Colors.grey.withValues(alpha: 0.3),
+            width: value ? 2.5 : 1,
           ),
+          boxShadow: value ? [
+            BoxShadow(
+              color: AppColors.kPrimary.withValues(alpha: 0.15),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
+          ] : [],
         ),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             if (onChanged != null) ...[
               IgnorePointer(
-                child: SizedBox(
-                  width: 24,
-                  height: 24,
-                  child: Checkbox(
-                    value: value,
-                    onChanged: null,
-                    activeColor: AppColors.kPrimary,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(4)),
+                child: Container(
+                  width: 28,
+                  height: 28,
+                  decoration: BoxDecoration(
+                    color: value ? AppColors.kPrimary : Colors.white,
+                    borderRadius: BorderRadius.circular(6),
+                    border: Border.all(
+                      color: value ? AppColors.kPrimary : Colors.grey.withValues(alpha: 0.4),
+                      width: 2,
+                    ),
                   ),
+                  child: value 
+                    ? const Icon(Icons.check, color: Colors.white, size: 18)
+                    : null,
                 ),
               ),
               const SizedBox(width: 12),
