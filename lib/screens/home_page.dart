@@ -1430,7 +1430,7 @@ class _HomePageState extends State<HomePage> {
         ),
       ),
     ),
-    );
+  );
   }
   
   // 정보 카드 위젯
