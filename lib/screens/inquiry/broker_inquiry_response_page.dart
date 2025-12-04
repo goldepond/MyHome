@@ -997,7 +997,13 @@ class _BrokerInquiryResponsePageState extends State<BrokerInquiryResponsePage> {
                   ],
                 ),
               ),
-          ],
+                      ],
+                    ),
+                  ),
+                ),
+              );
+            },
+          ),
         ),
       ),
     );
