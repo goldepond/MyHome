@@ -188,18 +188,9 @@ class _LoginPageState extends State<LoginPage> {
           gradient: AppGradients.primaryDiagonal,
         ),
         child: SafeArea(
-            child: LayoutBuilder(
-              builder: (context, constraints) {
-                final viewInsets = MediaQuery.of(context).viewInsets;
-                final actualHeight = constraints.maxHeight - viewInsets.bottom;
-                
-                return SingleChildScrollView(
-                  physics: const ClampingScrollPhysics(),
-                  padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 40),
-                  child: ConstrainedBox(
-                    constraints: BoxConstraints(
-                      minHeight: actualHeight - 80,
-                    ),
+          child: SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 40),
             child: Center(
               child: Container(
                 constraints: const BoxConstraints(maxWidth: 480),
@@ -489,11 +480,7 @@ class _LoginPageState extends State<LoginPage> {
               ),
             ),
           ),
-        );
-      },
-    ),
-  ),
-      ),
+        ),
       ),
     );
   }

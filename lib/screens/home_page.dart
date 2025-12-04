@@ -975,26 +975,12 @@ class _HomePageState extends State<HomePage> {
       child: Scaffold(
         backgroundColor: AppColors.kBackground,
           resizeToAvoidBottomInset: true,
-        body: NotificationListener<ScrollNotification>(
-          onNotification: (notification) {
-            // 스크롤이 끝날 때 포커스 해제
-            return false;
-          },
-          child: SafeArea(
-            child: LayoutBuilder(
-              builder: (context, constraints) {
-                final viewInsets = MediaQuery.of(context).viewInsets;
-                final actualHeight = constraints.maxHeight - viewInsets.bottom;
-                
-                return SingleChildScrollView(
-                  physics: const ClampingScrollPhysics(),
-                  child: ConstrainedBox(
-                    constraints: BoxConstraints(
-                      minHeight: actualHeight,
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
+        body: SafeArea(
+          child: SingleChildScrollView(
+            physics: const AlwaysScrollableScrollPhysics(),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
               // 상단 타이틀 섹션
               const HeroBanner(),
               const SizedBox(height: 16),
@@ -1427,11 +1413,7 @@ class _HomePageState extends State<HomePage> {
                 const SizedBox(height: 56),
 
               _buildRegisterResultCard(isLoggedIn),
-                      ],
-                    ),
-                  ),
-                );
-              },
+              ],
             ),
           ),
         ),
