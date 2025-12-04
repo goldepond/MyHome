@@ -795,8 +795,7 @@ class _BrokerSignupPageState extends State<BrokerSignupPage> {
                   ),
                 ),
               ),
-                    ],
-                  ),
+                  ],
                 ),
               );
             },

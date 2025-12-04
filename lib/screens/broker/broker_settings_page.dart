@@ -382,13 +382,12 @@ class _BrokerSettingsPageState extends State<BrokerSettingsPage> {
                         ),
                 ),
               ),
-            ],
-                      ),
+                      ],
                     ),
                   ),
-                ),
-              );
-            },
+                );
+              },
+            ),
           ),
         ),
       ),
