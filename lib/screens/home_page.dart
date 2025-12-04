@@ -963,9 +963,18 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     final isLoggedIn = widget.userName.isNotEmpty;
     
-    return GestureDetector(
-      onTap: () => FocusScope.of(context).unfocus(),
-      child: LoadingOverlay(
+    return WillPopScope(
+      onWillPop: () async {
+        if (FocusScope.of(context).hasFocus) {
+          FocusScope.of(context).unfocus();
+          await Future.delayed(const Duration(milliseconds: 100));
+          return false;
+        }
+        return true;
+      },
+      child: GestureDetector(
+        onTap: () => FocusScope.of(context).unfocus(),
+        child: LoadingOverlay(
       isLoading: isRegisterLoading || isSaving || isVWorldLoading,
       message: isRegisterLoading
           ? '등기부등본 조회 중...'
@@ -1419,6 +1428,7 @@ class _HomePageState extends State<HomePage> {
         ),
       ),
     ),
+  ),
   );
   }
   

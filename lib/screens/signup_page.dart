@@ -190,9 +190,18 @@ class _SignupPageState extends State<SignupPage> {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () => FocusScope.of(context).unfocus(),
-      child: Scaffold(
+    return WillPopScope(
+      onWillPop: () async {
+        if (FocusScope.of(context).hasFocus) {
+          FocusScope.of(context).unfocus();
+          await Future.delayed(const Duration(milliseconds: 100));
+          return false;
+        }
+        return true;
+      },
+      child: GestureDetector(
+        onTap: () => FocusScope.of(context).unfocus(),
+        child: Scaffold(
       backgroundColor: AppColors.kBackground,
         resizeToAvoidBottomInset: true,
       appBar: AppBar(
@@ -582,6 +591,7 @@ class _SignupPageState extends State<SignupPage> {
           ),
         ),
       ),
+    ),
     );
   }
 }
