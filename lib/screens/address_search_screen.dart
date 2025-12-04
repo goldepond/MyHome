@@ -108,12 +108,12 @@ class _AddressSearchScreenState extends State<AddressSearchScreen> {
       onTap: () => FocusScope.of(context).unfocus(),
       child: Scaffold(
         resizeToAvoidBottomInset: true,
-        appBar: AppBar(
-          title: const Text('주소 검색'),
-        ),
+      appBar: AppBar(
+        title: const Text('주소 검색'),
+      ),
         body: SafeArea(
           child: Column(
-            children: [
+        children: [
           Padding(
             padding: const EdgeInsets.all(16.0),
             child: Row(
@@ -191,7 +191,7 @@ class _AddressSearchScreenState extends State<AddressSearchScreen> {
                 },
               ),
             ),
-            ],
+        ],
           ),
         ),
       ),

@@ -37,9 +37,9 @@ class _AdminQuoteRequestsPageState extends State<AdminQuoteRequestsPage> {
     return GestureDetector(
       onTap: () => FocusScope.of(context).unfocus(),
       child: Scaffold(
-        backgroundColor: AppColors.kBackground,
+      backgroundColor: AppColors.kBackground,
         resizeToAvoidBottomInset: true,
-        body: StreamBuilder<List<QuoteRequest>>(
+      body: StreamBuilder<List<QuoteRequest>>(
         stream: _firebaseService.getAllQuoteRequests(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {

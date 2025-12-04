@@ -86,11 +86,11 @@ class _AdminBrokerManagementState extends State<AdminBrokerManagement> {
     return GestureDetector(
       onTap: () => FocusScope.of(context).unfocus(),
       child: Scaffold(
-        backgroundColor: AppColors.kBackground,
+      backgroundColor: AppColors.kBackground,
         resizeToAvoidBottomInset: true,
         body: SafeArea(
           child: Column(
-            children: [
+        children: [
           // 검색 바
           Container(
             padding: const EdgeInsets.all(16),
@@ -161,7 +161,7 @@ class _AdminBrokerManagementState extends State<AdminBrokerManagement> {
           Expanded(
             child: _buildBrokerList(),
           ),
-            ],
+        ],
           ),
         ),
       ),

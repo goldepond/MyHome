@@ -246,51 +246,51 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
         child: SingleChildScrollView(
           child: Stack(
             alignment: Alignment.topCenter,
-            children: [
+          children: [
               // 히어로 배너
-              Container(
+            Container(
                 height: bannerHeight,
-                width: double.infinity,
-                padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 24),
-                decoration: BoxDecoration(
-                  gradient: AppGradients.primaryDiagonal,
-                  boxShadow: [
-                    BoxShadow(
-                      color: AppColors.kPrimary.withValues(alpha: 0.3),
+              width: double.infinity,
+              padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 24),
+              decoration: BoxDecoration(
+                gradient: AppGradients.primaryDiagonal,
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColors.kPrimary.withValues(alpha: 0.3),
                       offset: const Offset(0, 12),
                       blurRadius: 28,
-                    ),
-                  ],
-                ),
-                child: Column(
+                  ),
+                ],
+              ),
+              child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Text(
-                      '내 정보',
-                      style: TextStyle(
+                children: [
+                  const Text(
+                    '내 정보',
+                    style: TextStyle(
                         fontSize: 34,
                         fontWeight: FontWeight.w900,
-                        color: Colors.white,
+                      color: Colors.white,
                         letterSpacing: -0.8,
                         height: 1.2,
-                      ),
-                      textAlign: TextAlign.center,
                     ),
+                    textAlign: TextAlign.center,
+                  ),
                     const SizedBox(height: 10),
-                    Text(
-                      '내 계정 정보를 확인하고 관리하세요',
-                      style: TextStyle(
+                  Text(
+                    '내 계정 정보를 확인하고 관리하세요',
+                    style: TextStyle(
                         fontSize: 16,
                         color: Colors.white.withValues(alpha: 0.92),
-                        fontWeight: FontWeight.w500,
-                      ),
-                      textAlign: TextAlign.center,
+                      fontWeight: FontWeight.w500,
                     ),
+                    textAlign: TextAlign.center,
+                  ),
                     // 컨텐츠와 겹치는 부분 고려하여 여백 추가
                     const SizedBox(height: 60),
-                  ],
-                ),
+                ],
               ),
+            ),
 
               // 메인 콘텐츠 (배너와 겹치게 배치)
               Padding(
@@ -562,12 +562,12 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
                       ),
                     ),
                         const SizedBox(height: 24),
-                      ],
-                    ),
-                  ),
-                ),
+                  ],
               ),
-            ],
+            ),
+          ),
+        ),
+      ],
           ),
         ),
       ),

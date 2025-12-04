@@ -30,17 +30,17 @@ class _ChatRoomPageState extends State<ChatRoomPage> {
     return GestureDetector(
       onTap: () => FocusScope.of(context).unfocus(),
       child: Scaffold(
-        backgroundColor: AppColors.kBackground,
+      backgroundColor: AppColors.kBackground,
         resizeToAvoidBottomInset: true,
-        appBar: AppBar(
-          title: Text(widget.title),
-          backgroundColor: Colors.white,
-          foregroundColor: Colors.black,
-          elevation: 1,
-        ),
+      appBar: AppBar(
+        title: Text(widget.title),
+        backgroundColor: Colors.white,
+        foregroundColor: Colors.black,
+        elevation: 1,
+      ),
         body: SafeArea(
           child: Column(
-            children: [
+        children: [
           Expanded(
             child: StreamBuilder<List<ChatMessage>>(
               stream: _firebaseService.getChatMessages(widget.roomId),
@@ -69,7 +69,7 @@ class _ChatRoomPageState extends State<ChatRoomPage> {
             ),
           ),
           _buildMessageInput(),
-            ],
+        ],
           ),
         ),
       ),
