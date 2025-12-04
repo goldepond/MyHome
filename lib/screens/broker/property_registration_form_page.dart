@@ -1057,18 +1057,7 @@ class _PropertyRegistrationFormPageState extends State<PropertyRegistrationFormP
               );
             },
           ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                );
-              },
-            ),
-          ),
-        ),
-      ),
+      ],
     );
   }
 }

@@ -1184,18 +1184,7 @@ class _PropertyEditFormPageState extends State<PropertyEditFormPage> {
               ],
             ),
           ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                );
-              },
-            ),
-          ),
-        ),
-      ),
+      ],
     );
   }
 }
