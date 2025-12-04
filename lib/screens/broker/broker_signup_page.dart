@@ -31,7 +31,7 @@ class _BrokerSignupPageState extends State<BrokerSignupPage> {
   BrokerInfo? _validatedBrokerInfo;
 
   final FirebaseService _firebaseService = FirebaseService();
-  
+
   // 각 필드별 에러 메시지
   String? _emailError;
   String? _passwordError;
@@ -219,7 +219,7 @@ class _BrokerSignupPageState extends State<BrokerSignupPage> {
     if (hasError) {
       return;
     }
-    
+
     if (!_formKey.currentState!.validate()) {
       return;
     }
@@ -296,33 +296,35 @@ class _BrokerSignupPageState extends State<BrokerSignupPage> {
     return GestureDetector(
       onTap: () => FocusScope.of(context).unfocus(),
       child: Scaffold(
-        backgroundColor: AppColors.kBackground,
+      backgroundColor: AppColors.kBackground,
         resizeToAvoidBottomInset: true,
-        appBar: AppBar(
-          backgroundColor: Colors.white,
-          foregroundColor: AppColors.kPrimary,
-          elevation: 0.5,
-          title: const HomeLogoButton(
-            fontSize: 18,
-            color: AppColors.kPrimary,
-          ),
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        foregroundColor: AppColors.kPrimary,
+        elevation: 0.5,
+        title: const HomeLogoButton(
+          fontSize: 18,
+          color: AppColors.kPrimary,
         ),
+      ),
         body: SafeArea(
           child: LayoutBuilder(
             builder: (context, constraints) {
+              final viewInsets = MediaQuery.of(context).viewInsets;
+              final actualHeight = constraints.maxHeight - viewInsets.bottom;
+              
               return SingleChildScrollView(
                 physics: const ClampingScrollPhysics(),
                 padding: const EdgeInsets.all(24),
                 child: ConstrainedBox(
                   constraints: BoxConstraints(
-                    minHeight: constraints.maxHeight - 48,
+                    minHeight: actualHeight - 48,
                   ),
-                  child: IntrinsicHeight(
-                    child: Form(
-                      key: _formKey,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
+                  child: Form(
+                    key: _formKey,
+                    child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
               // 제목
               const Text(
                 '공인중개사 회원가입',
@@ -793,9 +795,7 @@ class _BrokerSignupPageState extends State<BrokerSignupPage> {
                   ),
                 ),
               ),
-                        ],
-                      ),
-                    ),
+                    ],
                   ),
                 ),
               );

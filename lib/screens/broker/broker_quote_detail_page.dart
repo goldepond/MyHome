@@ -262,35 +262,37 @@ class _BrokerQuoteDetailPageState extends State<BrokerQuoteDetailPage> {
     return GestureDetector(
       onTap: () => FocusScope.of(context).unfocus(),
       child: Scaffold(
-        backgroundColor: AppColors.kBackground,
+      backgroundColor: AppColors.kBackground,
         resizeToAvoidBottomInset: true,
-        appBar: AppBar(
-          backgroundColor: Colors.white,
-          foregroundColor: AppColors.kPrimary,
-          elevation: 0.5,
-          title: const HomeLogoButton(
-            fontSize: 18,
-            color: AppColors.kPrimary,
-          ),
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        foregroundColor: AppColors.kPrimary,
+        elevation: 0.5,
+        title: const HomeLogoButton(
+          fontSize: 18,
+          color: AppColors.kPrimary,
         ),
-        body: Form(
-          key: _formKey,
+      ),
+      body: Form(
+        key: _formKey,
           child: SafeArea(
             child: LayoutBuilder(
               builder: (context, constraints) {
+                final viewInsets = MediaQuery.of(context).viewInsets;
+                final actualHeight = constraints.maxHeight - viewInsets.bottom;
+                
                 return SingleChildScrollView(
                   physics: const ClampingScrollPhysics(),
                   padding: EdgeInsets.symmetric(horizontal: horizontalPadding, vertical: 24),
                   child: ConstrainedBox(
                     constraints: BoxConstraints(
-                      minHeight: constraints.maxHeight - 48,
+                      minHeight: actualHeight - 48,
                     ),
-                    child: IntrinsicHeight(
-                      child: Center(
-                        child: Container(
-                          constraints: BoxConstraints(maxWidth: maxWidth),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
+                    child: Center(
+                      child: Container(
+                        constraints: BoxConstraints(maxWidth: maxWidth),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
               // 1. 선택된 견적 카드 (조건부 표시)
               if (widget.quote.isSelectedByUser == true)
@@ -512,8 +514,8 @@ class _BrokerQuoteDetailPageState extends State<BrokerQuoteDetailPage> {
               ),
 
               const SizedBox(height: 24),
-                            ],
-                          ),
+                ],
+              ),
                         ),
                       ),
                     ),

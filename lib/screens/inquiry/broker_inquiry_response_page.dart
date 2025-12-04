@@ -294,17 +294,19 @@ class _BrokerInquiryResponsePageState extends State<BrokerInquiryResponsePage> {
         body: SafeArea(
           child: LayoutBuilder(
             builder: (context, constraints) {
+              final viewInsets = MediaQuery.of(context).viewInsets;
+              final actualHeight = constraints.maxHeight - viewInsets.bottom;
+              
               return SingleChildScrollView(
                 physics: const ClampingScrollPhysics(),
                 padding: const EdgeInsets.all(20),
                 child: ConstrainedBox(
                   constraints: BoxConstraints(
-                    minHeight: constraints.maxHeight - 40,
+                    minHeight: actualHeight - 40,
                   ),
-                  child: IntrinsicHeight(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
             // 안내 메시지
             Container(
               padding: const EdgeInsets.all(16),
@@ -683,16 +685,15 @@ class _BrokerInquiryResponsePageState extends State<BrokerInquiryResponsePage> {
                       ),
               ),
             ),
-                      ], // children 배열 닫기
-                    ), // Column 닫기
-                  ), // IntrinsicHeight 닫기
-                ), // ConstrainedBox 닫기
-              ); // SingleChildScrollView 닫기 + return
-            }, // builder 함수 닫기
-          ), // LayoutBuilder 닫기
-        ), // SafeArea 닫기
-      ), // Scaffold 닫기
-    ); // GestureDetector 닫기
+                    ],
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
+      ),
+    );
   }
 
   Widget _buildSection({required String title, required List<Widget> children}) {

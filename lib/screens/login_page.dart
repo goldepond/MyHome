@@ -156,68 +156,70 @@ class _LoginPageState extends State<LoginPage> {
     return GestureDetector(
       onTap: () => FocusScope.of(context).unfocus(),
       child: Scaffold(
-        backgroundColor: Colors.transparent,
+      backgroundColor: Colors.transparent,
         resizeToAvoidBottomInset: true,
-        appBar: AppBar(
-          backgroundColor: Colors.white,
-          foregroundColor: AppColors.kPrimary,
-          elevation: 2,
-          toolbarHeight: 70,
-          shadowColor: Colors.black.withValues(alpha: 0.1),
-          surfaceTintColor: Colors.transparent,
-          automaticallyImplyLeading: false,
-          leading: IconButton(
-            onPressed: () {
-              Navigator.of(context).maybePop();
-            },
-            icon: const Icon(Icons.arrow_back),
-            tooltip: '뒤로가기',
-          ),
-          centerTitle: true,
-          title: const Text(
-            'MyHome',
-            style: TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-              color: AppColors.kPrimary,
-            ),
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        foregroundColor: AppColors.kPrimary,
+        elevation: 2,
+        toolbarHeight: 70,
+        shadowColor: Colors.black.withValues(alpha: 0.1),
+        surfaceTintColor: Colors.transparent,
+        automaticallyImplyLeading: false,
+        leading: IconButton(
+          onPressed: () {
+            Navigator.of(context).maybePop();
+          },
+          icon: const Icon(Icons.arrow_back),
+          tooltip: '뒤로가기',
+        ),
+        centerTitle: true,
+        title: const Text(
+          'MyHome',
+          style: TextStyle(
+            fontSize: 24,
+            fontWeight: FontWeight.bold,
+            color: AppColors.kPrimary,
           ),
         ),
-        body: Container(
-          decoration: const BoxDecoration(
-            gradient: AppGradients.primaryDiagonal,
-          ),
-          child: SafeArea(
+      ),
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: AppGradients.primaryDiagonal,
+        ),
+        child: SafeArea(
             child: LayoutBuilder(
               builder: (context, constraints) {
+                final viewInsets = MediaQuery.of(context).viewInsets;
+                final actualHeight = constraints.maxHeight - viewInsets.bottom;
+                
                 return SingleChildScrollView(
                   physics: const ClampingScrollPhysics(),
                   padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 40),
                   child: ConstrainedBox(
                     constraints: BoxConstraints(
-                      minHeight: constraints.maxHeight - 80,
+                      minHeight: actualHeight - 80,
                     ),
-                    child: IntrinsicHeight(
-                      child: Center(
-                        child: Container(
-                          constraints: const BoxConstraints(maxWidth: 480),
-                          padding: const EdgeInsets.all(40),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(20),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withValues(alpha: 0.08),
-                                offset: const Offset(0, 8),
-                                blurRadius: 24,
-                                spreadRadius: 0,
-                              ),
-                            ],
-                          ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
+            child: Center(
+              child: Container(
+                constraints: const BoxConstraints(maxWidth: 480),
+                padding: const EdgeInsets.all(40),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(20),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.08),
+                      offset: const Offset(0, 8),
+                      blurRadius: 24,
+                      spreadRadius: 0,
+                    ),
+                  ],
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
                     // 타이틀 섹션
                     Center(
                       child: Column(
@@ -487,9 +489,9 @@ class _LoginPageState extends State<LoginPage> {
                         ),
                       ),
                     ),
-                  ),
-                );
-              },
+                  );
+                },
+              ),
             ),
           ),
         ),

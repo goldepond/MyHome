@@ -623,24 +623,26 @@ class _PropertyRegistrationFormPageState extends State<PropertyRegistrationFormP
       body: GestureDetector(
         onTap: () => FocusScope.of(context).unfocus(),
         child: Form(
-          key: _formKey,
+        key: _formKey,
           child: SafeArea(
             child: LayoutBuilder(
               builder: (context, constraints) {
+                final viewInsets = MediaQuery.of(context).viewInsets;
+                final actualHeight = constraints.maxHeight - viewInsets.bottom;
+                
                 return SingleChildScrollView(
                   physics: const ClampingScrollPhysics(),
                   padding: EdgeInsets.symmetric(horizontal: horizontalPadding, vertical: 16),
                   child: ConstrainedBox(
                     constraints: BoxConstraints(
-                      minHeight: constraints.maxHeight - 32,
+                      minHeight: actualHeight - 32,
                     ),
-                    child: IntrinsicHeight(
-                      child: Center(
-                        child: Container(
-                          constraints: BoxConstraints(maxWidth: maxWidth),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
+                    child: Center(
+                      child: Container(
+                        constraints: BoxConstraints(maxWidth: maxWidth),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
                   // 안내 문구
                   Container(
                     padding: const EdgeInsets.all(16),
@@ -896,8 +898,8 @@ class _PropertyRegistrationFormPageState extends State<PropertyRegistrationFormP
                     ),
                   ),
                   const SizedBox(height: 24),
-                            ],
-                          ),
+                ],
+              ),
                         ),
                       ),
                     ),

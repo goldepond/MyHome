@@ -90,37 +90,39 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
       onTap: () => FocusScope.of(context).unfocus(),
       child: Scaffold(
         resizeToAvoidBottomInset: true,
-        body: Container(
-          decoration: const BoxDecoration(
-            gradient: AppGradients.primaryDiagonal,
-          ),
-          child: SafeArea(
-            child: Stack(
-              children: [
-                // 뒤로가기 버튼
-                Positioned(
-                  top: 16,
-                  left: 16,
-                  child: IconButton(
-                    icon: const Icon(Icons.arrow_back, color: Colors.white, size: 28),
-                    onPressed: () => Navigator.of(context).pop(),
-                  ),
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: AppGradients.primaryDiagonal,
+        ),
+        child: SafeArea(
+          child: Stack(
+            children: [
+              // 뒤로가기 버튼
+              Positioned(
+                top: 16,
+                left: 16,
+                child: IconButton(
+                  icon: const Icon(Icons.arrow_back, color: Colors.white, size: 28),
+                  onPressed: () => Navigator.of(context).pop(),
                 ),
-                // 메인 콘텐츠
+              ),
+              // 메인 콘텐츠
                 LayoutBuilder(
                   builder: (context, constraints) {
+                    final viewInsets = MediaQuery.of(context).viewInsets;
+                    final actualHeight = constraints.maxHeight - viewInsets.bottom;
+                    
                     return Center(
                       child: SingleChildScrollView(
                         physics: const ClampingScrollPhysics(),
                         padding: const EdgeInsets.all(24),
                         child: ConstrainedBox(
                           constraints: BoxConstraints(
-                            minHeight: constraints.maxHeight - 48,
+                            minHeight: actualHeight - 48,
                           ),
-                          child: IntrinsicHeight(
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
                       // 로고 영역
                       Container(
                         padding: const EdgeInsets.all(20),
@@ -329,8 +331,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                           ),
                         ),
                       ],
-                              ],
-                            ),
+                            ],
                           ),
                         ),
                       ),

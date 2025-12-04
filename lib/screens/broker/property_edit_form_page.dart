@@ -523,32 +523,34 @@ class _PropertyEditFormPageState extends State<PropertyEditFormPage> {
     return GestureDetector(
       onTap: () => FocusScope.of(context).unfocus(),
       child: Scaffold(
-        backgroundColor: AppColors.kBackground,
+      backgroundColor: AppColors.kBackground,
         resizeToAvoidBottomInset: true,
-        appBar: AppBar(
-          title: const Text('매물 수정'),
-          backgroundColor: AppColors.kPrimary,
-          foregroundColor: Colors.white,
-        ),
-        body: Form(
-          key: _formKey,
+      appBar: AppBar(
+        title: const Text('매물 수정'),
+        backgroundColor: AppColors.kPrimary,
+        foregroundColor: Colors.white,
+      ),
+      body: Form(
+        key: _formKey,
           child: SafeArea(
             child: LayoutBuilder(
               builder: (context, constraints) {
+                final viewInsets = MediaQuery.of(context).viewInsets;
+                final actualHeight = constraints.maxHeight - viewInsets.bottom;
+                
                 return SingleChildScrollView(
                   physics: const ClampingScrollPhysics(),
                   padding: EdgeInsets.symmetric(horizontal: horizontalPadding, vertical: 16),
                   child: ConstrainedBox(
                     constraints: BoxConstraints(
-                      minHeight: constraints.maxHeight - 32,
+                      minHeight: actualHeight - 32,
                     ),
-                    child: IntrinsicHeight(
-                      child: Center(
-                        child: Container(
-                          constraints: BoxConstraints(maxWidth: maxWidth),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
+                    child: Center(
+                      child: Container(
+                        constraints: BoxConstraints(maxWidth: maxWidth),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
                   // 안내 문구
                   Container(
                     padding: const EdgeInsets.all(16),
@@ -782,8 +784,8 @@ class _PropertyEditFormPageState extends State<PropertyEditFormPage> {
                     ),
                   ),
                   const SizedBox(height: 24),
-                            ],
-                          ),
+                ],
+              ),
                         ),
                       ),
                     ),

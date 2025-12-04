@@ -99,30 +99,32 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
       onTap: () => FocusScope.of(context).unfocus(),
       child: Scaffold(
         resizeToAvoidBottomInset: true,
-        appBar: AppBar(
-          backgroundColor: Colors.white,
-          foregroundColor: AppColors.kPrimary,
-          elevation: 2,
-          title: const Text(
-            '비밀번호 변경',
-            style: TextStyle(fontWeight: FontWeight.bold),
-          ),
-          centerTitle: true,
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        foregroundColor: AppColors.kPrimary,
+        elevation: 2,
+        title: const Text(
+          '비밀번호 변경',
+          style: TextStyle(fontWeight: FontWeight.bold),
         ),
+        centerTitle: true,
+      ),
         body: SafeArea(
           child: LayoutBuilder(
             builder: (context, constraints) {
+              final viewInsets = MediaQuery.of(context).viewInsets;
+              final actualHeight = constraints.maxHeight - viewInsets.bottom;
+              
               return SingleChildScrollView(
                 physics: const ClampingScrollPhysics(),
                 padding: const EdgeInsets.all(24),
                 child: ConstrainedBox(
                   constraints: BoxConstraints(
-                    minHeight: constraints.maxHeight - 48,
+                    minHeight: actualHeight - 48,
                   ),
-                  child: IntrinsicHeight(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
             Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
@@ -271,8 +273,7 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
                 ],
               ),
             ),
-                      ],
-                    ),
+                    ],
                   ),
                 ),
               );
