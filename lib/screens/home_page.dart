@@ -966,28 +966,28 @@ class _HomePageState extends State<HomePage> {
     return GestureDetector(
       onTap: () => FocusScope.of(context).unfocus(),
       child: LoadingOverlay(
-        isLoading: isRegisterLoading || isSaving || isVWorldLoading,
-        message: isRegisterLoading
-            ? '등기부등본 조회 중...'
-            : isSaving
-                ? '저장 중...'
-                : '위치 정보 조회 중...',
-        child: Scaffold(
-          backgroundColor: AppColors.kBackground,
+      isLoading: isRegisterLoading || isSaving || isVWorldLoading,
+      message: isRegisterLoading
+          ? '등기부등본 조회 중...'
+          : isSaving
+              ? '저장 중...'
+              : '위치 정보 조회 중...',
+      child: Scaffold(
+        backgroundColor: AppColors.kBackground,
           resizeToAvoidBottomInset: true,
-          body: SafeArea(
-            child: LayoutBuilder(
-              builder: (context, constraints) {
-                return SingleChildScrollView(
-                  physics: const ClampingScrollPhysics(),
-                  child: ConstrainedBox(
-                    constraints: BoxConstraints(
-                      minHeight: constraints.maxHeight,
-                    ),
-                    child: IntrinsicHeight(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
+        body: SafeArea(
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              return SingleChildScrollView(
+                physics: const ClampingScrollPhysics(),
+                child: ConstrainedBox(
+                  constraints: BoxConstraints(
+                    minHeight: constraints.maxHeight,
+                  ),
+                  child: IntrinsicHeight(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
               // 상단 타이틀 섹션
               const HeroBanner(),
               const SizedBox(height: 16),
@@ -1420,14 +1420,15 @@ class _HomePageState extends State<HomePage> {
                 const SizedBox(height: 56),
 
               _buildRegisterResultCard(isLoggedIn),
-                        ],
-                      ),
+                      ],
                     ),
                   ),
-                );
-              },
-            ),
+                ),
+              );
+            },
           ),
+        ),
+      ),
         ),
       ),
     );

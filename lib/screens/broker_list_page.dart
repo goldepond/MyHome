@@ -3204,21 +3204,21 @@ class _QuoteRequestFormPageState extends State<_QuoteRequestFormPage> {
     return GestureDetector(
       onTap: () => FocusScope.of(context).unfocus(),
       child: Scaffold(
-        backgroundColor: const Color(0xFFE8EAF0), // 배경을 더 진하게
+      backgroundColor: const Color(0xFFE8EAF0), // 배경을 더 진하게
         resizeToAvoidBottomInset: true,
-        appBar: AppBar(
-          title: const Text('중개 상담 요청서'),
-          backgroundColor: AppColors.kPrimary,
-          foregroundColor: Colors.white,
-          elevation: 0,
-        ),
-        body: Form(
-          key: _formKey,
+      appBar: AppBar(
+        title: const Text('중개 상담 요청서'),
+        backgroundColor: AppColors.kPrimary,
+        foregroundColor: Colors.white,
+        elevation: 0,
+      ),
+      body: Form(
+        key: _formKey,
           child: SafeArea(
-            child: ListView(
+        child: ListView(
               physics: const ClampingScrollPhysics(),
-              padding: const EdgeInsets.all(20),
-              children: [
+          padding: const EdgeInsets.all(20),
+          children: [
             // 제목
             const Text(
               '🏠 중개 상담 요청서',
@@ -3575,7 +3575,7 @@ class _QuoteRequestFormPageState extends State<_QuoteRequestFormPage> {
             ),
             
             const SizedBox(height: 20),
-              ],
+          ],
             ),
           ),
         ),
