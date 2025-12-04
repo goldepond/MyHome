@@ -117,14 +117,14 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
               
               return SingleChildScrollView(
                 physics: const ClampingScrollPhysics(),
-                padding: const EdgeInsets.all(24),
+        padding: const EdgeInsets.all(24),
                 child: ConstrainedBox(
                   constraints: BoxConstraints(
                     minHeight: actualHeight - 48,
                   ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
             Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
@@ -273,7 +273,7 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
                 ],
               ),
             ),
-                    ],
+          ],
                   ),
                 ),
               );

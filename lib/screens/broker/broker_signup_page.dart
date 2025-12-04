@@ -315,16 +315,16 @@ class _BrokerSignupPageState extends State<BrokerSignupPage> {
               
               return SingleChildScrollView(
                 physics: const ClampingScrollPhysics(),
-                padding: const EdgeInsets.all(24),
+        padding: const EdgeInsets.all(24),
                 child: ConstrainedBox(
                   constraints: BoxConstraints(
                     minHeight: actualHeight - 48,
                   ),
-                  child: Form(
-                    key: _formKey,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
+        child: Form(
+          key: _formKey,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
               // 제목
               const Text(
                 '공인중개사 회원가입',
@@ -795,7 +795,7 @@ class _BrokerSignupPageState extends State<BrokerSignupPage> {
                   ),
                 ),
               ),
-                      ],
+            ],
                     ),
                   ),
                 ),

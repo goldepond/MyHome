@@ -182,16 +182,16 @@ class _BrokerSettingsPageState extends State<BrokerSettingsPage> {
               
               return SingleChildScrollView(
                 physics: const ClampingScrollPhysics(),
-                padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(16),
                 child: ConstrainedBox(
                   constraints: BoxConstraints(
                     minHeight: actualHeight - 32,
                   ),
-                  child: Form(
-                    key: _formKey,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
+        child: Form(
+          key: _formKey,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
               // 헤더
               Container(
                 width: double.infinity,
@@ -382,7 +382,7 @@ class _BrokerSettingsPageState extends State<BrokerSettingsPage> {
                         ),
                 ),
               ),
-                      ],
+            ],
                     ),
                   ),
                 ),

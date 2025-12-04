@@ -283,16 +283,16 @@ class _BrokerQuoteDetailPageState extends State<BrokerQuoteDetailPage> {
                 
                 return SingleChildScrollView(
                   physics: const ClampingScrollPhysics(),
-                  padding: EdgeInsets.symmetric(horizontal: horizontalPadding, vertical: 24),
+          padding: EdgeInsets.symmetric(horizontal: horizontalPadding, vertical: 24),
                   child: ConstrainedBox(
                     constraints: BoxConstraints(
                       minHeight: actualHeight - 48,
                     ),
-                    child: Center(
-                      child: Container(
-                        constraints: BoxConstraints(maxWidth: maxWidth),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+          child: Center(
+            child: Container(
+              constraints: BoxConstraints(maxWidth: maxWidth),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
               // 1. 선택된 견적 카드 (조건부 표시)
               if (widget.quote.isSelectedByUser == true)
@@ -514,8 +514,8 @@ class _BrokerQuoteDetailPageState extends State<BrokerQuoteDetailPage> {
               ),
 
               const SizedBox(height: 24),
-                          ],
-                        ),
+                ],
+              ),
                       ),
                     ),
                   ),

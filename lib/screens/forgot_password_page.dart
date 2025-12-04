@@ -113,16 +113,16 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                     final actualHeight = constraints.maxHeight - viewInsets.bottom;
                     
                     return Center(
-                      child: SingleChildScrollView(
+                child: SingleChildScrollView(
                         physics: const ClampingScrollPhysics(),
-                        padding: const EdgeInsets.all(24),
+                  padding: const EdgeInsets.all(24),
                         child: ConstrainedBox(
                           constraints: BoxConstraints(
                             minHeight: actualHeight - 48,
                           ),
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
                       // 로고 영역
                       Container(
                         padding: const EdgeInsets.all(20),
@@ -331,14 +331,14 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                           ),
                         ),
                       ],
-                            ],
-                          ),
-                        ),
+                    ],
+                  ),
+                ),
                       ),
                     );
                   },
-                ),
-              ],
+              ),
+            ],
             ),
           ),
         ),

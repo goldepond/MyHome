@@ -540,17 +540,17 @@ class _PropertyEditFormPageState extends State<PropertyEditFormPage> {
                 
                 return SingleChildScrollView(
                   physics: const ClampingScrollPhysics(),
-                  padding: EdgeInsets.symmetric(horizontal: horizontalPadding, vertical: 16),
+          padding: EdgeInsets.symmetric(horizontal: horizontalPadding, vertical: 16),
                   child: ConstrainedBox(
                     constraints: BoxConstraints(
                       minHeight: actualHeight - 32,
                     ),
-                    child: Center(
-                      child: Container(
-                        constraints: BoxConstraints(maxWidth: maxWidth),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
+          child: Center(
+            child: Container(
+              constraints: BoxConstraints(maxWidth: maxWidth),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
                   // 안내 문구
                   Container(
                     padding: const EdgeInsets.all(16),
@@ -784,8 +784,8 @@ class _PropertyEditFormPageState extends State<PropertyEditFormPage> {
                     ),
                   ),
                   const SizedBox(height: 24),
-                          ],
-                        ),
+                ],
+              ),
                       ),
                     ),
                   ),
