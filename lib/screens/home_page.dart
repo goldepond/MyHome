@@ -975,16 +975,23 @@ class _HomePageState extends State<HomePage> {
       child: Scaffold(
         backgroundColor: AppColors.kBackground,
           resizeToAvoidBottomInset: true,
-        body: SafeArea(
-          child: LayoutBuilder(
-            builder: (context, constraints) {
-              return SingleChildScrollView(
-                physics: const ClampingScrollPhysics(),
-                child: ConstrainedBox(
-                  constraints: BoxConstraints(
-                    minHeight: constraints.maxHeight,
-                  ),
-                  child: IntrinsicHeight(
+        body: NotificationListener<ScrollNotification>(
+          onNotification: (notification) {
+            // 스크롤이 끝날 때 포커스 해제
+            return false;
+          },
+          child: SafeArea(
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                final viewInsets = MediaQuery.of(context).viewInsets;
+                final actualHeight = constraints.maxHeight - viewInsets.bottom;
+                
+                return SingleChildScrollView(
+                  physics: const ClampingScrollPhysics(),
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(
+                      minHeight: actualHeight,
+                    ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
@@ -1423,9 +1430,9 @@ class _HomePageState extends State<HomePage> {
                       ],
                     ),
                   ),
-                ),
-              );
-            },
+                );
+              },
+            ),
           ),
         ),
       ),
