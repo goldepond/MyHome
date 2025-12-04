@@ -2983,7 +2983,7 @@ class _BrokerListPageState extends State<BrokerListPage> {
           desiredPrice: result['desiredPrice'] as String?,
           targetPeriod: null,
           specialNotes: result['specialNotes'] as String?,
-          // 비교할 견적 정보 (선택되지 않은 항목은 null)
+          // 확인할 견적 정보 (선택되지 않은 항목은 null)
           commissionRate: result['requestCommissionRate'] == true ? '' : null,
           recommendedPrice: result['requestRecommendedPrice'] == true ? '' : null,
           promotionMethod: result['requestPromotionMethod'] == true ? '' : null,
@@ -3177,7 +3177,7 @@ class _QuoteRequestFormPageState extends State<_QuoteRequestFormPage> {
   final TextEditingController _specialNotesController = TextEditingController();
   bool _agreeToConsent = false;
   
-  // 비교할 견적 정보 선택 (기본값: 모두 선택)
+  // 확인할 견적 정보 선택 (기본값: 모두 선택)
   bool _requestCommissionRate = true;
   bool _requestRecommendedPrice = true;
   bool _requestPromotionMethod = true;
@@ -3296,7 +3296,7 @@ class _QuoteRequestFormPageState extends State<_QuoteRequestFormPage> {
             
             const SizedBox(height: 24),
             
-            // ========== 2️⃣ 비교할 견적 정보 ==========
+            // ========== 2️⃣ 확인할 견적 정보 ==========
             Container(
               decoration: BoxDecoration(
                 gradient: LinearGradient(
@@ -3352,7 +3352,7 @@ class _QuoteRequestFormPageState extends State<_QuoteRequestFormPage> {
                             child: Row(
                               children: [
                                 Text(
-                                  '비교할 견적 정보',
+                                  '확인할 견적 정보',
                                   style: TextStyle(
                                     fontSize: 17,
                                     fontWeight: FontWeight.bold,
@@ -3846,7 +3846,7 @@ class _QuoteRequestFormPageState extends State<_QuoteRequestFormPage> {
       desiredPrice: _desiredPriceController.text.trim().isNotEmpty ? _desiredPriceController.text.trim() : null,
       targetPeriod: null, // 목표기간은 전자계약 이후 단계에서 사용
       specialNotes: _specialNotesController.text.trim().isNotEmpty ? _specialNotesController.text.trim() : null,
-      // 비교할 견적 정보 (선택되지 않은 항목은 null)
+      // 확인할 견적 정보 (선택되지 않은 항목은 null)
       commissionRate: _requestCommissionRate ? '' : null,
       recommendedPrice: _requestRecommendedPrice ? '' : null,
       promotionMethod: _requestPromotionMethod ? '' : null,
@@ -3931,7 +3931,7 @@ class _MultipleQuoteRequestDialogState extends State<_MultipleQuoteRequestDialog
   bool _agreeToConsent = false;
   bool _isRequestInfoExpanded = true; // 요청 내용 섹션 접기/펼치기 상태
   
-  // 비교할 견적 정보 선택 (기본값: 모두 선택)
+  // 확인할 견적 정보 선택 (기본값: 모두 선택)
   bool _requestCommissionRate = true;
   bool _requestRecommendedPrice = true;
   bool _requestPromotionMethod = true;
@@ -4046,7 +4046,7 @@ class _MultipleQuoteRequestDialogState extends State<_MultipleQuoteRequestDialog
             
             const SizedBox(height: 24),
             
-            // 비교할 견적 정보 안내 (접기/펼치기 가능)
+            // 확인할 견적 정보 안내 (접기/펼치기 가능)
             Container(
               decoration: BoxDecoration(
                 gradient: LinearGradient(
@@ -4102,7 +4102,7 @@ class _MultipleQuoteRequestDialogState extends State<_MultipleQuoteRequestDialog
                             child: Row(
                               children: [
                                 Text(
-                                  '비교할 견적 정보',
+                                  '확인할 견적 정보',
                                   style: TextStyle(
                                     fontSize: 17,
                                     fontWeight: FontWeight.bold,
@@ -4324,7 +4324,7 @@ class _MultipleQuoteRequestDialogState extends State<_MultipleQuoteRequestDialog
                           ? _specialNotesController.text.trim()
                           : null,
                       'consentAgreed': true,
-                      // 비교할 견적 정보 선택
+                      // 확인할 견적 정보 선택
                       'requestCommissionRate': _requestCommissionRate,
                       'requestRecommendedPrice': _requestRecommendedPrice,
                       'requestPromotionMethod': _requestPromotionMethod,

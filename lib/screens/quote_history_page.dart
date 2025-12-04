@@ -956,7 +956,7 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
                 );
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(
-                        content: Text('비교할 견적이 없습니다. 공인중개사로부터 답변을 받으면 비교할 수 있습니다.'),
+                        content: Text('받은 견적이 없습니다. 공인중개사로부터 답변을 받으면 확인할 수 있습니다.'),
                         backgroundColor: Colors.orange,
                         duration: Duration(seconds: 3),
                       ),

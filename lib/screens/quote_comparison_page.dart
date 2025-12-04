@@ -386,7 +386,7 @@ class _QuoteComparisonPageState extends State<QuoteComparisonPage> {
               ),
               const SizedBox(height: 24),
               Text(
-                '비교할 견적이 없습니다',
+                '확인할 견적이 없습니다',
                 style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
@@ -442,7 +442,7 @@ class _QuoteComparisonPageState extends State<QuoteComparisonPage> {
               ),
               const SizedBox(height: 24),
               Text(
-                '비교할 견적이 없습니다',
+                '확인할 견적이 없습니다',
                 style: TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
