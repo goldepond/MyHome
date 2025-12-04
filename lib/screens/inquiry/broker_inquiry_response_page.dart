@@ -554,7 +554,7 @@ class _BrokerInquiryResponsePageState extends State<BrokerInquiryResponsePage> {
                   child: Column(
                     children: [
                       _buildLabeledField(
-                        '예상 매도가',
+                        '적정 매도가',
                         _recommendedPriceController,
                         hint: '예: 10.8',
                         keyboardType: const TextInputType.numberWithOptions(decimal: true),

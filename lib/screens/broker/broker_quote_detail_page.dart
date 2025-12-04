@@ -171,25 +171,25 @@ class _BrokerQuoteDetailPageState extends State<BrokerQuoteDetailPage> {
       return;
     }
 
-    // 수수료 제안율은 반드시 입력
+    // 중개 수수료는 반드시 입력
     if (_commissionRateController.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('수수료 제안율을 입력해주세요.'),
+          content: Text('중개 수수료를 입력해주세요.'),
           backgroundColor: Colors.orange,
         ),
       );
       return;
     }
 
-    // 권장 매도가 또는 추가 메시지 중 하나는 입력
+    // 적정 매도가 또는 추가 메시지 중 하나는 입력
     final hasAnyInput = _recommendedPriceController.text.trim().isNotEmpty ||
         _brokerAnswerController.text.trim().isNotEmpty;
 
     if (!hasAnyInput) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('권장 매도가 또는 추가 메시지 중 하나 이상은 입력해주세요.'),
+          content: Text('적정 매도가 또는 추가 메시지 중 하나 이상은 입력해주세요.'),
           backgroundColor: Colors.orange,
         ),
       );
@@ -366,14 +366,14 @@ class _BrokerQuoteDetailPageState extends State<BrokerQuoteDetailPage> {
                     ),
                     const SizedBox(height: 24),
                     _buildTextField(
-                      label: '권장 매도가',
+                      label: '적정 매도가',
                       controller: _recommendedPriceController,
                       hint: '예: 11억 5천만원',
                       icon: Icons.attach_money,
                     ),
                     const SizedBox(height: 16),
                     _buildTextField(
-                      label: '수수료 제안율',
+                      label: '중개 수수료',
                       controller: _commissionRateController,
                       hint: '예: 0.5% (필수 입력)',
                       icon: Icons.percent,

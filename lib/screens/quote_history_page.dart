@@ -741,7 +741,7 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
                             if (quote.expectedDuration != null)
                               _buildDetailRow('예상 거래기간', quote.expectedDuration!),
                             if (quote.commissionRate != null)
-                              _buildDetailRow('수수료 제안율', quote.commissionRate!),
+                              _buildDetailRow('중개 수수료', quote.commissionRate!),
                             if (quote.promotionMethod != null)
                               _buildDetailRow('홍보 방법', quote.promotionMethod!),
                             if (quote.recentCases != null)
@@ -2353,7 +2353,7 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
                           const SizedBox(height: 8),
                         ],
                         if (quote.commissionRate != null && quote.commissionRate!.isNotEmpty) ...[
-                          _buildInfoRow('수수료 제안율', quote.commissionRate!),
+                          _buildInfoRow('중개 수수료', quote.commissionRate!),
                           const SizedBox(height: 8),
                         ],
                         if (quote.recentCases != null && quote.recentCases!.isNotEmpty)
