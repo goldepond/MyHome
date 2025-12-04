@@ -3575,7 +3575,9 @@ class _QuoteRequestFormPageState extends State<_QuoteRequestFormPage> {
             ),
             
             const SizedBox(height: 20),
-          ],
+              ],
+            ),
+          ),
         ),
       ),
     );
