@@ -3241,7 +3241,7 @@ class _QuoteRequestFormPageState extends State<_QuoteRequestFormPage> {
             
             // ========== 1️⃣ 매물 정보 (자동 입력) ==========
             _buildSectionTitle('매물 정보', '자동 입력됨', Colors.blue),
-            const SizedBox(height: 16),
+            const SizedBox(height: 12),
             _buildCard([
               _buildInfoRow('주소', propertyAddress),
               if (propertyArea != '정보 없음') ...[
@@ -3250,11 +3250,11 @@ class _QuoteRequestFormPageState extends State<_QuoteRequestFormPage> {
               ],
             ]),
             
-            const SizedBox(height: 24),
+            const SizedBox(height: 32),
             
             // ========== 2️⃣ 매물 유형 (필수 입력) ==========
             _buildSectionTitle('매물 유형', '필수 입력', Colors.green),
-            const SizedBox(height: 16),
+            const SizedBox(height: 12),
             _buildCard([
               DropdownButtonFormField<String>(
                 initialValue: propertyType,
@@ -3294,7 +3294,7 @@ class _QuoteRequestFormPageState extends State<_QuoteRequestFormPage> {
               ),
             ]),
             
-            const SizedBox(height: 24),
+            const SizedBox(height: 32),
             
             // ========== 2️⃣ 확인할 견적 정보 ==========
             Container(
@@ -3434,11 +3434,11 @@ class _QuoteRequestFormPageState extends State<_QuoteRequestFormPage> {
               ),
             ),
             
-            const SizedBox(height: 24),
+            const SizedBox(height: 32),
             
             // ========== 3️⃣ 추가 요청사항 (선택) ==========
             _buildSectionTitle('궁금한 점이 있으신가요?', '선택사항', AppColors.kPrimary),
-            const SizedBox(height: 16),
+            const SizedBox(height: 12),
             _buildCard([
               Row(
                 children: [
@@ -4190,11 +4190,11 @@ class _MultipleQuoteRequestDialogState extends State<_MultipleQuoteRequestDialog
               ),
             ),
             
-            const SizedBox(height: 24),
+            const SizedBox(height: 32),
             
             // ========== 3️⃣ 추가 요청사항 (선택) ==========
             _buildSectionTitle('궁금한 점이 있으신가요?', '선택사항', AppColors.kPrimary),
-            const SizedBox(height: 16),
+            const SizedBox(height: 12),
             _buildCard([
               Row(
                 children: [
