@@ -104,12 +104,16 @@ class _AddressSearchScreenState extends State<AddressSearchScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('주소 검색'),
-      ),
-      body: Column(
-        children: [
+    return GestureDetector(
+      onTap: () => FocusScope.of(context).unfocus(),
+      child: Scaffold(
+        resizeToAvoidBottomInset: true,
+        appBar: AppBar(
+          title: const Text('주소 검색'),
+        ),
+        body: SafeArea(
+          child: Column(
+            children: [
           Padding(
             padding: const EdgeInsets.all(16.0),
             child: Row(
@@ -187,7 +191,9 @@ class _AddressSearchScreenState extends State<AddressSearchScreen> {
                 },
               ),
             ),
-        ],
+            ],
+          ),
+        ),
       ),
     );
   }

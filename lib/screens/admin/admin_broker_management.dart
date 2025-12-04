@@ -83,10 +83,14 @@ class _AdminBrokerManagementState extends State<AdminBrokerManagement> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.kBackground,
-      body: Column(
-        children: [
+    return GestureDetector(
+      onTap: () => FocusScope.of(context).unfocus(),
+      child: Scaffold(
+        backgroundColor: AppColors.kBackground,
+        resizeToAvoidBottomInset: true,
+        body: SafeArea(
+          child: Column(
+            children: [
           // 검색 바
           Container(
             padding: const EdgeInsets.all(16),
@@ -157,7 +161,9 @@ class _AdminBrokerManagementState extends State<AdminBrokerManagement> {
           Expanded(
             child: _buildBrokerList(),
           ),
-        ],
+            ],
+          ),
+        ),
       ),
     );
   }

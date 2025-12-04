@@ -92,10 +92,14 @@ class _AdminPropertyManagementState extends State<AdminPropertyManagement> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.kBackground,
-      body: Column(
-        children: [
+    return GestureDetector(
+      onTap: () => FocusScope.of(context).unfocus(),
+      child: Scaffold(
+        backgroundColor: AppColors.kBackground,
+        resizeToAvoidBottomInset: true,
+        body: SafeArea(
+          child: Column(
+            children: [
           // 검색 및 필터 바
           Container(
             padding: const EdgeInsets.all(16),
@@ -183,7 +187,9 @@ class _AdminPropertyManagementState extends State<AdminPropertyManagement> {
           Expanded(
             child: _buildPropertyList(),
           ),
-        ],
+            ],
+          ),
+        ),
       ),
     );
   }

@@ -259,26 +259,38 @@ class _BrokerQuoteDetailPageState extends State<BrokerQuoteDetailPage> {
     final maxWidth = isWeb ? 1200.0 : screenWidth;
     final horizontalPadding = isWeb ? 24.0 : 16.0;
 
-    return Scaffold(
-      backgroundColor: AppColors.kBackground,
-      appBar: AppBar(
-        backgroundColor: Colors.white,
-        foregroundColor: AppColors.kPrimary,
-        elevation: 0.5,
-        title: const HomeLogoButton(
-          fontSize: 18,
-          color: AppColors.kPrimary,
+    return GestureDetector(
+      onTap: () => FocusScope.of(context).unfocus(),
+      child: Scaffold(
+        backgroundColor: AppColors.kBackground,
+        resizeToAvoidBottomInset: true,
+        appBar: AppBar(
+          backgroundColor: Colors.white,
+          foregroundColor: AppColors.kPrimary,
+          elevation: 0.5,
+          title: const HomeLogoButton(
+            fontSize: 18,
+            color: AppColors.kPrimary,
+          ),
         ),
-      ),
-      body: Form(
-        key: _formKey,
-        child: SingleChildScrollView(
-          padding: EdgeInsets.symmetric(horizontal: horizontalPadding, vertical: 24),
-          child: Center(
-            child: Container(
-              constraints: BoxConstraints(maxWidth: maxWidth),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+        body: Form(
+          key: _formKey,
+          child: SafeArea(
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                return SingleChildScrollView(
+                  physics: const ClampingScrollPhysics(),
+                  padding: EdgeInsets.symmetric(horizontal: horizontalPadding, vertical: 24),
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(
+                      minHeight: constraints.maxHeight - 48,
+                    ),
+                    child: IntrinsicHeight(
+                      child: Center(
+                        child: Container(
+                          constraints: BoxConstraints(maxWidth: maxWidth),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
               // 1. 선택된 견적 카드 (조건부 표시)
               if (widget.quote.isSelectedByUser == true)
@@ -500,7 +512,13 @@ class _BrokerQuoteDetailPageState extends State<BrokerQuoteDetailPage> {
               ),
 
               const SizedBox(height: 24),
-                ],
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  );
+                },
               ),
             ),
           ),

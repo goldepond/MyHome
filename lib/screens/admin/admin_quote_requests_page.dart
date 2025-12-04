@@ -34,9 +34,12 @@ class _AdminQuoteRequestsPageState extends State<AdminQuoteRequestsPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.kBackground,
-      body: StreamBuilder<List<QuoteRequest>>(
+    return GestureDetector(
+      onTap: () => FocusScope.of(context).unfocus(),
+      child: Scaffold(
+        backgroundColor: AppColors.kBackground,
+        resizeToAvoidBottomInset: true,
+        body: StreamBuilder<List<QuoteRequest>>(
         stream: _firebaseService.getAllQuoteRequests(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
