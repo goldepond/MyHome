@@ -3294,7 +3294,9 @@ class _QuoteRequestFormPageState extends State<_QuoteRequestFormPage> {
               ),
             ]),
             
-            const SizedBox(height: 32),
+            const SizedBox(height: 24),
+            Divider(color: Colors.grey[300], thickness: 1, height: 1),
+            const SizedBox(height: 24),
             
             // ========== 2️⃣ 확인할 견적 정보 ==========
             Container(
@@ -3434,7 +3436,9 @@ class _QuoteRequestFormPageState extends State<_QuoteRequestFormPage> {
               ),
             ),
             
-            const SizedBox(height: 32),
+            const SizedBox(height: 24),
+            Divider(color: Colors.grey[300], thickness: 1, height: 1),
+            const SizedBox(height: 24),
             
             // ========== 3️⃣ 추가 요청사항 (선택) ==========
             _buildSectionTitle('궁금한 점이 있으신가요?', '선택사항', AppColors.kPrimary),
@@ -3488,7 +3492,9 @@ class _QuoteRequestFormPageState extends State<_QuoteRequestFormPage> {
               ),
             ]),
             
-            const SizedBox(height: 40),
+            const SizedBox(height: 24),
+            Divider(color: Colors.grey[300], thickness: 1, height: 1),
+            const SizedBox(height: 24),
             
             // 제출 버튼
             // 동의 체크
@@ -4190,7 +4196,9 @@ class _MultipleQuoteRequestDialogState extends State<_MultipleQuoteRequestDialog
               ),
             ),
             
-            const SizedBox(height: 32),
+            const SizedBox(height: 24),
+            Divider(color: Colors.grey[300], thickness: 1, height: 1),
+            const SizedBox(height: 24),
             
             // ========== 3️⃣ 추가 요청사항 (선택) ==========
             _buildSectionTitle('궁금한 점이 있으신가요?', '선택사항', AppColors.kPrimary),
@@ -4244,7 +4252,9 @@ class _MultipleQuoteRequestDialogState extends State<_MultipleQuoteRequestDialog
               ),
             ]),
             
-            const SizedBox(height: 40),
+            const SizedBox(height: 24),
+            Divider(color: Colors.grey[300], thickness: 1, height: 1),
+            const SizedBox(height: 24),
             
             // 제출 버튼
             // 동의 체크
