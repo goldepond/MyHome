@@ -323,8 +323,8 @@ class _BrokerSignupPageState extends State<BrokerSignupPage> {
                   child: Form(
                     key: _formKey,
                     child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
               // 제목
               const Text(
                 '공인중개사 회원가입',
@@ -795,7 +795,9 @@ class _BrokerSignupPageState extends State<BrokerSignupPage> {
                   ),
                 ),
               ),
-                  ],
+                      ],
+                    ),
+                  ),
                 ),
               );
             },
