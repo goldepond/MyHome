@@ -1425,7 +1425,7 @@ class _HomePageState extends State<HomePage> {
               _buildRegisterResultCard(isLoggedIn),
               
               // 웹 전용 푸터 여백
-              if (kIsWeb) const SizedBox(height: 360),
+              if (kIsWeb) const SizedBox(height: 180),
             ],
             ),
           ),

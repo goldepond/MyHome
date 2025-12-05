@@ -137,7 +137,7 @@ class _HouseMarketPageState extends State<HouseMarketPage> {
                     const SizedBox(height: 20),
                     
                     // 웹 전용 푸터 여백
-                    if (kIsWeb) const SizedBox(height: 360),
+                    if (kIsWeb) const SizedBox(height: 180),
                   ],
                 ),
               ),

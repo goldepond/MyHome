@@ -3495,7 +3495,7 @@ class _QuoteRequestFormPageState extends State<_QuoteRequestFormPage> {
             const SizedBox(height: 20),
             
             // 웹 전용 푸터 여백
-            if (kIsWeb) const SizedBox(height: 360),
+            if (kIsWeb) const SizedBox(height: 180),
           ],
             ),
           ),
@@ -4299,7 +4299,7 @@ class _MultipleQuoteRequestDialogState extends State<_MultipleQuoteRequestDialog
             const SizedBox(height: 20),
             
             // 웹 전용 푸터 여백
-            if (kIsWeb) const SizedBox(height: 360),
+            if (kIsWeb) const SizedBox(height: 180),
           ],
         ),
       ),
