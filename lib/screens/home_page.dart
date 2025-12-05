@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'dart:async';
 import 'dart:convert';
 import 'package:property/constants/app_constants.dart';
@@ -1422,6 +1423,9 @@ class _HomePageState extends State<HomePage> {
                 const SizedBox(height: 56),
 
               _buildRegisterResultCard(isLoggedIn),
+              
+              // 웹 전용 푸터 여백
+              if (kIsWeb) const SizedBox(height: 120),
             ],
             ),
           ),

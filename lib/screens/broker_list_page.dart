@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/services.dart';
 
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
@@ -3581,6 +3582,9 @@ class _QuoteRequestFormPageState extends State<_QuoteRequestFormPage> {
             ),
             
             const SizedBox(height: 20),
+            
+            // 웹 전용 푸터 여백
+            if (kIsWeb) const SizedBox(height: 120),
           ],
             ),
           ),
@@ -4382,6 +4386,9 @@ class _MultipleQuoteRequestDialogState extends State<_MultipleQuoteRequestDialog
             ),
             
             const SizedBox(height: 20),
+            
+            // 웹 전용 푸터 여백
+            if (kIsWeb) const SizedBox(height: 120),
           ],
         ),
       ),

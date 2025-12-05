@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:property/constants/app_constants.dart';
 import 'package:property/models/property.dart';
 import 'package:property/api_request/firebase_service.dart';
@@ -134,6 +135,9 @@ class _HouseMarketPageState extends State<HouseMarketPage> {
                     _buildPropertyList(),
                     
                     const SizedBox(height: 20),
+                    
+                    // 웹 전용 푸터 여백
+                    if (kIsWeb) const SizedBox(height: 120),
                   ],
                 ),
               ),

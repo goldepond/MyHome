@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:property/constants/app_constants.dart';
 import 'package:property/api_request/firebase_service.dart';
 import 'package:property/models/quote_request.dart';
