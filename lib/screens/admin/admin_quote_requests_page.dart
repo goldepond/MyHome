@@ -930,7 +930,7 @@ class _AdminQuoteRequestsPageState extends State<AdminQuoteRequestsPage> {
               }
               
               // 이메일 형식 검증
-              if (!ValidationUtils.isValidEmailSimple(email)) {
+              if (!ValidationUtils.isValidEmail(email)) {
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(content: Text('올바른 이메일 형식을 입력해주세요')),
                 );

@@ -843,8 +843,8 @@ class _QuoteComparisonPageState extends State<QuoteComparisonPage> {
                                         Expanded(
                                           child: _buildCommissionRateItem(
                                             '최저율',
-                                            _formatCommissionRate(minCommissionRate!),
-                                            Colors.green[200]!,
+                                            _formatCommissionRate(minCommissionRate),
+                                            Colors.green[200] ?? Colors.green,
                                             isWeb,
                                           ),
                                         ),
@@ -852,7 +852,7 @@ class _QuoteComparisonPageState extends State<QuoteComparisonPage> {
                                         Expanded(
                                           child: _buildCommissionRateItem(
                                             '평균율',
-                                            _formatCommissionRate(avgCommissionRate!),
+                                            _formatCommissionRate(avgCommissionRate),
                                             Colors.white,
                                             isWeb,
                                           ),
@@ -861,8 +861,8 @@ class _QuoteComparisonPageState extends State<QuoteComparisonPage> {
                                         Expanded(
                                           child: _buildCommissionRateItem(
                                             '최고율',
-                                            _formatCommissionRate(maxCommissionRate!),
-                                            Colors.red[200]!,
+                                            _formatCommissionRate(maxCommissionRate),
+                                            Colors.red[200] ?? Colors.red,
                                             isWeb,
                                           ),
                                         ),

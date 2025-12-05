@@ -1122,11 +1122,11 @@ class _HomePageState extends State<HomePage> {
                       addressSearchMessage!,
                       icon: addressSearchMessageIsWarning ? Icons.warning_amber_rounded : Icons.info_outline,
                       backgroundColor: addressSearchMessageIsWarning
-                          ? Colors.orange.withOpacity(0.12)
-                          : Colors.blue.withOpacity(0.08),
+                          ? Colors.orange.withValues(alpha: 0.12)
+                          : Colors.blue.withValues(alpha: 0.08),
                       borderColor: addressSearchMessageIsWarning
-                          ? Colors.orange.withOpacity(0.3)
-                          : Colors.blue.withOpacity(0.3),
+                          ? Colors.orange.withValues(alpha: 0.3)
+                          : Colors.blue.withValues(alpha: 0.3),
                       textColor: addressSearchMessageIsWarning
                           ? Colors.orange[800]!
                           : AppColors.kTextSecondary,

@@ -315,18 +315,19 @@ class _BuyerPropertyDetailPageState extends State<BuyerPropertyDetailPage> {
                 ],
 
                 // 등록자 정보
-                if (widget.property.registeredByName != null || widget.property.mainContractor != null) ...[
+                if ((widget.property.registeredByName?.isNotEmpty ?? false) || 
+                    widget.property.mainContractor.isNotEmpty) ...[
                   _buildInfoCard(
                     title: '등록 정보',
                     icon: Icons.person,
                     color: Colors.teal,
                     children: [
-                      if (widget.property.registeredByName != null && widget.property.registeredByName!.isNotEmpty)
+                      if (widget.property.registeredByName?.isNotEmpty ?? false)
                         _buildInfoRow('등록자', widget.property.registeredByName!),
-                      if (widget.property.mainContractor != null && widget.property.mainContractor!.isNotEmpty)
-                        _buildInfoRow('대표 계약자', widget.property.mainContractor!),
-                      if (widget.property.contractor != null && widget.property.contractor!.isNotEmpty)
-                        _buildInfoRow('계약자', widget.property.contractor!),
+                      if (widget.property.mainContractor.isNotEmpty)
+                        _buildInfoRow('대표 계약자', widget.property.mainContractor),
+                      if (widget.property.contractor.isNotEmpty)
+                        _buildInfoRow('계약자', widget.property.contractor),
                     ],
                   ),
                   const SizedBox(height: 16),
@@ -382,7 +383,7 @@ class _BuyerPropertyDetailPageState extends State<BuyerPropertyDetailPage> {
                 ],
 
                 // 등기부등본 요약 정보
-                if (widget.property.registerSummary != null && widget.property.registerSummary!.isNotEmpty) ...[
+                if (widget.property.registerSummary.isNotEmpty) ...[
                   _buildInfoCard(
                     title: '등기부등본 요약',
                     icon: Icons.description,

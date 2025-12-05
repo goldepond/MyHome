@@ -80,7 +80,7 @@ class ApiConstants {
   static const int pageSize = 10;
 
   // Data.go.kr
-  static String get data_go_kr_serviceKey => _getEnv('DATA_GO_KR_SERVICE_KEY');
+  static String get dataGoKrServiceKey => _getEnv('DATA_GO_KR_SERVICE_KEY');
 
   // AptBasisInfoServiceV4 - 공동주택 상세 정보조회 API
   // 실제 메서드명: /getAphusDtlInfoV4

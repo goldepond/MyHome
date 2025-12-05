@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:property/constants/app_constants.dart';
 import 'package:property/api_request/firebase_service.dart';
 import 'package:property/models/quote_request.dart';
@@ -40,8 +39,6 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
   // 필터 상태
   String selectedStatus = 'all'; // all, pending, completed
 
-  // 그룹화된 견적 데이터 (주소별)
-  Map<String, List<QuoteRequest>> _groupedQuotes = {};
   // 날짜별 그룹화된 견적 데이터 (요청 날짜 기준)
   Map<String, List<QuoteRequest>> _dateGroupedQuotes = {};
 
@@ -145,7 +142,6 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
 
     setState(() {
       filteredQuotes = nextFiltered;
-      _groupedQuotes = grouped;
       _dateGroupedQuotes = dateGrouped;
     });
 
@@ -1123,9 +1119,6 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
 
   @override
   Widget build(BuildContext context) {
-    final screenWidth = MediaQuery.of(context).size.width;
-    final isWeb = screenWidth > 800;
-
     return Scaffold(
       backgroundColor: const Color(0xFFF8F9FA),
       body: SingleChildScrollView(

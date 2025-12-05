@@ -53,9 +53,9 @@ class _PropertyEditFormPageState extends State<PropertyEditFormPage> {
   final TextEditingController _descriptionController = TextEditingController();
 
   // 사진 첨부
-  List<XFile> _newImages = []; // 새로 추가한 사진
+  final List<XFile> _newImages = []; // 새로 추가한 사진
   List<String> _existingImageUrls = []; // 기존 사진 URL
-  List<String> _deletedImageUrls = []; // 삭제한 사진 URL
+  final List<String> _deletedImageUrls = []; // 삭제한 사진 URL
   bool _isUploadingImages = false;
 
   // API 정보

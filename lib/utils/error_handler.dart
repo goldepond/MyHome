@@ -2,7 +2,6 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:property/constants/error_messages.dart';
 import 'package:property/utils/network_status.dart';
 import 'package:property/utils/logger.dart';

@@ -36,9 +36,7 @@ class _BrokerSignupPageState extends State<BrokerSignupPage> {
   String? _emailError;
   String? _passwordError;
   String? _passwordConfirmError;
-  String? _ownerNameError;
   String? _businessNameError;
-  String? _phoneNumberError;
 
   @override
   void dispose() {
@@ -164,9 +162,7 @@ class _BrokerSignupPageState extends State<BrokerSignupPage> {
       _emailError = null;
       _passwordError = null;
       _passwordConfirmError = null;
-      _ownerNameError = null;
       _businessNameError = null;
-      _phoneNumberError = null;
     });
     
     bool hasError = false;
@@ -200,7 +196,9 @@ class _BrokerSignupPageState extends State<BrokerSignupPage> {
     
     // 소유자 이름 검증
     if (_ownerNameController.text.isEmpty) {
-      setState(() => _ownerNameError = '소유자 이름을 입력해주세요');
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('소유자 이름을 입력해주세요')),
+      );
       hasError = true;
     }
     
@@ -212,7 +210,9 @@ class _BrokerSignupPageState extends State<BrokerSignupPage> {
     
     // 전화번호 검증
     if (_phoneNumberController.text.isEmpty) {
-      setState(() => _phoneNumberError = '전화번호를 입력해주세요');
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('전화번호를 입력해주세요')),
+      );
       hasError = true;
     }
     

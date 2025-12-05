@@ -79,7 +79,7 @@ class _AdminPropertyManagementState extends State<AdminPropertyManagement> {
       filtered = filtered.where((p) {
         final address = p.address.toLowerCase();
         final buildingName = (p.buildingName ?? '').toLowerCase();
-        final mainContractor = (p.mainContractor ?? '').toLowerCase();
+        final mainContractor = p.mainContractor.toLowerCase();
         
         return address.contains(keyword) ||
                buildingName.contains(keyword) ||
@@ -383,9 +383,9 @@ class _AdminPropertyManagementState extends State<AdminPropertyManagement> {
             ),
             const SizedBox(height: 16),
             _buildInfoRow(Icons.location_on, '주소', property.address),
-            if (property.mainContractor != null) ...[
+            if (property.mainContractor.isNotEmpty) ...[
               const SizedBox(height: 8),
-              _buildInfoRow(Icons.person, '계약자', property.mainContractor!),
+              _buildInfoRow(Icons.person, '계약자', property.mainContractor),
             ],
             if (property.buildingType != null) ...[
               const SizedBox(height: 8),

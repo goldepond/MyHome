@@ -1,23 +1,12 @@
 /// 입력값 검증 유틸리티 클래스
 class ValidationUtils {
-  /// 이메일 형식 검증 (일반적인 이메일 형식)
+  /// 이메일 형식 검증
   /// 
   /// [email] 검증할 이메일 주소
   /// Returns true if valid email format
   static bool isValidEmail(String email) {
     if (email.isEmpty) return false;
-    // 일반적인 이메일 형식 검증 (user@domain.com)
-    final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
-    return emailRegex.hasMatch(email);
-  }
-
-  /// 간단한 이메일 형식 검증 (최소한의 형식만 확인)
-  /// 
-  /// [email] 검증할 이메일 주소
-  /// Returns true if valid email format
-  static bool isValidEmailSimple(String email) {
-    if (email.isEmpty) return false;
-    // 간단한 이메일 형식 검증 (@와 . 포함)
+    // 일반적인 이메일 형식 검증 (간단하고 실용적인 패턴 사용)
     final emailRegex = RegExp(r'^[^\s@]+@[^\s@]+\.[^\s@]+$');
     return emailRegex.hasMatch(email);
   }

@@ -65,7 +65,7 @@ class AptInfoService {
   static Future<Map<String, dynamic>?> getAptBasisInfo(String kaptCode) async {
     try {
       // ServiceKey 확인
-      final serviceKey = ApiConstants.data_go_kr_serviceKey;
+      final serviceKey = ApiConstants.dataGoKrServiceKey;
       if (serviceKey.isNotEmpty) {
       } else {
         return null;
@@ -341,7 +341,7 @@ class AptInfoService {
     if (roadCode.isEmpty) return null;
     
     // ServiceKey 확인
-    final serviceKey = ApiConstants.data_go_kr_serviceKey;
+    final serviceKey = ApiConstants.dataGoKrServiceKey;
     if (serviceKey.isEmpty) {
       return null;
     }
@@ -391,7 +391,7 @@ class AptInfoService {
     }
     
     // ServiceKey 확인
-    final serviceKey = ApiConstants.data_go_kr_serviceKey;
+    final serviceKey = ApiConstants.dataGoKrServiceKey;
     if (serviceKey.isEmpty) {
       return null;
     }
@@ -615,7 +615,7 @@ class AptInfoService {
     required Map<String, String> fullAddrAPIData,
   }) async {
     // ServiceKey 확인
-    final serviceKey = ApiConstants.data_go_kr_serviceKey;
+    final serviceKey = ApiConstants.dataGoKrServiceKey;
     if (serviceKey.isEmpty) {
       return KaptCodeExtractionResult.failure(
         KaptCodeFailureReason.apiError,
@@ -703,7 +703,7 @@ class AptInfoService {
     required Map<String, String> fullAddrAPIData,
   }) async {
     // ServiceKey 확인
-    final serviceKey = ApiConstants.data_go_kr_serviceKey;
+    final serviceKey = ApiConstants.dataGoKrServiceKey;
     if (serviceKey.isEmpty) {
       return KaptCodeExtractionResult.failure(
         KaptCodeFailureReason.apiError,

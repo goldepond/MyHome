@@ -60,7 +60,7 @@ class _PropertyRegistrationFormPageState extends State<PropertyRegistrationFormP
   final TextEditingController _descriptionController = TextEditingController();
 
   // 사진 첨부 (선택)
-  List<XFile> _selectedImages = [];
+  final List<XFile> _selectedImages = [];
   List<String> _uploadedImageUrls = []; // 업로드된 이미지 URL
   bool _isUploadingImages = false;
 

@@ -70,7 +70,7 @@ class _BrokerListPageState extends State<BrokerListPage> {
   String _sortOption = 'distance';
   
   bool _isSelectionMode = false;
-  Set<String> _selectedBrokerIds = {};
+  final Set<String> _selectedBrokerIds = {};
   void _toggleSelectionMode() {
     setState(() {
       _isSelectionMode = !_isSelectionMode;
@@ -1581,9 +1581,9 @@ class _BrokerListPageState extends State<BrokerListPage> {
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: Colors.indigo.withOpacity(0.08),
+        color: Colors.indigo.withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.indigo.withOpacity(0.2)),
+        border: Border.all(color: Colors.indigo.withValues(alpha: 0.2)),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -2217,95 +2217,6 @@ class _BrokerListPageState extends State<BrokerListPage> {
     );
   }
 
-  /// 간단한 정보 행 (행정처분 등에 사용)
-  Widget _buildInfoRow(String label, String value) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        SizedBox(
-          width: 100,
-          child: Text(
-            label,
-            style: TextStyle(
-              fontSize: 13,
-              color: Colors.grey[700],
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        ),
-        Expanded(
-          child: Text(
-            value,
-            style: const TextStyle(
-              fontSize: 13,
-              color: Color(0xFF2C3E50),
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  /// 공인중개사 정보 행 - 웹 스타일
-  Widget _buildBrokerInfo(
-    IconData icon,
-    String label,
-    String? value, {
-    Color? statusColor,
-  }) {
-    final shouldDisplay = value != null && value.trim().isNotEmpty && value != '-';
-    if (!shouldDisplay) {
-      return const SizedBox.shrink();
-    }
-    final displayValue = value.trim();
-    final valueColor = statusColor ?? const Color(0xFF2C3E50);
-    final iconColor = statusColor ?? AppColors.kPrimary;
-
-    return Container(
-      margin: const EdgeInsets.only(bottom: 10),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Container(
-            padding: const EdgeInsets.all(6),
-            decoration: BoxDecoration(
-              color: iconColor.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(6),
-            ),
-            child: Icon(icon, size: 16, color: iconColor),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  label,
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Colors.grey[600],
-                    fontWeight: FontWeight.w600,
-                    letterSpacing: -0.1,
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  displayValue,
-                  style: TextStyle(
-                    fontSize: 13.5,
-                    color: valueColor,
-                    fontWeight: FontWeight.w600,
-                    height: 1.35,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 
   /// 결과 없음 카드 - 웹 스타일
   Widget _buildNoResultsCard({String message = '공인중개사를 찾을 수 없습니다'}) {
@@ -4552,50 +4463,6 @@ class _MultipleQuoteRequestDialogState extends State<_MultipleQuoteRequestDialog
           ),
         ),
       ],
-    );
-  }
-
-  Widget _buildSummaryRow(IconData icon, String text) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Icon(icon, size: 16, color: Colors.grey[600]),
-        const SizedBox(width: 8),
-        Expanded(
-          child: Text(
-            text,
-            style: TextStyle(
-              fontSize: 14,
-              color: Colors.grey[800],
-              height: 1.2,
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  InputDecoration _buildInputDecoration(String label, {String? hint}) {
-    return InputDecoration(
-      labelText: label,
-      hintText: hint,
-      alignLabelWithHint: true,
-      filled: true,
-      fillColor: Colors.white,
-      border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: BorderSide(color: Colors.grey[300]!, width: 1.5),
-      ),
-      enabledBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: BorderSide(color: Colors.grey[300]!, width: 1.5),
-      ),
-      focusedBorder: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: AppColors.kPrimary, width: 2),
-      ),
-      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-      floatingLabelBehavior: FloatingLabelBehavior.always,
     );
   }
 
