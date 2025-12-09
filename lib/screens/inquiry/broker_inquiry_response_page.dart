@@ -851,7 +851,7 @@ class _BrokerInquiryResponsePageState extends State<BrokerInquiryResponsePage> {
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        '고객님이 확인할 답변을 간단히 작성해주세요.',
+                        '전하고 싶은 내용을 정리해 남겨주세요.',
                         style: TextStyle(fontSize: 12, color: Colors.grey[700]),
                       ),
                       const SizedBox(height: 12),
@@ -860,7 +860,7 @@ class _BrokerInquiryResponsePageState extends State<BrokerInquiryResponsePage> {
                         maxLines: 8,
                         enabled: true, // 항상 수정 가능
                         decoration: InputDecoration(
-                          hintText: '예) 적정가/수수료/예상 기간/홍보 계획을 간략히 적어주세요.',
+                          hintText: '예) 진행 희망 시점, 연락 가능 시간, 추가로 남길 요청 사항을 적어주세요.',
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(10),
                           ),
