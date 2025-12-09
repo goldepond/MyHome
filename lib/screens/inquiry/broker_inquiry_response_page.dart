@@ -419,19 +419,84 @@ class _BrokerInquiryResponsePageState extends State<BrokerInquiryResponsePage> {
             
             const SizedBox(height: 24),
             
-            // 문의 정보
-            _buildSection(
-              title: '📌 문의 정보',
-              children: [
-                _buildInfoRow('문의자', quoteRequest.userName),
-                _buildInfoRow('이메일', quoteRequest.userEmail),
-                if (quoteRequest.propertyAddress != null)
-                  _buildInfoRow('매물 주소', quoteRequest.propertyAddress!),
-                if (quoteRequest.propertyArea != null)
-                  _buildInfoRow('전용면적', '${quoteRequest.propertyArea}㎡'),
-                if (quoteRequest.propertyType != null)
-                  _buildInfoRow('매물 유형', quoteRequest.propertyType!),
-              ],
+            // 문의 정보 (가독성 강화 카드)
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: AppColors.kPrimary.withValues(alpha: 0.25)),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.04),
+                    blurRadius: 16,
+                    offset: const Offset(0, 6),
+                  ),
+                ],
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      const Icon(Icons.person_pin_circle, color: AppColors.kPrimary, size: 22),
+                      const SizedBox(width: 8),
+                      const Text(
+                        '문의 정보',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF1F2937),
+                        ),
+                      ),
+                      const Spacer(),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: AppColors.kPrimary.withValues(alpha: 0.08),
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: Row(
+                          children: const [
+                            Icon(Icons.flash_on, size: 14, color: AppColors.kPrimary),
+                            SizedBox(width: 6),
+                            Text(
+                              '중요 정보',
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w700,
+                                color: AppColors.kPrimary,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 14),
+                  _buildLabeledValue('문의자', quoteRequest.userName, Icons.person_outline),
+                  const SizedBox(height: 8),
+                  _buildLabeledValue('이메일', quoteRequest.userEmail, Icons.mail_outline),
+                  if (quoteRequest.propertyAddress != null) ...[
+                    const SizedBox(height: 12),
+                    _buildLabeledValue('매물 주소', quoteRequest.propertyAddress!, Icons.location_on_outlined),
+                  ],
+                  if (quoteRequest.propertyArea != null || quoteRequest.propertyType != null) ...[
+                    const SizedBox(height: 12),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: [
+                        if (quoteRequest.propertyArea != null)
+                          _buildTagChip(Icons.square_foot, '${quoteRequest.propertyArea}㎡'),
+                        if (quoteRequest.propertyType != null)
+                          _buildTagChip(Icons.home_work_outlined, quoteRequest.propertyType!),
+                      ],
+                    ),
+                  ],
+                ],
+              ),
             ),
             
             const SizedBox(height: 24),
@@ -852,6 +917,74 @@ class _BrokerInquiryResponsePageState extends State<BrokerInquiryResponsePage> {
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildLabeledValue(String label, String value, IconData icon) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          width: 32,
+          height: 32,
+          decoration: BoxDecoration(
+            color: AppColors.kPrimary.withValues(alpha: 0.08),
+            shape: BoxShape.circle,
+          ),
+          child: Icon(icon, size: 16, color: AppColors.kPrimary),
+        ),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.grey[700],
+                ),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                value,
+                style: const TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w700,
+                  color: Color(0xFF111827),
+                  height: 1.3,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildTagChip(IconData icon, String text) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+      decoration: BoxDecoration(
+        color: Colors.grey.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 14, color: Colors.grey[800]),
+          const SizedBox(width: 6),
+          Text(
+            text,
+            style: const TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+              color: Color(0xFF1F2937),
+            ),
+          ),
+        ],
+      ),
     );
   }
   
