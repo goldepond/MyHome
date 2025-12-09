@@ -3126,6 +3126,10 @@ class _QuoteRequestFormPageState extends State<_QuoteRequestFormPage> {
   
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isWeb = kIsWeb;
+    final maxContentWidth = isWeb ? 800.0 : screenWidth;
+    
     return GestureDetector(
       onTap: () => FocusScope.of(context).unfocus(),
       child: Scaffold(
@@ -3140,10 +3144,13 @@ class _QuoteRequestFormPageState extends State<_QuoteRequestFormPage> {
       body: Form(
         key: _formKey,
           child: SafeArea(
-        child: ListView(
+        child: Center(
+          child: Container(
+            constraints: BoxConstraints(maxWidth: maxContentWidth),
+            child: ListView(
               physics: const ClampingScrollPhysics(),
-          padding: const EdgeInsets.all(20),
-          children: [
+              padding: EdgeInsets.all(isWeb ? 40.0 : 20.0),
+              children: [
             // 제목
             const Text(
               '🏠 중개 상담 요청서',
@@ -3923,6 +3930,10 @@ class _MultipleQuoteRequestDialogState extends State<_MultipleQuoteRequestDialog
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isWeb = kIsWeb;
+    final maxContentWidth = isWeb ? 800.0 : screenWidth;
+    
     return Scaffold(
       backgroundColor: const Color(0xFFE8EAF0),
       appBar: AppBar(
@@ -3939,9 +3950,12 @@ class _MultipleQuoteRequestDialogState extends State<_MultipleQuoteRequestDialog
       ),
       body: Form(
         key: _formKey,
-        child: ListView(
-          padding: const EdgeInsets.all(20),
-          children: [
+        child: Center(
+          child: Container(
+            constraints: BoxConstraints(maxWidth: maxContentWidth),
+            child: ListView(
+              padding: EdgeInsets.all(isWeb ? 40.0 : 20.0),
+              children: [
             // 제목
             Text(
               widget.brokerCount == 1 
@@ -4366,7 +4380,9 @@ class _MultipleQuoteRequestDialogState extends State<_MultipleQuoteRequestDialog
             
             // 웹 전용 푸터 여백 (영상 촬영용)
             if (kIsWeb) const SizedBox(height: 600),
-          ],
+              ],
+            ),
+          ),
         ),
       ),
     );
