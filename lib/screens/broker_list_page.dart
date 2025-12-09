@@ -19,7 +19,7 @@ import 'package:property/utils/analytics_service.dart';
 import 'package:property/utils/analytics_events.dart';
 import 'package:property/utils/transaction_type_helper.dart';
 
-/// 공인중개사 찾기 페이지
+/// 부동산 상담을 위한 공인중개사 찾기 페이지
 class BrokerListPage extends StatefulWidget {
   final String address;
   final double latitude;
@@ -1096,7 +1096,7 @@ class _BrokerListPageState extends State<BrokerListPage> {
                             Icon(Icons.business, color: Colors.white, size: 28),
                             SizedBox(width: 10),
                             Text(
-                              '주변 공인중개사 찾기',
+                              '주변 부동산 상담 찾기',
                               style: TextStyle(
                                 fontSize: 20,
                                 fontWeight: FontWeight.bold,
@@ -2808,7 +2808,7 @@ class _BrokerListPageState extends State<BrokerListPage> {
     }
   }
 
-  /// 비대면 견적 문의 (중개 상담 요청서)
+  /// 비대면 견적 문의 (부동산 상담 요청서)
   void _requestQuote(Broker broker) {
     if (!_isLoggedIn) {
       _showLoginRequiredDialog(broker);
@@ -2893,7 +2893,7 @@ class _BrokerListPageState extends State<BrokerListPage> {
           brokerRegistrationNumber: broker.registrationNumber,
           brokerRoadAddress: broker.roadAddress,
           brokerJibunAddress: broker.jibunAddress,
-          message: '중개 상담 요청서',
+          message: '부동산 상담 요청서',
           status: 'pending',
           requestDate: DateTime.now(),
           propertyType: result['propertyType'],
@@ -3000,7 +3000,7 @@ class _BrokerListPageState extends State<BrokerListPage> {
           brokerRegistrationNumber: broker.registrationNumber,
           brokerRoadAddress: broker.roadAddress,
           brokerJibunAddress: broker.jibunAddress,
-          message: '중개 상담 요청서',
+          message: '부동산 상담 요청서',
           status: 'pending',
           requestDate: DateTime.now(),
           transactionType: result['transactionType'] as String?,
@@ -3062,7 +3062,7 @@ class _BrokerListPageState extends State<BrokerListPage> {
   }
 }
 
-/// 견적문의 폼 페이지 (중개 상담 요청서)
+/// 견적문의 폼 페이지 (부동산 상담 요청서)
 class _QuoteRequestFormPage extends StatefulWidget {
   final Broker broker;
   final String userName;
@@ -3136,7 +3136,7 @@ class _QuoteRequestFormPageState extends State<_QuoteRequestFormPage> {
         backgroundColor: const Color(0xFFE8EAF0), // 배경을 더 진하게
         resizeToAvoidBottomInset: true,
         appBar: AppBar(
-          title: const Text('중개 상담 요청서'),
+          title: const Text('부동산 상담 요청서'),
           backgroundColor: AppColors.kPrimary,
           foregroundColor: Colors.white,
           elevation: 0,
@@ -3153,7 +3153,7 @@ class _QuoteRequestFormPageState extends State<_QuoteRequestFormPage> {
                   children: [
             // 제목
             const Text(
-              '🏠 중개 상담 요청서',
+              '🏠 부동산 상담 요청서',
               style: TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
@@ -3162,7 +3162,7 @@ class _QuoteRequestFormPageState extends State<_QuoteRequestFormPage> {
             ),
             const SizedBox(height: 8),
             Text(
-              '중개업자에게 정확한 정보를 전달하여 최적의 제안을 받으세요',
+              '공인중개사에게 정확한 정보를 전달하여 최적의 제안을 받으세요',
               style: TextStyle(
                 fontSize: 14,
                 color: Colors.grey[600],
@@ -3814,7 +3814,7 @@ class _QuoteRequestFormPageState extends State<_QuoteRequestFormPage> {
       brokerRegistrationNumber: widget.broker.registrationNumber,
       brokerRoadAddress: widget.broker.roadAddress,
       brokerJibunAddress: widget.broker.jibunAddress,
-      message: '중개 상담 요청서',
+      message: '부동산 상담 요청서',
                   status: 'pending',
                   requestDate: DateTime.now(),
       consentAgreed: true,
@@ -3940,8 +3940,8 @@ class _MultipleQuoteRequestDialogState extends State<_MultipleQuoteRequestDialog
       backgroundColor: const Color(0xFFE8EAF0),
       appBar: AppBar(
         title: Text(widget.brokerCount == 1 
-            ? '중개 상담 요청서'
-            : '${widget.brokerCount}곳에 중개 상담 요청'),
+            ? '부동산 상담 요청서'
+            : '${widget.brokerCount}곳에 부동산 상담 요청'),
         backgroundColor: AppColors.kPrimary,
         foregroundColor: Colors.white,
         elevation: 0,
@@ -3961,8 +3961,8 @@ class _MultipleQuoteRequestDialogState extends State<_MultipleQuoteRequestDialog
             // 제목
             Text(
               widget.brokerCount == 1 
-                  ? '중개 상담 요청서'
-                  : '${widget.brokerCount}곳에 중개 상담 요청',
+                  ? '부동산 상담 요청서'
+                  : '${widget.brokerCount}곳에 부동산 상담 요청',
               style: const TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.bold,
@@ -3972,8 +3972,8 @@ class _MultipleQuoteRequestDialogState extends State<_MultipleQuoteRequestDialog
             const SizedBox(height: 8),
             Text(
               widget.brokerCount == 1
-                  ? '중개업자에게 정확한 정보를 전달하여 최적의 제안을 받으세요'
-                  : '선택한 중개사에게 일괄 전송됩니다',
+                  ? '공인중개사에게 정확한 정보를 전달하여 최적의 제안을 받으세요'
+                  : '선택한 공인중개사에게 일괄 전송됩니다',
               style: TextStyle(
                 fontSize: 14,
                 color: Colors.grey[600],
@@ -4367,8 +4367,8 @@ class _MultipleQuoteRequestDialogState extends State<_MultipleQuoteRequestDialog
                 icon: const Icon(Icons.send, size: 24),
                 label: Text(
                   widget.brokerCount == 1 
-                      ? '중개 상담 요청 전송'
-                      : '${widget.brokerCount}곳에 중개 상담 요청 전송',
+                      ? '부동산 상담 요청 전송'
+                      : '${widget.brokerCount}곳에 부동산 상담 요청 전송',
                   style: const TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,

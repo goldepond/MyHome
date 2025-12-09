@@ -117,7 +117,7 @@ class _HomePageState extends State<HomePage> {
     super.initState();
   }
 
-  /// 공인중개사 찾기 페이지로 이동
+  /// 부동산 상담을 위한 공인중개사 찾기 페이지로 이동
   Future<void> _goToBrokerSearch() async {
     if (selectedFullAddress.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -162,42 +162,12 @@ class _HomePageState extends State<HomePage> {
 
     if (!mounted) return;
 
-    // 거래 유형 선택 다이얼로그
-    final selectedTransactionType = await showDialog<String>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('거래 유형 선택'),
-        content: const Text('어떤 거래를 진행하시나요?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, '매매'),
-            child: const Text('매매'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(context, '전세'),
-            child: const Text('전세'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(context, '월세'),
-            child: const Text('월세'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('취소'),
-          ),
-        ],
-      ),
-    );
-
-    if (!mounted || selectedTransactionType == null) return;
-
     AnalyticsService.instance.logEvent(
       AnalyticsEventNames.navigateBrokerSearch,
       params: {
         'address': selectedFullAddress,
         'latitude': lat,
         'longitude': lon,
-        'transactionType': selectedTransactionType,
       },
       userId: widget.userId.isNotEmpty ? widget.userId : null,
       userName: widget.userName.isNotEmpty ? widget.userName : null,
@@ -214,7 +184,7 @@ class _HomePageState extends State<HomePage> {
           userName: widget.userName,
           userId: widget.userId,
           propertyArea: null,
-          transactionType: selectedTransactionType,
+          // transactionType은 상담요청 단계에서 선택
         ),
       ),
     );
@@ -1403,7 +1373,7 @@ class _HomePageState extends State<HomePage> {
                 
               
               
-              // 공인중개사 찾기 버튼 (조회 후에 표시, 로그인 여부 무관)
+              // 부동산 상담 찾기 버튼 (조회 후에 표시, 로그인 여부 무관)
               // 결과 카드가 있을 때는 하단(결과 카드 내부)에 표시하므로 여기서는 숨김
               if (hasAttemptedSearch &&
                   selectedFullAddress.isNotEmpty &&
@@ -1441,7 +1411,7 @@ class _HomePageState extends State<HomePage> {
                                   ),
                                 )
                               : const Icon(Icons.business, size: 24),
-                          label: Text(isVWorldLoading ? '위치 확인 중...' : '공인중개사 찾기'),
+                          label: Text(isVWorldLoading ? '위치 확인 중...' : '부동산 상담 찾기'),
                         ),
                       ),
                     ),
