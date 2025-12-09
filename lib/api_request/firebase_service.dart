@@ -1396,6 +1396,47 @@ class FirebaseService {
     }
   }
   
+  /// 견적문의에 주소/좌표/단지 API 캐시를 저장 (재호출 방지)
+  ///
+  /// 이미 저장된 값이 있을 경우 덮어쓰지 않는 것이 기본 정책이며,
+  /// 필요한 값만 부분 업데이트합니다.
+  Future<bool> updateQuoteRequestApiCache({
+    required String requestId,
+    Map<String, String>? fullAddrAPIData,
+    Map<String, dynamic>? vworldCoordinates,
+    String? kaptCode,
+    Map<String, dynamic>? aptInfo,
+  }) async {
+    try {
+      final updateData = <String, dynamic>{
+        'updatedAt': FieldValue.serverTimestamp(),
+      };
+
+      if (fullAddrAPIData != null && fullAddrAPIData.isNotEmpty) {
+        updateData['fullAddrAPIData'] = fullAddrAPIData;
+      }
+      if (vworldCoordinates != null && vworldCoordinates.isNotEmpty) {
+        updateData['vworldCoordinates'] = vworldCoordinates;
+      }
+      if (kaptCode != null && kaptCode.isNotEmpty) {
+        updateData['kaptCode'] = kaptCode;
+      }
+      if (aptInfo != null && aptInfo.isNotEmpty) {
+        updateData['aptInfo'] = aptInfo;
+      }
+
+      // 업데이트할 데이터가 없으면 스킵
+      if (updateData.length <= 1) {
+        return true;
+      }
+
+      await _firestore.collection(_quoteRequestsCollectionName).doc(requestId).update(updateData);
+      return true;
+    } catch (e) {
+      return false;
+    }
+  }
+  
   /// 링크 ID로 견적문의 조회
   Future<Map<String, dynamic>?> getQuoteRequestByLinkId(String linkId) async {
     try {

@@ -40,6 +40,7 @@ class _BrokerInquiryResponsePageState extends State<BrokerInquiryResponsePage> {
   Map<String, dynamic>? _vworldCoordinates;
   Map<String, dynamic>? _aptInfo;
   Map<String, String>? _fullAddrAPIData;
+  String? _kaptCode;
   bool _isLoadingApiInfo = false;
   String? _apiError;
 
@@ -49,91 +50,129 @@ class _BrokerInquiryResponsePageState extends State<BrokerInquiryResponsePage> {
     _loadInquiry();
   }
   
-  /// 주소 검색 API 정보 로드
+  /// 주소 검색 API 정보 로드 (캐시 우선)
   Future<void> _loadApiInfo(String? address) async {
     if (address == null || address.isEmpty) {
       return;
     }
-    
+
+    // 캐시 상태 확인
+    final hadFullAddr = _fullAddrAPIData != null && _fullAddrAPIData!.isNotEmpty;
+    final hadCoords = _vworldCoordinates != null && _vworldCoordinates!.isNotEmpty;
+    final hadAptInfo = _aptInfo != null && _aptInfo!.isNotEmpty;
+    final hadKaptCode = _kaptCode != null && _kaptCode!.isNotEmpty;
+    final hadAll = hadFullAddr && hadCoords && hadAptInfo;
+
     setState(() {
       _isLoadingApiInfo = true;
       _apiError = null;
     });
     
     try {
-      final addressService = AddressService();
-      bool hasAnyData = false;
-      List<String> errors = [];
-      
-      // 1. 주소 상세 정보 조회 (AddressService)
-      try {
-        final addrResult = await addressService.searchRoadAddress(address, page: 1);
-        if (addrResult.fullData.isNotEmpty) {
-          _fullAddrAPIData = addrResult.fullData.first;
-          hasAnyData = true;
-        }
-      } catch (e) {
-        errors.add('주소 상세 정보 조회 실패: $e');
-        // 주소 상세 정보 조회 실패는 무시하되 로그는 남김
-        debugPrint('주소 상세 정보 조회 실패: $e');
-      }
-      
-      // 2. VWorld 좌표 정보 조회
-      try {
-        debugPrint('VWorld 좌표 정보 조회 시작: $address');
-        final landResult = await VWorldService.getLandInfoFromAddress(address);
-        if (landResult != null && landResult['coordinates'] != null) {
-          _vworldCoordinates = landResult['coordinates'];
-          hasAnyData = true;
-          debugPrint('VWorld 좌표 정보 조회 성공');
-        } else {
-          debugPrint('VWorld 좌표 정보 조회 결과 없음');
-          errors.add('VWorld 좌표 정보 조회 결과 없음');
-        }
-      } catch (e) {
-        errors.add('VWorld 좌표 조회 실패: $e');
-        // VWorld 좌표 조회 실패는 무시하되 로그는 남김
-        debugPrint('VWorld 좌표 조회 실패: $e');
-      }
-      
-      // 3. 아파트 정보 조회 (단지코드 추출 시도)
-      try {
-        debugPrint('아파트 정보 조회 시작: $address');
-        final extraction = await AptInfoService.extractKaptCodeFromAddressAsync(
-          address,
-          fullAddrAPIData: _fullAddrAPIData,
-        );
-        if (extraction.isSuccess) {
-          final kaptCode = extraction.code!;
-          debugPrint('단지코드 추출 성공: $kaptCode');
-          final aptInfoResult = await AptInfoService.getAptBasisInfo(kaptCode);
-          if (aptInfoResult != null && aptInfoResult.isNotEmpty) {
-            _aptInfo = aptInfoResult;
-            hasAnyData = true;
-            debugPrint('아파트 정보 조회 성공');
-          } else {
-            debugPrint('아파트 정보 조회 결과 없음');
-            errors.add('아파트 정보 조회 결과 없음');
+      if (hadAll) {
+        debugPrint('API 캐시 재사용: fullAddr/vworld/aptInfo 모두 존재');
+      } else {
+        final addressService = AddressService();
+        bool hasAnyData = false;
+        List<String> errors = [];
+
+        // 1. 주소 상세 정보 조회 (AddressService) - 없는 경우에만
+        if (!hadFullAddr) {
+          try {
+            final addrResult = await addressService.searchRoadAddress(address, page: 1);
+            if (addrResult.fullData.isNotEmpty) {
+              _fullAddrAPIData = addrResult.fullData.first;
+              hasAnyData = true;
+            }
+          } catch (e) {
+            errors.add('주소 상세 정보 조회 실패: $e');
+            debugPrint('주소 상세 정보 조회 실패: $e');
           }
         } else {
-          debugPrint('단지코드 추출 실패: ${extraction.message}');
-          errors.add('단지코드 추출 실패: ${extraction.message}');
+          debugPrint('주소 상세 정보 캐시 사용');
         }
-      } catch (e) {
-        errors.add('아파트 정보 조회 실패: $e');
-        // 아파트 정보 조회 실패는 무시하되 로그는 남김
-        debugPrint('아파트 정보 조회 실패: $e');
+        
+        // 2. VWorld 좌표 정보 조회 - 없는 경우에만
+        if (!hadCoords) {
+          try {
+            debugPrint('VWorld 좌표 정보 조회 시작: $address');
+            final landResult = await VWorldService.getLandInfoFromAddress(address);
+            if (landResult != null && landResult['coordinates'] != null) {
+              _vworldCoordinates = landResult['coordinates'];
+              hasAnyData = true;
+              debugPrint('VWorld 좌표 정보 조회 성공');
+            } else {
+              debugPrint('VWorld 좌표 정보 조회 결과 없음');
+              errors.add('VWorld 좌표 정보 조회 결과 없음');
+            }
+          } catch (e) {
+            errors.add('VWorld 좌표 조회 실패: $e');
+            debugPrint('VWorld 좌표 조회 실패: $e');
+          }
+        } else {
+          debugPrint('VWorld 좌표 캐시 사용');
+        }
+        
+        // 3. 아파트 정보 조회 (단지코드 추출 시도) - 없는 경우에만
+        if (!hadAptInfo) {
+          try {
+            debugPrint('아파트 정보 조회 시작: $address');
+            final extraction = await AptInfoService.extractKaptCodeFromAddressAsync(
+              address,
+              fullAddrAPIData: _fullAddrAPIData,
+            );
+            if (extraction.isSuccess) {
+              final kaptCode = extraction.code!;
+              _kaptCode = kaptCode;
+              debugPrint('단지코드 추출 성공: $kaptCode');
+              final aptInfoResult = await AptInfoService.getAptBasisInfo(kaptCode);
+              if (aptInfoResult != null && aptInfoResult.isNotEmpty) {
+                _aptInfo = aptInfoResult;
+                hasAnyData = true;
+                debugPrint('아파트 정보 조회 성공');
+              } else {
+                debugPrint('아파트 정보 조회 결과 없음');
+                errors.add('아파트 정보 조회 결과 없음');
+              }
+            } else {
+              debugPrint('단지코드 추출 실패: ${extraction.message}');
+              errors.add('단지코드 추출 실패: ${extraction.message}');
+            }
+          } catch (e) {
+            errors.add('아파트 정보 조회 실패: $e');
+            debugPrint('아파트 정보 조회 실패: $e');
+          }
+        } else {
+          debugPrint('아파트 정보 캐시 사용');
+        }
+
+        // 신규 확보 데이터가 있고, 기존에 없던 필드만 Firestore에 저장
+        if (_inquiryData != null) {
+          final reqId = _inquiryData!['id'];
+          final shouldPersistFull = !hadFullAddr && _fullAddrAPIData != null && _fullAddrAPIData!.isNotEmpty;
+          final shouldPersistCoords = !hadCoords && _vworldCoordinates != null && _vworldCoordinates!.isNotEmpty;
+          final shouldPersistApt = !hadAptInfo && _aptInfo != null && _aptInfo!.isNotEmpty;
+          final shouldPersistKapt = !hadKaptCode && _kaptCode != null && _kaptCode!.isNotEmpty;
+
+          if ((shouldPersistFull || shouldPersistCoords || shouldPersistApt || shouldPersistKapt) && reqId != null) {
+            await _firebaseService.updateQuoteRequestApiCache(
+              requestId: reqId,
+              fullAddrAPIData: shouldPersistFull ? _fullAddrAPIData : null,
+              vworldCoordinates: shouldPersistCoords ? _vworldCoordinates : null,
+              kaptCode: shouldPersistKapt ? _kaptCode : null,
+              aptInfo: shouldPersistApt ? _aptInfo : null,
+            );
+          }
+        }
+
+        if (!hasAnyData && errors.isNotEmpty) {
+          debugPrint('API 정보 로드 결과: 일부 또는 전체 실패\n${errors.join('\n')}');
+        }
       }
       
       if (mounted) {
         setState(() {
           _isLoadingApiInfo = false;
-          // 모든 API 호출이 실패했고 에러가 있으면 표시
-          if (!hasAnyData && errors.isNotEmpty) {
-            // 모든 API가 실패한 경우에만 에러 메시지 설정
-            // 단, 일부 API만 실패한 경우는 에러로 표시하지 않음 (부분 성공 허용)
-            debugPrint('API 정보 로드 결과: 일부 또는 전체 실패\n${errors.join('\n')}');
-          }
         });
       }
     } catch (e) {
@@ -169,6 +208,23 @@ class _BrokerInquiryResponsePageState extends State<BrokerInquiryResponsePage> {
       setState(() {
         _inquiryData = data;
         _isLoading = false;
+        // 저장된 주소/좌표/단지 캐시를 반영
+        final fullAddr = data['fullAddrAPIData'];
+        if (fullAddr is Map) {
+          _fullAddrAPIData = fullAddr.cast<String, String>();
+        }
+        final coords = data['vworldCoordinates'];
+        if (coords is Map) {
+          _vworldCoordinates = coords.cast<String, dynamic>();
+        }
+        final apt = data['aptInfo'];
+        if (apt is Map) {
+          _aptInfo = apt.cast<String, dynamic>();
+        }
+        final kapt = data['kaptCode'];
+        if (kapt is String) {
+          _kaptCode = kapt;
+        }
         // 이미 답변이 있으면 표시하고 수정 가능하도록
         if (data['brokerAnswer'] != null && data['brokerAnswer'].toString().isNotEmpty) {
           _hasExistingAnswer = true;

@@ -56,6 +56,12 @@ class QuoteRequest {
   // ========== 7️⃣ 매물 등록 여부 ==========
   final bool? isPropertyRegistered;  // 집 구하기에 매물로 등록되었는지 여부
 
+  // ========== 8️⃣ 주소/단지/좌표 캐시 (API 재호출 방지) ==========
+  final Map<String, String>? fullAddrAPIData;   // 주소 검색 상세 결과 캐시
+  final Map<String, dynamic>? vworldCoordinates; // VWorld 좌표 캐시
+  final String? kaptCode;                       // 단지 코드 캐시
+  final Map<String, dynamic>? aptInfo;          // 아파트 기본정보 캐시
+
   QuoteRequest({
     required this.id,
     required this.userId,
@@ -102,6 +108,11 @@ class QuoteRequest {
     this.selectedAt,
     // 7️⃣ 매물 등록 여부
     this.isPropertyRegistered,
+    // 8️⃣ 주소/단지/좌표 캐시
+    this.fullAddrAPIData,
+    this.vworldCoordinates,
+    this.kaptCode,
+    this.aptInfo,
   });
 
   /// Firestore 문서로 변환
@@ -151,6 +162,11 @@ class QuoteRequest {
       'selectedAt': selectedAt != null ? Timestamp.fromDate(selectedAt!) : null,
       // 7️⃣ 매물 등록 여부
       'isPropertyRegistered': isPropertyRegistered,
+      // 8️⃣ 주소/단지/좌표 캐시
+      'fullAddrAPIData': fullAddrAPIData,
+      'vworldCoordinates': vworldCoordinates,
+      'kaptCode': kaptCode,
+      'aptInfo': aptInfo,
     };
   }
 
@@ -202,6 +218,11 @@ class QuoteRequest {
       selectedAt: (map['selectedAt'] as Timestamp?)?.toDate(),
       // 7️⃣ 매물 등록 여부
       isPropertyRegistered: map['isPropertyRegistered'] as bool?,
+      // 8️⃣ 주소/단지/좌표 캐시
+      fullAddrAPIData: (map['fullAddrAPIData'] as Map?)?.cast<String, String>(),
+      vworldCoordinates: (map['vworldCoordinates'] as Map?)?.cast<String, dynamic>(),
+      kaptCode: map['kaptCode'],
+      aptInfo: (map['aptInfo'] as Map?)?.cast<String, dynamic>(),
     );
   }
 
