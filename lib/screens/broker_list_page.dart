@@ -55,6 +55,29 @@ class _BrokerListPageState extends State<BrokerListPage> {
   final FirebaseService _firebaseService = FirebaseService();
   bool get _isLoggedIn => (widget.userId != null && widget.userId!.isNotEmpty);
 
+  /// 사용자 이메일 가져오기
+  Future<String> _getUserEmail() async {
+    // 1. Firebase Auth에서 현재 사용자 이메일 가져오기
+    final currentUser = _firebaseService.currentUser;
+    if (currentUser?.email != null && currentUser!.email!.isNotEmpty) {
+      return currentUser.email!;
+    }
+
+    // 2. userId가 있으면 Firestore에서 사용자 정보 조회
+    if (widget.userId != null && widget.userId!.isNotEmpty) {
+      final userData = await _firebaseService.getUser(widget.userId!);
+      if (userData != null && userData['email'] != null) {
+        final email = userData['email'] as String;
+        if (email.isNotEmpty) {
+          return email;
+        }
+      }
+    }
+
+    // 3. 기본값: userName 기반 이메일 (fallback)
+    return '${widget.userName}@example.com';
+  }
+
   final int _pageSize = 10;
   int _currentPage = 0;
   
@@ -2882,13 +2905,16 @@ class _BrokerListPageState extends State<BrokerListPage> {
     // userId가 없거나 빈 문자열이면 userName 사용
     final effectiveUserId = (widget.userId?.isNotEmpty == true) ? widget.userId! : widget.userName;
     
+    // 사용자 이메일 가져오기 (한 번만 조회)
+    final userEmail = await _getUserEmail();
+    
     for (final broker in top10Brokers) {
       try {
         final quoteRequest = QuoteRequest(
           id: '',
           userId: effectiveUserId,
           userName: widget.userName,
-          userEmail: '${widget.userName}@example.com',
+          userEmail: userEmail,
           brokerName: broker.name,
           brokerRegistrationNumber: broker.registrationNumber,
           brokerRoadAddress: broker.roadAddress,
@@ -2988,6 +3014,9 @@ class _BrokerListPageState extends State<BrokerListPage> {
     // userId가 없거나 빈 문자열이면 userName 사용
     final effectiveUserId = (widget.userId?.isNotEmpty == true) ? widget.userId! : widget.userName;
     
+    // 사용자 이메일 가져오기 (한 번만 조회)
+    final userEmail = await _getUserEmail();
+    
     for (final broker in selectedBrokers) {
       try {
         
@@ -2995,7 +3024,7 @@ class _BrokerListPageState extends State<BrokerListPage> {
           id: '',
           userId: effectiveUserId, // userId가 없으면 userName 사용
           userName: widget.userName,
-          userEmail: '${widget.userName}@example.com',
+          userEmail: userEmail,
           brokerName: broker.name,
           brokerRegistrationNumber: broker.registrationNumber,
           brokerRoadAddress: broker.roadAddress,
@@ -3805,11 +3834,12 @@ class _QuoteRequestFormPageState extends State<_QuoteRequestFormPage> {
     }
     
     // 견적문의 객체 생성
+    final userEmail = await _getUserEmail();
                 final quoteRequest = QuoteRequest(
       id: '',
                   userId: widget.userId.isNotEmpty ? widget.userId : widget.userName, // userId가 없으면 userName 사용
                   userName: widget.userName,
-      userEmail: '${widget.userName}@example.com',
+      userEmail: userEmail,
       brokerName: widget.broker.name,
       brokerRegistrationNumber: widget.broker.registrationNumber,
       brokerRoadAddress: widget.broker.roadAddress,
