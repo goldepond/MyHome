@@ -544,13 +544,18 @@ class _QuoteComparisonPageState extends State<QuoteComparisonPage> {
 
     final dateFormat = DateFormat('yyyy.MM.dd');
 
-    // 반응형 레이아웃: PC 화면 고려
+    // 반응형 레이아웃: 모바일/태블릿/PC 화면 고려
     final screenWidth = MediaQuery.of(context).size.width;
+    final isMobile = screenWidth < 600;
     final isWeb = screenWidth > 800;
     final isLargeScreen = screenWidth > 1200;
     final maxWidth = isWeb ? (isLargeScreen ? 1600.0 : 1400.0) : screenWidth;
-    final horizontalPadding = isWeb ? (isLargeScreen ? 48.0 : 32.0) : 16.0;
-    final cardSpacing = isWeb ? (isLargeScreen ? 24.0 : 20.0) : 16.0;
+    final horizontalPadding = isMobile 
+        ? 12.0 
+        : (isWeb ? (isLargeScreen ? 48.0 : 32.0) : 16.0);
+    final cardSpacing = isMobile 
+        ? 12.0 
+        : (isWeb ? (isLargeScreen ? 24.0 : 20.0) : 16.0);
     final columns = isLargeScreen ? 3 : (isWeb ? 2 : 1);
     
     // 표시용 이름 생성
@@ -625,7 +630,10 @@ class _QuoteComparisonPageState extends State<QuoteComparisonPage> {
           if (propertyKeys.length > 1)
             Container(
               color: Colors.white,
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              padding: EdgeInsets.symmetric(
+                horizontal: isMobile ? 12 : 16, 
+                vertical: isMobile ? 6 : 8
+              ),
               child: SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
                 child: Row(
@@ -635,26 +643,32 @@ class _QuoteComparisonPageState extends State<QuoteComparisonPage> {
                     final isSelected = index == _selectedPropertyIndex;
                     final quoteCount = quotes.length;
                     final displayName = _buildPropertyDisplayName(quotes.first);
+                    final maxLength = isMobile ? 20 : 25;
                     
                     return Padding(
-                      padding: const EdgeInsets.only(right: 8),
+                      padding: EdgeInsets.only(right: isMobile ? 6 : 8),
                       child: ChoiceChip(
                         label: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             Flexible(
                               child: Text(
-                                displayName.length > 25 ? '${displayName.substring(0, 25)}...' : displayName,
+                                displayName.length > maxLength 
+                                    ? '${displayName.substring(0, maxLength)}...' 
+                                    : displayName,
                                 overflow: TextOverflow.ellipsis,
                                 style: TextStyle(
-                                  fontSize: 13,
+                                  fontSize: isMobile ? 12 : 13,
                                   fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
                                 ),
                               ),
                             ),
-                            const SizedBox(width: 4),
+                            SizedBox(width: isMobile ? 3 : 4),
                             Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                              padding: EdgeInsets.symmetric(
+                                horizontal: isMobile ? 5 : 6, 
+                                vertical: 2
+                              ),
                               decoration: BoxDecoration(
                                 color: isSelected 
                                     ? Colors.white.withValues(alpha: 0.3)
@@ -664,7 +678,7 @@ class _QuoteComparisonPageState extends State<QuoteComparisonPage> {
                               child: Text(
                                 '$quoteCount',
                                 style: TextStyle(
-                                  fontSize: 11,
+                                  fontSize: isMobile ? 10 : 11,
                                   fontWeight: FontWeight.bold,
                                   color: isSelected ? Colors.white : Colors.grey[700],
                                 ),
@@ -695,7 +709,10 @@ class _QuoteComparisonPageState extends State<QuoteComparisonPage> {
           // 견적 비교 내용
           Expanded(
             child: SingleChildScrollView(
-              padding: EdgeInsets.symmetric(horizontal: horizontalPadding, vertical: isWeb ? 32.0 : 16.0),
+              padding: EdgeInsets.symmetric(
+                horizontal: horizontalPadding, 
+                vertical: isMobile ? 12.0 : (isWeb ? 32.0 : 16.0)
+              ),
               child: Center(
                 child: Container(
                   constraints: BoxConstraints(maxWidth: maxWidth),
@@ -707,8 +724,8 @@ class _QuoteComparisonPageState extends State<QuoteComparisonPage> {
                           selectedPropertyQuotes.first.propertyType != null ||
                           selectedPropertyQuotes.first.propertyArea != null)
                         Container(
-                          padding: const EdgeInsets.all(16),
-                          margin: const EdgeInsets.only(bottom: 16),
+                          padding: EdgeInsets.all(isMobile ? 12 : 16),
+                          margin: EdgeInsets.only(bottom: isMobile ? 12 : 16),
                           decoration: BoxDecoration(
                             color: Colors.white,
                             borderRadius: BorderRadius.circular(12),
@@ -719,13 +736,17 @@ class _QuoteComparisonPageState extends State<QuoteComparisonPage> {
                             children: [
                               Row(
                                 children: [
-                                  Icon(Icons.home, color: AppColors.kPrimary, size: 20),
-                                  const SizedBox(width: 8),
+                                  Icon(
+                                    Icons.home, 
+                                    color: AppColors.kPrimary, 
+                                    size: isMobile ? 18 : 20
+                                  ),
+                                  SizedBox(width: isMobile ? 6 : 8),
                                   Expanded(
                                     child: Text(
                                       displayName,
-                                      style: const TextStyle(
-                                        fontSize: 14,
+                                      style: TextStyle(
+                                        fontSize: isMobile ? 13 : 14,
                                         fontWeight: FontWeight.w600,
                                         color: Color(0xFF2C3E50),
                                       ),
@@ -736,12 +757,15 @@ class _QuoteComparisonPageState extends State<QuoteComparisonPage> {
                               // 매물 상세 정보 (유형, 면적)
                               if (selectedPropertyQuotes.first.propertyType != null ||
                                   selectedPropertyQuotes.first.propertyArea != null) ...[
-                                const SizedBox(height: 8),
+                                SizedBox(height: isMobile ? 6 : 8),
                                 Row(
                                   children: [
                                     if (selectedPropertyQuotes.first.propertyType != null) ...[
                                       Container(
-                                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                        padding: EdgeInsets.symmetric(
+                                          horizontal: isMobile ? 6 : 8, 
+                                          vertical: isMobile ? 3 : 4
+                                        ),
                                         decoration: BoxDecoration(
                                           color: AppColors.kPrimary.withValues(alpha: 0.1),
                                           borderRadius: BorderRadius.circular(6),
@@ -749,19 +773,19 @@ class _QuoteComparisonPageState extends State<QuoteComparisonPage> {
                                         child: Text(
                                           selectedPropertyQuotes.first.propertyType!,
                                           style: TextStyle(
-                                            fontSize: 12,
+                                            fontSize: isMobile ? 11 : 12,
                                             color: AppColors.kPrimary,
                                             fontWeight: FontWeight.w500,
                                           ),
                                         ),
                                       ),
-                                      const SizedBox(width: 8),
+                                      SizedBox(width: isMobile ? 6 : 8),
                                     ],
                                     if (selectedPropertyQuotes.first.propertyArea != null)
                                       Text(
                                         '${selectedPropertyQuotes.first.propertyArea}㎡',
                                         style: TextStyle(
-                                          fontSize: 12,
+                                          fontSize: isMobile ? 11 : 12,
                                           color: Colors.grey[600],
                                         ),
                                       ),
@@ -774,15 +798,15 @@ class _QuoteComparisonPageState extends State<QuoteComparisonPage> {
                       
                       // 요약 카드 (PC에서는 더 크고 눈에 띄게)
                       Container(
-                        padding: EdgeInsets.all(isWeb ? 32.0 : 24.0),
+                        padding: EdgeInsets.all(isMobile ? 16.0 : (isWeb ? 32.0 : 24.0)),
                         decoration: BoxDecoration(
                           gradient: AppGradients.primaryDiagonal,
-                          borderRadius: BorderRadius.circular(isWeb ? 24.0 : 20.0),
+                          borderRadius: BorderRadius.circular(isMobile ? 16.0 : (isWeb ? 24.0 : 20.0)),
                           boxShadow: [
                             BoxShadow(
                               color: AppColors.kPrimary.withValues(alpha: 0.3),
-                              blurRadius: isWeb ? 24.0 : 20.0,
-                              offset: const Offset(0, 8),
+                              blurRadius: isMobile ? 16.0 : (isWeb ? 24.0 : 20.0),
+                              offset: Offset(0, isMobile ? 4 : 8),
                             ),
                           ],
                         ),
@@ -793,23 +817,23 @@ class _QuoteComparisonPageState extends State<QuoteComparisonPage> {
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
                                 Expanded(
-                                  child: _buildSummaryItem('최저가', _formatPrice(minPrice), Colors.green[100]!, isWeb),
+                                  child: _buildSummaryItem('최저가', _formatPrice(minPrice), Colors.green[100]!, isMobile, isWeb),
                                 ),
-                                SizedBox(width: isWeb ? 20.0 : 12.0),
+                                SizedBox(width: isMobile ? 8.0 : (isWeb ? 20.0 : 12.0)),
                                 Expanded(
-                                  child: _buildSummaryItem('평균가', _formatPrice(avgPrice), Colors.white, isWeb),
+                                  child: _buildSummaryItem('평균가', _formatPrice(avgPrice), Colors.white, isMobile, isWeb),
                                 ),
-                                SizedBox(width: isWeb ? 20.0 : 12.0),
+                                SizedBox(width: isMobile ? 8.0 : (isWeb ? 20.0 : 12.0)),
                                 Expanded(
-                                  child: _buildSummaryItem('최고가', _formatPrice(maxPrice), Colors.red[100]!, isWeb),
+                                  child: _buildSummaryItem('최고가', _formatPrice(maxPrice), Colors.red[100]!, isMobile, isWeb),
                                 ),
                               ],
                             ),
                             // 수수료율 비교 (2행) - 큰 글씨로 강조 (평균율이 있으면 표시)
                             if (minCommissionRate != null && maxCommissionRate != null) ...[
-                              SizedBox(height: isWeb ? 24.0 : 20.0),
+                              SizedBox(height: isMobile ? 16.0 : (isWeb ? 24.0 : 20.0)),
                               Container(
-                                padding: EdgeInsets.all(isWeb ? 24.0 : 20.0),
+                                padding: EdgeInsets.all(isMobile ? 16.0 : (isWeb ? 24.0 : 20.0)),
                                 decoration: BoxDecoration(
                                   // 수수료율 섹션: 명확한 배경으로 가독성 향상
                                   color: Colors.white.withValues(alpha: 0.25),
@@ -827,20 +851,20 @@ class _QuoteComparisonPageState extends State<QuoteComparisonPage> {
                                         Icon(
                                           Icons.percent,
                                           color: Colors.white,
-                                          size: isWeb ? 30.0 : 26.0,
+                                          size: isMobile ? 22.0 : (isWeb ? 30.0 : 26.0),
                                         ),
-                                        SizedBox(width: isWeb ? 12.0 : 8.0),
+                                        SizedBox(width: isMobile ? 8.0 : (isWeb ? 12.0 : 8.0)),
                                         Text(
                                           '수수료율 비교',
                                           style: TextStyle(
                                             color: Colors.white,
-                                            fontSize: isWeb ? 20.0 : 18.0,
+                                            fontSize: isMobile ? 16.0 : (isWeb ? 20.0 : 18.0),
                                             fontWeight: FontWeight.bold,
                                           ),
                                         ),
                                       ],
                                     ),
-                                    SizedBox(height: isWeb ? 24.0 : 20.0),
+                                    SizedBox(height: isMobile ? 16.0 : (isWeb ? 24.0 : 20.0)),
                                     Row(
                                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                       children: [
@@ -849,10 +873,11 @@ class _QuoteComparisonPageState extends State<QuoteComparisonPage> {
                                             '최저율',
                                             _formatCommissionRate(minCommissionRate),
                                             Colors.green[200] ?? Colors.green,
+                                            isMobile,
                                             isWeb,
                                           ),
                                         ),
-                                        SizedBox(width: isWeb ? 20.0 : 12.0),
+                                        SizedBox(width: isMobile ? 8.0 : (isWeb ? 20.0 : 12.0)),
                                         Expanded(
                                           child: _buildCommissionRateItem(
                                             '평균율',
@@ -860,15 +885,17 @@ class _QuoteComparisonPageState extends State<QuoteComparisonPage> {
                                                 ? _formatCommissionRate(avgCommissionRate)
                                                 : '-',
                                             Colors.white,
+                                            isMobile,
                                             isWeb,
                                           ),
                                         ),
-                                        SizedBox(width: isWeb ? 20.0 : 12.0),
+                                        SizedBox(width: isMobile ? 8.0 : (isWeb ? 20.0 : 12.0)),
                                         Expanded(
                                           child: _buildCommissionRateItem(
                                             '최고율',
                                             _formatCommissionRate(maxCommissionRate),
                                             Colors.red[200] ?? Colors.red,
+                                            isMobile,
                                             isWeb,
                                           ),
                                         ),
@@ -878,9 +905,9 @@ class _QuoteComparisonPageState extends State<QuoteComparisonPage> {
                                 ),
                               ),
                             ],
-                            SizedBox(height: isWeb ? 24.0 : 20.0),
+                            SizedBox(height: isMobile ? 16.0 : (isWeb ? 24.0 : 20.0)),
                             Container(
-                              padding: EdgeInsets.all(isWeb ? 16.0 : 12.0),
+                              padding: EdgeInsets.all(isMobile ? 10.0 : (isWeb ? 16.0 : 12.0)),
                               decoration: BoxDecoration(
                                 color: Colors.white.withValues(alpha: 0.2),
                                 borderRadius: BorderRadius.circular(12),
@@ -888,13 +915,17 @@ class _QuoteComparisonPageState extends State<QuoteComparisonPage> {
                               child: Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  Icon(Icons.info_outline, color: Colors.white, size: isWeb ? 24.0 : 20.0),
-                                  SizedBox(width: isWeb ? 12.0 : 8.0),
+                                  Icon(
+                                    Icons.info_outline, 
+                                    color: Colors.white, 
+                                    size: isMobile ? 18.0 : (isWeb ? 24.0 : 20.0)
+                                  ),
+                                  SizedBox(width: isMobile ? 8.0 : (isWeb ? 12.0 : 8.0)),
                                   Text(
                                     '${quotePrices.length}개 견적 비교 중',
                                     style: TextStyle(
                                       color: Colors.white,
-                                      fontSize: isWeb ? 16.0 : 14.0,
+                                      fontSize: isMobile ? 12.0 : (isWeb ? 16.0 : 14.0),
                                       fontWeight: FontWeight.w600,
                                     ),
                                   ),
@@ -905,19 +936,19 @@ class _QuoteComparisonPageState extends State<QuoteComparisonPage> {
                         ),
                       ),
 
-                      SizedBox(height: isWeb ? 32.0 : 24.0),
+                      SizedBox(height: isMobile ? 20.0 : (isWeb ? 32.0 : 24.0)),
 
                       // 견적 목록
                       Text(
                         '견적 상세',
                         style: TextStyle(
-                          fontSize: isWeb ? 24.0 : 20.0,
+                          fontSize: isMobile ? 18.0 : (isWeb ? 24.0 : 20.0),
                           fontWeight: FontWeight.bold,
                           color: const Color(0xFF2C3E50),
                         ),
                       ),
 
-                      SizedBox(height: isWeb ? 24.0 : 16.0),
+                      SizedBox(height: isMobile ? 12.0 : (isWeb ? 24.0 : 16.0)),
 
                       // 견적 목록 (PC에서는 그리드, 모바일에서는 리스트)
                       isWeb
@@ -951,6 +982,7 @@ class _QuoteComparisonPageState extends State<QuoteComparisonPage> {
                                         isHighest: isHighest,
                                         minPrice: minPrice,
                                         dateFormat: dateFormat,
+                                        isMobile: isMobile,
                                         isWeb: isWeb,
                                       ),
                                     );
@@ -978,6 +1010,7 @@ class _QuoteComparisonPageState extends State<QuoteComparisonPage> {
                                   isHighest: isHighest,
                                   minPrice: minPrice,
                                   dateFormat: dateFormat,
+                                  isMobile: isMobile,
                                   isWeb: false,
                                 );
                               }).toList(),
@@ -1004,10 +1037,11 @@ class _QuoteComparisonPageState extends State<QuoteComparisonPage> {
     required bool isHighest,
     required int minPrice,
     required DateFormat dateFormat,
+    required bool isMobile,
     required bool isWeb,
   }) {
-    final cardPadding = isWeb ? 24.0 : 20.0;
-    final borderRadius = isWeb ? 20.0 : 16.0;
+    final cardPadding = isMobile ? 16.0 : (isWeb ? 24.0 : 20.0);
+    final borderRadius = isMobile ? 12.0 : (isWeb ? 20.0 : 16.0);
     
     return Container(
       margin: EdgeInsets.only(bottom: isWeb ? 0 : 16),
@@ -1054,17 +1088,17 @@ class _QuoteComparisonPageState extends State<QuoteComparisonPage> {
                       Text(
                         quote.brokerName,
                         style: TextStyle(
-                          fontSize: isWeb ? 20.0 : 18.0,
+                          fontSize: isMobile ? 16.0 : (isWeb ? 20.0 : 18.0),
                           fontWeight: FontWeight.bold,
                           color: const Color(0xFF2C3E50),
                         ),
                       ),
                       if (quote.answerDate != null) ...[
-                        SizedBox(height: isWeb ? 6 : 4),
+                        SizedBox(height: isMobile ? 4 : (isWeb ? 6 : 4)),
                         Text(
                           '답변일: ${dateFormat.format(quote.answerDate!)}',
                           style: TextStyle(
-                            fontSize: isWeb ? 13.0 : 12.0,
+                            fontSize: isMobile ? 11.0 : (isWeb ? 13.0 : 12.0),
                             color: Colors.grey[600],
                           ),
                         ),
@@ -1075,8 +1109,8 @@ class _QuoteComparisonPageState extends State<QuoteComparisonPage> {
                 if (isLowest)
                   Container(
                     padding: EdgeInsets.symmetric(
-                      horizontal: isWeb ? 16 : 12,
-                      vertical: isWeb ? 8 : 6,
+                      horizontal: isMobile ? 10 : (isWeb ? 16 : 12),
+                      vertical: isMobile ? 5 : (isWeb ? 8 : 6),
                     ),
                     decoration: BoxDecoration(
                       color: Colors.green,
@@ -1086,7 +1120,7 @@ class _QuoteComparisonPageState extends State<QuoteComparisonPage> {
                       '최저가',
                       style: TextStyle(
                         color: Colors.white,
-                        fontSize: isWeb ? 13.0 : 12.0,
+                        fontSize: isMobile ? 11.0 : (isWeb ? 13.0 : 12.0),
                         fontWeight: FontWeight.bold,
                       ),
                     ),
@@ -1094,8 +1128,8 @@ class _QuoteComparisonPageState extends State<QuoteComparisonPage> {
                 if (isHighest && !isLowest)
                   Container(
                     padding: EdgeInsets.symmetric(
-                      horizontal: isWeb ? 16 : 12,
-                      vertical: isWeb ? 8 : 6,
+                      horizontal: isMobile ? 10 : (isWeb ? 16 : 12),
+                      vertical: isMobile ? 5 : (isWeb ? 8 : 6),
                     ),
                     decoration: BoxDecoration(
                       color: Colors.red,
@@ -1105,7 +1139,7 @@ class _QuoteComparisonPageState extends State<QuoteComparisonPage> {
                       '최고가',
                       style: TextStyle(
                         color: Colors.white,
-                        fontSize: isWeb ? 13.0 : 12.0,
+                        fontSize: isMobile ? 11.0 : (isWeb ? 13.0 : 12.0),
                         fontWeight: FontWeight.bold,
                       ),
                     ),
@@ -1123,7 +1157,7 @@ class _QuoteComparisonPageState extends State<QuoteComparisonPage> {
                 Column(
                   children: [
                     Container(
-                      padding: EdgeInsets.all(isWeb ? 20.0 : 16.0),
+                      padding: EdgeInsets.all(isMobile ? 14.0 : (isWeb ? 20.0 : 16.0)),
                       decoration: BoxDecoration(
                         color: isLowest
                             ? Colors.green.withValues(alpha: 0.05)
@@ -1133,7 +1167,7 @@ class _QuoteComparisonPageState extends State<QuoteComparisonPage> {
                           color: isLowest
                               ? Colors.green.withValues(alpha: 0.3)
                               : Colors.grey.withValues(alpha: 0.2),
-                          width: isWeb ? 1.5 : 1,
+                          width: isMobile ? 1 : (isWeb ? 1.5 : 1),
                         ),
                       ),
                       child: Row(
@@ -1146,13 +1180,13 @@ class _QuoteComparisonPageState extends State<QuoteComparisonPage> {
                                 color: isLowest
                                     ? Colors.green[700]
                                     : const Color(0xFF2C3E50),
-                                size: isWeb ? 22.0 : 20.0,
+                                size: isMobile ? 18.0 : (isWeb ? 22.0 : 20.0),
                               ),
-                              SizedBox(width: isWeb ? 8.0 : 6.0),
+                              SizedBox(width: isMobile ? 6.0 : (isWeb ? 8.0 : 6.0)),
                               Text(
                                 '예상 금액',
                                 style: TextStyle(
-                                  fontSize: isWeb ? 18.0 : 16.0,
+                                  fontSize: isMobile ? 14.0 : (isWeb ? 18.0 : 16.0),
                                   fontWeight: FontWeight.w600,
                                   color: const Color(0xFF2C3E50),
                                 ),
@@ -1162,7 +1196,7 @@ class _QuoteComparisonPageState extends State<QuoteComparisonPage> {
                           Text(
                             priceStr ?? _formatPrice(price),
                             style: TextStyle(
-                              fontSize: isWeb ? 28.0 : 24.0,
+                              fontSize: isMobile ? 20.0 : (isWeb ? 28.0 : 24.0),
                               fontWeight: FontWeight.bold,
                               color: isLowest
                                   ? Colors.green[700]
@@ -1176,16 +1210,16 @@ class _QuoteComparisonPageState extends State<QuoteComparisonPage> {
                     // 수수료율을 큰 글씨로 강조 표시
                     if (quote.commissionRate != null &&
                         quote.commissionRate!.isNotEmpty) ...[
-                      SizedBox(height: isWeb ? 16.0 : 12.0),
+                      SizedBox(height: isMobile ? 10.0 : (isWeb ? 16.0 : 12.0)),
                       Container(
-                        padding: EdgeInsets.all(isWeb ? 20.0 : 16.0),
+                        padding: EdgeInsets.all(isMobile ? 14.0 : (isWeb ? 20.0 : 16.0)),
                         decoration: BoxDecoration(
                           // 수수료율: 명확한 배경색으로 가독성 향상
                           color: AppColors.kPrimary.withValues(alpha: 0.12),
                           borderRadius: BorderRadius.circular(12),
                           border: Border.all(
                             color: AppColors.kPrimary,
-                            width: isWeb ? 2 : 1.5,
+                            width: isMobile ? 1.5 : (isWeb ? 2 : 1.5),
                           ),
                         ),
                         child: Row(
@@ -1196,13 +1230,13 @@ class _QuoteComparisonPageState extends State<QuoteComparisonPage> {
                                 Icon(
                                   Icons.percent,
                                   color: const Color(0xFF2C3E50), // 진한 회색으로 변경
-                                  size: isWeb ? 24.0 : 20.0,
+                                  size: isMobile ? 18.0 : (isWeb ? 24.0 : 20.0),
                                 ),
-                                SizedBox(width: isWeb ? 10.0 : 8.0),
+                                SizedBox(width: isMobile ? 6.0 : (isWeb ? 10.0 : 8.0)),
                                 Text(
                                   '수수료율',
                                   style: TextStyle(
-                                    fontSize: isWeb ? 18.0 : 16.0,
+                                    fontSize: isMobile ? 14.0 : (isWeb ? 18.0 : 16.0),
                                     fontWeight: FontWeight.w600,
                                     color: const Color(0xFF2C3E50), // 진한 회색으로 변경
                                   ),
@@ -1212,7 +1246,7 @@ class _QuoteComparisonPageState extends State<QuoteComparisonPage> {
                             Text(
                               quote.commissionRate!,
                               style: TextStyle(
-                                fontSize: isWeb ? 32.0 : 28.0,
+                                fontSize: isMobile ? 24.0 : (isWeb ? 32.0 : 28.0),
                                 fontWeight: FontWeight.bold,
                                 color: const Color(0xFF1F2937), // 진한 검은색으로 변경
                               ),
@@ -1226,15 +1260,15 @@ class _QuoteComparisonPageState extends State<QuoteComparisonPage> {
 
                 if (quote.expectedDuration != null &&
                     quote.expectedDuration!.isNotEmpty) ...[
-                  SizedBox(height: isWeb ? 20.0 : 16.0),
-                  _buildInfoRow('예상 거래기간', quote.expectedDuration!, isWeb),
+                  SizedBox(height: isMobile ? 14.0 : (isWeb ? 20.0 : 16.0)),
+                  _buildInfoRow('예상 거래기간', quote.expectedDuration!, isMobile, isWeb),
                 ],
 
                 if (quote.brokerAnswer != null &&
                     quote.brokerAnswer!.isNotEmpty) ...[
-                  SizedBox(height: isWeb ? 20.0 : 16.0),
+                  SizedBox(height: isMobile ? 14.0 : (isWeb ? 20.0 : 16.0)),
                   Container(
-                    padding: EdgeInsets.all(isWeb ? 16.0 : 12.0),
+                    padding: EdgeInsets.all(isMobile ? 10.0 : (isWeb ? 16.0 : 12.0)),
                     decoration: BoxDecoration(
                       color: Colors.grey.withValues(alpha: 0.05),
                       borderRadius: BorderRadius.circular(8),
@@ -1245,16 +1279,16 @@ class _QuoteComparisonPageState extends State<QuoteComparisonPage> {
                         Text(
                           '추가 메시지',
                           style: TextStyle(
-                            fontSize: isWeb ? 13.0 : 12.0,
+                            fontSize: isMobile ? 11.0 : (isWeb ? 13.0 : 12.0),
                             fontWeight: FontWeight.w600,
                             color: Colors.grey,
                           ),
                         ),
-                        SizedBox(height: isWeb ? 10.0 : 8.0),
+                        SizedBox(height: isMobile ? 6.0 : (isWeb ? 10.0 : 8.0)),
                         Text(
                           quote.brokerAnswer!,
                           style: TextStyle(
-                            fontSize: isWeb ? 15.0 : 14.0,
+                            fontSize: isMobile ? 13.0 : (isWeb ? 15.0 : 14.0),
                             color: const Color(0xFF2C3E50),
                             height: 1.5,
                           ),
@@ -1264,7 +1298,7 @@ class _QuoteComparisonPageState extends State<QuoteComparisonPage> {
                   ),
                 ],
 
-                SizedBox(height: isWeb ? 24.0 : 20.0),
+                SizedBox(height: isMobile ? 16.0 : (isWeb ? 24.0 : 20.0)),
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton.icon(
@@ -1275,13 +1309,14 @@ class _QuoteComparisonPageState extends State<QuoteComparisonPage> {
                       isAlreadySelected || isSelectedHere
                           ? Icons.check_circle
                           : Icons.handshake,
+                      size: isMobile ? 16 : 18,
                     ),
                     label: Text(
                       isAlreadySelected || isSelectedHere
-                          ? '이 공인중개사와 진행 중입니다'
-                          : '이 공인중개사와 계속 진행할래요',
-                      style: const TextStyle(
-                        fontSize: 14,
+                          ? (isMobile ? '진행 중' : '이 공인중개사와 진행 중입니다')
+                          : (isMobile ? '계속 진행' : '이 공인중개사와 계속 진행할래요'),
+                      style: TextStyle(
+                        fontSize: isMobile ? 12 : 14,
                         fontWeight: FontWeight.bold,
                       ),
                     ),
@@ -1292,7 +1327,7 @@ class _QuoteComparisonPageState extends State<QuoteComparisonPage> {
                       foregroundColor: isAlreadySelected || isSelectedHere
                           ? Colors.grey[800]
                           : Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      padding: EdgeInsets.symmetric(vertical: isMobile ? 10 : 12),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(10),
                       ),
@@ -1307,10 +1342,10 @@ class _QuoteComparisonPageState extends State<QuoteComparisonPage> {
     );
   }
 
-  Widget _buildSummaryItem(String label, String value, Color bgColor, bool isWeb) {
+  Widget _buildSummaryItem(String label, String value, Color bgColor, bool isMobile, bool isWeb) {
     return Expanded(
       child: Container(
-        padding: EdgeInsets.all(isWeb ? 20.0 : 16.0),
+        padding: EdgeInsets.all(isMobile ? 12.0 : (isWeb ? 20.0 : 16.0)),
         decoration: BoxDecoration(
           color: bgColor,
           borderRadius: BorderRadius.circular(12),
@@ -1320,16 +1355,16 @@ class _QuoteComparisonPageState extends State<QuoteComparisonPage> {
             Text(
               label,
               style: TextStyle(
-                fontSize: isWeb ? 14.0 : 13.0,
+                fontSize: isMobile ? 12.0 : (isWeb ? 14.0 : 13.0),
                 color: Colors.grey[700],
                 fontWeight: FontWeight.w600,
               ),
             ),
-            SizedBox(height: isWeb ? 12.0 : 8.0),
+            SizedBox(height: isMobile ? 6.0 : (isWeb ? 12.0 : 8.0)),
             Text(
               value,
               style: TextStyle(
-                fontSize: isWeb ? 24.0 : 20.0,
+                fontSize: isMobile ? 18.0 : (isWeb ? 24.0 : 20.0),
                 fontWeight: FontWeight.bold,
                 color: bgColor == Colors.white ? Colors.white : const Color(0xFF2C3E50),
               ),
@@ -1341,10 +1376,10 @@ class _QuoteComparisonPageState extends State<QuoteComparisonPage> {
   }
 
   /// 수수료율 아이템 (명확한 가독성을 위한 단순한 디자인)
-  Widget _buildCommissionRateItem(String label, String value, Color bgColor, bool isWeb) {
+  Widget _buildCommissionRateItem(String label, String value, Color bgColor, bool isMobile, bool isWeb) {
     return Expanded(
       child: Container(
-        padding: EdgeInsets.all(isWeb ? 20.0 : 16.0),
+        padding: EdgeInsets.all(isMobile ? 12.0 : (isWeb ? 20.0 : 16.0)),
         decoration: BoxDecoration(
           // 단순하고 명확한 배경색
           color: bgColor,
@@ -1359,16 +1394,16 @@ class _QuoteComparisonPageState extends State<QuoteComparisonPage> {
             Text(
               label,
               style: TextStyle(
-                fontSize: isWeb ? 15.0 : 14.0,
+                fontSize: isMobile ? 13.0 : (isWeb ? 15.0 : 14.0),
                 color: bgColor == Colors.white ? Colors.white : Colors.grey[700],
                 fontWeight: FontWeight.w600,
               ),
             ),
-            SizedBox(height: isWeb ? 12.0 : 8.0),
+            SizedBox(height: isMobile ? 6.0 : (isWeb ? 12.0 : 8.0)),
             Text(
               value,
               style: TextStyle(
-                fontSize: isWeb ? 32.0 : 28.0,
+                fontSize: isMobile ? 24.0 : (isWeb ? 32.0 : 28.0),
                 fontWeight: FontWeight.bold,
                 color: bgColor == Colors.white ? Colors.white : const Color(0xFF1F2937), // 진한 검은색으로 변경
               ),
@@ -1379,16 +1414,16 @@ class _QuoteComparisonPageState extends State<QuoteComparisonPage> {
     );
   }
 
-  Widget _buildInfoRow(String label, String value, bool isWeb) {
+  Widget _buildInfoRow(String label, String value, bool isMobile, bool isWeb) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         SizedBox(
-          width: isWeb ? 120.0 : 100.0,
+          width: isMobile ? 80.0 : (isWeb ? 120.0 : 100.0),
           child: Text(
             label,
             style: TextStyle(
-              fontSize: isWeb ? 15.0 : 14.0,
+              fontSize: isMobile ? 13.0 : (isWeb ? 15.0 : 14.0),
               color: Colors.grey[600],
               fontWeight: FontWeight.w600,
             ),
@@ -1398,7 +1433,7 @@ class _QuoteComparisonPageState extends State<QuoteComparisonPage> {
           child: Text(
             value,
             style: TextStyle(
-              fontSize: isWeb ? 15.0 : 14.0,
+              fontSize: isMobile ? 13.0 : (isWeb ? 15.0 : 14.0),
               color: const Color(0xFF2C3E50),
               fontWeight: FontWeight.w500,
             ),

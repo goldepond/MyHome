@@ -1121,6 +1121,33 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isMobile = screenWidth < 600;
+    
+    // 모바일/데스크톱에 따른 값 설정
+    final bannerHeight = isMobile ? 240.0 : 360.0;
+    final bannerPadding = isMobile 
+        ? const EdgeInsets.symmetric(vertical: 24, horizontal: 16)
+        : const EdgeInsets.symmetric(vertical: 32, horizontal: 24);
+    final bannerTitleSize = isMobile ? 28.0 : 34.0;
+    final bannerSubtitleSize = isMobile ? 14.0 : 16.0;
+    final contentTopPadding = isMobile ? 200.0 : 280.0; // 배너 높이 - 겹침
+    final contentHorizontalPadding = isMobile ? 16.0 : 24.0;
+    final cardPadding = isMobile ? 16.0 : 24.0;
+    final cardMargin = isMobile ? 16.0 : 24.0;
+    final cardBorderRadius = isMobile ? 16.0 : 24.0;
+    final titleFontSize = isMobile ? 16.0 : 18.0;
+    final subtitleFontSize = isMobile ? 12.0 : 14.0;
+    final buttonHeight = isMobile ? 48.0 : 52.0;
+    final buttonFontSize = isMobile ? 14.0 : 16.0;
+    final filterPadding = isMobile 
+        ? const EdgeInsets.symmetric(horizontal: 16, vertical: 12)
+        : const EdgeInsets.symmetric(horizontal: 24, vertical: 16);
+    final filterChipPadding = isMobile
+        ? const EdgeInsets.symmetric(horizontal: 12, vertical: 8)
+        : const EdgeInsets.symmetric(horizontal: 16, vertical: 10);
+    final filterChipFontSize = isMobile ? 12.0 : 14.0;
+    
     return Scaffold(
       backgroundColor: const Color(0xFFF8F9FA),
       body: SingleChildScrollView(
@@ -1129,9 +1156,9 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
           children: [
             // 1. 히어로 배너 (다른 페이지와 통일)
             Container(
-              height: 360,
+              height: bannerHeight,
               width: double.infinity,
-              padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 24),
+              padding: bannerPadding,
               decoration: BoxDecoration(
                 gradient: const LinearGradient(
                   begin: Alignment.topLeft,
@@ -1153,51 +1180,51 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Text(
+                  Text(
                     '내집관리',
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       color: Colors.white,
-                      fontSize: 34,
+                      fontSize: bannerTitleSize,
                       fontWeight: FontWeight.w900,
                       letterSpacing: -0.8,
                       height: 1.2,
                     ),
                   ),
-                  const SizedBox(height: 10),
+                  SizedBox(height: isMobile ? 8 : 10),
                   Text(
                     '견적 요청 내역을 확인하고\n최적의 조건을 비교해보세요',
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       color: Colors.white.withValues(alpha: 0.92),
-                      fontSize: 16,
+                      fontSize: bannerSubtitleSize,
                       fontWeight: FontWeight.w500,
                     ),
                   ),
                   // 컨텐츠와 겹치는 부분 고려하여 여백 추가
-                  const SizedBox(height: 60),
+                  SizedBox(height: isMobile ? 40 : 60),
                 ],
               ),
             ),
 
             // 2. 메인 컨텐츠 (배너와 겹치게 배치)
             Padding(
-              padding: const EdgeInsets.only(top: 280), // 360(배너) - 80(겹침)
+              padding: EdgeInsets.only(top: contentTopPadding),
               child: Center(
                 child: Container(
                   constraints: const BoxConstraints(maxWidth: 900),
-                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  padding: EdgeInsets.symmetric(horizontal: contentHorizontalPadding),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       // (1) 대시보드 카드 (비교 버튼 + 요약)
                       if (!isLoading && quotes.isNotEmpty)
                         Container(
-                          margin: const EdgeInsets.only(bottom: 24),
-                          padding: const EdgeInsets.all(24),
+                          margin: EdgeInsets.only(bottom: cardMargin),
+                          padding: EdgeInsets.all(cardPadding),
                           decoration: BoxDecoration(
                             color: Colors.white,
-                            borderRadius: BorderRadius.circular(24),
+                            borderRadius: BorderRadius.circular(cardBorderRadius),
                             boxShadow: [
                               BoxShadow(
                                 color: Colors.black.withValues(alpha: 0.08),
@@ -1211,31 +1238,35 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
                               Row(
                                 children: [
                                   Container(
-                                    padding: const EdgeInsets.all(12),
+                                    padding: EdgeInsets.all(isMobile ? 10 : 12),
                                     decoration: BoxDecoration(
                                       color: AppColors.kPrimary.withValues(alpha: 0.1),
                                       borderRadius: BorderRadius.circular(12),
                                     ),
-                                    child: const Icon(Icons.analytics_outlined, color: AppColors.kPrimary, size: 24),
+                                    child: Icon(
+                                      Icons.analytics_outlined, 
+                                      color: AppColors.kPrimary, 
+                                      size: isMobile ? 20 : 24
+                                    ),
                                   ),
-                                  const SizedBox(width: 16),
+                                  SizedBox(width: isMobile ? 12 : 16),
                                   Expanded(
                                     child: Column(
                                       crossAxisAlignment: CrossAxisAlignment.start,
                                       children: [
-                                        const Text(
+                                        Text(
                                           '받은 견적 현황',
                                           style: TextStyle(
-                                            fontSize: 18,
+                                            fontSize: titleFontSize,
                                             fontWeight: FontWeight.bold,
                                             color: Color(0xFF1F2937),
                                           ),
                                         ),
-                                        const SizedBox(height: 4),
+                                        SizedBox(height: isMobile ? 2 : 4),
                                         Text(
                                           '총 ${quotes.length}건의 요청 중 ${quotes.where((q) => q.hasAnswer).length}건의 답변을 받았습니다.',
                                           style: TextStyle(
-                                            fontSize: 14,
+                                            fontSize: subtitleFontSize,
                                             color: Colors.grey[600],
                                           ),
                                         ),
@@ -1244,10 +1275,10 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
                                   ),
                                 ],
                               ),
-                              const SizedBox(height: 20),
+                              SizedBox(height: isMobile ? 16 : 20),
                               SizedBox(
                                 width: double.infinity,
-                                height: 52,
+                                height: buttonHeight,
                                 child: ElevatedButton.icon(
                                   onPressed: () {
                                     // 답변 완료된 견적만 필터
@@ -1286,10 +1317,16 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
                                       borderRadius: BorderRadius.circular(14),
                                     ),
                                   ),
-                                  icon: const Icon(Icons.compare_arrows_rounded),
-                                  label: const Text(
+                                  icon: Icon(
+                                    Icons.compare_arrows_rounded,
+                                    size: isMobile ? 18 : 20,
+                                  ),
+                                  label: Text(
                                     '받은 견적 한눈에 비교하기',
-                                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                                    style: TextStyle(
+                                      fontSize: buttonFontSize, 
+                                      fontWeight: FontWeight.bold
+                                    ),
                                   ),
                                 ),
                               ),
@@ -1300,11 +1337,11 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
                       // (2) 필터 섹션 (디자인 개선)
                       if (!isLoading && quotes.isNotEmpty)
                         Container(
-                          margin: const EdgeInsets.only(bottom: 24),
-                          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                          margin: EdgeInsets.only(bottom: cardMargin),
+                          padding: filterPadding,
                           decoration: BoxDecoration(
                             color: Colors.white,
-                            borderRadius: BorderRadius.circular(20),
+                            borderRadius: BorderRadius.circular(isMobile ? 16 : 20),
                             boxShadow: [
                               BoxShadow(
                                 color: Colors.black.withValues(alpha: 0.06),
@@ -1336,7 +1373,7 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
                                           final isSelected = selectedStatus == value;
                                           
                                           return Padding(
-                                            padding: const EdgeInsets.only(right: 8),
+                                            padding: EdgeInsets.only(right: isMobile ? 6 : 8),
                                             child: InkWell(
                                               onTap: () {
                                                 setState(() {
@@ -1347,10 +1384,7 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
                                               borderRadius: BorderRadius.circular(30),
                                               child: AnimatedContainer(
                                                 duration: const Duration(milliseconds: 200),
-                                                padding: const EdgeInsets.symmetric(
-                                                  horizontal: 16,
-                                                  vertical: 10,
-                                                ),
+                                                padding: filterChipPadding,
                                                 decoration: BoxDecoration(
                                                   color: isSelected 
                                                       ? AppColors.kPrimary 
@@ -1363,15 +1397,18 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
                                                     Text(
                                                       label,
                                                       style: TextStyle(
-                                                        fontSize: 14,
+                                                        fontSize: filterChipFontSize,
                                                         fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
                                                         color: isSelected ? Colors.white : Colors.grey[600],
                                                       ),
                                                     ),
                                                     if (count > 0) ...[
-                                                      const SizedBox(width: 6),
+                                                      SizedBox(width: isMobile ? 4 : 6),
                                                       Container(
-                                                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                                        padding: EdgeInsets.symmetric(
+                                                          horizontal: isMobile ? 5 : 6, 
+                                                          vertical: 2
+                                                        ),
                                                         decoration: BoxDecoration(
                                                           color: isSelected 
                                                               ? Colors.white.withValues(alpha: 0.2)
@@ -1381,7 +1418,7 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
                                                         child: Text(
                                                           '$count',
                                                           style: TextStyle(
-                                                            fontSize: 11,
+                                                            fontSize: isMobile ? 10 : 11,
                                                             fontWeight: FontWeight.bold,
                                                             color: isSelected ? Colors.white : Colors.grey[700],
                                                           ),
@@ -1408,26 +1445,32 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
                                   
                                   return Column(
                                     children: [
-                                      const SizedBox(height: 16),
+                                      SizedBox(height: isMobile ? 12 : 16),
                                       const Divider(height: 1),
-                                      const SizedBox(height: 12),
+                                      SizedBox(height: isMobile ? 8 : 12),
                                       Align(
                                         alignment: Alignment.centerRight,
                                         child: TextButton.icon(
                                           onPressed: _deleteWaitingQuotes,
                                           style: TextButton.styleFrom(
                                             foregroundColor: Colors.red[700],
-                                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                                            padding: EdgeInsets.symmetric(
+                                              horizontal: isMobile ? 10 : 12, 
+                                              vertical: isMobile ? 6 : 8
+                                            ),
                                             backgroundColor: Colors.red.withValues(alpha: 0.05),
                                             shape: RoundedRectangleBorder(
                                               borderRadius: BorderRadius.circular(8),
                                             ),
                                           ),
-                                          icon: const Icon(Icons.delete_sweep_outlined, size: 18),
+                                          icon: Icon(
+                                            Icons.delete_sweep_outlined, 
+                                            size: isMobile ? 16 : 18
+                                          ),
                                           label: Text(
                                             '미응답 내역 전체 삭제 ($waitingCount)',
-                                            style: const TextStyle(
-                                              fontSize: 13,
+                                            style: TextStyle(
+                                              fontSize: isMobile ? 12 : 13,
                                               fontWeight: FontWeight.w600,
                                             ),
                                           ),
@@ -1701,16 +1744,16 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
   */
 
   /// 정보 행 위젯
-  Widget _buildInfoRow(String label, String value) {
+  Widget _buildInfoRow(String label, String value, {bool isMobile = false}) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         SizedBox(
-          width: 90,
+          width: isMobile ? 70 : 90,
           child: Text(
             label,
             style: TextStyle(
-              fontSize: 12,
+              fontSize: isMobile ? 11 : 12,
               fontWeight: FontWeight.w600,
               color: Colors.grey[600],
             ),
@@ -1719,8 +1762,8 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
         Expanded(
           child: Text(
             value,
-            style: const TextStyle(
-              fontSize: 13,
+            style: TextStyle(
+              fontSize: isMobile ? 12 : 13,
               color: Color(0xFF2C3E50),
               fontWeight: FontWeight.w500,
             ),
@@ -1827,14 +1870,17 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
             _buildDateSectionHeader(dateKey, quotesForDate.length, isLatestGroup),
             const SizedBox(height: 12),
             // 해당 날짜의 견적 카드들
-            ...quotesForDate.map((quote) => Padding(
-              padding: EdgeInsets.only(
-                bottom: 16,
-                left: isLatestGroup ? 0 : 8, // 최신 그룹은 왼쪽 여백 없음
-                right: isLatestGroup ? 0 : 8,
-              ),
-              child: _buildQuoteCardWithDateGroup(quote, isLatestGroup),
-            )),
+            ...quotesForDate.map((quote) {
+              final isMobile = MediaQuery.of(context).size.width < 600;
+              return Padding(
+                padding: EdgeInsets.only(
+                  bottom: isMobile ? 12 : 16,
+                  left: isLatestGroup ? 0 : (isMobile ? 4 : 8), // 최신 그룹은 왼쪽 여백 없음
+                  right: isLatestGroup ? 0 : (isMobile ? 4 : 8),
+                ),
+                child: _buildQuoteCardWithDateGroup(quote, isLatestGroup, context: context),
+              );
+            }),
             // 날짜 그룹 간 구분선 (마지막 그룹 제외)
             if (dateIndex < sortedDates.length - 1) ...[
               const SizedBox(height: 24),
@@ -1926,9 +1972,9 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
   }
 
   /// 날짜 그룹 구분이 있는 견적 카드
-  Widget _buildQuoteCardWithDateGroup(QuoteRequest quote, bool isLatestGroup) {
+  Widget _buildQuoteCardWithDateGroup(QuoteRequest quote, bool isLatestGroup, {required BuildContext context}) {
     // 기존 _buildQuoteCard를 재사용하되, 최신 그룹은 강조 표시
-    final baseCard = _buildQuoteCard(quote);
+    final baseCard = _buildQuoteCard(quote, context: context);
     
     // 최신 그룹이 아니면 약간 투명하게
     if (!isLatestGroup) {
@@ -2589,17 +2635,28 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
   }
 
   /// 견적문의 카드
-  Widget _buildQuoteCard(QuoteRequest quote) {
+  Widget _buildQuoteCard(QuoteRequest quote, {required BuildContext context}) {
     final dateFormat = DateFormat('yyyy.MM.dd HH:mm');
     final isPending = quote.status == 'pending';
     final hasResponded = _hasStructuredData(quote);
     final respondedQuotes = quotes.where(_hasStructuredData).toList();
+    final isMobile = MediaQuery.of(context).size.width < 600;
+    
+    final cardPadding = isMobile ? 16.0 : 20.0;
+    final cardBorderRadius = isMobile ? 12.0 : 16.0;
+    final headerIconSize = isMobile ? 18.0 : 20.0;
+    final brokerNameSize = isMobile ? 16.0 : 18.0;
+    final dateSize = isMobile ? 12.0 : 13.0;
+    final statusBadgePadding = isMobile 
+        ? const EdgeInsets.symmetric(horizontal: 10, vertical: 5)
+        : const EdgeInsets.symmetric(horizontal: 12, vertical: 6);
+    final statusBadgeFontSize = isMobile ? 11.0 : 12.0;
 
     return Container(
-      margin: const EdgeInsets.only(bottom: 16),
+      margin: EdgeInsets.only(bottom: isMobile ? 12 : 16),
       decoration: BoxDecoration(
         color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(cardBorderRadius),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.06),
@@ -2613,20 +2670,20 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
         children: [
           // 헤더
           Container(
-            padding: const EdgeInsets.all(20),
+            padding: EdgeInsets.all(cardPadding),
             decoration: BoxDecoration(
               color: isPending
                   ? Colors.orange[100]
                   : Colors.green[100],
-              borderRadius: const BorderRadius.only(
-                topLeft: Radius.circular(16),
-                topRight: Radius.circular(16),
+              borderRadius: BorderRadius.only(
+                topLeft: Radius.circular(cardBorderRadius),
+                topRight: Radius.circular(cardBorderRadius),
               ),
             ),
             child: Row(
               children: [
                 Container(
-                  padding: const EdgeInsets.all(8),
+                  padding: EdgeInsets.all(isMobile ? 6 : 8),
                   decoration: BoxDecoration(
                     color: isPending ? Colors.orange : Colors.green,
                     borderRadius: BorderRadius.circular(8),
@@ -2634,44 +2691,41 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
                   child: Icon(
                     isPending ? Icons.schedule : Icons.check_circle,
                     color: Colors.white,
-                    size: 20,
+                    size: headerIconSize,
                   ),
                 ),
-                const SizedBox(width: 12),
+                SizedBox(width: isMobile ? 10 : 12),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
                         quote.brokerName,
-                        style: const TextStyle(
-                          fontSize: 18,
+                        style: TextStyle(
+                          fontSize: brokerNameSize,
                           fontWeight: FontWeight.bold,
                           color: Color(0xFF2C3E50),
                         ),
                       ),
-                      const SizedBox(height: 4),
+                      SizedBox(height: isMobile ? 2 : 4),
                       Text(
                         dateFormat.format(quote.requestDate),
-                        style: TextStyle(fontSize: 13, color: Colors.grey[600]),
+                        style: TextStyle(fontSize: dateSize, color: Colors.grey[600]),
                       ),
                     ],
                   ),
                 ),
                 Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 6,
-                  ),
+                  padding: statusBadgePadding,
                   decoration: BoxDecoration(
                     color: isPending ? Colors.orange : Colors.green,
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Text(
                     isPending ? '답변대기' : '답변완료',
-                    style: const TextStyle(
+                    style: TextStyle(
                       color: Colors.white,
-                      fontSize: 12,
+                      fontSize: statusBadgeFontSize,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -2682,7 +2736,7 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
 
           // 내용
           Padding(
-            padding: const EdgeInsets.all(20),
+            padding: EdgeInsets.all(cardPadding),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -2692,20 +2746,20 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Icon(Icons.business, size: 16, color: Colors.grey[600]),
-                      const SizedBox(width: 8),
+                      Icon(Icons.business, size: isMobile ? 14 : 16, color: Colors.grey[600]),
+                      SizedBox(width: isMobile ? 6 : 8),
                       Expanded(
                         child: Text(
                           quote.brokerRoadAddress!,
                           style: TextStyle(
-                            fontSize: 13,
+                            fontSize: isMobile ? 12 : 13,
                             color: Colors.grey[600],
                           ),
                         ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 16),
+                  SizedBox(height: isMobile ? 12 : 16),
                 ],
 
                 // ========== 기본정보 ==========
@@ -2713,7 +2767,7 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
                     quote.propertyAddress != null ||
                     quote.propertyArea != null) ...[
                   Container(
-                    padding: const EdgeInsets.all(16),
+                    padding: EdgeInsets.all(isMobile ? 12 : 16),
                     decoration: BoxDecoration(
                       color: const Color(0xFFF9FAFB),
                       borderRadius: BorderRadius.circular(12),
@@ -2726,33 +2780,33 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
                       children: [
                         Row(
                           children: [
-                            Icon(Icons.home, size: 16, color: Colors.blue[700]),
-                            const SizedBox(width: 8),
+                            Icon(Icons.home, size: isMobile ? 14 : 16, color: Colors.blue[700]),
+                            SizedBox(width: isMobile ? 6 : 8),
                             Text(
                               '매물 정보',
                               style: TextStyle(
-                                fontSize: 14,
+                                fontSize: isMobile ? 13 : 14,
                                 fontWeight: FontWeight.bold,
                                 color: Colors.blue[700],
                               ),
                             ),
                           ],
                         ),
-                        const SizedBox(height: 12),
+                        SizedBox(height: isMobile ? 10 : 12),
                         if (quote.propertyType != null) ...[
-                          _buildInfoRow('유형', quote.propertyType!),
-                          const SizedBox(height: 8),
+                          _buildInfoRow('유형', quote.propertyType!, isMobile: isMobile),
+                          SizedBox(height: isMobile ? 6 : 8),
                         ],
                         if (quote.propertyAddress != null) ...[
-                          _buildInfoRow('위치', quote.propertyAddress!),
-                          const SizedBox(height: 8),
+                          _buildInfoRow('위치', quote.propertyAddress!, isMobile: isMobile),
+                          SizedBox(height: isMobile ? 6 : 8),
                         ],
                         if (quote.propertyArea != null)
-                          _buildInfoRow('면적', '${quote.propertyArea} ㎡'),
+                          _buildInfoRow('면적', '${quote.propertyArea} ㎡', isMobile: isMobile),
                       ],
                     ),
                   ),
-                  const SizedBox(height: 16),
+                  SizedBox(height: isMobile ? 12 : 16),
                 ],
 
                 // ========== 특이사항 ==========
@@ -2761,7 +2815,7 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
                     quote.targetPeriod != null ||
                     quote.specialNotes != null) ...[
                   Container(
-                    padding: const EdgeInsets.all(16),
+                    padding: EdgeInsets.all(isMobile ? 12 : 16),
                     decoration: BoxDecoration(
                       color: const Color(0xFFF9FAFB),
                       borderRadius: BorderRadius.circular(12),
@@ -2776,34 +2830,34 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
                           children: [
                             Icon(
                               Icons.edit_note,
-                              size: 16,
+                              size: isMobile ? 14 : 16,
                               color: Colors.orange[700],
                             ),
-                            const SizedBox(width: 8),
+                            SizedBox(width: isMobile ? 6 : 8),
                             Text(
                               '특이사항',
                               style: TextStyle(
-                                fontSize: 14,
+                                fontSize: isMobile ? 13 : 14,
                                 fontWeight: FontWeight.bold,
                                 color: Colors.orange[700],
                               ),
                             ),
                           ],
                         ),
-                        const SizedBox(height: 12),
+                        SizedBox(height: isMobile ? 10 : 12),
                         if (quote.hasTenant != null) ...[
-                          _buildInfoRow('세입자', quote.hasTenant! ? '있음' : '없음'),
+                          _buildInfoRow('세입자', quote.hasTenant! ? '있음' : '없음', isMobile: isMobile),
                           const SizedBox(height: 8),
                         ],
                         if (quote.desiredPrice != null &&
                             quote.desiredPrice!.isNotEmpty) ...[
-                          _buildInfoRow('희망가', quote.desiredPrice!),
-                          const SizedBox(height: 8),
+                          _buildInfoRow('희망가', quote.desiredPrice!, isMobile: isMobile),
+                          SizedBox(height: isMobile ? 6 : 8),
                         ],
                         if (quote.targetPeriod != null &&
                             quote.targetPeriod!.isNotEmpty) ...[
-                          _buildInfoRow('목표기간', quote.targetPeriod!),
-                          const SizedBox(height: 8),
+                          _buildInfoRow('목표기간', quote.targetPeriod!, isMobile: isMobile),
+                          SizedBox(height: isMobile ? 6 : 8),
                         ],
                         if (quote.specialNotes != null &&
                             quote.specialNotes!.isNotEmpty)
@@ -2813,16 +2867,16 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
                               Text(
                                 '추가사항',
                                 style: TextStyle(
-                                  fontSize: 12,
+                                  fontSize: isMobile ? 11 : 12,
                                   fontWeight: FontWeight.w600,
                                   color: Colors.grey[600],
                                 ),
                               ),
-                              const SizedBox(height: 4),
+                              SizedBox(height: isMobile ? 2 : 4),
                               Text(
                                 quote.specialNotes!,
-                                style: const TextStyle(
-                                  fontSize: 13,
+                                style: TextStyle(
+                                  fontSize: isMobile ? 12 : 13,
                                   color: Color(0xFF2C3E50),
                                   height: 1.5,
                                 ),
@@ -2832,7 +2886,7 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
                       ],
                     ),
                   ),
-                  const SizedBox(height: 16),
+                  SizedBox(height: isMobile ? 12 : 16),
                 ],
 
                 // ========== 중개 제안 (중개업자가 입력한 경우) ==========
@@ -2843,7 +2897,7 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
                     quote.commissionRate != null ||
                     quote.recentCases != null) ...[
                   Container(
-                    padding: const EdgeInsets.all(16),
+                    padding: EdgeInsets.all(isMobile ? 12 : 16),
                     decoration: BoxDecoration(
                       color: const Color(0xFFF9FAFB),
                       borderRadius: BorderRadius.circular(12),
@@ -2858,45 +2912,45 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
                           children: [
                             Icon(
                               Icons.campaign,
-                              size: 16,
+                              size: isMobile ? 14 : 16,
                               color: Colors.green[700],
                             ),
-                            const SizedBox(width: 8),
+                            SizedBox(width: isMobile ? 6 : 8),
                             Text(
                               '중개 제안',
                               style: TextStyle(
-                                fontSize: 14,
+                                fontSize: isMobile ? 13 : 14,
                                 fontWeight: FontWeight.bold,
                                 color: Colors.green[700],
                               ),
                             ),
                           ],
                         ),
-                        const SizedBox(height: 12),
+                        SizedBox(height: isMobile ? 10 : 12),
                         if (quote.recommendedPrice != null &&
                             quote.recommendedPrice!.isNotEmpty) ...[
-                          _buildInfoRow('권장 매도가', quote.recommendedPrice!),
-                          const SizedBox(height: 8),
+                          _buildInfoRow('권장 매도가', quote.recommendedPrice!, isMobile: isMobile),
+                          SizedBox(height: isMobile ? 6 : 8),
                         ],
                         if (quote.minimumPrice != null &&
                             quote.minimumPrice!.isNotEmpty) ...[
-                          _buildInfoRow('최저수락가', quote.minimumPrice!),
-                          const SizedBox(height: 8),
+                          _buildInfoRow('최저수락가', quote.minimumPrice!, isMobile: isMobile),
+                          SizedBox(height: isMobile ? 6 : 8),
                         ],
                         if (quote.expectedDuration != null &&
                             quote.expectedDuration!.isNotEmpty) ...[
-                          _buildInfoRow('예상 거래기간', quote.expectedDuration!),
-                          const SizedBox(height: 8),
+                          _buildInfoRow('예상 거래기간', quote.expectedDuration!, isMobile: isMobile),
+                          SizedBox(height: isMobile ? 6 : 8),
                         ],
                         if (quote.promotionMethod != null &&
                             quote.promotionMethod!.isNotEmpty) ...[
-                          _buildInfoRow('홍보 방법', quote.promotionMethod!),
-                          const SizedBox(height: 8),
+                          _buildInfoRow('홍보 방법', quote.promotionMethod!, isMobile: isMobile),
+                          SizedBox(height: isMobile ? 6 : 8),
                         ],
                         if (quote.commissionRate != null &&
                             quote.commissionRate!.isNotEmpty) ...[
-                          _buildInfoRow('중개 수수료', quote.commissionRate!),
-                          const SizedBox(height: 8),
+                          _buildInfoRow('중개 수수료', quote.commissionRate!, isMobile: isMobile),
+                          SizedBox(height: isMobile ? 6 : 8),
                         ],
                         if (quote.recentCases != null &&
                             quote.recentCases!.isNotEmpty)
@@ -2906,16 +2960,16 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
                               Text(
                                 '최근 유사 거래 사례',
                                 style: TextStyle(
-                                  fontSize: 12,
+                                  fontSize: isMobile ? 11 : 12,
                                   fontWeight: FontWeight.w600,
                                   color: Colors.grey[600],
                                 ),
                               ),
-                              const SizedBox(height: 4),
+                              SizedBox(height: isMobile ? 2 : 4),
                               Text(
                                 quote.recentCases!,
-                                style: const TextStyle(
-                                  fontSize: 13,
+                                style: TextStyle(
+                                  fontSize: isMobile ? 12 : 13,
                                   color: Color(0xFF2C3E50),
                                   height: 1.5,
                                 ),
@@ -2925,7 +2979,7 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
                       ],
                     ),
                   ),
-                  const SizedBox(height: 16),
+                  SizedBox(height: isMobile ? 12 : 16),
                 ],
 
                 // ========== 공인중개사 답변 ==========
@@ -2933,9 +2987,9 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
                 if (quote.hasAnswer ||
                     quote.status == 'answered' ||
                     quote.status == 'completed') ...[
-                  const SizedBox(height: 16),
+                  SizedBox(height: isMobile ? 12 : 16),
                   Container(
-                    padding: const EdgeInsets.all(16),
+                    padding: EdgeInsets.all(isMobile ? 12 : 16),
                     decoration: BoxDecoration(
                       color: const Color(0xFFF9FAFB),
                       borderRadius: BorderRadius.circular(12),
@@ -2988,7 +3042,7 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
                         const SizedBox(height: 12),
                         Container(
                           width: double.infinity,
-                          padding: const EdgeInsets.all(14),
+                          padding: EdgeInsets.all(isMobile ? 12 : 14),
                           decoration: BoxDecoration(
                             color: Colors.white.withValues(alpha: 0.7),
                             borderRadius: BorderRadius.circular(8),
@@ -3006,8 +3060,8 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
                                   children: [
                                     Text(
                                       quote.brokerAnswer!,
-                                      style: const TextStyle(
-                                        fontSize: 14,
+                                      style: TextStyle(
+                                        fontSize: isMobile ? 13 : 14,
                                         color: Color(0xFF2C3E50),
                                         height: 1.6,
                                       ),
@@ -3018,14 +3072,14 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
                                   children: [
                                     Icon(
                                       Icons.hourglass_empty,
-                                      size: 32,
+                                      size: isMobile ? 28 : 32,
                                       color: Colors.grey[400],
                                     ),
-                                    const SizedBox(height: 8),
+                                    SizedBox(height: isMobile ? 6 : 8),
                                     Text(
                                       '답변 내용을 불러오는 중입니다...',
                                       style: TextStyle(
-                                        fontSize: 13,
+                                        fontSize: isMobile ? 12 : 13,
                                         color: Colors.grey[600],
                                         fontStyle: FontStyle.italic,
                                       ),
@@ -3039,7 +3093,7 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
                   ),
                 ],
 
-                const SizedBox(height: 16),
+                SizedBox(height: isMobile ? 12 : 16),
                 // 1줄째: 중개사 상세 / 견적 상세 (둘 다 큰 버튼)
                 Row(
                   children: [
@@ -3052,22 +3106,22 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
                             color: AppColors.kPrimary,
                             width: 1.5,
                           ),
-                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          padding: EdgeInsets.symmetric(vertical: isMobile ? 12 : 14),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
                           ),
                         ),
-                        icon: const Icon(Icons.person_search, size: 18),
-                        label: const Text(
-                          '중개사 소개 / 후기 보기',
+                        icon: Icon(Icons.person_search, size: isMobile ? 16 : 18),
+                        label: Text(
+                          isMobile ? '중개사 소개' : '중개사 소개 / 후기 보기',
                           style: TextStyle(
-                            fontSize: 14,
+                            fontSize: isMobile ? 12 : 14,
                             fontWeight: FontWeight.w600,
                           ),
                         ),
                       ),
                     ),
-                    const SizedBox(width: 12),
+                    SizedBox(width: isMobile ? 8 : 12),
                     Expanded(
                       child: OutlinedButton.icon(
                         onPressed: () => _showFullQuoteDetails(quote),
@@ -3077,16 +3131,16 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
                             color: AppColors.kPrimary,
                             width: 1.5,
                           ),
-                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          padding: EdgeInsets.symmetric(vertical: isMobile ? 12 : 14),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
                           ),
                         ),
-                        icon: const Icon(Icons.visibility_outlined, size: 18),
-                        label: const Text(
+                        icon: Icon(Icons.visibility_outlined, size: isMobile ? 16 : 18),
+                        label: Text(
                           '상세 보기',
                           style: TextStyle(
-                            fontSize: 14,
+                            fontSize: isMobile ? 12 : 14,
                             fontWeight: FontWeight.w600,
                           ),
                         ),
@@ -3094,7 +3148,7 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
                     ),
                   ],
                 ),
-                const SizedBox(height: 8),
+                SizedBox(height: isMobile ? 6 : 8),
                 // 2줄째: 이 공인중개사랑 계속할래요 (응답이 있는 경우에만 표시)
                 if (_hasStructuredData(quote))
                   SizedBox(
@@ -3107,14 +3161,14 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
                         quote.isSelectedByUser == true
                             ? Icons.check_circle
                             : Icons.handshake,
-                        size: 18,
+                        size: isMobile ? 16 : 18,
                       ),
                       label: Text(
                         quote.isSelectedByUser == true
-                            ? '이 공인중개사와 진행 중입니다'
-                            : '이 공인중개사와 계속 진행할래요',
-                        style: const TextStyle(
-                          fontSize: 14,
+                            ? (isMobile ? '진행 중' : '이 공인중개사와 진행 중입니다')
+                            : (isMobile ? '계속 진행' : '이 공인중개사와 계속 진행할래요'),
+                        style: TextStyle(
+                          fontSize: isMobile ? 12 : 14,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
@@ -3125,14 +3179,14 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
                         foregroundColor: quote.isSelectedByUser == true
                             ? Colors.grey[800]
                             : Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        padding: EdgeInsets.symmetric(vertical: isMobile ? 12 : 14),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
                       ),
                     ),
                   ),
-                if (_hasStructuredData(quote)) const SizedBox(height: 8),
+                if (_hasStructuredData(quote)) SizedBox(height: isMobile ? 6 : 8),
                 // 3줄째: 비교 화면 / 중개사 재연락 (추가 기능)
                 SizedBox(
                   width: double.infinity,
@@ -3168,43 +3222,43 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
                           ? AppColors.kSecondary
                           : AppColors.kPrimary,
                       foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      padding: EdgeInsets.symmetric(vertical: isMobile ? 12 : 14),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
                     ),
                     icon: Icon(
                       hasResponded ? Icons.compare_outlined : Icons.phone_forwarded,
-                      size: 18,
+                      size: isMobile ? 16 : 18,
                     ),
                     label: Text(
-                      hasResponded ? '비교 화면으로 이동' : '중개사 재연락',
-                      style: const TextStyle(
-                        fontSize: 14,
+                      hasResponded ? (isMobile ? '비교 화면' : '비교 화면으로 이동') : '중개사 재연락',
+                      style: TextStyle(
+                        fontSize: isMobile ? 12 : 14,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
                   ),
                 ),
-                const SizedBox(height: 8),
+                SizedBox(height: isMobile ? 6 : 8),
                 // 카드에서는 후기 작성 버튼 제거 (상세 페이지에서 통합 처리)
-                const SizedBox(height: 8),
+                SizedBox(height: isMobile ? 6 : 8),
                 Align(
                   alignment: Alignment.centerRight,
                   child: TextButton.icon(
                     onPressed: () => _deleteQuote(quote.id),
                     style: TextButton.styleFrom(
                       foregroundColor: Colors.red[700],
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 8,
+                      padding: EdgeInsets.symmetric(
+                        horizontal: isMobile ? 10 : 12,
+                        vertical: isMobile ? 6 : 8,
                       ),
                     ),
-                    icon: const Icon(Icons.delete_outline, size: 18),
-                    label: const Text(
+                    icon: Icon(Icons.delete_outline, size: isMobile ? 16 : 18),
+                    label: Text(
                       '내역 삭제',
                       style: TextStyle(
-                        fontSize: 13,
+                        fontSize: isMobile ? 11 : 13,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
