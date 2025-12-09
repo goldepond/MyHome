@@ -514,7 +514,10 @@ class _QuoteComparisonPageState extends State<QuoteComparisonPage> {
     final prices = quotePrices.map((item) => item['price'] as int).toList();
     final minPrice = prices.first;
     final maxPrice = prices.last;
-    final avgPrice = (prices.reduce((a, b) => a + b) / prices.length).round();
+    // 평균가 계산: 항상 표시되도록 보장
+    final avgPrice = prices.isNotEmpty 
+        ? (prices.reduce((a, b) => a + b) / prices.length).round()
+        : 0;
 
     // 수수료율 추출 및 비교
     final commissionRates = quotePrices.map((item) {
@@ -531,6 +534,7 @@ class _QuoteComparisonPageState extends State<QuoteComparisonPage> {
     double? maxCommissionRate;
     double? avgCommissionRate;
     
+    // 평균율 계산: 수수료율이 있을 때만 계산
     if (commissionRates.isNotEmpty) {
       final rates = commissionRates.map((item) => item['rate'] as double).toList();
       minCommissionRate = rates.reduce((a, b) => a < b ? a : b);
@@ -801,8 +805,8 @@ class _QuoteComparisonPageState extends State<QuoteComparisonPage> {
                                 ),
                               ],
                             ),
-                            // 수수료율 비교 (2행) - 큰 글씨로 강조
-                            if (minCommissionRate != null && maxCommissionRate != null && avgCommissionRate != null) ...[
+                            // 수수료율 비교 (2행) - 큰 글씨로 강조 (평균율이 있으면 표시)
+                            if (minCommissionRate != null && maxCommissionRate != null) ...[
                               SizedBox(height: isWeb ? 24.0 : 20.0),
                               Container(
                                 padding: EdgeInsets.all(isWeb ? 24.0 : 20.0),
@@ -852,7 +856,9 @@ class _QuoteComparisonPageState extends State<QuoteComparisonPage> {
                                         Expanded(
                                           child: _buildCommissionRateItem(
                                             '평균율',
-                                            _formatCommissionRate(avgCommissionRate),
+                                            avgCommissionRate != null 
+                                                ? _formatCommissionRate(avgCommissionRate)
+                                                : '-',
                                             Colors.white,
                                             isWeb,
                                           ),
