@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:property/api_request/firebase_service.dart';
 import 'package:property/constants/app_constants.dart';
 import 'package:property/models/quote_request.dart';
@@ -61,55 +62,87 @@ class _BrokerInquiryResponsePageState extends State<BrokerInquiryResponsePage> {
     
     try {
       final addressService = AddressService();
+      bool hasAnyData = false;
+      List<String> errors = [];
       
       // 1. 주소 상세 정보 조회 (AddressService)
       try {
         final addrResult = await addressService.searchRoadAddress(address, page: 1);
         if (addrResult.fullData.isNotEmpty) {
           _fullAddrAPIData = addrResult.fullData.first;
+          hasAnyData = true;
         }
       } catch (e) {
-        // 주소 상세 정보 조회 실패는 무시
+        errors.add('주소 상세 정보 조회 실패: $e');
+        // 주소 상세 정보 조회 실패는 무시하되 로그는 남김
+        debugPrint('주소 상세 정보 조회 실패: $e');
       }
       
       // 2. VWorld 좌표 정보 조회
       try {
+        debugPrint('VWorld 좌표 정보 조회 시작: $address');
         final landResult = await VWorldService.getLandInfoFromAddress(address);
         if (landResult != null && landResult['coordinates'] != null) {
           _vworldCoordinates = landResult['coordinates'];
+          hasAnyData = true;
+          debugPrint('VWorld 좌표 정보 조회 성공');
+        } else {
+          debugPrint('VWorld 좌표 정보 조회 결과 없음');
+          errors.add('VWorld 좌표 정보 조회 결과 없음');
         }
       } catch (e) {
-        // VWorld 좌표 조회 실패는 무시
+        errors.add('VWorld 좌표 조회 실패: $e');
+        // VWorld 좌표 조회 실패는 무시하되 로그는 남김
+        debugPrint('VWorld 좌표 조회 실패: $e');
       }
       
       // 3. 아파트 정보 조회 (단지코드 추출 시도)
       try {
+        debugPrint('아파트 정보 조회 시작: $address');
         final extraction = await AptInfoService.extractKaptCodeFromAddressAsync(
           address,
           fullAddrAPIData: _fullAddrAPIData,
         );
         if (extraction.isSuccess) {
           final kaptCode = extraction.code!;
+          debugPrint('단지코드 추출 성공: $kaptCode');
           final aptInfoResult = await AptInfoService.getAptBasisInfo(kaptCode);
           if (aptInfoResult != null && aptInfoResult.isNotEmpty) {
             _aptInfo = aptInfoResult;
+            hasAnyData = true;
+            debugPrint('아파트 정보 조회 성공');
+          } else {
+            debugPrint('아파트 정보 조회 결과 없음');
+            errors.add('아파트 정보 조회 결과 없음');
           }
+        } else {
+          debugPrint('단지코드 추출 실패: ${extraction.errorMessage ?? "에러 메시지 없음"}');
+          errors.add('단지코드 추출 실패: ${extraction.errorMessage ?? "에러 메시지 없음"}');
         }
       } catch (e) {
-        // 아파트 정보 조회 실패는 무시
+        errors.add('아파트 정보 조회 실패: $e');
+        // 아파트 정보 조회 실패는 무시하되 로그는 남김
+        debugPrint('아파트 정보 조회 실패: $e');
       }
       
       if (mounted) {
         setState(() {
           _isLoadingApiInfo = false;
+          // 모든 API 호출이 실패했고 에러가 있으면 표시
+          if (!hasAnyData && errors.isNotEmpty) {
+            // 모든 API가 실패한 경우에만 에러 메시지 설정
+            // 단, 일부 API만 실패한 경우는 에러로 표시하지 않음 (부분 성공 허용)
+            debugPrint('API 정보 로드 결과: 일부 또는 전체 실패\n${errors.join('\n')}');
+          }
         });
       }
     } catch (e) {
       if (mounted) {
         setState(() {
           _isLoadingApiInfo = false;
-          _apiError = 'API 정보를 불러오는 중 오류가 발생했습니다.';
+          _apiError = 'API 정보를 불러오는 중 오류가 발생했습니다: $e';
         });
+        debugPrint('API 정보 로드 중 예외 발생: $e');
       }
     }
   }
@@ -152,7 +185,11 @@ class _BrokerInquiryResponsePageState extends State<BrokerInquiryResponsePage> {
       // 주소가 있으면 API 정보 로드
       final propertyAddress = data['propertyAddress'];
       if (propertyAddress != null && propertyAddress.toString().isNotEmpty) {
-        _loadApiInfo(propertyAddress.toString());
+        final address = propertyAddress.toString();
+        debugPrint('문의 답변 페이지 - API 정보 로드 시작: $address');
+        _loadApiInfo(address);
+      } else {
+        debugPrint('문의 답변 페이지 - 매물 주소가 없습니다.');
       }
     } catch (e) {
       if (mounted) {
@@ -239,18 +276,25 @@ class _BrokerInquiryResponsePageState extends State<BrokerInquiryResponsePage> {
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isWeb = kIsWeb;
+    final maxContentWidth = isWeb ? 900.0 : screenWidth;
+    
     if (_isLoading) {
       return Scaffold(
         body: Center(
-          child: Padding(
-            padding: const EdgeInsets.all(24),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: const [
-                CircularProgressIndicator(),
-                SizedBox(height: 12),
-                Text('문의 정보를 불러오는 중...'),
-              ],
+          child: Container(
+            constraints: BoxConstraints(maxWidth: maxContentWidth),
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: const [
+                  CircularProgressIndicator(),
+                  SizedBox(height: 12),
+                  Text('문의 정보를 불러오는 중...'),
+                ],
+              ),
             ),
           ),
         ),
@@ -263,19 +307,22 @@ class _BrokerInquiryResponsePageState extends State<BrokerInquiryResponsePage> {
           title: const Text('문의 정보'),
           backgroundColor: AppColors.kPrimary,
         ),
-        body: const Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(Icons.error_outline, size: 64, color: Colors.red),
-              SizedBox(height: 16),
-              Text('문의를 찾을 수 없습니다.'),
-              SizedBox(height: 8),
-              Text(
-                '링크가 만료되었거나 잘못된 접근입니다.',
-                style: TextStyle(color: Colors.grey),
-              ),
-            ],
+        body: Center(
+          child: Container(
+            constraints: BoxConstraints(maxWidth: maxContentWidth),
+            child: const Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.error_outline, size: 64, color: Colors.red),
+                SizedBox(height: 16),
+                Text('문의를 찾을 수 없습니다.'),
+                SizedBox(height: 8),
+                Text(
+                  '링크가 만료되었거나 잘못된 접근입니다.',
+                  style: TextStyle(color: Colors.grey),
+                ),
+              ],
+            ),
           ),
         ),
       );
@@ -293,21 +340,24 @@ class _BrokerInquiryResponsePageState extends State<BrokerInquiryResponsePage> {
         ),
         resizeToAvoidBottomInset: true,
         body: SafeArea(
-          child: LayoutBuilder(
-            builder: (context, constraints) {
-              final viewInsets = MediaQuery.of(context).viewInsets;
-              final actualHeight = constraints.maxHeight - viewInsets.bottom;
-              
-              return SingleChildScrollView(
-                physics: const ClampingScrollPhysics(),
-                padding: const EdgeInsets.all(20),
-                child: ConstrainedBox(
-                  constraints: BoxConstraints(
-                    minHeight: actualHeight - 40,
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
+          child: Center(
+            child: Container(
+              constraints: BoxConstraints(maxWidth: maxContentWidth),
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  final viewInsets = MediaQuery.of(context).viewInsets;
+                  final actualHeight = constraints.maxHeight - viewInsets.bottom;
+                  
+                  return SingleChildScrollView(
+                    physics: const ClampingScrollPhysics(),
+                    padding: EdgeInsets.all(isWeb ? 40.0 : 20.0),
+                    child: ConstrainedBox(
+                      constraints: BoxConstraints(
+                        minHeight: actualHeight - 40,
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
             // 안내 메시지
             Container(
               padding: const EdgeInsets.all(16),
@@ -563,18 +613,18 @@ class _BrokerInquiryResponsePageState extends State<BrokerInquiryResponsePage> {
                       ),
                       const SizedBox(height: 12),
                       _buildLabeledField(
-                        '수수료율',
+                        '수수료는 얼마인가요?',
                         _commissionRateController,
                         hint: '예: 0.6',
                         keyboardType: const TextInputType.numberWithOptions(decimal: true),
                         suffix: '%',
                       ),
                       const SizedBox(height: 12),
-                      _buildLabeledField('예상 기간', _expectedDurationController, hint: '예: 2~3개월'),
+                      _buildLabeledField('거래 기간은 얼마나 걸릴까요?', _expectedDurationController, hint: '예: 2~3개월'),
                       const SizedBox(height: 12),
-                      _buildLabeledField('판매 전략 요약', _promotionMethodController, hint: '예: 빠른 오픈, 네이버/당근/현수막 병행'),
+                      _buildLabeledField('어떻게 홍보하시나요?', _promotionMethodController, hint: '예: 빠른 오픈, 네이버/당근/현수막 병행', maxLines: 3),
                       const SizedBox(height: 12),
-                      _buildLabeledField('유사 거래 사례', _recentCasesController, hint: '예: 인근 A아파트 84㎡, 10.7억(23.12)'),
+                      _buildLabeledField('비슷한 거래 사례가 있나요?', _recentCasesController, hint: '예: 인근 A아파트 84㎡, 10.7억(23.12)', maxLines: 3),
                     ],
                   ),
                 ),
@@ -686,11 +736,13 @@ class _BrokerInquiryResponsePageState extends State<BrokerInquiryResponsePage> {
                       ),
               ),
             ),
-                    ],
+                        ],
+                      ),
+                    ),
                   ),
-                ),
-              );
-            },
+                );
+              },
+            ),
           ),
         ),
       ),
@@ -747,7 +799,12 @@ class _BrokerInquiryResponsePageState extends State<BrokerInquiryResponsePage> {
     );
   }
   
-  Widget _buildLabeledField(String label, TextEditingController controller, {String? hint, TextInputType? keyboardType, String? suffix}) {
+  Widget _buildLabeledField(String label, TextEditingController controller, {
+    String? hint, 
+    TextInputType? keyboardType, 
+    String? suffix,
+    int? maxLines,
+  }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -763,6 +820,7 @@ class _BrokerInquiryResponsePageState extends State<BrokerInquiryResponsePage> {
         TextField(
           controller: controller,
           keyboardType: keyboardType,
+          maxLines: maxLines ?? 1,
           inputFormatters: keyboardType == const TextInputType.numberWithOptions(decimal: true)
               ? <TextInputFormatter>[
                   FilteringTextInputFormatter.allow(RegExp(r'[0-9\.\%]')),
