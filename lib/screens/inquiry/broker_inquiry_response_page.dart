@@ -22,31 +22,6 @@ class BrokerInquiryResponsePage extends StatefulWidget {
   State<BrokerInquiryResponsePage> createState() => _BrokerInquiryResponsePageState();
 }
 
-class _GuideBulletWidget extends StatelessWidget {
-  final String text;
-
-  const _GuideBulletWidget({required this.text});
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 6),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text('• ', style: TextStyle(fontSize: 12, color: Color(0xFF374151))),
-          Expanded(
-            child: Text(
-              text,
-              style: const TextStyle(fontSize: 12, color: Color(0xFF374151), height: 1.4),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
 class _BrokerInquiryResponsePageState extends State<BrokerInquiryResponsePage> {
   final FirebaseService _firebaseService = FirebaseService();
   final TextEditingController _answerController = TextEditingController();
@@ -876,24 +851,8 @@ class _BrokerInquiryResponsePageState extends State<BrokerInquiryResponsePage> {
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        '고객님이 확인할 답변을 작성해주세요. (예: 적정 거래가 제안, 수수료, 예상 기간, 진행 방식 등)',
+                        '고객님이 확인할 답변을 간단히 작성해주세요.',
                         style: TextStyle(fontSize: 12, color: Colors.grey[700]),
-                      ),
-                      const SizedBox(height: 12),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                        decoration: BoxDecoration(
-                          color: Colors.grey.withValues(alpha: 0.06),
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: const [
-                            _GuideBulletWidget(text: '제안 이유와 근거를 간단히 적어주세요.'),
-                            _GuideBulletWidget(text: '진행 일정(예: 방문/계약 예상 시점)을 알려주세요.'),
-                            _GuideBulletWidget(text: '연락 가능 시간이나 추가 문의 채널을 남겨주세요.'),
-                          ],
-                        ),
                       ),
                       const SizedBox(height: 12),
                       TextField(
@@ -901,7 +860,7 @@ class _BrokerInquiryResponsePageState extends State<BrokerInquiryResponsePage> {
                         maxLines: 8,
                         enabled: true, // 항상 수정 가능
                         decoration: InputDecoration(
-                          hintText: '예) 10.8억에 제안드립니다. 인근 84㎡ 최근 거래가 10.6~10.9억이며, 현 시세 대비 빠른 의사결정 시 2~3개월 내 계약 가능성이 높습니다. 수수료 0.6%, 추가로 오픈마켓/당근/현수막 병행 홍보 예정입니다.',
+                          hintText: '예) 적정가/수수료/예상 기간/홍보 계획을 간략히 적어주세요.',
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(10),
                           ),
