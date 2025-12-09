@@ -359,7 +359,7 @@ class _BrokerQuoteDetailPageState extends State<BrokerQuoteDetailPage> {
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      '소유자/임대인분께 전달할 내용을 작성해주세요',
+                      '전하고 싶은 내용을 정리해 남겨주세요.',
                       style: TextStyle(
                         fontSize: 13,
                         color: Colors.grey[600],
@@ -383,7 +383,7 @@ class _BrokerQuoteDetailPageState extends State<BrokerQuoteDetailPage> {
                     _buildTextField(
                       label: '추가로 전달하고 싶은 내용',
                       controller: _brokerAnswerController,
-                      hint: '소유자/임대인분께 전하고 싶은 내용을 자유롭게 작성해주세요.',
+                      hint: '예) 진행 희망 시점, 연락 가능 시간, 추가로 남길 요청 사항을 적어주세요.',
                       icon: Icons.note,
                       maxLines: 4,
                     ),
