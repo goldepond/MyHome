@@ -741,9 +741,8 @@ class _BrokerInquiryResponsePageState extends State<BrokerInquiryResponsePage> {
                       _buildLabeledField(
                         TransactionTypeHelper.getAppropriatePriceLabel(quoteRequest.transactionType ?? '매매'),
                         _recommendedPriceController,
-                        hint: '예: 10.8',
+                        hint: '예: 52,000,000',
                         keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                        suffix: '억',
                       ),
                       const SizedBox(height: 12),
                       _buildLabeledField(
@@ -758,7 +757,7 @@ class _BrokerInquiryResponsePageState extends State<BrokerInquiryResponsePage> {
                       const SizedBox(height: 12),
                       _buildLabeledField('어떻게 홍보하시나요?', _promotionMethodController, hint: '예: 빠른 오픈, 네이버/당근/현수막 병행', maxLines: 3),
                       const SizedBox(height: 12),
-                      _buildLabeledField('비슷한 거래 사례가 있나요?', _recentCasesController, hint: '예: 인근 A아파트 84㎡, 10.7억(23.12)', maxLines: 3),
+                      _buildLabeledField('비슷한 거래 사례가 있나요?', _recentCasesController, hint: '예: 인근 A아파트 84㎡, 52,000,000원 (23.12)', maxLines: 3),
                     ],
                   ),
                 ),
