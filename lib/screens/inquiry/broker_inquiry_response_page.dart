@@ -142,7 +142,101 @@ class _BrokerInquiryResponsePageState extends State<BrokerInquiryResponsePage> {
               aptInfo: shouldPersistApt ? _aptInfo : null,
             );
           }
+
+  Widget _buildLabeledValue(String label, String value, IconData icon) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          width: 32,
+          height: 32,
+          decoration: BoxDecoration(
+            color: AppColors.kPrimary.withValues(alpha: 0.08),
+            shape: BoxShape.circle,
+          ),
+          child: Icon(icon, size: 16, color: AppColors.kPrimary),
+        ),
+        const SizedBox(width: 10),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.grey[700],
+                ),
+              ),
+              const SizedBox(height: 2),
+              Text(
+                value,
+                style: const TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w700,
+                  color: Color(0xFF111827),
+                  height: 1.3,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildTagChip(IconData icon, String text) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+      decoration: BoxDecoration(
+        color: Colors.grey.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 14, color: Colors.grey[800]),
+          const SizedBox(width: 6),
+          Text(
+            text,
+            style: const TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+              color: Color(0xFF1F2937),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
         }
+
+class _GuideBulletWidget extends StatelessWidget {
+  final String text;
+
+  const _GuideBulletWidget({required this.text});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 6),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text('• ', style: TextStyle(fontSize: 12, color: Color(0xFF374151))),
+          Expanded(
+            child: Text(
+              text,
+              style: const TextStyle(fontSize: 12, color: Color(0xFF374151), height: 1.4),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
 
         if (!hasAnyData && errors.isNotEmpty) {
           // 실패 정보는 화면에 표시하지 않고 내부적으로만 유지
@@ -744,17 +838,75 @@ class _BrokerInquiryResponsePageState extends State<BrokerInquiryResponsePage> {
                       ],
                     ),
                   ),
-                TextField(
-                  controller: _answerController,
-                  maxLines: 8,
-                  enabled: true, // 항상 수정 가능
-                  decoration: InputDecoration(
-                    hintText: '답변을 입력해주세요...',
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    filled: true,
-                    fillColor: Colors.white,
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: Colors.grey.withValues(alpha: 0.2)),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.04),
+                        blurRadius: 12,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: const [
+                          Icon(Icons.edit_note, size: 22, color: AppColors.kPrimary),
+                          SizedBox(width: 8),
+                          Text(
+                            '답변 작성',
+                            style: TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFF1F2937),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        '고객님이 확인할 답변을 작성해주세요. (예: 적정 거래가 제안, 수수료, 예상 기간, 진행 방식 등)',
+                        style: TextStyle(fontSize: 12, color: Colors.grey[700]),
+                      ),
+                      const SizedBox(height: 12),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                        decoration: BoxDecoration(
+                          color: Colors.grey.withValues(alpha: 0.06),
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: const [
+                            _GuideBulletWidget(text: '제안 이유와 근거를 간단히 적어주세요.'),
+                            _GuideBulletWidget(text: '진행 일정(예: 방문/계약 예상 시점)을 알려주세요.'),
+                            _GuideBulletWidget(text: '연락 가능 시간이나 추가 문의 채널을 남겨주세요.'),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      TextField(
+                        controller: _answerController,
+                        maxLines: 8,
+                        enabled: true, // 항상 수정 가능
+                        decoration: InputDecoration(
+                          hintText: '예) 10.8억에 제안드립니다. 인근 84㎡ 최근 거래가 10.6~10.9억이며, 현 시세 대비 빠른 의사결정 시 2~3개월 내 계약 가능성이 높습니다. 수수료 0.6%, 추가로 오픈마켓/당근/현수막 병행 홍보 예정입니다.',
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          filled: true,
+                          fillColor: Colors.white,
+                          contentPadding: const EdgeInsets.all(14),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ],
