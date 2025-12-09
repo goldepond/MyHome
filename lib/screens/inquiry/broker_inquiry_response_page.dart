@@ -723,192 +723,154 @@ class _BrokerInquiryResponsePageState extends State<BrokerInquiryResponsePage> {
             
             const SizedBox(height: 24),
             
-            // 답변 작성 (수정 가능)
-            _buildSection(
-              title: _hasExistingAnswer ? '✏️ 답변 수정 (재전송 가능)' : '✏️ 답변 작성',
-              children: [
-                // 구조화 입력 필드
-                Container(
-                  margin: const EdgeInsets.only(bottom: 16),
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: Colors.grey.withValues(alpha: 0.2)),
+            // 답변 작성 섹션 (브로커 페이지와 동일한 디자인)
+            Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.06),
+                    blurRadius: 20,
+                    offset: const Offset(0, 4),
                   ),
-                  child: Column(
+                ],
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
                     children: [
-                      _buildLabeledField(
-                        TransactionTypeHelper.getAppropriatePriceLabel(quoteRequest.transactionType ?? '매매'),
-                        _recommendedPriceController,
-                        hint: '예: 52,000,000',
-                        keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                      ),
-                      const SizedBox(height: 12),
-                      _buildLabeledField(
-                        '수수료는 얼마인가요?',
-                        _commissionRateController,
-                        hint: '예: 0.6',
-                        keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                        suffix: '%',
-                      ),
-                      const SizedBox(height: 12),
-                      _buildLabeledField('거래 기간은 얼마나 걸릴까요?', _expectedDurationController, hint: '예: 2~3개월'),
-                      const SizedBox(height: 12),
-                      _buildLabeledField('어떻게 홍보하시나요?', _promotionMethodController, hint: '예: 빠른 오픈, 네이버/당근/현수막 병행', maxLines: 3),
-                      const SizedBox(height: 12),
-                      _buildLabeledField('비슷한 거래 사례가 있나요?', _recentCasesController, hint: '예: 인근 A아파트 84㎡, 52,000,000원 (23.12)', maxLines: 3),
-                    ],
-                  ),
-                ),
-                if (quoteRequest.hasTenant != null || 
-                    quoteRequest.desiredPrice != null || 
-                    quoteRequest.targetPeriod != null || 
-                    (quoteRequest.specialNotes != null && quoteRequest.specialNotes!.isNotEmpty))
-                  Container(
-                    margin: const EdgeInsets.only(bottom: 12),
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: AppColors.kPrimary.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: AppColors.kPrimary.withValues(alpha: 0.3)),
-                    ),
-                    child: Row(
-                      children: const [
-                        Icon(Icons.info_outline, color: AppColors.kPrimary, size: 18),
-                        SizedBox(width: 8),
-                        Expanded(
-                          child: Text(
-                            '위 특이사항을 참고하여 답변을 작성해주세요.',
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: AppColors.kPrimary,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
+                      Icon(Icons.reply, color: AppColors.kPrimary, size: 24),
+                      const SizedBox(width: 12),
+                      Text(
+                        _hasExistingAnswer ? '상담 답변 수정' : '상담 답변 작성',
+                        style: const TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF2C3E50),
                         ),
-                      ],
-                    ),
-                  ),
-                if (_hasExistingAnswer)
-                  Container(
-                    margin: const EdgeInsets.only(bottom: 12),
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: Colors.blue.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: Colors.blue.withValues(alpha: 0.3)),
-                    ),
-                    child: Row(
-                      children: [
-                        Icon(Icons.edit, color: Colors.blue, size: 18),
-                        const SizedBox(width: 8),
-                        Expanded(
-                          child: Text(
-                            '기존 답변을 수정한 후 다시 전송할 수 있습니다.',
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: Colors.blue[700],
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: Colors.grey.withValues(alpha: 0.2)),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withValues(alpha: 0.04),
-                        blurRadius: 12,
-                        offset: const Offset(0, 4),
                       ),
                     ],
                   ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: const [
-                          Icon(Icons.edit_note, size: 22, color: AppColors.kPrimary),
-                          SizedBox(width: 8),
-                          Text(
-                            '답변 작성',
-                            style: TextStyle(
-                              fontSize: 15,
-                              fontWeight: FontWeight.bold,
-                              color: Color(0xFF1F2937),
+                  const SizedBox(height: 8),
+                  Text(
+                    '전하고 싶은 내용을 정리해 남겨주세요.',
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: Colors.grey[600],
+                    ),
+                  ),
+                  if (_hasExistingAnswer) ...[
+                    const SizedBox(height: 12),
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Colors.blue.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: Colors.blue.withValues(alpha: 0.3)),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(Icons.edit, color: Colors.blue, size: 18),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              '기존 답변을 수정한 후 다시 전송할 수 있습니다.',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Colors.blue[700],
+                                fontWeight: FontWeight.w500,
+                              ),
                             ),
                           ),
                         ],
                       ),
-                      const SizedBox(height: 8),
-                      Text(
-                        '전하고 싶은 내용을 정리해 남겨주세요.',
-                        style: TextStyle(fontSize: 12, color: Colors.grey[700]),
-                      ),
-                      const SizedBox(height: 12),
-                      TextField(
-                        controller: _answerController,
-                        maxLines: 8,
-                        enabled: true, // 항상 수정 가능
-                        decoration: InputDecoration(
-                          hintText: '예) 진행 희망 시점, 연락 가능 시간, 추가로 남길 요청 사항을 적어주세요.',
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(10),
-                          ),
-                          filled: true,
-                          fillColor: Colors.white,
-                          contentPadding: const EdgeInsets.all(14),
-                        ),
-                      ),
-                    ],
+                    ),
+                  ],
+                  const SizedBox(height: 24),
+                  _buildTextField(
+                    label: TransactionTypeHelper.getAppropriatePriceLabel(quoteRequest.transactionType ?? '매매'),
+                    controller: _recommendedPriceController,
+                    hint: '예: 52,000,000원',
+                    icon: Icons.attach_money,
                   ),
-                ),
-              ],
+                  const SizedBox(height: 16),
+                  _buildTextField(
+                    label: '중개 수수료',
+                    controller: _commissionRateController,
+                    hint: '예: 0.5%',
+                    icon: Icons.percent,
+                  ),
+                  const SizedBox(height: 16),
+                  _buildTextField(
+                    label: '거래 기간은 얼마나 걸릴까요?',
+                    controller: _expectedDurationController,
+                    hint: '예: 2~3개월',
+                    icon: Icons.timer_outlined,
+                  ),
+                  const SizedBox(height: 16),
+                  _buildTextField(
+                    label: '어떻게 홍보하시나요?',
+                    controller: _promotionMethodController,
+                    hint: '예: 빠른 오픈, 네이버/당근/현수막 병행',
+                    icon: Icons.campaign_outlined,
+                    maxLines: 2,
+                  ),
+                  const SizedBox(height: 16),
+                  _buildTextField(
+                    label: '비슷한 거래 사례가 있나요?',
+                    controller: _recentCasesController,
+                    hint: '예: 인근 A아파트 84㎡, 52,000,000원 (23.12)',
+                    icon: Icons.library_books_outlined,
+                    maxLines: 2,
+                  ),
+                  const SizedBox(height: 16),
+                  _buildTextField(
+                    label: '추가로 전달하고 싶은 내용',
+                    controller: _answerController,
+                    hint: '예) 진행 희망 시점, 연락 가능 시간, 추가로 남길 요청 사항을 적어주세요.',
+                    icon: Icons.note,
+                    maxLines: 4,
+                  ),
+                ],
+              ),
             ),
             
             const SizedBox(height: 32),
             
-            // 전송/재전송 버튼
+            // 전송/재전송 버튼 (브로커 페이지와 동일한 스타일)
             SizedBox(
               width: double.infinity,
-              child: ElevatedButton(
+              height: 52,
+              child: ElevatedButton.icon(
                 onPressed: _isSubmitting ? null : _submitAnswer,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: _hasExistingAnswer ? Colors.blue : AppColors.kPrimary,
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-                child: _isSubmitting
+                icon: _isSubmitting
                     ? const SizedBox(
-                        height: 20,
-                        width: 20,
+                        width: 24,
+                        height: 24,
                         child: CircularProgressIndicator(
                           strokeWidth: 2,
                           valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
                         ),
                       )
-                    : Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(_hasExistingAnswer ? Icons.refresh : Icons.send, size: 20),
-                          const SizedBox(width: 8),
-                          Text(
-                            _hasExistingAnswer ? '수정 후 재전송' : '전송하기',
-                            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                          ),
-                        ],
-                      ),
+                    : const Icon(Icons.send, size: 24),
+                label: Text(
+                  _isSubmitting ? '전송 중...' : (_hasExistingAnswer ? '답변 수정 보내기' : '답변 보내기'),
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.kPrimary,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  elevation: 4,
+                ),
               ),
             ),
           ],
@@ -974,11 +936,12 @@ class _BrokerInquiryResponsePageState extends State<BrokerInquiryResponsePage> {
     );
   }
   
-  Widget _buildLabeledField(String label, TextEditingController controller, {
-    String? hint, 
-    TextInputType? keyboardType, 
-    String? suffix,
-    int? maxLines,
+  Widget _buildTextField({
+    required String label,
+    required TextEditingController controller,
+    required String hint,
+    required IconData icon,
+    int maxLines = 1,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -988,27 +951,26 @@ class _BrokerInquiryResponsePageState extends State<BrokerInquiryResponsePage> {
           style: const TextStyle(
             fontSize: 14,
             fontWeight: FontWeight.w600,
-            color: AppColors.kTextPrimary,
+            color: Color(0xFF2C3E50),
           ),
         ),
-        const SizedBox(height: 6),
-        TextField(
+        const SizedBox(height: 8),
+        TextFormField(
           controller: controller,
-          keyboardType: keyboardType,
-          maxLines: maxLines ?? 1,
-          inputFormatters: keyboardType == const TextInputType.numberWithOptions(decimal: true)
-              ? <TextInputFormatter>[
-                  FilteringTextInputFormatter.allow(RegExp(r'[0-9\.\%]')),
-                ]
-              : null,
           decoration: InputDecoration(
             hintText: hint,
+            prefixIcon: Icon(icon, size: 20),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
             filled: true,
-            fillColor: Colors.white,
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-            suffixText: suffix,
-            contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+            fillColor: Colors.grey.withValues(alpha: 0.05),
+            contentPadding: EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: maxLines > 1 ? 16 : 14,
+            ),
           ),
+          maxLines: maxLines,
         ),
       ],
     );
