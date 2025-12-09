@@ -22,6 +22,31 @@ class BrokerInquiryResponsePage extends StatefulWidget {
   State<BrokerInquiryResponsePage> createState() => _BrokerInquiryResponsePageState();
 }
 
+class _GuideBulletWidget extends StatelessWidget {
+  final String text;
+
+  const _GuideBulletWidget({required this.text});
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 6),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text('• ', style: TextStyle(fontSize: 12, color: Color(0xFF374151))),
+          Expanded(
+            child: Text(
+              text,
+              style: const TextStyle(fontSize: 12, color: Color(0xFF374151), height: 1.4),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class _BrokerInquiryResponsePageState extends State<BrokerInquiryResponsePage> {
   final FirebaseService _firebaseService = FirebaseService();
   final TextEditingController _answerController = TextEditingController();
@@ -231,31 +256,14 @@ class _BrokerInquiryResponsePageState extends State<BrokerInquiryResponsePage> {
     );
   }
 
-class _GuideBulletWidget extends StatelessWidget {
-  final String text;
-
-  const _GuideBulletWidget({required this.text});
-
   @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 6),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text('• ', style: TextStyle(fontSize: 12, color: Color(0xFF374151))),
-          Expanded(
-            child: Text(
-              text,
-              style: const TextStyle(fontSize: 12, color: Color(0xFF374151), height: 1.4),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
+  void dispose() {
     _answerController.dispose();
+    _recommendedPriceController.dispose();
+    _commissionRateController.dispose();
+    _expectedDurationController.dispose();
+    _promotionMethodController.dispose();
+    _recentCasesController.dispose();
     super.dispose();
   }
 
