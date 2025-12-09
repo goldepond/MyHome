@@ -3144,6 +3144,29 @@ class _QuoteRequestFormPageState extends State<_QuoteRequestFormPage> {
     propertyArea = widget.propertyArea ?? '정보 없음';
     transactionType = widget.transactionType ?? '매매'; // 전달받은 거래 유형 또는 기본값
   }
+
+  /// 사용자 이메일 가져오기
+  Future<String> _getUserEmail() async {
+    // 1. Firebase Auth에서 현재 사용자 이메일 가져오기
+    final currentUser = _firebaseService.currentUser;
+    if (currentUser?.email != null && currentUser!.email!.isNotEmpty) {
+      return currentUser.email!;
+    }
+
+    // 2. userId가 있으면 Firestore에서 사용자 정보 조회
+    if (widget.userId.isNotEmpty) {
+      final userData = await _firebaseService.getUser(widget.userId);
+      if (userData != null && userData['email'] != null) {
+        final email = userData['email'] as String;
+        if (email.isNotEmpty) {
+          return email;
+        }
+      }
+    }
+
+    // 3. 기본값: userName 기반 이메일 (fallback)
+    return '${widget.userName}@example.com';
+  }
   
   @override
   void dispose() {
