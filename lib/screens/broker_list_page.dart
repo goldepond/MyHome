@@ -3133,24 +3133,24 @@ class _QuoteRequestFormPageState extends State<_QuoteRequestFormPage> {
     return GestureDetector(
       onTap: () => FocusScope.of(context).unfocus(),
       child: Scaffold(
-      backgroundColor: const Color(0xFFE8EAF0), // 배경을 더 진하게
+        backgroundColor: const Color(0xFFE8EAF0), // 배경을 더 진하게
         resizeToAvoidBottomInset: true,
-      appBar: AppBar(
-        title: const Text('중개 상담 요청서'),
-        backgroundColor: AppColors.kPrimary,
-        foregroundColor: Colors.white,
-        elevation: 0,
-      ),
-      body: Form(
-        key: _formKey,
+        appBar: AppBar(
+          title: const Text('중개 상담 요청서'),
+          backgroundColor: AppColors.kPrimary,
+          foregroundColor: Colors.white,
+          elevation: 0,
+        ),
+        body: Form(
+          key: _formKey,
           child: SafeArea(
-        child: Center(
-          child: Container(
-            constraints: BoxConstraints(maxWidth: maxContentWidth),
-            child: ListView(
-              physics: const ClampingScrollPhysics(),
-              padding: EdgeInsets.all(isWeb ? 40.0 : 20.0),
-              children: [
+            child: Center(
+              child: Container(
+                constraints: BoxConstraints(maxWidth: maxContentWidth),
+                child: ListView(
+                  physics: const ClampingScrollPhysics(),
+                  padding: EdgeInsets.all(isWeb ? 40.0 : 20.0),
+                  children: [
             // 제목
             const Text(
               '🏠 중개 상담 요청서',
@@ -3539,7 +3539,9 @@ class _QuoteRequestFormPageState extends State<_QuoteRequestFormPage> {
             
             // 웹 전용 푸터 여백 (영상 촬영용)
             if (kIsWeb) const SizedBox(height: 600),
-          ],
+                  ],
+                ),
+              ),
             ),
           ),
         ),
