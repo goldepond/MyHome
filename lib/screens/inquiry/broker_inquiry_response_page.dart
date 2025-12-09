@@ -142,6 +142,26 @@ class _BrokerInquiryResponsePageState extends State<BrokerInquiryResponsePage> {
               aptInfo: shouldPersistApt ? _aptInfo : null,
             );
           }
+        }
+
+        if (!hasAnyData && errors.isNotEmpty) {
+          // 실패 정보는 화면에 표시하지 않고 내부적으로만 유지
+        }
+      }
+      
+      if (mounted) {
+        setState(() {
+          _isLoadingApiInfo = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _isLoadingApiInfo = false;
+        });
+      }
+    }
+  }
 
   Widget _buildLabeledValue(String label, String value, IconData icon) {
     return Row(
@@ -235,28 +255,6 @@ class _GuideBulletWidget extends StatelessWidget {
     );
   }
 }
-
-        if (!hasAnyData && errors.isNotEmpty) {
-          // 실패 정보는 화면에 표시하지 않고 내부적으로만 유지
-        }
-      }
-      
-      if (mounted) {
-        setState(() {
-          _isLoadingApiInfo = false;
-        });
-      }
-    } catch (e) {
-      if (mounted) {
-        setState(() {
-          _isLoadingApiInfo = false;
-        });
-      }
-    }
-  }
-
-  @override
-  void dispose() {
     _answerController.dispose();
     super.dispose();
   }
