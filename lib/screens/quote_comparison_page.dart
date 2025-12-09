@@ -80,7 +80,7 @@ class _QuoteComparisonPageState extends State<QuoteComparisonPage> {
     }
   }
 
-  /// 판매자가 특정 공인중개사를 최종 선택할 때 호출
+  /// 사용자가 특정 공인중개사를 최종 선택할 때 호출
   Future<void> _onSelectBroker(QuoteRequest quote) async {
     // 이미 이 화면에서 선택 완료된 견적이면 다시 처리하지 않음
     if (_selectedQuoteId == quote.id) {
@@ -116,7 +116,7 @@ class _QuoteComparisonPageState extends State<QuoteComparisonPage> {
         content: Text(
           '"${quote.brokerName}" 공인중개사와 계속 진행하시겠습니까?\n\n'
           '확인 버튼을 누르면:\n'
-          '• 이 공인중개사에게만 판매자님의 연락처가 전달되고\n'
+          '• 이 공인중개사에게만 사용자님의 연락처가 전달되고\n'
           '• 이 중개사와의 본격적인 상담이 시작됩니다.',
         ),
         actions: [

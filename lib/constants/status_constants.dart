@@ -4,16 +4,16 @@ import 'package:property/models/property.dart';
 
 /// 견적(QuoteRequest) 라이프사이클 상태 정의 및 헬퍼
 class QuoteLifecycleStatus {
-  /// 판매자가 견적을 보낸 직후 (아직 답변 없음)
+  /// 사용자가 견적을 보낸 직후 (아직 답변 없음)
   static const String requested = 'requested';
 
   /// 여러 중개사 답변이 수집되는 중 (문서 단위보다는 그룹 단위 개념)
   static const String collecting = 'collecting';
 
-  /// 답변을 받은 상태에서 판매자가 비교 중
+  /// 답변을 받은 상태에서 사용자가 비교 중
   static const String comparing = 'comparing';
 
-  /// 판매자가 특정 견적을 선택한 상태
+  /// 사용자가 특정 견적을 선택한 상태
   static const String selected = 'selected';
 
   /// 실제 상담/거래까지 끝난 상태
@@ -33,7 +33,7 @@ class QuoteLifecycleStatus {
       return cancelled;
     }
 
-    // 2) 판매자가 이 견적을 선택했으면 무조건 '선택됨'으로 본다
+    // 2) 사용자가 이 견적을 선택했으면 무조건 '선택됨'으로 본다
     if (quote.isSelectedByUser == true) {
       return selected;
     }
@@ -42,7 +42,7 @@ class QuoteLifecycleStatus {
       return completed;
     }
 
-    // 답변이 있으면 판매자 입장에서는 "비교 가능한 상태"
+    // 답변이 있으면 사용자 입장에서는 "비교 가능한 상태"
     if (quote.hasAnswer) {
       return comparing;
     }
@@ -99,7 +99,7 @@ class PropertyLifecycleStatus {
   /// 중개사에게 의뢰는 되었지만, 아직 본격 광고 전 단계
   static const String assigned = 'assigned';
 
-  /// 내집구매 등 채널에 노출 중인 상태
+  /// 집 구하기 등 채널에 노출 중인 상태
   static const String marketing = 'marketing';
 
   /// 방문/협상/계약 등 실제 거래 진행 중

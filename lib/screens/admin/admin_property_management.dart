@@ -407,6 +407,21 @@ class _AdminPropertyManagementState extends State<AdminPropertyManagement> {
               '계약상태',
               property.contractStatus,
             ),
+            const SizedBox(height: 16),
+            // 삭제 버튼
+            Align(
+              alignment: Alignment.centerRight,
+              child: ElevatedButton.icon(
+                onPressed: () => _showDeleteConfirmDialog(property),
+                icon: const Icon(Icons.delete_outline, size: 18),
+                label: const Text('삭제'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.red,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                ),
+              ),
+            ),
           ],
         ),
       ),
@@ -441,6 +456,86 @@ class _AdminPropertyManagementState extends State<AdminPropertyManagement> {
         ),
       ],
     );
+  }
+
+  /// 매물 삭제 확인 다이얼로그
+  Future<void> _showDeleteConfirmDialog(Property property) async {
+    final propertyName = property.buildingName ?? property.address;
+    
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('매물 삭제'),
+        content: Text('정말로 "$propertyName" 매물을 삭제하시겠습니까?\n\n이 작업은 되돌릴 수 없습니다.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('취소'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+              foregroundColor: Colors.white,
+            ),
+            child: const Text('삭제'),
+          ),
+        ],
+      ),
+    );
+
+    if (result == true) {
+      await _deleteProperty(property);
+    }
+  }
+
+  /// 매물 삭제
+  Future<void> _deleteProperty(Property property) async {
+    try {
+      final propertyId = property.firestoreId;
+      if (propertyId == null || propertyId.isEmpty) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('매물 ID를 찾을 수 없습니다.'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+        return;
+      }
+
+      final success = await _firebaseService.deleteProperty(propertyId);
+
+      if (mounted) {
+        if (success) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('매물이 삭제되었습니다.'),
+              backgroundColor: Colors.green,
+            ),
+          );
+          // 목록 다시 로드
+          _loadProperties();
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('매물 삭제에 실패했습니다.'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('오류가 발생했습니다: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
   }
 }
 

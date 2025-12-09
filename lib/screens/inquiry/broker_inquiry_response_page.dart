@@ -6,6 +6,7 @@ import 'package:property/api_request/apt_info_service.dart';
 import 'package:property/api_request/vworld_service.dart';
 import 'package:property/api_request/address_service.dart';
 import 'package:flutter/services.dart';
+import 'package:property/utils/transaction_type_helper.dart';
 
 /// 공인중개사용 문의 답변 페이지
 class BrokerInquiryResponsePage extends StatefulWidget {
@@ -554,7 +555,7 @@ class _BrokerInquiryResponsePageState extends State<BrokerInquiryResponsePage> {
                   child: Column(
                     children: [
                       _buildLabeledField(
-                        '적정 매도가',
+                        TransactionTypeHelper.getAppropriatePriceLabel(quoteRequest.transactionType ?? '매매'),
                         _recommendedPriceController,
                         hint: '예: 10.8',
                         keyboardType: const TextInputType.numberWithOptions(decimal: true),

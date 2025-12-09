@@ -162,12 +162,42 @@ class _HomePageState extends State<HomePage> {
 
     if (!mounted) return;
 
+    // 거래 유형 선택 다이얼로그
+    final selectedTransactionType = await showDialog<String>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('거래 유형 선택'),
+        content: const Text('어떤 거래를 진행하시나요?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, '매매'),
+            child: const Text('매매'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, '전세'),
+            child: const Text('전세'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, '월세'),
+            child: const Text('월세'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('취소'),
+          ),
+        ],
+      ),
+    );
+
+    if (!mounted || selectedTransactionType == null) return;
+
     AnalyticsService.instance.logEvent(
       AnalyticsEventNames.navigateBrokerSearch,
       params: {
         'address': selectedFullAddress,
         'latitude': lat,
         'longitude': lon,
+        'transactionType': selectedTransactionType,
       },
       userId: widget.userId.isNotEmpty ? widget.userId : null,
       userName: widget.userName.isNotEmpty ? widget.userName : null,
@@ -184,6 +214,7 @@ class _HomePageState extends State<HomePage> {
           userName: widget.userName,
           userId: widget.userId,
           propertyArea: null,
+          transactionType: selectedTransactionType,
         ),
       ),
     );
@@ -393,7 +424,7 @@ class _HomePageState extends State<HomePage> {
       final newProperty = Property(
         fullAddrAPIData: selectedFullAddrAPIData,
         address: selectedFullAddress,
-        transactionType: '매매', // 또는 입력값
+        transactionType: '매매', // 기본값 (나중에 사용자가 선택한 값으로 업데이트 가능)
         price: 0, // 실제 입력값
         description: '',
         registerData: rawJson,

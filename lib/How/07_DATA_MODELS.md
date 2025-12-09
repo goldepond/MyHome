@@ -21,9 +21,9 @@ MyHome 서비스의 주요 데이터 모델을 설명합니다.
 
 ```dart
 {
-  userId: String,                    // 판매자 ID
-  userName: String,                   // 판매자 이름
-  userEmail: String,                  // 판매자 이메일
+  userId: String,                    // 사용자 ID
+  userName: String,                   // 사용자 이름
+  userEmail: String,                  // 사용자 이메일
   brokerName: String,                 // 중개사명
   brokerRegistrationNumber: String?, // 등록번호
   brokerEmail: String?,               // 중개사 이메일 (관리자가 추가)
@@ -31,7 +31,7 @@ MyHome 서비스의 주요 데이터 모델을 설명합니다.
   status: String,                     // 'pending' | 'answered' | 'completed'
   propertyAddress: String?,          // 매물 주소
   propertyArea: String?,              // 전용면적
-  recommendedPrice: String?,          // 권장 매도가
+  recommendedPrice: String?,          // 권장 거래가 (매도가/전세금/임대료)
   brokerAnswer: String?,              // 중개사 답변
   inquiryLinkId: String?,             // 고유 링크 ID
   requestDate: Timestamp,            // 요청일

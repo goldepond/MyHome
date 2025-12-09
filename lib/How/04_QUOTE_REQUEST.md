@@ -42,14 +42,14 @@ class QuoteRequest {
   final String? propertyArea;        // 전용면적 (㎡)
   
   // ========== 2️⃣ 중개 제안 (중개업자 입력) ==========
-  final String? recommendedPrice;    // 권장 매도가
+  final String? recommendedPrice;    // 권장 거래가 (매도가/전세금/임대료)
   final String? minimumPrice;        // 최저수락가
   final String? expectedDuration;    // 예상 거래기간
   final String? promotionMethod;     // 홍보 방법
   final String? commissionRate;      // 수수료 제안율
   final String? recentCases;         // 최근 유사 거래 사례
   
-  // ========== 3️⃣ 특이사항 (판매자 입력) ==========
+  // ========== 3️⃣ 특이사항 (소유자/임대인 입력) ==========
   final bool? hasTenant;             // 세입자 여부
   final String? desiredPrice;        // 희망가
   final String? targetPeriod;        // 목표기간

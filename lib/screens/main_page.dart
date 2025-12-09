@@ -71,15 +71,15 @@ class _MainPageState extends State<MainPage> {
 
   void _initializePages() {
     // 메인 탭 구성
-    // 0: 내집팔기
-    // 1: 내집구매 (구매자용 내집사기/내집구매)
+    // 0: 집 내놓기 (매도/임대)
+    // 1: 집 구하기 (구매/임차)
     // 2: 내집관리
     // 3: 내 정보
     _pages = [
-      HomePage(userId: widget.userId, userName: widget.userName), // 내집팔기
+      HomePage(userId: widget.userId, userName: widget.userName), // 집 내놓기
       HouseMarketPage(
         userName: widget.userName,
-      ), // 내집구매
+      ), // 집 구하기
       HouseManagementPage(
         userId: widget.userId,
         userName: widget.userName,
@@ -212,7 +212,7 @@ class _MainPageState extends State<MainPage> {
         children: [
           Expanded(
             child: _buildNavButton(
-              '내집팔기',
+              '집 내놓기',
               0,
               Icons.add_home_rounded,
               isMobile: true,
@@ -222,7 +222,7 @@ class _MainPageState extends State<MainPage> {
           SizedBox(width: horizontalGap),
           Expanded(
             child: _buildNavButton(
-              '내집구매',
+              '집 구하기',
               1,
               Icons.search_rounded,
               isMobile: true,
@@ -279,11 +279,11 @@ class _MainPageState extends State<MainPage> {
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Flexible(
-                child: _buildNavButton('내집팔기', 0, Icons.add_home_rounded),
+                child: _buildNavButton('집 내놓기', 0, Icons.add_home_rounded),
               ),
               const SizedBox(width: 4),
               Flexible(
-                child: _buildNavButton('내집구매', 1, Icons.search_rounded),
+                child: _buildNavButton('집 구하기', 1, Icons.search_rounded),
               ),
               const SizedBox(width: 4),
               Flexible(
@@ -456,8 +456,8 @@ class _MainPageState extends State<MainPage> {
 
     return InkWell(
       onTap: () {
-        // 로그인이 필요한 페이지 (현재 탭 구성: 0=내집팔기, 1=내집구매, 2=내집관리, 3=내 정보)
-        // 내집구매(1번 탭)는 비로그인도 사용 가능, 내집관리/내 정보(2,3)는 로그인 필요
+        // 로그인이 필요한 페이지 (현재 탭 구성: 0=집 내놓기, 1=집 구하기, 2=내집관리, 3=내 정보)
+        // 집 구하기(1번 탭)는 비로그인도 사용 가능, 내집관리/내 정보(2,3)는 로그인 필요
         if (!isLoggedIn && index >= 2) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(

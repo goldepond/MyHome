@@ -13,6 +13,7 @@ import 'package:property/screens/login_page.dart';
 import 'package:property/screens/broker/broker_detail_page.dart';
 import 'package:property/api_request/broker_service.dart';
 import 'package:property/models/broker_review.dart';
+import 'package:property/utils/transaction_type_helper.dart';
 
 /// 내집관리 (견적 현황) 페이지
 class HouseManagementPage extends StatefulWidget {
@@ -313,6 +314,7 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
                 userName: widget.userName,
                 userId: quote.userId.isNotEmpty ? quote.userId : null,
                 propertyArea: quote.propertyArea,
+                transactionType: quote.transactionType,
               ),
             ),
           );
@@ -363,7 +365,7 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
         content: Text(
           '"${quote.brokerName}" 공인중개사와 계속 진행하시겠습니까?\n\n'
           '확인 버튼을 누르면:\n'
-          '• 이 공인중개사에게만 판매자님의 연락처가 전달되고\n'
+          '• 이 공인중개사에게만 사용자님의 연락처가 전달되고\n'
           '• 이 중개사와의 본격적인 상담이 시작됩니다.',
         ),
         actions: [
@@ -927,7 +929,7 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
                           [
                             if (quote.recommendedPrice != null)
                               _buildDetailRow(
-                                '권장 매도가',
+                                TransactionTypeHelper.getRecommendedPriceLabel(quote.transactionType ?? '매매'),
                                 quote.recommendedPrice!,
                               ),
                             if (quote.minimumPrice != null)

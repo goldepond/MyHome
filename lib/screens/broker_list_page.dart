@@ -17,6 +17,7 @@ import 'package:property/screens/policy/terms_of_service_page.dart';
 import 'package:property/screens/common/submit_success_page.dart';
 import 'package:property/utils/analytics_service.dart';
 import 'package:property/utils/analytics_events.dart';
+import 'package:property/utils/transaction_type_helper.dart';
 
 /// 공인중개사 찾기 페이지
 class BrokerListPage extends StatefulWidget {
@@ -26,6 +27,7 @@ class BrokerListPage extends StatefulWidget {
   final String userName;
   final String? propertyArea;
   final String? userId;
+  final String? transactionType; // 거래 유형 (매매/전세/월세)
 
   const BrokerListPage({
     required this.address,
@@ -34,6 +36,7 @@ class BrokerListPage extends StatefulWidget {
     this.userName = '',
     this.propertyArea,
     this.userId,
+    this.transactionType,
     super.key,
   });
 
@@ -507,6 +510,7 @@ class _BrokerListPageState extends State<BrokerListPage> {
               userName: userName,
               userId: result['userId'] as String?,
               propertyArea: widget.propertyArea,
+              transactionType: widget.transactionType,
             ),
           ),
         );
@@ -1054,6 +1058,7 @@ class _BrokerListPageState extends State<BrokerListPage> {
                             userName: userName,
                             userId: userId.isNotEmpty ? userId : null,
                             propertyArea: widget.propertyArea,
+                            transactionType: widget.transactionType,
                           ),
                         ),
                       );
@@ -2785,6 +2790,7 @@ class _BrokerListPageState extends State<BrokerListPage> {
               userName: userName, // 로그인된 사용자
               userId: result['userId'] as String?, // userId도 전달
               propertyArea: widget.propertyArea,
+              transactionType: widget.transactionType,
             ),
           ),
         );
@@ -2817,6 +2823,7 @@ class _BrokerListPageState extends State<BrokerListPage> {
           userId: widget.userId ?? '',
           propertyAddress: widget.address, // 조회한 주소 전달
           propertyArea: widget.propertyArea, // 토지 면적 전달
+          transactionType: widget.transactionType, // 거래 유형 전달
         ),
         fullscreenDialog: true,
       ),
@@ -2849,6 +2856,7 @@ class _BrokerListPageState extends State<BrokerListPage> {
           brokerCount: top10Brokers.length,
           address: widget.address,
           propertyArea: widget.propertyArea,
+          transactionType: widget.transactionType,
         ),
       ),
     );
@@ -2995,6 +3003,7 @@ class _BrokerListPageState extends State<BrokerListPage> {
           message: '중개 상담 요청서',
           status: 'pending',
           requestDate: DateTime.now(),
+          transactionType: result['transactionType'] as String?,
           propertyType: result['propertyType'],
           propertyAddress: widget.address,
           propertyArea: result['propertyArea'],
@@ -3060,6 +3069,7 @@ class _QuoteRequestFormPage extends StatefulWidget {
   final String userId;
   final String propertyAddress;
   final String? propertyArea;
+  final String? transactionType; // 거래 유형 (매매/전세/월세)
   
   const _QuoteRequestFormPage({
     required this.broker,
@@ -3067,6 +3077,7 @@ class _QuoteRequestFormPage extends StatefulWidget {
     required this.userId,
     required this.propertyAddress,
     this.propertyArea,
+    this.transactionType,
   });
   
   @override
@@ -3081,8 +3092,9 @@ class _QuoteRequestFormPageState extends State<_QuoteRequestFormPage> {
   String propertyType = '아파트';
   late String propertyAddress;
   late String propertyArea; // 자동 입력됨
+  String transactionType = '매매'; // 거래 유형 (매매/전세/월세)
   
-  // 3️⃣ 추가 정보 (판매자 입력)
+  // 3️⃣ 추가 정보 (소유자/임대인 입력)
   bool hasTenant = false;
   final TextEditingController _desiredPriceController = TextEditingController();
   final TextEditingController _targetPeriodController = TextEditingController();
@@ -3101,6 +3113,7 @@ class _QuoteRequestFormPageState extends State<_QuoteRequestFormPage> {
     super.initState();
     propertyAddress = widget.propertyAddress;
     propertyArea = widget.propertyArea ?? '정보 없음';
+    transactionType = widget.transactionType ?? '매매'; // 전달받은 거래 유형 또는 기본값
   }
   
   @override
@@ -3210,7 +3223,30 @@ class _QuoteRequestFormPageState extends State<_QuoteRequestFormPage> {
             Divider(color: Colors.grey[300], thickness: 1, height: 1),
             const SizedBox(height: 24),
             
-            // ========== 2️⃣ 확인할 견적 정보 ==========
+            // ========== 2️⃣ 거래 유형 (필수 입력) ==========
+            _buildSectionTitle('거래 유형', '필수 입력', Colors.green),
+            const SizedBox(height: 12),
+            _buildCard([
+              SegmentedButton<String>(
+                segments: const [
+                  ButtonSegment(value: '매매', label: Text('매매')),
+                  ButtonSegment(value: '전세', label: Text('전세')),
+                  ButtonSegment(value: '월세', label: Text('월세')),
+                ],
+                selected: {transactionType},
+                onSelectionChanged: (Set<String> newSelection) {
+                  setState(() {
+                    transactionType = newSelection.first;
+                  });
+                },
+              ),
+            ]),
+            
+            const SizedBox(height: 24),
+            Divider(color: Colors.grey[300], thickness: 1, height: 1),
+            const SizedBox(height: 24),
+            
+            // ========== 3️⃣ 확인할 견적 정보 ==========
             Container(
               decoration: BoxDecoration(
                 gradient: LinearGradient(
@@ -3314,8 +3350,8 @@ class _QuoteRequestFormPageState extends State<_QuoteRequestFormPage> {
                           const SizedBox(height: 12),
                           _buildRequestItem(
                             '📊', 
-                            '적정 매도가', 
-                            '매도가는 얼마로 보시나요?',
+                            TransactionTypeHelper.getAppropriatePriceLabel(transactionType), 
+                            TransactionTypeHelper.getPriceQuestion(transactionType),
                             _requestRecommendedPrice,
                             (value) => setState(() => _requestRecommendedPrice = value),
                           ),
@@ -3389,7 +3425,7 @@ class _QuoteRequestFormPageState extends State<_QuoteRequestFormPage> {
               ),
               const SizedBox(height: 16),
               _buildTextField(
-                label: '희망 매도가',
+                label: '희망 거래가',
                 controller: _desiredPriceController,
                 hint: '예: 11억 / 협의 가능',
                 keyboardType: TextInputType.text,
@@ -3775,6 +3811,7 @@ class _QuoteRequestFormPageState extends State<_QuoteRequestFormPage> {
       consentAgreed: true,
       consentAgreedAt: DateTime.now(),
       // 1️⃣ 기본정보
+      transactionType: transactionType,
       propertyType: propertyType,
       propertyAddress: propertyAddress,
       propertyArea: propertyArea != '정보 없음' ? propertyArea : null,
@@ -3844,11 +3881,13 @@ class _MultipleQuoteRequestDialog extends StatefulWidget {
   final int brokerCount;
   final String address;
   final String? propertyArea;
+  final String? transactionType; // 거래 유형 (매매/전세/월세)
 
   const _MultipleQuoteRequestDialog({
     required this.brokerCount,
     required this.address,
     this.propertyArea,
+    this.transactionType,
   });
 
   @override
@@ -3860,8 +3899,9 @@ class _MultipleQuoteRequestDialogState extends State<_MultipleQuoteRequestDialog
   
   // 1️⃣ 기본정보 (자동)
   String propertyType = '아파트';
+  String transactionType = '매매'; // 거래 유형 (매매/전세/월세)
   
-  // 3️⃣ 추가 정보 (판매자 입력)
+  // 3️⃣ 추가 정보 (소유자/임대인 입력)
   bool hasTenant = false;
   final TextEditingController _desiredPriceController = TextEditingController();
   final TextEditingController _specialNotesController = TextEditingController();
@@ -3982,6 +4022,31 @@ class _MultipleQuoteRequestDialogState extends State<_MultipleQuoteRequestDialog
             ]),
             
             const SizedBox(height: 24),
+            Divider(color: Colors.grey[300], thickness: 1, height: 1),
+            const SizedBox(height: 24),
+            
+            // ========== 2️⃣ 거래 유형 (필수 입력) ==========
+            _buildSectionTitle('거래 유형', '필수 입력', Colors.green),
+            const SizedBox(height: 12),
+            _buildCard([
+              SegmentedButton<String>(
+                segments: const [
+                  ButtonSegment(value: '매매', label: Text('매매')),
+                  ButtonSegment(value: '전세', label: Text('전세')),
+                  ButtonSegment(value: '월세', label: Text('월세')),
+                ],
+                selected: {transactionType},
+                onSelectionChanged: (Set<String> newSelection) {
+                  setState(() {
+                    transactionType = newSelection.first;
+                  });
+                },
+              ),
+            ]),
+            
+            const SizedBox(height: 24),
+            Divider(color: Colors.grey[300], thickness: 1, height: 1),
+            const SizedBox(height: 24),
             
             // 확인할 견적 정보 안내 (접기/펼치기 가능)
             Container(
@@ -4087,8 +4152,8 @@ class _MultipleQuoteRequestDialogState extends State<_MultipleQuoteRequestDialog
                           const SizedBox(height: 12),
                           _buildRequestItem(
                             '📊', 
-                            '적정 매도가', 
-                            '매도가는 얼마로 보시나요?',
+                            TransactionTypeHelper.getAppropriatePriceLabel(transactionType), 
+                            TransactionTypeHelper.getPriceQuestion(transactionType),
                             _requestRecommendedPrice,
                             (value) => setState(() => _requestRecommendedPrice = value),
                           ),
@@ -4162,7 +4227,7 @@ class _MultipleQuoteRequestDialogState extends State<_MultipleQuoteRequestDialog
               ),
               const SizedBox(height: 16),
               _buildTextField(
-                label: '희망 매도가',
+                label: '희망 거래가',
                 controller: _desiredPriceController,
                 hint: '예: 11억 / 협의 가능',
                 keyboardType: TextInputType.text,
@@ -4255,6 +4320,7 @@ class _MultipleQuoteRequestDialogState extends State<_MultipleQuoteRequestDialog
                       return;
                     }
                     Navigator.pop(context, {
+                      'transactionType': transactionType,
                       'propertyType': propertyType,
                       'propertyArea': widget.propertyArea != '정보 없음' ? widget.propertyArea : null,
                       'hasTenant': hasTenant,

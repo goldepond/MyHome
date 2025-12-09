@@ -14,6 +14,7 @@ import 'package:property/screens/login_page.dart';
 import 'package:property/screens/broker/broker_detail_page.dart';
 import 'package:property/api_request/broker_service.dart';
 import 'package:property/models/broker_review.dart';
+import 'package:property/utils/transaction_type_helper.dart';
 
 /// 내집관리 (견적 현황) 페이지
 class HouseManagementPage extends StatefulWidget {
@@ -292,6 +293,7 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
                 userName: widget.userName,
                 userId: quote.userId.isNotEmpty ? quote.userId : null,
                 propertyArea: quote.propertyArea,
+                transactionType: quote.transactionType,
               ),
             ),
           );
@@ -735,7 +737,7 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
                           Colors.green,
                           [
                             if (quote.recommendedPrice != null)
-                              _buildDetailRow('권장 매도가', quote.recommendedPrice!),
+                              _buildDetailRow('권장 거래가', quote.recommendedPrice!),
                             if (quote.minimumPrice != null)
                               _buildDetailRow('최저수락가', quote.minimumPrice!),
                             if (quote.expectedDuration != null)
@@ -1774,7 +1776,7 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
                     children: [
                       Expanded(
                         child: _buildComparisonInfoCard(
-                          '권장 매도가',
+                          TransactionTypeHelper.getRecommendedPriceLabel(quote.transactionType ?? '매매'),
                           quote.recommendedPrice ?? '-',
                           Colors.blue,
                         ),
@@ -2337,7 +2339,7 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
                         ),
                         const SizedBox(height: 12),
                         if (quote.recommendedPrice != null && quote.recommendedPrice!.isNotEmpty) ...[
-                          _buildInfoRow('권장 매도가', quote.recommendedPrice!),
+                          _buildInfoRow('권장 거래가', quote.recommendedPrice!),
                           const SizedBox(height: 8),
                         ],
                         if (quote.minimumPrice != null && quote.minimumPrice!.isNotEmpty) ...[

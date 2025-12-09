@@ -485,7 +485,7 @@ class _BrokerDashboardPageState extends State<BrokerDashboardPage> with SingleTi
             ),
             const SizedBox(height: 8),
             Text(
-              '판매자로부터 견적 요청이 들어오면\n여기에 표시됩니다',
+              '소유자/임대인으로부터 견적 요청이 들어오면\n여기에 표시됩니다',
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 14,

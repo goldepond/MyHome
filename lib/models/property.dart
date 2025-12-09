@@ -4,7 +4,9 @@ class Property {
   final String address;
   final String? addressCity; // 주소에서 추출한 시단위
   final String transactionType; // 매매, 전세, 월세
-  final int price;
+  final int price; // 매매가 또는 전세 보증금
+  final int? deposit; // 보증금 (전세/월세 공통)
+  final int? monthlyRent; // 월세금액 (월세만)
   final String description;
   final String registerData; // JSON 문자열로 저장된 등기부등본 데이터
   final String registerSummary; // 핵심 정보만 담은 JSON
@@ -112,6 +114,8 @@ class Property {
     this.addressCity,
     required this.transactionType,
     required this.price,
+    this.deposit,
+    this.monthlyRent,
     this.description = '',
     this.registerData = '{}',
     this.registerSummary = '',
@@ -201,6 +205,8 @@ class Property {
       'firestoreId': firestoreId,
       'transactionType': transactionType,
       'price': price,
+      'deposit': deposit,
+      'monthlyRent': monthlyRent,
       'description': description,
       'registerData': registerData,
       'registerSummary': registerSummary,
@@ -309,6 +315,8 @@ class Property {
       addressCity: map['addressCity']?.toString(),
       transactionType: map['transactionType']?.toString() ?? '',
       price: map['price'] is int ? map['price'] as int : int.tryParse(map['price']?.toString() ?? '0') ?? 0,
+      deposit: map['deposit'] is int ? map['deposit'] as int : (map['deposit'] != null ? int.tryParse(map['deposit']?.toString() ?? '') : null),
+      monthlyRent: map['monthlyRent'] is int ? map['monthlyRent'] as int : (map['monthlyRent'] != null ? int.tryParse(map['monthlyRent']?.toString() ?? '') : null),
       description: map['description']?.toString() ?? '',
       registerData: map['registerData']?.toString() ?? '{}',
       registerSummary: map['registerSummary']?.toString() ?? '',
@@ -447,6 +455,8 @@ class Property {
     String? addressCity,
     String? transactionType,
     int? price,
+    int? deposit,
+    int? monthlyRent,
     String? description,
     String? registerData,
     String? registerSummary,
@@ -532,6 +542,8 @@ class Property {
       addressCity: addressCity ?? this.addressCity,
       transactionType: transactionType ?? this.transactionType,
       price: price ?? this.price,
+      deposit: deposit ?? this.deposit,
+      monthlyRent: monthlyRent ?? this.monthlyRent,
       description: description ?? this.description,
       registerData: registerData ?? this.registerData,
       registerSummary: registerSummary ?? this.registerSummary,

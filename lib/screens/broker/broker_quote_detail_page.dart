@@ -11,6 +11,7 @@ import 'package:property/widgets/broker_quote/property_info_card.dart';
 import 'package:property/widgets/broker_quote/request_info_card.dart';
 import 'package:property/widgets/broker_quote/selected_quote_card.dart';
 import 'package:property/screens/broker/property_registration_form_page.dart';
+import 'package:property/utils/transaction_type_helper.dart';
 
 /// 공인중개사 견적 상세/답변 페이지
 class BrokerQuoteDetailPage extends StatefulWidget {
@@ -182,14 +183,14 @@ class _BrokerQuoteDetailPageState extends State<BrokerQuoteDetailPage> {
       return;
     }
 
-    // 적정 매도가 또는 추가 메시지 중 하나는 입력
+    // 적정 거래가 또는 추가 메시지 중 하나는 입력
     final hasAnyInput = _recommendedPriceController.text.trim().isNotEmpty ||
         _brokerAnswerController.text.trim().isNotEmpty;
 
     if (!hasAnyInput) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('적정 매도가 또는 추가 메시지 중 하나 이상은 입력해주세요.'),
+          content: Text('적정 거래가 또는 추가 메시지 중 하나 이상은 입력해주세요.'),
           backgroundColor: Colors.orange,
         ),
       );
@@ -358,7 +359,7 @@ class _BrokerQuoteDetailPageState extends State<BrokerQuoteDetailPage> {
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      '판매자에게 제안할 내용을 입력해주세요',
+                      '소유자/임대인에게 제안할 내용을 입력해주세요',
                       style: TextStyle(
                         fontSize: 13,
                         color: Colors.grey[600],
@@ -366,7 +367,7 @@ class _BrokerQuoteDetailPageState extends State<BrokerQuoteDetailPage> {
                     ),
                     const SizedBox(height: 24),
                     _buildTextField(
-                      label: '적정 매도가',
+                      label: TransactionTypeHelper.getAppropriatePriceLabel(widget.quote.transactionType ?? '매매'),
                       controller: _recommendedPriceController,
                       hint: '예: 11억 5천만원',
                       icon: Icons.attach_money,
@@ -382,7 +383,7 @@ class _BrokerQuoteDetailPageState extends State<BrokerQuoteDetailPage> {
                     _buildTextField(
                       label: '추가 메시지 (본문)',
                       controller: _brokerAnswerController,
-                      hint: '판매자에게 전하고 싶은 내용을 자유롭게 작성해주세요.',
+                      hint: '소유자/임대인에게 전하고 싶은 내용을 자유롭게 작성해주세요.',
                       icon: Icons.note,
                       maxLines: 4,
                     ),
@@ -408,7 +409,7 @@ class _BrokerQuoteDetailPageState extends State<BrokerQuoteDetailPage> {
                                     title: const Text('이번 건 진행 안함'),
                                     content: const Text(
                                       '이 견적 문의는 이번에는 진행하지 않으시겠습니까?\n'
-                                      '판매자 화면에서는 \'취소됨\' 상태로 표시됩니다.',
+                                      '사용자 화면에서는 \'취소됨\' 상태로 표시됩니다.',
                                     ),
                                     actions: [
                                       TextButton(

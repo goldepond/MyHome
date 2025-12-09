@@ -41,7 +41,7 @@ class SelectedQuoteCard extends StatelessWidget {
                   SizedBox(width: 12),
                   Expanded(
                     child: Text(
-                      '판매자가 이 견적을 선택했습니다!',
+                      '사용자가 이 견적을 선택했습니다!',
                       style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
@@ -82,7 +82,7 @@ class SelectedQuoteCard extends StatelessWidget {
                   label: Text(
                     isSubmitting 
                         ? '등록 중...' 
-                        : (isRegistered ? '매물 등록 완료' : '내집구매에 매물 등록하기')
+                        : (isRegistered ? '매물 등록 완료' : '집 구하기에 매물 등록하기')
                   ),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: isRegistered ? Colors.grey : AppColors.kPrimary,
@@ -103,7 +103,7 @@ class SelectedQuoteCard extends StatelessWidget {
                 child: Text(
                   isRegistered 
                       ? '이미 매물로 등록되었습니다.' 
-                      : '매물 등록 시 내집구매 목록에 즉시 노출됩니다.',
+                      : '매물 등록 시 집 구하기 목록에 즉시 노출됩니다.',
                   style: const TextStyle(
                     fontSize: 12,
                     color: Colors.grey,

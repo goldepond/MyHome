@@ -431,8 +431,8 @@ class _PropertyRegistrationFormPageState extends State<PropertyRegistrationFormP
         );
         return;
       }
-      // 월세는 보증금 + 월세를 합산한 가격으로 저장 (또는 별도 필드 사용)
-      price = deposit + (monthly * 12); // 1년치로 환산
+      // 월세는 보증금을 price로 저장하고, deposit과 monthlyRent를 별도 필드로 저장
+      price = deposit; // 보증금을 price로 저장
     } else if (_transactionType == '전세') {
       price = _parsePrice(_depositController.text);
       if (price == null) {
@@ -524,10 +524,19 @@ class _PropertyRegistrationFormPageState extends State<PropertyRegistrationFormP
       };
 
       // 5. Property 객체 생성
+      final deposit = _transactionType == '월세' || _transactionType == '전세' 
+          ? (_parsePrice(_depositController.text) ?? price)
+          : null;
+      final monthlyRent = _transactionType == '월세'
+          ? _parsePrice(_monthlyRentController.text)
+          : null;
+      
       final property = Property(
         address: widget.quote.propertyAddress ?? '',
         transactionType: _transactionType,
         price: price!,
+        deposit: deposit,
+        monthlyRent: monthlyRent,
         area: area,
         description: _descriptionController.text,
         contractStatus: '대기', // 매물 등록 시 기본 상태는 '대기'
@@ -659,7 +668,7 @@ class _PropertyRegistrationFormPageState extends State<PropertyRegistrationFormP
                         const SizedBox(width: 12),
                         Expanded(
                           child: Text(
-                            '매물 정보를 입력한 후 등록하시면 내집구매 목록에 노출됩니다.',
+                            '매물 정보를 입력한 후 등록하시면 집 구하기 목록에 노출됩니다.',
                             style: TextStyle(
                               fontSize: 13,
                               color: AppColors.kPrimary,

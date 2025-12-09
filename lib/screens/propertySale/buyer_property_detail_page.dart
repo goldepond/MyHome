@@ -56,7 +56,26 @@ class _BuyerPropertyDetailPageState extends State<BuyerPropertyDetailPage> {
         priceText = '전세 ${priceFormat.format(widget.property.price)}원';
       }
     } else if (widget.property.transactionType == '월세') {
-      priceText = '월세 (상세정보 참조)';
+      final deposit = widget.property.deposit ?? 0;
+      final monthlyRent = widget.property.monthlyRent ?? 0;
+      if (deposit > 0 && monthlyRent > 0) {
+        final depositText = deposit >= 100000000 
+            ? '${(deposit / 100000000).toStringAsFixed(1)}억'
+            : deposit >= 10000 
+                ? '${(deposit / 10000).toStringAsFixed(0)}만'
+                : priceFormat.format(deposit);
+        final monthlyText = monthlyRent >= 10000
+            ? '${(monthlyRent / 10000).toStringAsFixed(0)}만'
+            : priceFormat.format(monthlyRent);
+        priceText = '보증금 $depositText / 월세 $monthlyText원';
+      } else if (monthlyRent > 0) {
+        final monthlyText = monthlyRent >= 10000
+            ? '${(monthlyRent / 10000).toStringAsFixed(0)}만'
+            : priceFormat.format(monthlyRent);
+        priceText = '월세 $monthlyText원';
+      } else {
+        priceText = '월세 (상세정보 참조)';
+      }
     }
 
     // 이미지 URL 파싱

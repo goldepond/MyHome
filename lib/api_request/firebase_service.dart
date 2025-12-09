@@ -525,7 +525,7 @@ class FirebaseService {
           'updatedAt': FieldValue.serverTimestamp(),
         });
 
-        // 7. [알림] 판매자에게 매물 등록 알림 전송
+        // 7. [알림] 소유자/임대인에게 매물 등록 알림 전송
         if (quoteData != null) {
           final userId = quoteData['userId'];
           if (userId != null && userId.isNotEmpty) {
@@ -533,7 +533,7 @@ class FirebaseService {
             transaction.set(notificationRef, {
               'userId': userId,
               'title': '매물 등록 완료',
-              'message': '요청하신 견적 내용으로 매물 등록이 완료되었습니다.\n내집구매 목록에서 확인해보세요!',
+              'message': '요청하신 견적 내용으로 매물 등록이 완료되었습니다.\n집 구하기 목록에서 확인해보세요!',
               'type': 'property_registered',
               'relatedId': propertyRef.id,
               'isRead': false,
@@ -1201,21 +1201,21 @@ class FirebaseService {
     }
   }
 
-  /// 판매자가 특정 공인중개사를 최종 선택(배정)할 때 호출
+  /// 사용자가 특정 공인중개사를 최종 선택(배정)할 때 호출
   ///
   /// - [requestId]: 선택된 견적문의 ID
-  /// - [userId]: 판매자 사용자 ID (users 컬렉션 document ID)
+  /// - [userId]: 사용자 ID (users 컬렉션 document ID)
   ///
   /// 기능:
   /// - 견적문의 문서에 `isSelectedByUser`, `selectedAt` 필드 기록
-  /// - 판매자 `users` 문서에서 휴대폰 번호를 조회해 `userPhone` 필드로 복사
+  /// - 사용자 `users` 문서에서 휴대폰 번호를 조회해 `userPhone` 필드로 복사
   /// - [알림] 공인중개사에게 선택 알림 전송
   Future<bool> assignQuoteToBroker({
     required String requestId,
     required String userId,
   }) async {
     try {
-      // 판매자 정보 조회 (연락처 가져오기)
+      // 사용자 정보 조회 (연락처 가져오기)
       final userData = await getUser(userId);
       final String? phone = (userData != null ? userData['phone'] : null) as String?;
 
@@ -1368,7 +1368,7 @@ class FirebaseService {
 
       await _firestore.collection(_quoteRequestsCollectionName).doc(requestId).update(updateData);
 
-      // [알림] 판매자에게 답변 도착 알림 전송
+      // [알림] 사용자에게 답변 도착 알림 전송
       try {
         // 견적 요청 정보 조회
         final quoteDoc = await _firestore.collection(_quoteRequestsCollectionName).doc(requestId).get();

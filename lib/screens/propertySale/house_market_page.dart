@@ -28,6 +28,7 @@ class _HouseMarketPageState extends State<HouseMarketPage> {
   List<Property> _properties = [];
   bool _isLoading = true;
   String? _errorMessage;
+  String? _selectedTransactionType; // 거래 유형 필터 (null = 전체)
 
   @override
   void initState() {
@@ -74,9 +75,14 @@ class _HouseMarketPageState extends State<HouseMarketPage> {
     }
   }
 
-  /// 정렬만 적용 (지역 필터 삭제됨)
+  /// 필터 및 정렬 적용
   void _applyFiltersAndSort() {
     List<Property> filtered = List<Property>.from(_allProperties);
+
+    // 거래 유형 필터
+    if (_selectedTransactionType != null && _selectedTransactionType!.isNotEmpty) {
+      filtered = filtered.where((p) => p.transactionType == _selectedTransactionType).toList();
+    }
 
     // 정렬
     filtered.sort((a, b) => b.createdAt.compareTo(a.createdAt));
@@ -126,6 +132,11 @@ class _HouseMarketPageState extends State<HouseMarketPage> {
                 padding: const EdgeInsets.symmetric(horizontal: 20),
                 child: Column(
                   children: [
+                    // 거래 유형 필터
+                    _buildTransactionTypeFilter(),
+
+                    const SizedBox(height: 20),
+                    
                     // 매물 카테고리 카드들
                     _buildCategoryCards(),
 
@@ -141,6 +152,54 @@ class _HouseMarketPageState extends State<HouseMarketPage> {
                   ],
                 ),
               ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTransactionTypeFilter() {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.04),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          const Text(
+            '거래 유형:',
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+              color: Color(0xFF2C3E50),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: SegmentedButton<String?>(
+              segments: const [
+                ButtonSegment(value: null, label: Text('전체')),
+                ButtonSegment(value: '매매', label: Text('매매')),
+                ButtonSegment(value: '전세', label: Text('전세')),
+                ButtonSegment(value: '월세', label: Text('월세')),
+              ],
+              selected: {_selectedTransactionType},
+              onSelectionChanged: (Set<String?> newSelection) {
+                setState(() {
+                  _selectedTransactionType = newSelection.first;
+                  _applyFiltersAndSort();
+                });
+              },
             ),
           ),
         ],

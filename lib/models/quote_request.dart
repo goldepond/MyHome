@@ -7,7 +7,7 @@ class QuoteRequest {
   final String userId;
   final String userName;
   final String userEmail;
-  final String? userPhone;              // 판매자 휴대폰 번호 (선택 공개)
+  final String? userPhone;              // 소유자/임대인 휴대폰 번호 (선택 공개)
   final String brokerName;
   final String? brokerRegistrationNumber;
   final String? brokerRoadAddress;
@@ -21,19 +21,20 @@ class QuoteRequest {
   final DateTime? updatedAt;
   
   // ========== 1️⃣ 기본정보 (자동 입력) ==========
+  final String? transactionType;     // 거래 유형 (매매/전세/월세)
   final String? propertyType;        // 매물 유형 (아파트/오피스텔/원룸)
   final String? propertyAddress;     // 위치
   final String? propertyArea;        // 전용면적 (㎡)
   
   // ========== 2️⃣ 중개 제안 (중개업자 입력) ==========
-  final String? recommendedPrice;    // 권장 매도가
+  final String? recommendedPrice;    // 권장 거래가 (매도가/전세금/임대료)
   final String? minimumPrice;        // 최저수락가
   final String? expectedDuration;    // 예상 거래기간
   final String? promotionMethod;     // 홍보 방법
   final String? commissionRate;      // 수수료 제안율
   final String? recentCases;         // 최근 유사 거래 사례
   
-  // ========== 3️⃣ 특이사항 (판매자 입력) ==========
+  // ========== 3️⃣ 특이사항 (소유자/임대인 입력) ==========
   final bool? hasTenant;             // 세입자 여부
   final String? desiredPrice;        // 희망가
   final String? targetPeriod;        // 목표기간
@@ -48,12 +49,12 @@ class QuoteRequest {
   final bool? consentAgreed;         // 개인정보 제3자 제공 동의
   final DateTime? consentAgreedAt;   // 동의 시각
 
-  // ========== 6️⃣ 판매자 선택/배정 정보 ==========
-  final bool? isSelectedByUser;      // 판매자가 이 견적을 최종 선택했는지
+  // ========== 6️⃣ 사용자 선택/배정 정보 ==========
+  final bool? isSelectedByUser;      // 사용자가 이 견적을 최종 선택했는지
   final DateTime? selectedAt;        // 선택 시각
   
   // ========== 7️⃣ 매물 등록 여부 ==========
-  final bool? isPropertyRegistered;  // 내집구매에 매물로 등록되었는지 여부
+  final bool? isPropertyRegistered;  // 집 구하기에 매물로 등록되었는지 여부
 
   QuoteRequest({
     required this.id,
@@ -73,6 +74,7 @@ class QuoteRequest {
     this.emailAttachedBy,
     this.updatedAt,
     // 1️⃣ 기본정보
+    this.transactionType,
     this.propertyType,
     this.propertyAddress,
     this.propertyArea,
@@ -121,6 +123,7 @@ class QuoteRequest {
       'emailAttachedBy': emailAttachedBy,
       'updatedAt': updatedAt != null ? Timestamp.fromDate(updatedAt!) : null,
       // 1️⃣ 기본정보
+      'transactionType': transactionType,
       'propertyType': propertyType,
       'propertyAddress': propertyAddress,
       'propertyArea': propertyArea,
@@ -143,7 +146,7 @@ class QuoteRequest {
       // 5️⃣ 동의 정보
       'consentAgreed': consentAgreed,
       'consentAgreedAt': consentAgreedAt != null ? Timestamp.fromDate(consentAgreedAt!) : null,
-      // 6️⃣ 판매자 선택/배정 정보
+      // 6️⃣ 사용자 선택/배정 정보
       'isSelectedByUser': isSelectedByUser,
       'selectedAt': selectedAt != null ? Timestamp.fromDate(selectedAt!) : null,
       // 7️⃣ 매물 등록 여부
@@ -171,6 +174,7 @@ class QuoteRequest {
       emailAttachedBy: map['emailAttachedBy'],
       updatedAt: (map['updatedAt'] as Timestamp?)?.toDate(),
       // 1️⃣ 기본정보
+      transactionType: map['transactionType'],
       propertyType: map['propertyType'],
       propertyAddress: map['propertyAddress'],
       propertyArea: map['propertyArea'],
@@ -193,7 +197,7 @@ class QuoteRequest {
       // 5️⃣ 동의 정보
       consentAgreed: map['consentAgreed'],
       consentAgreedAt: (map['consentAgreedAt'] as Timestamp?)?.toDate(),
-      // 6️⃣ 판매자 선택/배정 정보
+      // 6️⃣ 사용자 선택/배정 정보
       isSelectedByUser: map['isSelectedByUser'] as bool?,
       selectedAt: (map['selectedAt'] as Timestamp?)?.toDate(),
       // 7️⃣ 매물 등록 여부

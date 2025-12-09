@@ -66,6 +66,8 @@ class _CategoryPropertyListPageState extends State<CategoryPropertyListPage> {
           regionMatch = AddressUtils.isRegionMatch(property.addressCity, widget.selectedRegion!);
         }
         
+        // 거래 유형 필터링은 나중에 UI에서 추가 가능 (현재는 전체 표시)
+        
         return buildingTypeMatch && regionMatch;
       }).toList();
 
