@@ -42,7 +42,6 @@ class _BrokerInquiryResponsePageState extends State<BrokerInquiryResponsePage> {
   Map<String, String>? _fullAddrAPIData;
   String? _kaptCode;
   bool _isLoadingApiInfo = false;
-  String? _apiError;
 
   @override
   void initState() {
@@ -65,13 +64,10 @@ class _BrokerInquiryResponsePageState extends State<BrokerInquiryResponsePage> {
 
     setState(() {
       _isLoadingApiInfo = true;
-      _apiError = null;
     });
     
     try {
-      if (hadAll) {
-        debugPrint('API 캐시 재사용: fullAddr/vworld/aptInfo 모두 존재');
-      } else {
+      if (!hadAll) {
         final addressService = AddressService();
         bool hasAnyData = false;
         List<String> errors = [];
@@ -86,37 +82,27 @@ class _BrokerInquiryResponsePageState extends State<BrokerInquiryResponsePage> {
             }
           } catch (e) {
             errors.add('주소 상세 정보 조회 실패: $e');
-            debugPrint('주소 상세 정보 조회 실패: $e');
           }
-        } else {
-          debugPrint('주소 상세 정보 캐시 사용');
         }
         
         // 2. VWorld 좌표 정보 조회 - 없는 경우에만
         if (!hadCoords) {
           try {
-            debugPrint('VWorld 좌표 정보 조회 시작: $address');
             final landResult = await VWorldService.getLandInfoFromAddress(address);
             if (landResult != null && landResult['coordinates'] != null) {
               _vworldCoordinates = landResult['coordinates'];
               hasAnyData = true;
-              debugPrint('VWorld 좌표 정보 조회 성공');
             } else {
-              debugPrint('VWorld 좌표 정보 조회 결과 없음');
               errors.add('VWorld 좌표 정보 조회 결과 없음');
             }
           } catch (e) {
             errors.add('VWorld 좌표 조회 실패: $e');
-            debugPrint('VWorld 좌표 조회 실패: $e');
           }
-        } else {
-          debugPrint('VWorld 좌표 캐시 사용');
         }
         
         // 3. 아파트 정보 조회 (단지코드 추출 시도) - 없는 경우에만
         if (!hadAptInfo) {
           try {
-            debugPrint('아파트 정보 조회 시작: $address');
             final extraction = await AptInfoService.extractKaptCodeFromAddressAsync(
               address,
               fullAddrAPIData: _fullAddrAPIData,
@@ -124,26 +110,19 @@ class _BrokerInquiryResponsePageState extends State<BrokerInquiryResponsePage> {
             if (extraction.isSuccess) {
               final kaptCode = extraction.code!;
               _kaptCode = kaptCode;
-              debugPrint('단지코드 추출 성공: $kaptCode');
               final aptInfoResult = await AptInfoService.getAptBasisInfo(kaptCode);
               if (aptInfoResult != null && aptInfoResult.isNotEmpty) {
                 _aptInfo = aptInfoResult;
                 hasAnyData = true;
-                debugPrint('아파트 정보 조회 성공');
               } else {
-                debugPrint('아파트 정보 조회 결과 없음');
                 errors.add('아파트 정보 조회 결과 없음');
               }
             } else {
-              debugPrint('단지코드 추출 실패: ${extraction.message}');
               errors.add('단지코드 추출 실패: ${extraction.message}');
             }
           } catch (e) {
             errors.add('아파트 정보 조회 실패: $e');
-            debugPrint('아파트 정보 조회 실패: $e');
           }
-        } else {
-          debugPrint('아파트 정보 캐시 사용');
         }
 
         // 신규 확보 데이터가 있고, 기존에 없던 필드만 Firestore에 저장
@@ -166,7 +145,7 @@ class _BrokerInquiryResponsePageState extends State<BrokerInquiryResponsePage> {
         }
 
         if (!hasAnyData && errors.isNotEmpty) {
-          debugPrint('API 정보 로드 결과: 일부 또는 전체 실패\n${errors.join('\n')}');
+          // 실패 정보는 화면에 표시하지 않고 내부적으로만 유지
         }
       }
       
@@ -179,9 +158,7 @@ class _BrokerInquiryResponsePageState extends State<BrokerInquiryResponsePage> {
       if (mounted) {
         setState(() {
           _isLoadingApiInfo = false;
-          _apiError = 'API 정보를 불러오는 중 오류가 발생했습니다: $e';
         });
-        debugPrint('API 정보 로드 중 예외 발생: $e');
       }
     }
   }
@@ -458,23 +435,6 @@ class _BrokerInquiryResponsePageState extends State<BrokerInquiryResponsePage> {
             ),
             
             const SizedBox(height: 24),
-            
-            // 매물 정보 참조 (API 정보) - 문의 정보 바로 아래에 배치하여 먼저 확인 가능하도록
-            // 매물 주소가 있으면 항상 표시 (로딩 중이거나 데이터가 없어도 섹션은 표시)
-            Builder(
-              builder: (context) {
-                final address = quoteRequest.propertyAddress;
-                if (address != null && address.toString().trim().isNotEmpty) {
-                  return Column(
-                    children: [
-                      _buildReferenceInfoSection(address.toString()),
-                      const SizedBox(height: 24),
-                    ],
-                  );
-                }
-                return const SizedBox.shrink();
-              },
-            ),
             
             // 문의 내용
             _buildSection(
@@ -895,263 +855,5 @@ class _BrokerInquiryResponsePageState extends State<BrokerInquiryResponsePage> {
     );
   }
   
-  /// 참조 정보 섹션 (매물정보 API 데이터)
-  Widget _buildReferenceInfoSection(String address) {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.blue.withValues(alpha: 0.3), width: 2),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.06),
-            blurRadius: 20,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(Icons.info_outline, color: Colors.blue[700], size: 24),
-              const SizedBox(width: 12),
-              const Text(
-                '매물 정보 참조',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xFF2C3E50),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Text(
-            '주소 검색 시 API로 불러온 정보입니다. 답변 작성 시 참고하세요.',
-            style: TextStyle(
-              fontSize: 13,
-              color: Colors.grey[600],
-            ),
-          ),
-          const SizedBox(height: 20),
-          
-          if (_isLoadingApiInfo)
-            const Center(
-              child: Padding(
-                padding: EdgeInsets.all(20),
-                child: CircularProgressIndicator(),
-              ),
-            )
-          else if (_apiError != null)
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Colors.orange.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: Colors.orange.withValues(alpha: 0.3)),
-              ),
-              child: Row(
-                children: [
-                  Icon(Icons.error_outline, color: Colors.orange[700], size: 20),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      _apiError!,
-                      style: TextStyle(
-                        fontSize: 13,
-                        color: Colors.orange[900],
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            )
-          else ...[
-            // 주소 상세 정보 (Juso API)
-            if (_fullAddrAPIData != null && _fullAddrAPIData!.isNotEmpty) ...[
-              _buildInfoSection(
-                '주소 상세 정보',
-                Icons.location_on,
-                [
-                  if (_fullAddrAPIData!['roadAddr'] != null && _fullAddrAPIData!['roadAddr']!.isNotEmpty)
-                    _buildInfoRow('도로명주소', _fullAddrAPIData!['roadAddr']!),
-                  if (_fullAddrAPIData!['jibunAddr'] != null && _fullAddrAPIData!['jibunAddr']!.isNotEmpty)
-                    _buildInfoRow('지번주소', _fullAddrAPIData!['jibunAddr']!),
-                  if (_fullAddrAPIData!['bdNm'] != null && _fullAddrAPIData!['bdNm']!.isNotEmpty)
-                    _buildInfoRow('건물명', _fullAddrAPIData!['bdNm']!),
-                  if (_fullAddrAPIData!['siNm'] != null && _fullAddrAPIData!['siNm']!.isNotEmpty)
-                    _buildInfoRow('시도', _fullAddrAPIData!['siNm']!),
-                  if (_fullAddrAPIData!['sggNm'] != null && _fullAddrAPIData!['sggNm']!.isNotEmpty)
-                    _buildInfoRow('시군구', _fullAddrAPIData!['sggNm']!),
-                  if (_fullAddrAPIData!['emdNm'] != null && _fullAddrAPIData!['emdNm']!.isNotEmpty)
-                    _buildInfoRow('읍면동', _fullAddrAPIData!['emdNm']!),
-                  if (_fullAddrAPIData!['rn'] != null && _fullAddrAPIData!['rn']!.isNotEmpty)
-                    _buildInfoRow('도로명', _fullAddrAPIData!['rn']!),
-                  if (_fullAddrAPIData!['buldMgtNo'] != null && _fullAddrAPIData!['buldMgtNo']!.isNotEmpty)
-                    _buildInfoRow('건물관리번호', _fullAddrAPIData!['buldMgtNo']!),
-                  if (_fullAddrAPIData!['roadAddrNo'] != null && _fullAddrAPIData!['roadAddrNo']!.isNotEmpty)
-                    _buildInfoRow('건물번호', _fullAddrAPIData!['roadAddrNo']!),
-                ],
-              ),
-              const SizedBox(height: 16),
-            ],
-            
-            // VWorld 좌표 정보
-            if (_vworldCoordinates != null && _vworldCoordinates!.isNotEmpty) ...[
-              _buildInfoSection(
-                '좌표 정보',
-                Icons.my_location,
-                [
-                  if (_vworldCoordinates!['x'] != null)
-                    _buildInfoRow('경도', _vworldCoordinates!['x'].toString()),
-                  if (_vworldCoordinates!['y'] != null)
-                    _buildInfoRow('위도', _vworldCoordinates!['y'].toString()),
-                  if (_vworldCoordinates!['level'] != null)
-                    _buildInfoRow('정확도 레벨', _vworldCoordinates!['level'].toString()),
-                ],
-              ),
-              const SizedBox(height: 16),
-            ],
-            
-            // 아파트 단지 정보
-            if (_aptInfo != null && _aptInfo!.isNotEmpty) ...[
-              _buildInfoSection(
-                '아파트 단지 정보',
-                Icons.apartment,
-                [
-                  if (_aptInfo!['kaptCode'] != null && _aptInfo!['kaptCode'].toString().isNotEmpty)
-                    _buildInfoRow('단지코드', _aptInfo!['kaptCode'].toString()),
-                  if (_aptInfo!['kaptName'] != null && _aptInfo!['kaptName'].toString().isNotEmpty)
-                    _buildInfoRow('단지명', _aptInfo!['kaptName'].toString()),
-                  if (_aptInfo!['codeStr'] != null && _aptInfo!['codeStr'].toString().isNotEmpty)
-                    _buildInfoRow('건물구조', _aptInfo!['codeStr'].toString()),
-                  if (_aptInfo!['kaptdPcnt'] != null && _aptInfo!['kaptdPcnt'].toString().isNotEmpty)
-                    _buildInfoRow('주차대수(지상)', '${_aptInfo!['kaptdPcnt']}대'),
-                  if (_aptInfo!['kaptdPcntu'] != null && _aptInfo!['kaptdPcntu'].toString().isNotEmpty)
-                    _buildInfoRow('주차대수(지하)', '${_aptInfo!['kaptdPcntu']}대'),
-                  if (_aptInfo!['kaptdEcnt'] != null && _aptInfo!['kaptdEcnt'].toString().isNotEmpty)
-                    _buildInfoRow('승강기대수', '${_aptInfo!['kaptdEcnt']}대'),
-                  if (_aptInfo!['kaptMgrCnt'] != null && _aptInfo!['kaptMgrCnt'].toString().isNotEmpty)
-                    _buildInfoRow('관리사무소 수', '${_aptInfo!['kaptMgrCnt']}개'),
-                  if (_aptInfo!['kaptCcompany'] != null && _aptInfo!['kaptCcompany'].toString().isNotEmpty)
-                    _buildInfoRow('관리업체', _aptInfo!['kaptCcompany'].toString()),
-                  if (_aptInfo!['codeMgr'] != null && _aptInfo!['codeMgr'].toString().isNotEmpty)
-                    _buildInfoRow('관리방식', _aptInfo!['codeMgr'].toString()),
-                  if (_aptInfo!['kaptdCccnt'] != null && _aptInfo!['kaptdCccnt'].toString().isNotEmpty)
-                    _buildInfoRow('CCTV대수', '${_aptInfo!['kaptdCccnt']}대'),
-                  if (_aptInfo!['codeSec'] != null && _aptInfo!['codeSec'].toString().isNotEmpty)
-                    _buildInfoRow('경비관리방식', _aptInfo!['codeSec'].toString()),
-                  if (_aptInfo!['kaptdScnt'] != null && _aptInfo!['kaptdScnt'].toString().isNotEmpty)
-                    _buildInfoRow('경비인력 수', '${_aptInfo!['kaptdScnt']}명'),
-                  if (_aptInfo!['kaptdSecCom'] != null && _aptInfo!['kaptdSecCom'].toString().isNotEmpty)
-                    _buildInfoRow('경비업체', _aptInfo!['kaptdSecCom'].toString()),
-                  if (_aptInfo!['codeClean'] != null && _aptInfo!['codeClean'].toString().isNotEmpty)
-                    _buildInfoRow('청소관리방식', _aptInfo!['codeClean'].toString()),
-                  if (_aptInfo!['kaptdClcnt'] != null && _aptInfo!['kaptdClcnt'].toString().isNotEmpty)
-                    _buildInfoRow('청소인력 수', '${_aptInfo!['kaptdClcnt']}명'),
-                  if (_aptInfo!['codeGarbage'] != null && _aptInfo!['codeGarbage'].toString().isNotEmpty)
-                    _buildInfoRow('음식물처리방법', _aptInfo!['codeGarbage'].toString()),
-                  if (_aptInfo!['codeDisinf'] != null && _aptInfo!['codeDisinf'].toString().isNotEmpty)
-                    _buildInfoRow('소독관리방식', _aptInfo!['codeDisinf'].toString()),
-                  if (_aptInfo!['kaptdDcnt'] != null && _aptInfo!['kaptdDcnt'].toString().isNotEmpty)
-                    _buildInfoRow('소독인력 수', '${_aptInfo!['kaptdDcnt']}명'),
-                  if (_aptInfo!['codeEcon'] != null && _aptInfo!['codeEcon'].toString().isNotEmpty)
-                    _buildInfoRow('세대전기계약방식', _aptInfo!['codeEcon'].toString()),
-                  if (_aptInfo!['kaptdEcapa'] != null && _aptInfo!['kaptdEcapa'].toString().isNotEmpty)
-                    _buildInfoRow('수전용량', _aptInfo!['kaptdEcapa'].toString()),
-                  if (_aptInfo!['codeFalarm'] != null && _aptInfo!['codeFalarm'].toString().isNotEmpty)
-                    _buildInfoRow('화재수신반방식', _aptInfo!['codeFalarm'].toString()),
-                  if (_aptInfo!['codeWsupply'] != null && _aptInfo!['codeWsupply'].toString().isNotEmpty)
-                    _buildInfoRow('급수방식', _aptInfo!['codeWsupply'].toString()),
-                  if (_aptInfo!['codeElev'] != null && _aptInfo!['codeElev'].toString().isNotEmpty)
-                    _buildInfoRow('승강기관리형태', _aptInfo!['codeElev'].toString()),
-                  if (_aptInfo!['codeNet'] != null && _aptInfo!['codeNet'].toString().isNotEmpty)
-                    _buildInfoRow('주차관제/홈네트워크', _aptInfo!['codeNet'].toString()),
-                  if (_aptInfo!['welfareFacility'] != null && _aptInfo!['welfareFacility'].toString().isNotEmpty)
-                    _buildInfoRow('부대/복리시설', _aptInfo!['welfareFacility'].toString()),
-                  if (_aptInfo!['convenientFacility'] != null && _aptInfo!['convenientFacility'].toString().isNotEmpty)
-                    _buildInfoRow('편의시설', _aptInfo!['convenientFacility'].toString()),
-                  if (_aptInfo!['kaptdWtimebus'] != null && _aptInfo!['kaptdWtimebus'].toString().isNotEmpty)
-                    _buildInfoRow('버스정류장 거리', _aptInfo!['kaptdWtimebus'].toString()),
-                  if (_aptInfo!['subwayLine'] != null && _aptInfo!['subwayLine'].toString().isNotEmpty)
-                    _buildInfoRow('지하철 노선', _aptInfo!['subwayLine'].toString()),
-                  if (_aptInfo!['subwayStation'] != null && _aptInfo!['subwayStation'].toString().isNotEmpty)
-                    _buildInfoRow('지하철역', _aptInfo!['subwayStation'].toString()),
-                  if (_aptInfo!['kaptdWtimesub'] != null && _aptInfo!['kaptdWtimesub'].toString().isNotEmpty)
-                    _buildInfoRow('지하철역 거리', _aptInfo!['kaptdWtimesub'].toString()),
-                ],
-              ),
-            ],
-            
-            // 정보가 하나도 없는 경우 (로딩이 완료된 후에만 표시)
-            if (!_isLoadingApiInfo &&
-                (_fullAddrAPIData == null || _fullAddrAPIData!.isEmpty) &&
-                (_vworldCoordinates == null || _vworldCoordinates!.isEmpty) &&
-                (_aptInfo == null || _aptInfo!.isEmpty))
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: Colors.grey.withValues(alpha: 0.05),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Row(
-                  children: [
-                    Icon(Icons.info_outline, color: Colors.grey[600], size: 20),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        'API 정보를 불러올 수 없습니다.\n주소 정보를 확인해주세요.',
-                        style: TextStyle(
-                          fontSize: 13,
-                          color: Colors.grey[700],
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-          ],
-        ],
-      ),
-    );
-  }
-  
-  Widget _buildInfoSection(String title, IconData icon, List<Widget> children) {
-    if (children.isEmpty) return const SizedBox.shrink();
-    
-    return Container(
-      padding: const EdgeInsets.all(16),
-      margin: const EdgeInsets.only(bottom: 16),
-      decoration: BoxDecoration(
-        color: Colors.grey.withValues(alpha: 0.03),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey.withValues(alpha: 0.2)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(icon, size: 18, color: Colors.blue[700]),
-              const SizedBox(width: 8),
-              Text(
-                title,
-                style: TextStyle(
-                  fontSize: 15,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.blue[900],
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          ...children,
-        ],
-      ),
-    );
-  }
 }
 
