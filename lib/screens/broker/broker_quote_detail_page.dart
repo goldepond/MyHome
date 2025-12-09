@@ -172,25 +172,19 @@ class _BrokerQuoteDetailPageState extends State<BrokerQuoteDetailPage> {
       return;
     }
 
-    // 중개 수수료는 반드시 입력
-    if (_commissionRateController.text.trim().isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('수수료를 알려주시면 좋을 것 같아요'),
-          backgroundColor: Colors.orange,
-        ),
-      );
-      return;
-    }
-
-    // 적정 거래가 또는 추가 메시지 중 하나는 입력
-    final hasAnyInput = _recommendedPriceController.text.trim().isNotEmpty ||
+    // 링크 답변 폼과 동일: 어떤 항목이든 최소 하나 입력
+    final hasAnyInput =
+        _recommendedPriceController.text.trim().isNotEmpty ||
+        _commissionRateController.text.trim().isNotEmpty ||
+        _expectedDurationController.text.trim().isNotEmpty ||
+        _promotionMethodController.text.trim().isNotEmpty ||
+        _recentCasesController.text.trim().isNotEmpty ||
         _brokerAnswerController.text.trim().isNotEmpty;
 
     if (!hasAnyInput) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('적정 거래가나 추가 메시지 중 하나는 작성해주시면 감사하겠습니다'),
+          content: Text('최소 한 개 이상의 답변 항목을 입력해주세요.'),
           backgroundColor: Colors.orange,
         ),
       );
@@ -369,7 +363,7 @@ class _BrokerQuoteDetailPageState extends State<BrokerQuoteDetailPage> {
                     _buildTextField(
                       label: TransactionTypeHelper.getAppropriatePriceLabel(widget.quote.transactionType ?? '매매'),
                       controller: _recommendedPriceController,
-                      hint: '예: 11억 5천만원',
+                      hint: '예: 52,000,000원',
                       icon: Icons.attach_money,
                     ),
                     const SizedBox(height: 16),
