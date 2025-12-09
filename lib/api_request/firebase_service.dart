@@ -1251,7 +1251,7 @@ class FirebaseService {
                 await sendNotification(
                   userId: brokerUid,
                   title: '매칭 성공! 🎉',
-                  message: '고객님이 제안주신 견적을 선택했습니다.\n지금 바로 연락처를 확인해보세요.',
+                  message: '고객님이 제안해주신 상담을 선택해주셨어요! 🙏\n지금 바로 연락처를 확인해보세요.',
                   type: 'broker_selected',
                   relatedId: requestId,
                 );

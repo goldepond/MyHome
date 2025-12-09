@@ -751,7 +751,7 @@ class _PropertyRegistrationFormPageState extends State<PropertyRegistrationFormP
                   _buildSectionTitle('매물 사진 (선택)'),
                   const SizedBox(height: 8),
                   Text(
-                    '매물 사진을 첨부해주세요. (선택사항)',
+                    '매물 사진을 첨부해주시면 더 좋아요 (선택사항)',
                     style: TextStyle(fontSize: 12, color: Colors.grey[600]),
                   ),
                   const SizedBox(height: 12),
@@ -762,7 +762,7 @@ class _PropertyRegistrationFormPageState extends State<PropertyRegistrationFormP
                   _buildSectionTitle('아파트 단지 정보'),
                   const SizedBox(height: 8),
                   Text(
-                    '아래 정보는 견적 요청에서 가져온 기본 정보입니다. 필요시 수정해주세요.',
+                    '아래 정보는 상담 요청에서 가져온 기본 정보예요. 필요하시면 수정해주세요.',
                     style: TextStyle(fontSize: 12, color: Colors.grey[600]),
                   ),
                   const SizedBox(height: 12),

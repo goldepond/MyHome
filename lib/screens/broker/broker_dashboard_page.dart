@@ -83,7 +83,7 @@ class _BrokerDashboardPageState extends State<BrokerDashboardPage> with SingleTi
         // 실제 오류가 발생한 경우에만 오류 메시지 표시
         if (mounted) {
           setState(() {
-            _error = '견적 목록을 불러오는 중 오류가 발생했습니다.\n잠시 후 다시 시도해주세요.';
+            _error = '상담 목록을 불러오는 중 문제가 발생했어요.\n잠시 후 다시 시도해주세요.';
             _isLoading = false;
           });
         }
@@ -209,7 +209,7 @@ class _BrokerDashboardPageState extends State<BrokerDashboardPage> with SingleTi
               tabs: const [
                 Tab(
                   icon: Icon(Icons.chat_bubble_outline),
-                  text: '견적문의',
+                  text: '상담 요청',
                 ),
                 Tab(
                   icon: Icon(Icons.home),
@@ -270,7 +270,7 @@ class _BrokerDashboardPageState extends State<BrokerDashboardPage> with SingleTi
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   const Text(
-                                    '공인중개사 대시보드',
+                                    '상담 관리 대시보드',
                                     style: TextStyle(
                                       fontSize: 22,
                                       fontWeight: FontWeight.bold,
@@ -475,8 +475,8 @@ class _BrokerDashboardPageState extends State<BrokerDashboardPage> with SingleTi
             const SizedBox(height: 24),
             Text(
               _selectedStatus == 'all'
-                  ? '받은 견적 요청이 없습니다'
-                  : '조건에 맞는 견적이 없습니다',
+                  ? '아직 받은 상담 요청이 없어요'
+                  : '조건에 맞는 상담이 없어요',
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
@@ -485,7 +485,7 @@ class _BrokerDashboardPageState extends State<BrokerDashboardPage> with SingleTi
             ),
             const SizedBox(height: 8),
             Text(
-              '소유자/임대인으로부터 견적 요청이 들어오면\n여기에 표시됩니다',
+              '소유자/임대인분들로부터 상담 요청이 들어오면\n여기에 표시됩니다',
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 14,
@@ -679,10 +679,10 @@ class _BrokerDashboardPageState extends State<BrokerDashboardPage> with SingleTi
                         final confirmed = await showDialog<bool>(
                           context: context,
                           builder: (context) => AlertDialog(
-                            title: const Text('이번 건 진행 안함'),
+                            title: const Text('이번 건은 보류할까요?'),
                             content: const Text(
-                              '이 견적 문의는 이번에는 진행하지 않으시겠습니까?\n'
-                              '판매자 화면에서는 \'취소됨\' 상태로 표시됩니다.',
+                              '이 상담 요청은 이번에는 진행하지 않으시겠습니까?\n'
+                              '고객님 화면에서는 \'보류됨\'으로 표시됩니다.',
                             ),
                             actions: [
                               TextButton(
@@ -691,7 +691,7 @@ class _BrokerDashboardPageState extends State<BrokerDashboardPage> with SingleTi
                               ),
                               TextButton(
                                 onPressed: () => Navigator.pop(context, true),
-                                child: const Text('진행 안함'),
+                                child: const Text('보류하기'),
                               ),
                             ],
                           ),
@@ -706,7 +706,7 @@ class _BrokerDashboardPageState extends State<BrokerDashboardPage> with SingleTi
                               content: Text(
                                 success
                                     ? '이번 건은 진행하지 않도록 표시했어요.'
-                                    : '처리 중 오류가 발생했습니다. 다시 시도해주세요.',
+                                    : '처리 중 문제가 발생했어요. 잠시 후 다시 시도해주세요.',
                               ),
                               backgroundColor:
                                   success ? AppColors.kInfo : Colors.red,
@@ -727,7 +727,7 @@ class _BrokerDashboardPageState extends State<BrokerDashboardPage> with SingleTi
                       ),
                       icon: const Icon(Icons.block, size: 16),
                       label: const Text(
-                        '진행 안함',
+                        '보류하기',
                         style: TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.w600,

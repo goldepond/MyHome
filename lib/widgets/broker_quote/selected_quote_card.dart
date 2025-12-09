@@ -41,7 +41,7 @@ class SelectedQuoteCard extends StatelessWidget {
                   SizedBox(width: 12),
                   Expanded(
                     child: Text(
-                      '사용자가 이 견적을 선택했습니다!',
+                      '고객님이 제안해주신 상담을 선택해주셨어요! 감사합니다 🙏',
                       style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
@@ -56,7 +56,7 @@ class SelectedQuoteCard extends StatelessWidget {
               const SizedBox(height: 16),
               _buildContactRow(
                 icon: Icons.person,
-                label: '요청자',
+                label: '고객님',
                 value: quote.userName,
               ),
               const SizedBox(height: 12),

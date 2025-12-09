@@ -176,7 +176,7 @@ class _BrokerQuoteDetailPageState extends State<BrokerQuoteDetailPage> {
     if (_commissionRateController.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('중개 수수료를 입력해주세요.'),
+          content: Text('수수료를 알려주시면 좋을 것 같아요'),
           backgroundColor: Colors.orange,
         ),
       );
@@ -190,7 +190,7 @@ class _BrokerQuoteDetailPageState extends State<BrokerQuoteDetailPage> {
     if (!hasAnyInput) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('적정 거래가 또는 추가 메시지 중 하나 이상은 입력해주세요.'),
+          content: Text('적정 거래가나 추가 메시지 중 하나는 작성해주시면 감사하겠습니다'),
           backgroundColor: Colors.orange,
         ),
       );
@@ -231,7 +231,7 @@ class _BrokerQuoteDetailPageState extends State<BrokerQuoteDetailPage> {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
-              content: Text('답변 전송에 실패했습니다. 다시 시도해주세요.'),
+              content: Text('답변 전송에 문제가 있었어요. 잠시 후 다시 시도해주세요.'),
               backgroundColor: Colors.red,
             ),
           );
@@ -348,7 +348,7 @@ class _BrokerQuoteDetailPageState extends State<BrokerQuoteDetailPage> {
                         Icon(Icons.reply, color: AppColors.kPrimary, size: 24),
                         const SizedBox(width: 12),
                         const Text(
-                          '중개 제안 작성',
+                          '상담 답변 작성',
                           style: TextStyle(
                             fontSize: 20,
                             fontWeight: FontWeight.bold,
@@ -359,7 +359,7 @@ class _BrokerQuoteDetailPageState extends State<BrokerQuoteDetailPage> {
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      '소유자/임대인에게 제안할 내용을 입력해주세요',
+                      '소유자/임대인분께 전달할 내용을 작성해주세요',
                       style: TextStyle(
                         fontSize: 13,
                         color: Colors.grey[600],
@@ -376,14 +376,14 @@ class _BrokerQuoteDetailPageState extends State<BrokerQuoteDetailPage> {
                     _buildTextField(
                       label: '중개 수수료',
                       controller: _commissionRateController,
-                      hint: '예: 0.5% (필수 입력)',
+                      hint: '예: 0.5%',
                       icon: Icons.percent,
                     ),
                     const SizedBox(height: 16),
                     _buildTextField(
-                      label: '추가 메시지 (본문)',
+                      label: '추가로 전달하고 싶은 내용',
                       controller: _brokerAnswerController,
-                      hint: '소유자/임대인에게 전하고 싶은 내용을 자유롭게 작성해주세요.',
+                      hint: '소유자/임대인분께 전하고 싶은 내용을 자유롭게 작성해주세요.',
                       icon: Icons.note,
                       maxLines: 4,
                     ),
@@ -406,10 +406,10 @@ class _BrokerQuoteDetailPageState extends State<BrokerQuoteDetailPage> {
                                 final confirmed = await showDialog<bool>(
                                   context: context,
                                   builder: (context) => AlertDialog(
-                                    title: const Text('이번 건 진행 안함'),
+                                    title: const Text('이번 건은 보류할까요?'),
                                     content: const Text(
-                                      '이 견적 문의는 이번에는 진행하지 않으시겠습니까?\n'
-                                      '사용자 화면에서는 \'취소됨\' 상태로 표시됩니다.',
+                                      '이 상담 요청은 이번에는 진행하지 않으시겠습니까?\n'
+                                      '고객님 화면에서는 \'보류됨\'으로 표시됩니다.',
                                     ),
                                     actions: [
                                       TextButton(
@@ -418,7 +418,7 @@ class _BrokerQuoteDetailPageState extends State<BrokerQuoteDetailPage> {
                                       ),
                                       TextButton(
                                         onPressed: () => Navigator.pop(context, true),
-                                        child: const Text('진행 안함'),
+                                        child: const Text('보류하기'),
                                       ),
                                     ],
                                   ),
@@ -442,7 +442,7 @@ class _BrokerQuoteDetailPageState extends State<BrokerQuoteDetailPage> {
                                       content: Text(
                                         success
                                             ? '이번 건은 진행하지 않도록 표시했어요.'
-                                            : '처리 중 오류가 발생했습니다. 다시 시도해주세요.',
+                                            : '처리 중 문제가 발생했어요. 잠시 후 다시 시도해주세요.',
                                       ),
                                       backgroundColor:
                                           success ? AppColors.kInfo : Colors.red,
@@ -459,7 +459,7 @@ class _BrokerQuoteDetailPageState extends State<BrokerQuoteDetailPage> {
                           color: Colors.red,
                         ),
                         label: const Text(
-                          '진행 안함',
+                          '보류하기',
                           style: TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.w600,
@@ -494,7 +494,7 @@ class _BrokerQuoteDetailPageState extends State<BrokerQuoteDetailPage> {
                               )
                             : const Icon(Icons.send, size: 24),
                         label: Text(
-                          _isSubmitting ? '전송 중...' : '답변 전송하기',
+                          _isSubmitting ? '전송 중...' : '답변 보내기',
                           style: const TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
