@@ -116,8 +116,8 @@ class _BrokerInquiryResponsePageState extends State<BrokerInquiryResponsePage> {
             errors.add('아파트 정보 조회 결과 없음');
           }
         } else {
-          debugPrint('단지코드 추출 실패: ${extraction.errorMessage ?? "에러 메시지 없음"}');
-          errors.add('단지코드 추출 실패: ${extraction.errorMessage ?? "에러 메시지 없음"}');
+          debugPrint('단지코드 추출 실패: ${extraction.message}');
+          errors.add('단지코드 추출 실패: ${extraction.message}');
         }
       } catch (e) {
         errors.add('아파트 정보 조회 실패: $e');
@@ -736,12 +736,13 @@ class _BrokerInquiryResponsePageState extends State<BrokerInquiryResponsePage> {
                       ),
               ),
             ),
-                        ],
+                          ],
+                        ),
                       ),
                     ),
-                  ),
-                );
-              },
+                  );
+                },
+              ),
             ),
           ),
         ),
