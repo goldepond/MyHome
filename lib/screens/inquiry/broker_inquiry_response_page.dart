@@ -211,8 +211,6 @@ class _BrokerInquiryResponsePageState extends State<BrokerInquiryResponsePage> {
     );
   }
 
-        }
-
 class _GuideBulletWidget extends StatelessWidget {
   final String text;
 
