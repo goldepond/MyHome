@@ -501,26 +501,6 @@ class _BrokerInquiryResponsePageState extends State<BrokerInquiryResponsePage> {
             
             const SizedBox(height: 24),
             
-            // 문의 내용
-            _buildSection(
-              title: '💬 문의 내용',
-              children: [
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: AppColors.kBackground,
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: Colors.grey.withValues(alpha: 0.2)),
-                  ),
-                  child: Text(
-                    quoteRequest.message,
-                    style: const TextStyle(fontSize: 14, height: 1.6),
-                  ),
-                ),
-              ],
-            ),
-            
             // 특이사항 (입력된 경우에만 표시) - 답변 작성 바로 위에 배치하여 참고하기 쉽게
             if (quoteRequest.hasTenant != null || 
                 quoteRequest.desiredPrice != null || 
