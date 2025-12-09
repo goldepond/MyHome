@@ -33,6 +33,9 @@ class _BrokerQuoteDetailPageState extends State<BrokerQuoteDetailPage> {
   final _recommendedPriceController = TextEditingController();
   final _commissionRateController = TextEditingController();
   final _brokerAnswerController = TextEditingController();
+  final _expectedDurationController = TextEditingController();
+  final _promotionMethodController = TextEditingController();
+  final _recentCasesController = TextEditingController();
 
   bool _isSubmitting = false;
   bool _isRegistered = false; // 매물 등록 여부 로컬 상태
@@ -61,6 +64,15 @@ class _BrokerQuoteDetailPageState extends State<BrokerQuoteDetailPage> {
     }
     if (widget.quote.brokerAnswer != null) {
       _brokerAnswerController.text = widget.quote.brokerAnswer!;
+    }
+    if (widget.quote.expectedDuration != null) {
+      _expectedDurationController.text = widget.quote.expectedDuration!;
+    }
+    if (widget.quote.promotionMethod != null) {
+      _promotionMethodController.text = widget.quote.promotionMethod!;
+    }
+    if (widget.quote.recentCases != null) {
+      _recentCasesController.text = widget.quote.recentCases!;
     }
     
     // 주소가 있으면 API 정보 로드
@@ -140,6 +152,9 @@ class _BrokerQuoteDetailPageState extends State<BrokerQuoteDetailPage> {
   void dispose() {
     _recommendedPriceController.dispose();
     _commissionRateController.dispose();
+    _expectedDurationController.dispose();
+    _promotionMethodController.dispose();
+    _recentCasesController.dispose();
     _brokerAnswerController.dispose();
     super.dispose();
   }
@@ -372,6 +387,29 @@ class _BrokerQuoteDetailPageState extends State<BrokerQuoteDetailPage> {
                       controller: _commissionRateController,
                       hint: '예: 0.5%',
                       icon: Icons.percent,
+                    ),
+                    const SizedBox(height: 16),
+                    _buildTextField(
+                      label: '거래 기간은 얼마나 걸릴까요?',
+                      controller: _expectedDurationController,
+                      hint: '예: 2~3개월',
+                      icon: Icons.timer_outlined,
+                    ),
+                    const SizedBox(height: 16),
+                    _buildTextField(
+                      label: '어떻게 홍보하시나요?',
+                      controller: _promotionMethodController,
+                      hint: '예: 빠른 오픈, 네이버/당근/현수막 병행',
+                      icon: Icons.campaign_outlined,
+                      maxLines: 2,
+                    ),
+                    const SizedBox(height: 16),
+                    _buildTextField(
+                      label: '비슷한 거래 사례가 있나요?',
+                      controller: _recentCasesController,
+                      hint: '예: 인근 A아파트 84㎡, 52,000,000원 (23.12)',
+                      icon: Icons.library_books_outlined,
+                      maxLines: 2,
                     ),
                     const SizedBox(height: 16),
                     _buildTextField(
