@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
+import 'dart:ui' show PlatformDispatcher;
 import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 import 'constants/app_constants.dart';
@@ -16,12 +17,27 @@ import 'utils/admin_page_loader_actual.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
+  // 전역 에러 핸들러 설정
+  FlutterError.onError = (FlutterErrorDetails details) {
+    FlutterError.presentError(details);
+    print('Flutter Error: ${details.exception}');
+    print('Stack trace: ${details.stack}');
+  };
+  
+  // 비동기 에러 핸들러 설정
+  PlatformDispatcher.instance.onError = (error, stack) {
+    print('Platform Error: $error');
+    print('Stack trace: $stack');
+    return true;
+  };
+  
   // .env 파일이 있으면 로드, 없으면 무시 (웹에서는 건너뜀)
   if (!kIsWeb) {
-  try {
-    await dotenv.load(fileName: ".env");
-  } catch (e) {
-    // .env 파일이 없어도 앱은 실행 가능
+    try {
+      await dotenv.load(fileName: ".env");
+    } catch (e) {
+      // .env 파일이 없어도 앱은 실행 가능
+      print('Warning: .env 파일을 로드할 수 없습니다: $e');
     }
   }
   
@@ -31,9 +47,16 @@ void main() async {
       await Firebase.initializeApp(
         options: DefaultFirebaseOptions.currentPlatform,
       );
+      print('Firebase 초기화 성공');
+    } else {
+      print('Firebase가 이미 초기화되어 있습니다');
     }
-  } catch (_) {
-    // Firebase 초기화 실패는 무시 (이미 초기화된 경우 등)
+  } catch (e, stackTrace) {
+    // Firebase 초기화 실패 시 에러 출력
+    print('Firebase 초기화 실패: $e');
+    print('Stack trace: $stackTrace');
+    // Windows에서는 Firebase 초기화 실패 시에도 앱을 계속 실행
+    // 하지만 사용자에게 경고를 표시할 수 있습니다
   }
   
   runApp(const MyApp());

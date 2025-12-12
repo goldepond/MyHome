@@ -17,6 +17,7 @@ import 'broker_list_page.dart';
 import 'package:property/widgets/loading_overlay.dart';
 import 'package:property/api_request/apt_info_service.dart';
 import 'package:property/widgets/retry_view.dart';
+import 'package:property/widgets/customer_service_dialog.dart';
 import 'login_page.dart';
 
 class HomePage extends StatefulWidget {
@@ -994,6 +995,15 @@ class _HomePageState extends State<HomePage> {
               children: [
               // 상단 타이틀 섹션
               const HeroBanner(),
+              const SizedBox(height: 16),
+              // 고객센터 배너
+              Center(
+                child: Container(
+                  constraints: const BoxConstraints(maxWidth: 900),
+                  margin: const EdgeInsets.symmetric(horizontal: 24),
+                  child: _buildCustomerServiceBanner(),
+                ),
+              ),
               const SizedBox(height: 16),
               if (!isLoggedIn && showGuestUpsell)
                 Center(
@@ -2169,6 +2179,79 @@ class _HomePageState extends State<HomePage> {
       ),
     );
   }
+
+  /// 고객센터 배너 위젯
+  Widget _buildCustomerServiceBanner() {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [
+            AppColors.kPrimary.withValues(alpha: 0.1),
+            AppColors.kPrimary.withValues(alpha: 0.05),
+          ],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: AppColors.kPrimary.withValues(alpha: 0.2),
+          width: 1,
+        ),
+      ),
+      child: InkWell(
+        onTap: () {
+          showCustomerServiceDialog(context);
+        },
+        borderRadius: BorderRadius.circular(16),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: AppColors.kPrimary.withValues(alpha: 0.15),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: const Icon(
+                Icons.feedback_outlined,
+                color: AppColors.kPrimary,
+                size: 24,
+              ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    '💬 피드백을 남겨주세요',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF2C3E50),
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    '불편사항이나 개선 아이디어를 알려주시면 더 나은 서비스를 만들 수 있습니다',
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: Colors.grey[700],
+                      height: 1.4,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const Icon(
+              Icons.chevron_right,
+              color: AppColors.kPrimary,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 }
 
 /// 도로명 주소 검색 결과 리스트 위젯
@@ -2560,6 +2643,5 @@ class VWorldDataWidget extends StatelessWidget {
       ),
     );
   }
-
 }
 
