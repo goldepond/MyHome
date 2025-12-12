@@ -6,6 +6,7 @@ import 'package:property/screens/main_page.dart';
 import 'package:property/screens/change_password_page.dart';
 import 'package:property/screens/policy/privacy_policy_page.dart';
 import 'package:property/screens/policy/terms_of_service_page.dart';
+import 'package:property/widgets/customer_service_dialog.dart';
 
 class PersonalInfoPage extends StatefulWidget {
   final String userId;
@@ -440,6 +441,43 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
                       ),
                       const SizedBox(height: 24),
                     ],
+                    
+                    // 고객센터 / 문의하기 섹션
+                    Card(
+                      elevation: 0,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                      color: Colors.white,
+                      shadowColor: Colors.black.withValues(alpha: 0.06),
+                      child: Padding(
+                        padding: const EdgeInsets.all(12),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Padding(
+                              padding: EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                              child: Text(
+                                '고객센터 / 문의하기',
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                  color: Color(0xFF2C3E50),
+                                ),
+                              ),
+                            ),
+                            ListTile(
+                              leading: const Icon(Icons.support_agent_outlined, color: AppColors.kPrimary),
+                              title: const Text('문의하기 / 피드백'),
+                              subtitle: const Text('카카오톡, 페이스북, 스레드, 이메일'),
+                              trailing: const Icon(Icons.chevron_right),
+                              onTap: () {
+                                showCustomerServiceDialog(context);
+                              },
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 24),
                     
                     // 정책 및 도움말 섹션
                     Card(

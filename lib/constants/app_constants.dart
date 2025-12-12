@@ -222,4 +222,12 @@ class RegionConstants {
             "창원시 의창구", "창원시 진해구", "통영시", "하동군", "함안군", "함양군", "합천군"],
     "제주특별자치도": ["서귀포시", "제주시"]
   };
+}
+
+// 고객센터 / 문의하기 관련 URL 상수
+class CustomerServiceUrls {
+  static const String kakaoOpenChatUrl = 'https://open.kakao.com/o/g6pBaX5h';
+  static const String facebookUrl = 'https://www.facebook.com/61585231130222/posts/pfbid0MHmKymArwSneHZdbZu76dx2grVupcE3xu5QCPCz7pRcnVYWXb7eTEJBh2L1QTepol/';
+  static const String threadsUrl = 'https://www.threads.com/@goldepond';
+  static const String supportEmail = 'goldepond@gmail.com';
 } 
