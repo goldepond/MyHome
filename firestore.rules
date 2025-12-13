@@ -14,6 +14,17 @@ service cloud.firestore {
       allow write: if request.auth != null && request.auth.uid == brokerId;
     }
     
+    // 견적문의 컬렉션 (내집관리 페이지 필수)
+    match /quoteRequests/{requestId} {
+      allow read: if request.auth != null;
+      allow create: if request.auth != null;
+      allow update: if request.auth != null;
+      allow delete: if request.auth != null && (
+        resource.data.userId == request.auth.uid ||
+        resource.data.userName == request.auth.uid
+      );
+    }
+    
     // 부동산 매물
     match /properties/{propertyId} {
       allow read: if request.auth != null;
@@ -26,7 +37,39 @@ service cloud.firestore {
       allow write: if request.auth != null;
     }
     
-    // 채팅 메시지
+    // 알림 컬렉션
+    match /notifications/{notificationId} {
+      allow read: if request.auth != null;
+      allow create: if request.auth != null;
+      allow update: if request.auth != null;
+      allow delete: if request.auth != null;
+    }
+    
+    // 채팅방 컬렉션
+    match /chatRooms/{roomId} {
+      allow read: if request.auth != null;
+      allow create: if request.auth != null;
+      allow update: if request.auth != null;
+      allow delete: if request.auth != null;
+    }
+    
+    // 채팅 메시지 (chatMessages)
+    match /chatMessages/{messageId} {
+      allow read: if request.auth != null;
+      allow create: if request.auth != null;
+      allow update: if request.auth != null;
+      allow delete: if request.auth != null;
+    }
+    
+    // 공인중개사 후기
+    match /brokerReviews/{reviewId} {
+      allow read: if request.auth != null;
+      allow create: if request.auth != null;
+      allow update: if request.auth != null;
+      allow delete: if request.auth != null;
+    }
+    
+    // 채팅 메시지 (chat_messages - 기존)
     match /chat_messages/{messageId} {
       allow read: if request.auth != null && (
         resource.data.senderId == request.auth.uid || 
@@ -54,6 +97,14 @@ service cloud.firestore {
         resource.data.buyerId == request.auth.uid || 
         resource.data.sellerId == request.auth.uid
       );
+    }
+    
+    // 사용자 로그 (관리자/디버깅용)
+    match /user_logs/{logId} {
+      allow read: if request.auth != null;
+      allow create: if request.auth != null;
+      allow update: if request.auth != null;
+      allow delete: if request.auth != null;
     }
   }
 }
