@@ -1,9 +1,10 @@
 name: Deploy Flutter Web to GitHub Pages
 
+# 이 워크플로우는 비활성화되었습니다. deploy.yml을 사용하세요.
 on:
-  push:
-    branches: [ main ]
-  workflow_dispatch:
+  # push:
+  #   branches: [ main ]
+  # workflow_dispatch:
 
 permissions:
   contents: write
