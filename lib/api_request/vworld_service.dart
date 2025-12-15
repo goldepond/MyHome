@@ -167,7 +167,7 @@ class VWorldService {
   static Future<void> testApis() async {
     
     // Geocoder API 테스트
-    const testAddress = '경기도 성남시 분당구 중앙공원로 54';
+    const testAddress = '서울특별시 강북구 덕릉로 138';
     await getCoordinatesFromAddress(testAddress);
     
   }

@@ -1049,7 +1049,7 @@ class _HomePageState extends State<HomePage> {
                   },
                   decoration: InputDecoration(
                     border: InputBorder.none,
-                    hintText: '경기도 성남시 분당구 중앙공원로 54',
+                    hintText: '예) 서울특별시 강북구 덕릉로 138',
                     hintStyle: TextStyle(
                       fontSize: 18,
                       color: Colors.grey[400],

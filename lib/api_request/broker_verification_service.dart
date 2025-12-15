@@ -128,13 +128,18 @@ class BrokerVerificationService {
         }
       }
       
-      // API 호출 실패 또는 데이터 없음 -> Mock 데이터로 Fallback (테스트용)
-      // 실제 운영 시에는 이 부분을 제거하거나 '검증 실패'로 처리해야 함
-      return _mockValidation(registrationNumber, ownerName);
+      // API 호출 실패 또는 데이터 없음 -> 검증 실패 처리
+      return BrokerValidationResult.failure(
+        '국가공간정보포털(V-World)에서 해당 정보를 찾을 수 없습니다.\n'
+        '등록번호와 대표자명을 정확히 입력해주세요.'
+      );
 
     } catch (e) {
-      // 에러 발생 시 Mock 데이터로 Fallback
-      return _mockValidation(registrationNumber, ownerName);
+      // 에러 발생 시 검증 실패 처리
+      return BrokerValidationResult.failure(
+        '공인중개사 검증 중 오류가 발생했습니다.\n'
+        '네트워크 연결을 확인하고 다시 시도해주세요.'
+      );
     }
   }
   

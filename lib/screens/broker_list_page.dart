@@ -84,7 +84,7 @@ class _BrokerListPageState extends State<BrokerListPage> {
   // ===================== 테스트 전용 설정 =====================
   // 특정 테스트 중개사(김이택)를 항상 목록에 포함시키기 위한 플래그입니다.
   // 실제 운영 시에는 이 값을 false 로 바꾸거나, 아래 블록 전체를 삭제하면 됩니다.
-  static const bool _enableTestBroker = true;
+  static const bool _enableTestBroker = false;
   static const String _testBrokerRegistrationNumber = '22222222222222222';
   // ==========================================================
   

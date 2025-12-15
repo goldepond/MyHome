@@ -23,7 +23,7 @@ class AddressUtils {
         if (foundSigungu != null) {
           String roadRemain = remain.substring(foundSigungu.length).trim();
           // 도로명과 건물번호 분리
-          // 예: '중앙공원로 54 (서현동, 시범단지우성아파트)'
+          // 예: '덕릉로 138'
           final reg = RegExp(r'^(.*?)(\d+)(?=\s|\(|$)');
           final match = reg.firstMatch(roadRemain);
           String roadName = '';
