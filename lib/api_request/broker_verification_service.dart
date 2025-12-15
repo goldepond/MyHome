@@ -149,26 +149,4 @@ class BrokerVerificationService {
     final n2 = name2.replaceAll(RegExp(r'\s+'), '').trim();
     return n1 == n2 || n1.contains(n2) || n2.contains(n1);
   }
-
-  /// 테스트용 Mock 검증 함수
-  static Future<BrokerValidationResult> _mockValidation(String regNo, String name) async {
-    await Future.delayed(const Duration(milliseconds: 800)); // 네트워크 지연 시뮬레이션
-
-    // 테스트 계정 (백도어)
-    if (name == "김중개" || name.contains("테스트")) {
-      return BrokerValidationResult.success(BrokerInfo(
-        registrationNumber: regNo,
-        ownerName: name,
-        businessName: "테스트 공인중개사사무소 (Mock)",
-        address: "서울시 강남구 테헤란로 123",
-        phoneNumber: "02-1234-5678",
-        systemRegNo: "MOCK-${DateTime.now().millisecondsSinceEpoch}",
-      ));
-    }
-
-    return BrokerValidationResult.failure(
-      '국가공간정보포털(V-World)에서 해당 정보를 찾을 수 없습니다.\n'
-      '등록번호와 대표자명을 정확히 입력해주세요.'
-    );
-  }
 }

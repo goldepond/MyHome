@@ -163,15 +163,6 @@ class VWorldService {
     }
   }
 
-  /// 테스트용 메서드
-  static Future<void> testApis() async {
-    
-    // Geocoder API 테스트
-    const testAddress = '서울특별시 강북구 덕릉로 138';
-    await getCoordinatesFromAddress(testAddress);
-    
-  }
-
   static Future<Map<String, dynamic>?> _requestGeocoder(String address, {required String type}) async {
     final uri = Uri.parse(VWorldApiConstants.geocoderBaseUrl).replace(queryParameters: {
       'service': 'address',
