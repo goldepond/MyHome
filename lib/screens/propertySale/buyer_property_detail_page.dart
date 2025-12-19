@@ -95,11 +95,11 @@ class _BuyerPropertyDetailPageState extends State<BuyerPropertyDetailPage> {
     final lifecycleLabel = PropertyLifecycleStatus.label(lifecycle);
 
     return Scaffold(
-      backgroundColor: AppColors.kBackground,
+      backgroundColor: AirbnbColors.surface,
       appBar: AppBar(
         title: const Text('매물 상세보기'),
-        backgroundColor: AppColors.kPrimary,
-        foregroundColor: Colors.white,
+        backgroundColor: AirbnbColors.background, // 에어비엔비 스타일: 흰색 배경
+        foregroundColor: AirbnbColors.background,
       ),
       body: SingleChildScrollView(
         padding: EdgeInsets.symmetric(horizontal: horizontalPadding, vertical: 16),
@@ -125,7 +125,7 @@ class _BuyerPropertyDetailPageState extends State<BuyerPropertyDetailPage> {
                 _buildInfoCard(
                   title: '기본 정보',
                   icon: Icons.info_outline,
-                  color: Colors.blue,
+                  color: AirbnbColors.primary,
                   children: [
                     _buildInfoRow('주소', widget.property.address),
                     if (widget.property.addressCity != null && widget.property.addressCity!.isNotEmpty)
@@ -157,7 +157,7 @@ class _BuyerPropertyDetailPageState extends State<BuyerPropertyDetailPage> {
                   _buildInfoCard(
                     title: '건물 정보',
                     icon: Icons.apartment,
-                    color: Colors.purple,
+                    color: AirbnbColors.primary,
                     children: [
                       if (widget.property.buildingName != null && widget.property.buildingName!.isNotEmpty)
                         _buildInfoRow('단지명', widget.property.buildingName!),
@@ -205,7 +205,7 @@ class _BuyerPropertyDetailPageState extends State<BuyerPropertyDetailPage> {
                   _buildInfoCard(
                     title: '토지 정보',
                     icon: Icons.landscape,
-                    color: Colors.green,
+                    color: AirbnbColors.success,
                     children: [
                       if (widget.property.landPurpose != null && widget.property.landPurpose!.isNotEmpty)
                         _buildInfoRow('지목', widget.property.landPurpose!),
@@ -234,7 +234,7 @@ class _BuyerPropertyDetailPageState extends State<BuyerPropertyDetailPage> {
                   _buildInfoCard(
                     title: '매물 설명',
                     icon: Icons.description,
-                    color: Colors.orange,
+                    color: AirbnbColors.warning,
                     children: [
                       // 작성자 정보 추가
                       if (widget.property.registeredByName != null && widget.property.registeredByName!.isNotEmpty) ...[
@@ -242,13 +242,13 @@ class _BuyerPropertyDetailPageState extends State<BuyerPropertyDetailPage> {
                           padding: const EdgeInsets.only(left: 8.0, right: 8.0, top: 8.0, bottom: 4.0),
                           child: Row(
                             children: [
-                              Icon(Icons.person_outline, size: 14, color: Colors.grey[600]),
+                              Icon(Icons.person_outline, size: 14, color: AirbnbColors.textSecondary),
                               const SizedBox(width: 6),
                               Text(
                                 '작성자: ${widget.property.registeredByName}',
                                 style: TextStyle(
                                   fontSize: 12,
-                                  color: Colors.grey[600],
+                                  color: AirbnbColors.textSecondary,
                                   fontStyle: FontStyle.italic,
                                 ),
                               ),
@@ -263,13 +263,13 @@ class _BuyerPropertyDetailPageState extends State<BuyerPropertyDetailPage> {
                           padding: const EdgeInsets.only(left: 8.0, right: 8.0, top: 8.0, bottom: 4.0),
                           child: Row(
                             children: [
-                              Icon(Icons.business, size: 14, color: Colors.grey[600]),
+                              Icon(Icons.business, size: 14, color: AirbnbColors.textSecondary),
                               const SizedBox(width: 6),
                               Text(
                                 '작성자: ${widget.property.brokerInfo!['brokerName'] ?? widget.property.brokerInfo!['broker_office_name'] ?? '공인중개사'}',
                                 style: TextStyle(
                                   fontSize: 12,
-                                  color: Colors.grey[600],
+                                  color: AirbnbColors.textSecondary,
                                   fontStyle: FontStyle.italic,
                                 ),
                               ),
@@ -285,7 +285,7 @@ class _BuyerPropertyDetailPageState extends State<BuyerPropertyDetailPage> {
                           style: const TextStyle(
                             fontSize: 14,
                             height: 1.6,
-                            color: Color(0xFF2C3E50),
+                            color: AirbnbColors.textPrimary,
                           ),
                         ),
                       ),
@@ -299,7 +299,7 @@ class _BuyerPropertyDetailPageState extends State<BuyerPropertyDetailPage> {
                   _buildInfoCard(
                     title: '주소 상세 정보',
                     icon: Icons.location_on,
-                    color: Colors.blue,
+                    color: AirbnbColors.primary,
                     children: [
                       if (widget.property.fullAddrAPIData['roadAddr'] != null &&
                           widget.property.fullAddrAPIData['roadAddr']!.isNotEmpty)
@@ -339,7 +339,7 @@ class _BuyerPropertyDetailPageState extends State<BuyerPropertyDetailPage> {
                   _buildInfoCard(
                     title: '등록 정보',
                     icon: Icons.person,
-                    color: Colors.teal,
+                    color: AirbnbColors.teal,
                     children: [
                       if (widget.property.registeredByName?.isNotEmpty ?? false)
                         _buildInfoRow('등록자', widget.property.registeredByName!),
@@ -360,7 +360,7 @@ class _BuyerPropertyDetailPageState extends State<BuyerPropertyDetailPage> {
                   _buildInfoCard(
                     title: '시세 정보',
                     icon: Icons.trending_up,
-                    color: Colors.red,
+                    color: AirbnbColors.error,
                     children: [
                       if (widget.property.marketValue != null && widget.property.marketValue!.isNotEmpty)
                         _buildInfoRow('시세', widget.property.marketValue!),
@@ -383,7 +383,7 @@ class _BuyerPropertyDetailPageState extends State<BuyerPropertyDetailPage> {
                   _buildInfoCard(
                     title: '메모',
                     icon: Icons.note,
-                    color: Colors.amber,
+                    color: AirbnbColors.orange,
                     children: [
                       Padding(
                         padding: const EdgeInsets.all(8.0),
@@ -392,7 +392,7 @@ class _BuyerPropertyDetailPageState extends State<BuyerPropertyDetailPage> {
                           style: const TextStyle(
                             fontSize: 14,
                             height: 1.6,
-                            color: Color(0xFF2C3E50),
+                            color: AirbnbColors.textPrimary,
                           ),
                         ),
                       ),
@@ -406,7 +406,7 @@ class _BuyerPropertyDetailPageState extends State<BuyerPropertyDetailPage> {
                   _buildInfoCard(
                     title: '등기부등본 요약',
                     icon: Icons.description,
-                    color: Colors.brown,
+                    color: AirbnbColors.primary,
                     children: [
                       Padding(
                         padding: const EdgeInsets.all(8.0),
@@ -415,7 +415,7 @@ class _BuyerPropertyDetailPageState extends State<BuyerPropertyDetailPage> {
                           style: const TextStyle(
                             fontSize: 14,
                             height: 1.6,
-                            color: Color(0xFF2C3E50),
+                            color: AirbnbColors.textPrimary,
                           ),
                         ),
                       ),
@@ -483,7 +483,7 @@ class _BuyerPropertyDetailPageState extends State<BuyerPropertyDetailPage> {
                   _buildInfoCard(
                     title: '등기부등본 발급 정보',
                     icon: Icons.description,
-                    color: Colors.grey,
+                    color: AirbnbColors.textSecondary,
                     children: [
                       if (widget.property.publishDate != null && widget.property.publishDate!.isNotEmpty)
                         _buildInfoRow('발급일', widget.property.publishDate!),
@@ -520,7 +520,7 @@ class _BuyerPropertyDetailPageState extends State<BuyerPropertyDetailPage> {
       height: 400,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(12),
-        color: Colors.grey[200],
+        color: AirbnbColors.borderLight,
       ),
       child: PageView.builder(
         itemCount: imageUrls.length,
@@ -532,16 +532,16 @@ class _BuyerPropertyDetailPageState extends State<BuyerPropertyDetailPage> {
               fit: BoxFit.cover,
               errorBuilder: (context, error, stackTrace) {
                 return Container(
-                  color: Colors.grey[300],
+                  color: AirbnbColors.border,
                   child: const Center(
-                    child: Icon(Icons.error_outline, size: 48, color: Colors.grey),
+                    child: Icon(Icons.error_outline, size: 48, color: AirbnbColors.textSecondary),
                   ),
                 );
               },
               loadingBuilder: (context, child, loadingProgress) {
                 if (loadingProgress == null) return child;
                 return Container(
-                  color: Colors.grey[200],
+                  color: AirbnbColors.borderLight,
                   child: Center(
                     child: CircularProgressIndicator(
                       value: loadingProgress.expectedTotalBytes != null
@@ -568,7 +568,7 @@ class _BuyerPropertyDetailPageState extends State<BuyerPropertyDetailPage> {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AirbnbColors.background,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
           color: color.withValues(alpha: 0.3),
@@ -576,7 +576,7 @@ class _BuyerPropertyDetailPageState extends State<BuyerPropertyDetailPage> {
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.06),
+            color: AirbnbColors.textPrimary.withValues(alpha: 0.06),
             blurRadius: 10,
             offset: const Offset(0, 2),
           ),
@@ -625,7 +625,7 @@ class _BuyerPropertyDetailPageState extends State<BuyerPropertyDetailPage> {
               label,
               style: TextStyle(
                 fontSize: 14,
-                color: Colors.grey[700],
+                color: AirbnbColors.textSecondary,
                 fontWeight: FontWeight.w600,
               ),
             ),
@@ -635,7 +635,7 @@ class _BuyerPropertyDetailPageState extends State<BuyerPropertyDetailPage> {
               value,
               style: TextStyle(
                 fontSize: 14,
-                color: valueColor ?? const Color(0xFF2C3E50),
+                color: valueColor ?? AirbnbColors.textPrimary,
                 fontWeight: FontWeight.w500,
               ),
             ),
@@ -687,15 +687,15 @@ class _BuyerPropertyDetailPageState extends State<BuyerPropertyDetailPage> {
 
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AirbnbColors.background,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: Colors.indigo.withValues(alpha: 0.3),
+          color: AirbnbColors.blue.withValues(alpha: 0.3),
           width: 2,
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.06),
+            color: AirbnbColors.textPrimary.withValues(alpha: 0.06),
             blurRadius: 10,
             offset: const Offset(0, 2),
           ),
@@ -712,10 +712,10 @@ class _BuyerPropertyDetailPageState extends State<BuyerPropertyDetailPage> {
                 Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: Colors.indigo.withValues(alpha: 0.1),
+                    color: AirbnbColors.blue.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  child: const Icon(Icons.business, color: Colors.indigo, size: 24),
+                  child: const Icon(Icons.business, color: AirbnbColors.blue, size: 24),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
@@ -727,7 +727,7 @@ class _BuyerPropertyDetailPageState extends State<BuyerPropertyDetailPage> {
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
-                          color: Colors.indigo,
+                          color: AirbnbColors.blue,
                         ),
                       ),
                       const SizedBox(height: 8),
@@ -743,20 +743,20 @@ class _BuyerPropertyDetailPageState extends State<BuyerPropertyDetailPage> {
                                   style: const TextStyle(
                                     fontSize: 18,
                                     fontWeight: FontWeight.bold,
-                                    color: Color(0xFF2C3E50),
+                                    color: AirbnbColors.textPrimary,
                                   ),
                                 ),
                                 if (hasPhoneNumber) ...[
                                   const SizedBox(height: 4),
                                   Row(
                                     children: [
-                                      const Icon(Icons.phone, size: 16, color: Colors.grey),
+                                      const Icon(Icons.phone, size: 16, color: AirbnbColors.textSecondary),
                                       const SizedBox(width: 4),
                                       Text(
                                         phoneNumber,
                                         style: const TextStyle(
                                           fontSize: 15,
-                                          color: Colors.grey,
+                                          color: AirbnbColors.textSecondary,
                                         ),
                                       ),
                                     ],
@@ -779,7 +779,7 @@ class _BuyerPropertyDetailPageState extends State<BuyerPropertyDetailPage> {
                                     ScaffoldMessenger.of(context).showSnackBar(
                                       SnackBar(
                                         content: Text('전화 걸기 실패: $e'),
-                                        backgroundColor: Colors.red,
+                                        backgroundColor: AirbnbColors.error,
                                       ),
                                     );
                                   }
@@ -788,8 +788,8 @@ class _BuyerPropertyDetailPageState extends State<BuyerPropertyDetailPage> {
                               icon: const Icon(Icons.call, size: 18),
                               label: const Text('전화걸기', style: TextStyle(fontSize: 14)),
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.green,
-                                foregroundColor: Colors.white,
+                                backgroundColor: AirbnbColors.success,
+                                foregroundColor: AirbnbColors.background,
                                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(8),
@@ -833,7 +833,7 @@ class _BuyerPropertyDetailPageState extends State<BuyerPropertyDetailPage> {
                     '소개',
                     style: TextStyle(
                       fontSize: 14,
-                      color: Colors.grey[700],
+                      color: AirbnbColors.textSecondary,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
@@ -843,7 +843,7 @@ class _BuyerPropertyDetailPageState extends State<BuyerPropertyDetailPage> {
                     style: const TextStyle(
                       fontSize: 14,
                       height: 1.6,
-                      color: Color(0xFF2C3E50),
+                      color: AirbnbColors.textPrimary,
                     ),
                   ),
                 ],

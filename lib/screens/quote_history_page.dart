@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:property/constants/app_constants.dart';
+import 'package:property/constants/typography.dart';
+import 'package:property/constants/responsive_constants.dart';
 import 'package:property/api_request/firebase_service.dart';
 import 'package:property/models/quote_request.dart';
 import 'package:property/widgets/home_logo_button.dart';
@@ -161,29 +163,29 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: Row(
           children: [
-            Icon(Icons.phone, color: AppColors.kPrimary, size: 28),
+            Icon(Icons.phone, color: AirbnbColors.primary, size: 28),
             const SizedBox(width: 12),
-            const Text('재연락 방법', style: TextStyle(fontSize: 20)),
+            Text('재연락 방법', style: AppTypography.h3),
           ],
         ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
+            Text(
               '이 공인중개사와 재연락하는 방법을 선택하세요:',
-              style: TextStyle(fontSize: 15, height: 1.5),
+              style: AppTypography.body.copyWith(height: 1.5),
             ),
             const SizedBox(height: 16),
             ListTile(
-              leading: const Icon(Icons.phone, color: Colors.green),
+              leading: const Icon(Icons.phone, color: AirbnbColors.success),
               title: const Text('전화 걸기', style: TextStyle(fontWeight: FontWeight.w600)),
               subtitle: const Text('직접 통화하여 문의'),
               onTap: () => Navigator.pop(context, 'phone'),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
             ),
             ListTile(
-              leading: const Icon(Icons.refresh, color: AppColors.kPrimary),
+              leading: const Icon(Icons.refresh, color: AirbnbColors.primary),
               title: const Text('다시 견적 요청', style: TextStyle(fontWeight: FontWeight.w600)),
               subtitle: const Text('같은 주소로 새로 견적 요청'),
               onTap: () => Navigator.pop(context, 'resend'),
@@ -207,7 +209,7 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('전화번호 정보가 없습니다.'),
-            backgroundColor: Colors.orange,
+            backgroundColor: AirbnbColors.warning,
           ),
         );
         return;
@@ -219,7 +221,7 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('전화번호 정보는 공인중개사 목록에서 확인할 수 있습니다.'),
-          backgroundColor: AppColors.kInfo,
+          backgroundColor: AirbnbColors.textPrimary, // 에어비엔비 스타일: 검은색 배경
           duration: Duration(seconds: 3),
         ),
       );
@@ -229,7 +231,7 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('주소 정보가 없어 견적을 다시 요청할 수 없습니다.'),
-            backgroundColor: Colors.orange,
+            backgroundColor: AirbnbColors.warning,
           ),
         );
         return;
@@ -256,7 +258,7 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
                 content: Text('주소 정보를 찾을 수 없습니다.'),
-                backgroundColor: Colors.red,
+                backgroundColor: AirbnbColors.error,
               ),
             );
           }
@@ -272,7 +274,7 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
                 content: Text('좌표 정보를 가져올 수 없습니다.'),
-                backgroundColor: Colors.red,
+                backgroundColor: AirbnbColors.error,
               ),
             );
           }
@@ -304,7 +306,7 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text('오류가 발생했습니다: $e'),
-              backgroundColor: Colors.red,
+              backgroundColor: AirbnbColors.error,
             ),
           );
         }
@@ -319,7 +321,7 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('중개사 등록번호 정보가 없어 상세 페이지를 열 수 없습니다.'),
-          backgroundColor: Colors.orange,
+          backgroundColor: AirbnbColors.warning,
         ),
       );
       return;
@@ -379,7 +381,7 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('로그인 후 후기를 작성할 수 있습니다.'),
-          backgroundColor: Colors.orange,
+          backgroundColor: AirbnbColors.warning,
         ),
       );
       return;
@@ -388,7 +390,7 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('상담이 완료된 견적에만 후기를 남길 수 있습니다.'),
-          backgroundColor: Colors.orange,
+          backgroundColor: AirbnbColors.warning,
         ),
       );
       return;
@@ -398,7 +400,7 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('중개사 정보가 없어 후기를 작성할 수 없습니다.'),
-          backgroundColor: Colors.orange,
+          backgroundColor: AirbnbColors.warning,
         ),
       );
       return;
@@ -439,15 +441,12 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
                 children: [
                   Text(
                     '${quote.brokerName} 후기',
-                    style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
+                    style: AppTypography.h4.copyWith(fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 8),
                   Row(
                     children: [
-                      const Text('추천 여부', style: TextStyle(fontSize: 14)),
+                      Text('추천 여부', style: AppTypography.bodySmall),
                       const SizedBox(width: 8),
                       ChoiceChip(
                         label: const Text('추천'),
@@ -515,21 +514,21 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
                           ScaffoldMessenger.of(this.context).showSnackBar(
                             const SnackBar(
                               content: Text('후기가 저장되었습니다.'),
-                              backgroundColor: AppColors.kSuccess,
+                              backgroundColor: AirbnbColors.success,
                             ),
                           );
                         } else {
                           ScaffoldMessenger.of(this.context).showSnackBar(
                             const SnackBar(
                               content: Text('후기 저장에 실패했습니다.'),
-                              backgroundColor: Colors.red,
+                              backgroundColor: AirbnbColors.error,
                             ),
                           );
                         }
                       },
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.kPrimary,
-                        foregroundColor: Colors.white,
+                        backgroundColor: AirbnbColors.textPrimary, // 에어비엔비 스타일: 검은색 배경
+                        foregroundColor: AirbnbColors.background,
                         padding: const EdgeInsets.symmetric(vertical: 14),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
@@ -537,10 +536,7 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
                       ),
                       child: Text(
                         existingReview == null ? '후기 저장' : '후기 수정하기',
-                        style: const TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w600,
-                        ),
+                        style: AppTypography.buttonSmall.copyWith(fontWeight: FontWeight.w600),
                       ),
                     ),
                   ),
@@ -568,29 +564,29 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
       context: context,
       builder: (context) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Row(
+        title: Row(
           children: [
-            Icon(Icons.warning, color: Colors.orange, size: 28),
-            SizedBox(width: 12),
-            Text('삭제 확인', style: TextStyle(fontSize: 20)),
+            const Icon(Icons.warning, color: AirbnbColors.warning, size: 28),
+            const SizedBox(width: 12),
+            Text('삭제 확인', style: AppTypography.h3),
           ],
         ),
-        content: const Text(
+        content: Text(
           '이 견적문의를 삭제하시겠습니까?\n삭제된 내역은 복구할 수 없습니다.',
-          style: TextStyle(fontSize: 15, height: 1.5),
+          style: AppTypography.body.copyWith(height: 1.5),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('취소', style: TextStyle(fontSize: 15)),
+            child: Text('취소', style: AppTypography.buttonSmall),
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(context, true),
             style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.red,
-              foregroundColor: Colors.white,
+              backgroundColor: AirbnbColors.error,
+              foregroundColor: AirbnbColors.background,
             ),
-            child: const Text('삭제', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600)),
+            child: Text('삭제', style: AppTypography.buttonSmall.copyWith(fontWeight: FontWeight.w600)),
           ),
         ],
       ),
@@ -603,14 +599,14 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('견적문의가 삭제되었습니다.'),
-            backgroundColor: AppColors.kSuccess,
+            backgroundColor: AirbnbColors.success,
           ),
         );
       } else if (!success && mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('삭제에 실패했습니다.'),
-            backgroundColor: Colors.red,
+            backgroundColor: AirbnbColors.error,
           ),
         );
       }
@@ -645,7 +641,7 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
               Container(
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
-                  color: AppColors.kPrimary,
+                  color: AirbnbColors.primary,
                   borderRadius: const BorderRadius.only(
                     topLeft: Radius.circular(20),
                     topRight: Radius.circular(20),
@@ -653,7 +649,7 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
                 ),
                 child: Row(
                   children: [
-                    const Icon(Icons.description, color: Colors.white, size: 24),
+                    const Icon(Icons.description, color: AirbnbColors.background, size: 24),
                     const SizedBox(width: 12),
                     Expanded(
                       child: Column(
@@ -661,18 +657,17 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
                         children: [
                           Text(
                             quote.brokerName,
-                            style: const TextStyle(
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
+                            style: AppTypography.withColor(
+                              AppTypography.h3.copyWith(fontWeight: FontWeight.bold),
+                              AirbnbColors.background,
                             ),
                           ),
                           if (quote.answerDate != null)
                             Text(
                               '답변일: ${dateFormat.format(quote.answerDate!)}',
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: Colors.white.withValues(alpha: 0.9),
+                              style: AppTypography.withColor(
+                                AppTypography.caption,
+                                AirbnbColors.background.withValues(alpha: 0.9),
                               ),
                             ),
                         ],
@@ -684,18 +679,15 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
                         _openBrokerDetailFromQuote(quote);
                       },
                       style: TextButton.styleFrom(
-                        foregroundColor: Colors.white,
+                        foregroundColor: AirbnbColors.background,
                       ),
-                      child: const Text(
+                      child: Text(
                         '중개사 소개 / 후기 보기',
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                        ),
+                        style: AppTypography.caption.copyWith(fontWeight: FontWeight.w600),
                       ),
                     ),
                     IconButton(
-                      icon: const Icon(Icons.close, color: Colors.white),
+                      icon: const Icon(Icons.close, color: AirbnbColors.background),
                       onPressed: () => Navigator.pop(context),
                     ),
                   ],
@@ -714,7 +706,7 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
                         _buildDetailSection(
                           '매물 정보',
                           Icons.home,
-                          Colors.blue,
+                          AirbnbColors.primary,
                           [
                             if (quote.propertyAddress != null)
                               _buildDetailRow('위치', quote.propertyAddress!),
@@ -734,7 +726,7 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
                         _buildDetailSection(
                           '중개 제안',
                           Icons.campaign,
-                          Colors.green,
+                          AirbnbColors.success,
                           [
                             if (quote.recommendedPrice != null)
                               _buildDetailRow('권장 거래가', quote.recommendedPrice!),
@@ -758,22 +750,21 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
                         _buildDetailSection(
                           '공인중개사 답변',
                           Icons.reply,
-                          const Color(0xFF9C27B0),
+                          AirbnbColors.primary,
                           [
                             Container(
                               width: double.infinity,
                               padding: const EdgeInsets.all(16),
                               decoration: BoxDecoration(
-                                color: Colors.grey[50],
+                                color: AirbnbColors.surface,
                                 borderRadius: BorderRadius.circular(12),
-                                border: Border.all(color: Colors.grey[300]!),
+                                border: Border.all(color: AirbnbColors.border),
                               ),
                               child: Text(
                                 quote.brokerAnswer!,
-                                style: const TextStyle(
-                                  fontSize: 14,
-                                  height: 1.7,
-                                  color: Color(0xFF2C3E50),
+                                style: AppTypography.withColor(
+                                  AppTypography.bodySmall.copyWith(height: 1.7),
+                                  AirbnbColors.textPrimary,
                                 ),
                               ),
                             ),
@@ -789,7 +780,7 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: Colors.grey[100],
+                  color: AirbnbColors.surface,
                   borderRadius: const BorderRadius.only(
                     bottomLeft: Radius.circular(20),
                     bottomRight: Radius.circular(20),
@@ -804,8 +795,8 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
                           _recontactBroker(quote);
                         },
                         style: OutlinedButton.styleFrom(
-                          foregroundColor: AppColors.kPrimary,
-                          side: BorderSide(color: AppColors.kPrimary, width: 1.5),
+                          foregroundColor: AirbnbColors.primary,
+                          side: BorderSide(color: AirbnbColors.primary, width: 1.5),
                           padding: const EdgeInsets.symmetric(vertical: 12),
                         ),
                         icon: const Icon(Icons.phone, size: 18),
@@ -820,8 +811,8 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
                           _deleteQuote(quote.id);
                         },
                         style: OutlinedButton.styleFrom(
-                          foregroundColor: Colors.red,
-                          side: const BorderSide(color: Colors.red, width: 1.5),
+                          foregroundColor: AirbnbColors.error,
+                          side: const BorderSide(color: AirbnbColors.error, width: 1.5),
                           padding: const EdgeInsets.symmetric(vertical: 12),
                         ),
                         icon: const Icon(Icons.delete, size: 18),
@@ -882,11 +873,10 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
             width: 100,
             child: Text(
               label,
-              style: TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
-                color: Colors.grey[700],
-              ),
+            style: AppTypography.withColor(
+              AppTypography.bodySmall.copyWith(fontWeight: FontWeight.w600),
+              AirbnbColors.textSecondary,
+            ),
             ),
           ),
           Expanded(
@@ -894,7 +884,7 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
               value,
               style: const TextStyle(
                 fontSize: 14,
-                color: Color(0xFF2C3E50),
+                color: AirbnbColors.textPrimary,
                 height: 1.5,
               ),
             ),
@@ -906,13 +896,11 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
   
   @override
   Widget build(BuildContext context) {
-    final screenWidth = MediaQuery.of(context).size.width;
-    final isWeb = screenWidth > 800;
-    final maxWidth = isWeb ? 1200.0 : screenWidth;
+    final maxWidth = ResponsiveHelper.getMaxWidth(context);
     final structuredQuotes = quotes.where(_hasStructuredData).toList();
     
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FA),
+      backgroundColor: AirbnbColors.surface,
       body: CustomScrollView(
         slivers: [
           // 헤더
@@ -920,15 +908,15 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
             expandedHeight: 180,
             floating: false,
             pinned: true,
-            backgroundColor: Colors.white,
-            foregroundColor: AppColors.kPrimary,
+            backgroundColor: AirbnbColors.background,
+            foregroundColor: AirbnbColors.primary,
             elevation: 0,
-            title: const HomeLogoButton(fontSize: 18),
+            title: HomeLogoButton(fontSize: AppTypography.h4.fontSize!),
             centerTitle: false,
             actions: [
               // 견적 비교 버튼 (MVP 핵심)
               IconButton(
-                icon: const Icon(Icons.compare_arrows, color: Colors.white),
+                icon: const Icon(Icons.compare_arrows, color: AirbnbColors.background),
                 tooltip: '견적 비교',
                 onPressed: () {
                   // 답변 완료된 견적만 필터
@@ -959,7 +947,7 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(
                         content: Text('받은 견적이 없습니다. 공인중개사로부터 답변을 받으면 확인할 수 있습니다.'),
-                        backgroundColor: Colors.orange,
+                        backgroundColor: AirbnbColors.warning,
                         duration: Duration(seconds: 3),
                       ),
                     );
@@ -996,37 +984,41 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
             flexibleSpace: FlexibleSpaceBar(
               background: Container(
                 decoration: const BoxDecoration(
-                  color: AppColors.kSecondary, // 남색 단색
+                  color: AirbnbColors.background,
                 ),
                 child: Center(
                   child: Container(
                     constraints: BoxConstraints(maxWidth: maxWidth),
-                    padding: const EdgeInsets.symmetric(horizontal: 24),
+                    padding: EdgeInsets.symmetric(
+                      horizontal: 24,
+                      vertical: 80, // 상단 여백
+                    ),
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                      crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                        const SizedBox(height: 40),
-                        const Row(
-                          children: [
-                            Icon(Icons.history, color: Colors.white, size: 40),
-                            SizedBox(width: 16),
-                            Text(
-                              '내집관리',
-                              style: TextStyle(
-                                fontSize: 32,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white,
-                              ),
-                            ),
-                          ],
+                        // 매우 큰 헤드라인 (Stripe/Vercel 스타일)
+                        Text(
+                          '내집관리',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontSize: MediaQuery.of(context).size.width < 768 ? 40 : 64,
+                            fontWeight: FontWeight.w800,
+                            letterSpacing: -1.5,
+                            height: 1.1,
+                            color: AirbnbColors.textPrimary,
+                          ),
                         ),
-                        const SizedBox(height: 12),
+                        const SizedBox(height: 24),
+                        // 큰 서브헤드
                         Text(
                           '내집관리 현황을 확인하세요',
+                          textAlign: TextAlign.center,
                           style: TextStyle(
-                            fontSize: 16,
-                            color: Colors.white.withValues(alpha: 0.9),
+                            fontSize: MediaQuery.of(context).size.width < 768 ? 18 : 22,
+                            fontWeight: FontWeight.w400,
+                            height: 1.6,
+                            color: AirbnbColors.textSecondary,
                           ),
                         ),
                       ],
@@ -1051,11 +1043,11 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
                       Container(
                         padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
-                          color: Colors.white,
+                          color: AirbnbColors.background,
                           borderRadius: BorderRadius.circular(16),
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.black.withValues(alpha: 0.06),
+                              color: AirbnbColors.textPrimary.withValues(alpha: 0.06),
                               blurRadius: 20,
                               offset: const Offset(0, 4),
                             ),
@@ -1136,11 +1128,11 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
         return Container(
           margin: const EdgeInsets.only(bottom: 16),
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: AirbnbColors.background,
             borderRadius: BorderRadius.circular(16),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withValues(alpha: 0.05),
+                color: AirbnbColors.textPrimary.withValues(alpha: 0.05),
                 blurRadius: 18,
                 offset: const Offset(0, 4),
               ),
@@ -1155,7 +1147,7 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
                   height: 18,
                   width: 140,
                   decoration: BoxDecoration(
-                    color: Colors.grey.withValues(alpha: 0.2),
+                    color: AirbnbColors.textSecondary.withValues(alpha: 0.2),
                     borderRadius: BorderRadius.circular(8),
                   ),
                 ),
@@ -1164,7 +1156,7 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
                   height: 14,
                   width: 220,
                   decoration: BoxDecoration(
-                    color: Colors.grey.withValues(alpha: 0.15),
+                    color: AirbnbColors.textSecondary.withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(8),
                   ),
                 ),
@@ -1172,7 +1164,7 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
                 Container(
                   height: 120,
                   decoration: BoxDecoration(
-                    color: Colors.grey.withValues(alpha: 0.1),
+                    color: AirbnbColors.textSecondary.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(12),
                   ),
                 ),
@@ -1189,34 +1181,32 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
       width: double.infinity,
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.blue.withValues(alpha: 0.08),
+        color: AirbnbColors.primary.withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.blue.withValues(alpha: 0.2)),
+        border: Border.all(color: AirbnbColors.primary.withValues(alpha: 0.2)),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Icon(Icons.info_outline, color: Colors.blue, size: 24),
+          const Icon(Icons.info_outline, color: AirbnbColors.primary, size: 24),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
+                Text(
                   '로그인하시면 상담 현황이 자동으로 저장되고, 알림도 받을 수 있어요.',
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    color: Color(0xFF1E3A8A),
+                  style: AppTypography.withColor(
+                    AppTypography.bodySmall.copyWith(fontWeight: FontWeight.w600),
+                    AirbnbColors.primaryDark,
                   ),
                 ),
                 const SizedBox(height: 6),
-                const Text(
+                Text(
                   '지금은 게스트 모드입니다. 손쉽게 로그인하고 알림/비교 기능을 끝까지 활용해보세요.',
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: AppColors.kTextSecondary,
-                    height: 1.5,
+                  style: AppTypography.withColor(
+                    AppTypography.caption.copyWith(height: 1.5),
+                    AirbnbColors.textSecondary,
                   ),
                 ),
                 const SizedBox(height: 12),
@@ -1234,15 +1224,15 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
                       await _navigateToLoginAndRefresh();
                     },
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.kPrimary,
-                      foregroundColor: Colors.white,
+                      backgroundColor: AirbnbColors.textPrimary, // 에어비엔비 스타일: 검은색 배경
+                      foregroundColor: AirbnbColors.background,
                       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                     ),
                     icon: const Icon(Icons.login, size: 18),
-                    label: const Text(
+                    label: Text(
                       '로그인하고 이어서 보기',
-                      style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+                      style: AppTypography.bodySmall.copyWith(fontWeight: FontWeight.w600),
                     ),
                   ),
                 ),
@@ -1267,11 +1257,11 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
 
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AirbnbColors.background,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.06),
+            color: AirbnbColors.textPrimary.withValues(alpha: 0.06),
             blurRadius: 20,
             offset: const Offset(0, 4),
           ),
@@ -1287,7 +1277,7 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.w700,
-                color: AppColors.kTextPrimary,
+                color: AirbnbColors.textPrimary,
               ),
             ),
             const SizedBox(height: 12),
@@ -1295,11 +1285,11 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
               spacing: 12,
               runSpacing: 12,
               children: [
-                _StatusMetricTile(label: '총 요청', count: total, color: Colors.indigo),
-                _StatusMetricTile(label: '답변 대기', count: waiting, color: Colors.orange),
-                _StatusMetricTile(label: '진행 중', count: inProgress, color: Colors.blue),
-                _StatusMetricTile(label: '완료', count: completed, color: Colors.green),
-                _StatusMetricTile(label: '비교 가능', count: responded, color: Colors.purple),
+                _StatusMetricTile(label: '총 요청', count: total, color: AirbnbColors.blue),
+                _StatusMetricTile(label: '답변 대기', count: waiting, color: AirbnbColors.warning),
+                _StatusMetricTile(label: '진행 중', count: inProgress, color: AirbnbColors.primary),
+                _StatusMetricTile(label: '완료', count: completed, color: AirbnbColors.success),
+                _StatusMetricTile(label: '비교 가능', count: responded, color: AirbnbColors.primary),
               ],
             ),
           ],
@@ -1324,7 +1314,7 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: FontWeight.bold,
-                color: AppColors.kTextPrimary,
+                color: AirbnbColors.textPrimary,
               ),
             ),
             const SizedBox(height: 12),
@@ -1332,11 +1322,11 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
               scrollDirection: Axis.horizontal,
               child: DataTable(
                 headingRowColor: MaterialStateProperty.resolveWith(
-                  (states) => const Color(0xFFF3E8FF),
+                  (states) => AirbnbColors.primaryLight.withValues(alpha: 0.1),
                 ),
                 headingTextStyle: const TextStyle(
                   fontWeight: FontWeight.bold,
-                  color: AppColors.kTextPrimary,
+                  color: AirbnbColors.textPrimary,
                 ),
                 columnSpacing: 32,
                 horizontalMargin: 12,
@@ -1353,25 +1343,21 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
                       DataCell(
                         Text(
                           quote.brokerName,
-                          style: const TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w600,
-                          ),
+                          style: AppTypography.bodySmall.copyWith(fontWeight: FontWeight.w600),
                         ),
                       ),
                       DataCell(
                         Text(
                           format(quote.recommendedPrice),
-                          style: const TextStyle(fontSize: 13),
+                          style: AppTypography.bodySmall,
                         ),
                       ),
                       DataCell(
                         Text(
                           format(quote.commissionRate),
-                          style: const TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.kPrimary,
+                          style: AppTypography.withColor(
+                            AppTypography.bodySmall.copyWith(fontWeight: FontWeight.bold),
+                            AirbnbColors.primary,
                           ),
                         ),
                       ),
@@ -1381,11 +1367,14 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
               ),
             ),
             if (data.length > displayed.length)
-              const Padding(
-                padding: EdgeInsets.only(top: 8),
+              Padding(
+                padding: const EdgeInsets.only(top: 8),
                 child: Text(
                   '※ 최신 제안 6건만 표시됩니다. 전체 내용은 각 카드에서 확인하세요.',
-                  style: TextStyle(fontSize: 11, color: AppColors.kTextSecondary),
+                  style: AppTypography.withColor(
+                    AppTypography.caption.copyWith(fontSize: 11),
+                    AirbnbColors.textSecondary,
+                  ),
                 ),
               ),
           ],
@@ -1403,20 +1392,18 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
           width: 90,
           child: Text(
             label,
-            style: TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-              color: Colors.grey[600],
+            style: AppTypography.withColor(
+              AppTypography.caption.copyWith(fontWeight: FontWeight.w600),
+              AirbnbColors.textSecondary,
             ),
           ),
         ),
         Expanded(
           child: Text(
             value,
-            style: const TextStyle(
-              fontSize: 13,
-              color: Color(0xFF2C3E50),
-              fontWeight: FontWeight.w500,
+            style: AppTypography.withColor(
+              AppTypography.bodySmall.copyWith(fontWeight: FontWeight.w500),
+              AirbnbColors.textPrimary,
             ),
           ),
         ),
@@ -1428,23 +1415,7 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
   Widget _buildFilterChip(String label, String value, int count) {
     final isSelected = selectedStatus == value;
     // 상태별 대표 색상 정의
-    Color statusColor;
-    switch (value) {
-      case 'waiting':
-        statusColor = Colors.orange;
-        break;
-      case 'progress':
-        statusColor = Colors.blue;
-        break;
-      case 'completed':
-        statusColor = Colors.green;
-        break;
-      case 'cancelled':
-        statusColor = Colors.redAccent;
-        break;
-      default:
-        statusColor = AppColors.kPrimary;
-    }
+    final statusColor = AirbnbColors.getStatusColor(value);
     return Tooltip(
       message: '$label ($count건)',
       child: FilterChip(
@@ -1459,15 +1430,14 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
               decoration: BoxDecoration(
                 color: isSelected
                     ? statusColor.withValues(alpha: 0.25)
-                    : Colors.grey.withValues(alpha: 0.2),
+                    : AirbnbColors.textSecondary.withValues(alpha: 0.2),
                 borderRadius: BorderRadius.circular(10),
               ),
               child: Text(
                 count.toString(),
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.bold,
-                  color: isSelected ? statusColor : Colors.grey[700],
+                style: AppTypography.withColor(
+                  AppTypography.caption.copyWith(fontWeight: FontWeight.bold),
+                  isSelected ? statusColor : AirbnbColors.textSecondary,
                 ),
               ),
             ),
@@ -1482,9 +1452,9 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
         },
         selectedColor: statusColor.withValues(alpha: 0.15),
         checkmarkColor: statusColor,
-        backgroundColor: Colors.grey[100],
+        backgroundColor: AirbnbColors.surface,
         labelStyle: TextStyle(
-          color: isSelected ? statusColor : Colors.grey[700],
+          color: isSelected ? statusColor : AirbnbColors.textSecondary,
           fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
         ),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
@@ -1526,11 +1496,11 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AirbnbColors.background,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.06),
+            color: AirbnbColors.textPrimary.withValues(alpha: 0.06),
             blurRadius: 20,
             offset: const Offset(0, 4),
           ),
@@ -1544,8 +1514,8 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
               color: answeredCount > 0
-                  ? Colors.green.withValues(alpha: 0.1)
-                  : Colors.orange.withValues(alpha: 0.1),
+                  ? AirbnbColors.success.withValues(alpha: 0.1)
+                  : AirbnbColors.warning.withValues(alpha: 0.1),
               borderRadius: const BorderRadius.only(
                 topLeft: Radius.circular(16),
                 topRight: Radius.circular(16),
@@ -1559,12 +1529,12 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
                     Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
-                        color: answeredCount > 0 ? Colors.green : Colors.orange,
+                        color: answeredCount > 0 ? AirbnbColors.success : AirbnbColors.warning,
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Icon(
                         answeredCount > 0 ? Icons.compare_arrows : Icons.schedule,
-                        color: Colors.white,
+                        color: AirbnbColors.background,
                         size: 20,
                       ),
                     ),
@@ -1575,15 +1545,14 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
                         children: [
                           Row(
                             children: [
-                              Icon(Icons.home, size: 16, color: Colors.grey[700]),
+                              Icon(Icons.home, size: 16, color: AirbnbColors.textSecondary),
                               const SizedBox(width: 6),
                               Expanded(
                                 child: Text(
                                   address,
-                                  style: const TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.bold,
-                                    color: Color(0xFF2C3E50),
+                                  style: AppTypography.withColor(
+                                    AppTypography.body.copyWith(fontWeight: FontWeight.bold),
+                                    AirbnbColors.textPrimary,
                                   ),
                                 ),
                               ),
@@ -1595,15 +1564,14 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
                               Container(
                                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                                 decoration: BoxDecoration(
-                                  color: Colors.green.withValues(alpha: 0.2),
+                                  color: AirbnbColors.success.withValues(alpha: 0.2),
                                   borderRadius: BorderRadius.circular(12),
                                 ),
                                 child: Text(
                                   '답변완료: $answeredCount',
-                                  style: const TextStyle(
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.w600,
-                                    color: Colors.green,
+                                  style: AppTypography.withColor(
+                                    AppTypography.caption.copyWith(fontWeight: FontWeight.w600),
+                                    AirbnbColors.success,
                                   ),
                                 ),
                               ),
@@ -1611,15 +1579,14 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
                               Container(
                                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                                 decoration: BoxDecoration(
-                                  color: Colors.orange.withValues(alpha: 0.2),
+                                  color: AirbnbColors.warning.withValues(alpha: 0.2),
                                   borderRadius: BorderRadius.circular(12),
                                 ),
                                 child: Text(
                                   '답변대기: $pendingCount',
-                                  style: const TextStyle(
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.w600,
-                                    color: Colors.orange,
+                                  style: AppTypography.withColor(
+                                    AppTypography.caption.copyWith(fontWeight: FontWeight.w600),
+                                    AirbnbColors.warning,
                                   ),
                                 ),
                               ),
@@ -1662,12 +1629,12 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
     
     return Container(
       decoration: BoxDecoration(
-        color: Colors.grey[50],
+        color: AirbnbColors.surface,
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
           color: hasAnswer 
-              ? Colors.green.withValues(alpha: 0.3)
-              : Colors.orange.withValues(alpha: 0.3),
+              ? AirbnbColors.success.withValues(alpha: 0.3)
+              : AirbnbColors.warning.withValues(alpha: 0.3),
           width: 2,
         ),
       ),
@@ -1679,8 +1646,8 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
               color: hasAnswer 
-                  ? Colors.green.withValues(alpha: 0.1)
-                  : Colors.orange.withValues(alpha: 0.1),
+                  ? AirbnbColors.success.withValues(alpha: 0.1)
+                  : AirbnbColors.warning.withValues(alpha: 0.1),
               borderRadius: const BorderRadius.only(
                 topLeft: Radius.circular(12),
                 topRight: Radius.circular(12),
@@ -1692,16 +1659,15 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
                   width: 32,
                   height: 32,
                   decoration: BoxDecoration(
-                    color: hasAnswer ? Colors.green : Colors.orange,
+                    color: hasAnswer ? AirbnbColors.success : AirbnbColors.warning,
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Center(
                     child: Text(
                       '$index',
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 14,
+                      style: AppTypography.withColor(
+                        AppTypography.bodySmall.copyWith(fontWeight: FontWeight.bold),
+                        AirbnbColors.background,
                       ),
                     ),
                   ),
@@ -1716,16 +1682,16 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
                         style: const TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
-                          color: Color(0xFF2C3E50),
+                          color: AirbnbColors.textPrimary,
                         ),
                       ),
                       if (quote.brokerRoadAddress != null && quote.brokerRoadAddress!.isNotEmpty) ...[
                         const SizedBox(height: 4),
                         Text(
                           quote.brokerRoadAddress!,
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Colors.grey[600],
+                          style: AppTypography.withColor(
+                            AppTypography.caption,
+                            AirbnbColors.textSecondary,
                           ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
@@ -1737,7 +1703,7 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                   decoration: BoxDecoration(
-                    color: hasAnswer ? Colors.green : Colors.orange,
+                    color: hasAnswer ? AirbnbColors.success : AirbnbColors.warning,
                     borderRadius: BorderRadius.circular(16),
                   ),
                   child: Row(
@@ -1745,14 +1711,14 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
                     children: [
                       Icon(
                         hasAnswer ? Icons.check_circle : Icons.schedule,
-                        color: Colors.white,
+                        color: AirbnbColors.background,
                         size: 14,
                       ),
                       const SizedBox(width: 4),
                       Text(
                         hasAnswer ? '답변완료' : '답변대기',
                         style: const TextStyle(
-                          color: Colors.white,
+                          color: AirbnbColors.background,
                           fontSize: 11,
                           fontWeight: FontWeight.bold,
                         ),
@@ -1778,7 +1744,7 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
                         child: _buildComparisonInfoCard(
                           TransactionTypeHelper.getRecommendedPriceLabel(quote.transactionType ?? '매매'),
                           quote.recommendedPrice ?? '-',
-                          Colors.blue,
+                          AirbnbColors.primary,
                         ),
                       ),
                       const SizedBox(width: 8),
@@ -1786,7 +1752,7 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
                         child: _buildComparisonInfoCard(
                           '최저수락가',
                           quote.minimumPrice ?? '-',
-                          Colors.purple,
+                          AirbnbColors.primary,
                         ),
                       ),
                     ],
@@ -1802,7 +1768,7 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
                         child: _buildComparisonInfoCard(
                           '예상 거래기간',
                           quote.expectedDuration ?? '-',
-                          Colors.teal,
+                          AirbnbColors.teal,
                         ),
                       ),
                       const SizedBox(width: 8),
@@ -1810,7 +1776,7 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
                         child: _buildComparisonInfoCard(
                           '수수료',
                           quote.commissionRate ?? '-',
-                          Colors.indigo,
+                          AirbnbColors.blue,
                         ),
                       ),
                     ],
@@ -1824,10 +1790,10 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
                     width: double.infinity,
                     padding: const EdgeInsets.all(14),
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: AirbnbColors.background,
                       borderRadius: BorderRadius.circular(8),
                       border: Border.all(
-                        color: const Color(0xFF9C27B0).withValues(alpha: 0.3),
+                        color: AirbnbColors.primary.withValues(alpha: 0.3),
                       ),
                     ),
                     child: Column(
@@ -1838,15 +1804,14 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
                             const Icon(
                               Icons.reply,
                               size: 16,
-                              color: Color(0xFF9C27B0),
+                              color: AirbnbColors.primary,
                             ),
                             const SizedBox(width: 6),
-                            const Text(
+                            Text(
                               '공인중개사 답변',
-                              style: TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.bold,
-                                color: Color(0xFF9C27B0),
+                              style: AppTypography.withColor(
+                                AppTypography.caption.copyWith(fontWeight: FontWeight.bold),
+                                AirbnbColors.primary,
                               ),
                             ),
                             if (quote.answerDate != null) ...[
@@ -1855,7 +1820,7 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
                                 dateFormat.format(quote.answerDate!),
                                 style: TextStyle(
                                   fontSize: 10,
-                                  color: Colors.grey[600],
+                                  color: AirbnbColors.textSecondary,
                                 ),
                               ),
                             ],
@@ -1864,10 +1829,9 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
                         const SizedBox(height: 8),
                         Text(
                           quote.brokerAnswer!,
-                          style: const TextStyle(
-                            fontSize: 13,
-                            color: Color(0xFF2C3E50),
-                            height: 1.5,
+                          style: AppTypography.withColor(
+                            AppTypography.bodySmall.copyWith(height: 1.5),
+                            AirbnbColors.textPrimary,
                           ),
                         ),
                       ],
@@ -1878,22 +1842,21 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
                     width: double.infinity,
                     padding: const EdgeInsets.all(14),
                     decoration: BoxDecoration(
-                      color: Colors.orange.withValues(alpha: 0.05),
+                      color: AirbnbColors.warning.withValues(alpha: 0.05),
                       borderRadius: BorderRadius.circular(8),
                       border: Border.all(
-                        color: Colors.orange.withValues(alpha: 0.2),
+                        color: AirbnbColors.warning.withValues(alpha: 0.2),
                       ),
                     ),
                     child: Row(
                       children: [
-                        Icon(Icons.hourglass_empty, size: 16, color: Colors.orange[700]),
+                        Icon(Icons.hourglass_empty, size: 16, color: AirbnbColors.warning.withValues(alpha: 0.7)),
                         const SizedBox(width: 8),
                         Text(
                           '답변 대기 중입니다',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Colors.orange[700],
-                            fontStyle: FontStyle.italic,
+                          style: AppTypography.withColor(
+                            AppTypography.caption.copyWith(fontStyle: FontStyle.italic),
+                            AirbnbColors.warning.withValues(alpha: 0.7),
                           ),
                         ),
                       ],
@@ -1909,17 +1872,17 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
                       child: OutlinedButton.icon(
                         onPressed: () => _openBrokerDetailFromQuote(quote),
                         style: OutlinedButton.styleFrom(
-                          foregroundColor: AppColors.kPrimary,
-                          side: const BorderSide(color: AppColors.kPrimary, width: 1.5),
+                          foregroundColor: AirbnbColors.primary,
+                          side: const BorderSide(color: AirbnbColors.primary, width: 1.5),
                           padding: const EdgeInsets.symmetric(vertical: 14),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
                           ),
                         ),
                         icon: const Icon(Icons.person_search, size: 18),
-                        label: const Text(
+                        label: Text(
                           '중개사 소개 / 후기 보기',
-                          style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+                          style: AppTypography.bodySmall.copyWith(fontWeight: FontWeight.w600),
                         ),
                       ),
                     ),
@@ -1928,17 +1891,17 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
                       child: OutlinedButton.icon(
                         onPressed: () => _showFullQuoteDetails(quote),
                         style: OutlinedButton.styleFrom(
-                          foregroundColor: AppColors.kPrimary,
-                          side: const BorderSide(color: AppColors.kPrimary, width: 1.5),
+                          foregroundColor: AirbnbColors.primary,
+                          side: const BorderSide(color: AirbnbColors.primary, width: 1.5),
                           padding: const EdgeInsets.symmetric(vertical: 14),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
                           ),
                         ),
                         icon: const Icon(Icons.visibility_outlined, size: 18),
-                        label: const Text(
+                        label: Text(
                           '상세 보기',
-                          style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+                          style: AppTypography.bodySmall.copyWith(fontWeight: FontWeight.w600),
                         ),
                       ),
                     ),
@@ -1980,8 +1943,8 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
                       }
                     },
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: _hasStructuredData(quote) ? AppColors.kSecondary : AppColors.kPrimary,
-                      foregroundColor: Colors.white,
+                      backgroundColor: _hasStructuredData(quote) ? AirbnbColors.primary : AirbnbColors.primary,
+                      foregroundColor: AirbnbColors.background,
                       padding: const EdgeInsets.symmetric(vertical: 14),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
@@ -2003,7 +1966,7 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
                   child: TextButton.icon(
                     onPressed: () => _deleteQuote(quote.id),
                     style: TextButton.styleFrom(
-                      foregroundColor: Colors.red[700],
+                      foregroundColor: AirbnbColors.error.withValues(alpha: 0.7),
                       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                     ),
                     icon: const Icon(Icons.delete_outline, size: 18),
@@ -2037,7 +2000,7 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
             label,
             style: TextStyle(
               fontSize: 10,
-              color: Colors.grey[600],
+              color: AirbnbColors.textSecondary,
               fontWeight: FontWeight.w600,
             ),
           ),
@@ -2065,11 +2028,11 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AirbnbColors.background,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.06),
+            color: AirbnbColors.textPrimary.withValues(alpha: 0.06),
             blurRadius: 20,
             offset: const Offset(0, 4),
           ),
@@ -2083,8 +2046,8 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
               color: isPending 
-                  ? Colors.orange.withValues(alpha: 0.1) 
-                  : Colors.green.withValues(alpha: 0.1),
+                  ? AirbnbColors.warning.withValues(alpha: 0.1) 
+                  : AirbnbColors.success.withValues(alpha: 0.1),
               borderRadius: const BorderRadius.only(
                 topLeft: Radius.circular(16),
                 topRight: Radius.circular(16),
@@ -2095,12 +2058,12 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
                 Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: isPending ? Colors.orange : Colors.green,
+                    color: isPending ? AirbnbColors.warning : AirbnbColors.success,
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Icon(
                     isPending ? Icons.schedule : Icons.check_circle,
-                    color: Colors.white,
+                    color: AirbnbColors.background,
                     size: 20,
                   ),
                 ),
@@ -2114,15 +2077,15 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
                         style: const TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.bold,
-                          color: Color(0xFF2C3E50),
+                          color: AirbnbColors.textPrimary,
                         ),
                       ),
                       const SizedBox(height: 4),
                       Text(
                         dateFormat.format(quote.requestDate),
-                        style: TextStyle(
-                          fontSize: 13,
-                          color: Colors.grey[600],
+                        style: AppTypography.withColor(
+                          AppTypography.bodySmall,
+                          AirbnbColors.textSecondary,
                         ),
                       ),
                     ],
@@ -2131,15 +2094,14 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                   decoration: BoxDecoration(
-                    color: isPending ? Colors.orange : Colors.green,
+                    color: isPending ? AirbnbColors.warning : AirbnbColors.success,
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Text(
                     isPending ? '답변대기' : '답변완료',
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 12,
-                      fontWeight: FontWeight.bold,
+                    style: AppTypography.withColor(
+                      AppTypography.caption.copyWith(fontWeight: FontWeight.bold),
+                      AirbnbColors.background,
                     ),
                   ),
                 ),
@@ -2162,15 +2124,12 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
                       padding: EdgeInsets.zero,
                       minimumSize: const Size(0, 0),
                       tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                      foregroundColor: AppColors.kPrimary,
+                      foregroundColor: AirbnbColors.primary,
                     ),
                     icon: const Icon(Icons.person_search, size: 16),
-                    label: const Text(
+                    label: Text(
                       '중개사 소개 / 후기 보기',
-                      style: TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
-                      ),
+                      style: AppTypography.bodySmall.copyWith(fontWeight: FontWeight.w600),
                     ),
                   ),
                 ),
@@ -2181,14 +2140,14 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Icon(Icons.business, size: 16, color: Colors.grey[600]),
+                      Icon(Icons.business, size: 16, color: AirbnbColors.textSecondary),
                       const SizedBox(width: 8),
                       Expanded(
                         child: Text(
                           quote.brokerRoadAddress!,
-                          style: TextStyle(
-                            fontSize: 13,
-                            color: Colors.grey[600],
+                          style: AppTypography.withColor(
+                            AppTypography.bodySmall,
+                            AirbnbColors.textSecondary,
                           ),
                         ),
                       ),
@@ -2202,24 +2161,23 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
                   Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: Colors.blue.withValues(alpha: 0.05),
+                      color: AirbnbColors.primary.withValues(alpha: 0.05),
                       borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: Colors.blue.withValues(alpha: 0.2)),
+                      border: Border.all(color: AirbnbColors.primary.withValues(alpha: 0.2)),
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Row(
                           children: [
-                            Icon(Icons.home, size: 16, color: Colors.blue[700]),
+                            Icon(Icons.home, size: 16, color: AirbnbColors.primary.withValues(alpha: 0.7)),
                             const SizedBox(width: 8),
                             Text(
                               '매물 정보',
-                              style: TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.blue[700],
-                              ),
+                                style: AppTypography.withColor(
+                                  AppTypography.bodySmall.copyWith(fontWeight: FontWeight.bold),
+                                  AirbnbColors.primary.withValues(alpha: 0.7),
+                                ),
                             ),
                           ],
                         ),
@@ -2246,23 +2204,22 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
                   Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: Colors.orange.withValues(alpha: 0.05),
+                      color: AirbnbColors.warning.withValues(alpha: 0.05),
                       borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: Colors.orange.withValues(alpha: 0.2)),
+                      border: Border.all(color: AirbnbColors.warning.withValues(alpha: 0.2)),
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Row(
                           children: [
-                            Icon(Icons.edit_note, size: 16, color: Colors.orange[700]),
+                            Icon(Icons.edit_note, size: 16, color: AirbnbColors.warning.withValues(alpha: 0.7)),
                             const SizedBox(width: 8),
                             Text(
                               '특이사항',
-                              style: TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.orange[700],
+                              style: AppTypography.withColor(
+                                AppTypography.bodySmall.copyWith(fontWeight: FontWeight.bold),
+                                AirbnbColors.warning.withValues(alpha: 0.7),
                               ),
                             ),
                           ],
@@ -2286,19 +2243,17 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
                             children: [
                               Text(
                                 '추가사항',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w600,
-                                  color: Colors.grey[600],
+                                style: AppTypography.withColor(
+                                  AppTypography.caption.copyWith(fontWeight: FontWeight.w600),
+                                  AirbnbColors.textSecondary,
                                 ),
                               ),
                               const SizedBox(height: 4),
                               Text(
                                 quote.specialNotes!,
-                                style: const TextStyle(
-                                  fontSize: 13,
-                                  color: Color(0xFF2C3E50),
-                                  height: 1.5,
+                                style: AppTypography.withColor(
+                                  AppTypography.bodySmall.copyWith(height: 1.5),
+                                  AirbnbColors.textPrimary,
                                 ),
                               ),
                             ],
@@ -2316,23 +2271,22 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
                   Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: Colors.green.withValues(alpha: 0.05),
+                      color: AirbnbColors.success.withValues(alpha: 0.05),
                       borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: Colors.green.withValues(alpha: 0.2)),
+                      border: Border.all(color: AirbnbColors.success.withValues(alpha: 0.2)),
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Row(
                           children: [
-                            Icon(Icons.campaign, size: 16, color: Colors.green[700]),
+                            Icon(Icons.campaign, size: 16, color: AirbnbColors.success.withValues(alpha: 0.7)),
                             const SizedBox(width: 8),
                             Text(
                               '중개 제안',
-                              style: TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.green[700],
+                              style: AppTypography.withColor(
+                                AppTypography.bodySmall.copyWith(fontWeight: FontWeight.bold),
+                                AirbnbColors.success.withValues(alpha: 0.7),
                               ),
                             ),
                           ],
@@ -2364,19 +2318,17 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
                             children: [
                               Text(
                                 '최근 유사 거래 사례',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w600,
-                                  color: Colors.grey[600],
+                                style: AppTypography.withColor(
+                                  AppTypography.caption.copyWith(fontWeight: FontWeight.w600),
+                                  AirbnbColors.textSecondary,
                                 ),
                               ),
                               const SizedBox(height: 4),
                               Text(
                                 quote.recentCases!,
-                                style: const TextStyle(
-                                  fontSize: 13,
-                                  color: Color(0xFF2C3E50),
-                                  height: 1.5,
+                                style: AppTypography.withColor(
+                                  AppTypography.bodySmall.copyWith(height: 1.5),
+                                  AirbnbColors.textPrimary,
                                 ),
                               ),
                             ],
@@ -2394,16 +2346,12 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
                   Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [
-                          const Color(0xFF9C27B0).withValues(alpha: 0.1),
-                          const Color(0xFF7B1FA2).withValues(alpha: 0.1),
-                        ],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      ),
+                      color: AirbnbColors.primary.withValues(alpha: 0.08),
                       borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: const Color(0xFF9C27B0).withValues(alpha: 0.3), width: 2),
+                      border: Border.all(
+                        color: AirbnbColors.primary.withValues(alpha: 0.2),
+                        width: 1.5,
+                      ),
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -2413,27 +2361,26 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
                             Container(
                               padding: const EdgeInsets.all(6),
                               decoration: BoxDecoration(
-                                color: const Color(0xFF9C27B0).withValues(alpha: 0.2),
+                                color: AirbnbColors.primary.withValues(alpha: 0.2),
                                 borderRadius: BorderRadius.circular(6),
                               ),
-                              child: const Icon(Icons.reply, size: 16, color: Color(0xFF9C27B0)),
+                              child: const Icon(Icons.reply, size: 16, color: AirbnbColors.primary),
                             ),
                             const SizedBox(width: 8),
-                            const Text(
+                            Text(
                               '✅ 공인중개사 답변',
-                              style: TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.bold,
-                                color: Color(0xFF9C27B0),
+                              style: AppTypography.withColor(
+                                AppTypography.bodySmall.copyWith(fontWeight: FontWeight.bold),
+                                AirbnbColors.primary,
                               ),
                             ),
                             if (quote.answerDate != null) ...[
                               const Spacer(),
                               Text(
                                 DateFormat('yyyy.MM.dd HH:mm').format(quote.answerDate!),
-                                style: TextStyle(
-                                  fontSize: 11,
-                                  color: Colors.grey[600],
+                                style: AppTypography.withColor(
+                                  AppTypography.caption.copyWith(fontSize: 11),
+                                  AirbnbColors.textSecondary,
                                 ),
                               ),
                             ],
@@ -2444,9 +2391,9 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
                           width: double.infinity,
                           padding: const EdgeInsets.all(14),
                           decoration: BoxDecoration(
-                            color: Colors.white.withValues(alpha: 0.7),
+                            color: AirbnbColors.background.withValues(alpha: 0.7),
                             borderRadius: BorderRadius.circular(8),
-                            border: Border.all(color: const Color(0xFF9C27B0).withValues(alpha: 0.2)),
+                            border: Border.all(color: AirbnbColors.primary.withValues(alpha: 0.2)),
                           ),
                           child: quote.brokerAnswer != null && quote.brokerAnswer!.isNotEmpty
                               ? Column(
@@ -2454,24 +2401,22 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
                                   children: [
                                     Text(
                                       quote.brokerAnswer!,
-                                      style: const TextStyle(
-                                        fontSize: 14,
-                                        color: Color(0xFF2C3E50),
-                                        height: 1.6,
+                                      style: AppTypography.withColor(
+                                        AppTypography.bodySmall.copyWith(height: 1.6),
+                                        AirbnbColors.textPrimary,
                                       ),
                                     ),
                                   ],
                                 )
                               : Column(
                                   children: [
-                                    Icon(Icons.hourglass_empty, size: 32, color: Colors.grey[400]),
+                                    Icon(Icons.hourglass_empty, size: 32, color: AirbnbColors.textLight),
                                     const SizedBox(height: 8),
                                     Text(
                                       '답변 내용을 불러오는 중입니다...',
-                                      style: TextStyle(
-                                        fontSize: 13,
-                                        color: Colors.grey[600],
-                                        fontStyle: FontStyle.italic,
+                                      style: AppTypography.withColor(
+                                        AppTypography.bodySmall.copyWith(fontStyle: FontStyle.italic),
+                                        AirbnbColors.textSecondary,
                                       ),
                                       textAlign: TextAlign.center,
                                     ),
@@ -2490,8 +2435,8 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
                       child: OutlinedButton.icon(
                         onPressed: () => _showFullQuoteDetails(quote),
                         style: OutlinedButton.styleFrom(
-                          foregroundColor: AppColors.kPrimary,
-                          side: const BorderSide(color: AppColors.kPrimary, width: 1.5),
+                          foregroundColor: AirbnbColors.primary,
+                          side: const BorderSide(color: AirbnbColors.primary, width: 1.5),
                           padding: const EdgeInsets.symmetric(vertical: 14),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
@@ -2530,8 +2475,8 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
                               }
                             : () => _recontactBroker(quote),
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: hasResponded ? AppColors.kSecondary : AppColors.kPrimary,
-                          foregroundColor: Colors.white,
+                          backgroundColor: hasResponded ? AirbnbColors.primary : AirbnbColors.primary,
+                          foregroundColor: AirbnbColors.background,
                           padding: const EdgeInsets.symmetric(vertical: 14),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
@@ -2557,7 +2502,7 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
                   child: TextButton.icon(
                     onPressed: () => _deleteQuote(quote.id),
                     style: TextButton.styleFrom(
-                      foregroundColor: Colors.red[700],
+                      foregroundColor: AirbnbColors.error.withValues(alpha: 0.7),
                       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                     ),
                     icon: const Icon(Icons.delete_outline, size: 18),
@@ -2577,11 +2522,11 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
     return Container(
       padding: const EdgeInsets.all(48),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AirbnbColors.background,
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.06),
+            color: AirbnbColors.textPrimary.withValues(alpha: 0.06),
             blurRadius: 20,
             offset: const Offset(0, 4),
           ),
@@ -2593,10 +2538,10 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
             Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                color: Colors.grey.withValues(alpha: 0.1),
+                color: AirbnbColors.textSecondary.withValues(alpha: 0.1),
                 shape: BoxShape.circle,
               ),
-              child: const Icon(Icons.inbox, size: 64, color: Colors.grey),
+              child: const Icon(Icons.inbox, size: 64, color: AirbnbColors.textSecondary),
             ),
             const SizedBox(height: 24),
             const Text(
@@ -2604,7 +2549,7 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
               style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
-                color: Color(0xFF2C3E50),
+                color: AirbnbColors.textPrimary,
               ),
             ),
             const SizedBox(height: 12),
@@ -2612,7 +2557,7 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
               '공인중개사에게 문의를 보내보세요!',
               style: TextStyle(
                 fontSize: 15,
-                color: Colors.grey[600],
+                color: AirbnbColors.textSecondary,
                 height: 1.5,
               ),
               textAlign: TextAlign.center,
@@ -2628,11 +2573,11 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
     return Container(
       padding: const EdgeInsets.all(48),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AirbnbColors.background,
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.06),
+            color: AirbnbColors.textPrimary.withValues(alpha: 0.06),
             blurRadius: 20,
             offset: const Offset(0, 4),
           ),
@@ -2644,10 +2589,10 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
             Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                color: Colors.orange.withValues(alpha: 0.1),
+                color: AirbnbColors.warning.withValues(alpha: 0.1),
                 shape: BoxShape.circle,
               ),
-              child: const Icon(Icons.filter_alt_off, size: 64, color: Colors.orange),
+              child: const Icon(Icons.filter_alt_off, size: 64, color: AirbnbColors.warning),
             ),
             const SizedBox(height: 24),
             const Text(
@@ -2655,7 +2600,7 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
               style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
-                color: Color(0xFF2C3E50),
+                color: AirbnbColors.textPrimary,
               ),
             ),
             const SizedBox(height: 12),
@@ -2663,7 +2608,7 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
               '다른 필터를 선택해보세요.',
               style: TextStyle(
                 fontSize: 15,
-                color: Colors.grey[600],
+                color: AirbnbColors.textSecondary,
                 height: 1.5,
               ),
               textAlign: TextAlign.center,
@@ -2701,11 +2646,9 @@ class _StatusMetricTile extends StatelessWidget {
         children: [
           Text(
             label,
-            style: TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-              color: color.withValues(alpha: 0.9),
-              letterSpacing: -0.1,
+            style: AppTypography.withColor(
+              AppTypography.caption.copyWith(fontWeight: FontWeight.w600, letterSpacing: -0.1),
+              color.withValues(alpha: 0.9),
             ),
           ),
           const SizedBox(height: 6),

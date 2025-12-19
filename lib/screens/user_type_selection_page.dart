@@ -11,14 +11,14 @@ class UserTypeSelectionPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.kBackground,
+      backgroundColor: AirbnbColors.surface,
       appBar: AppBar(
-        backgroundColor: Colors.white,
-        foregroundColor: AppColors.kPrimary,
+        backgroundColor: AirbnbColors.background,
+        foregroundColor: AirbnbColors.primary,
         elevation: 0.5,
         title: const HomeLogoButton(
           fontSize: 18,
-          color: AppColors.kPrimary,
+          color: AirbnbColors.primary,
         ),
       ),
       body: SafeArea(
@@ -36,7 +36,7 @@ class UserTypeSelectionPage extends StatelessWidget {
                   style: TextStyle(
                     fontSize: 32,
                     fontWeight: FontWeight.bold,
-                    color: AppColors.kTextPrimary,
+                    color: AirbnbColors.textPrimary,
                   ),
                 ),
               ),
@@ -46,7 +46,7 @@ class UserTypeSelectionPage extends StatelessWidget {
                   '가입하실 계정 유형을 선택해주세요',
                   style: TextStyle(
                     fontSize: 16,
-                    color: AppColors.kTextSecondary,
+                    color: AirbnbColors.textSecondary,
                   ),
                 ),
               ),
@@ -58,7 +58,7 @@ class UserTypeSelectionPage extends StatelessWidget {
                 title: '일반 사용자',
                 description: '부동산 매물을 등록하고\n관리하는 일반 사용자',
                 icon: Icons.person_outline,
-                color: AppColors.kPrimary,
+                color: AirbnbColors.primary,
                 onTap: () {
                   Navigator.push(
                     context,
@@ -76,7 +76,7 @@ class UserTypeSelectionPage extends StatelessWidget {
                 title: '공인중개사',
                 description: '부동산 중개 업무를 수행하는\n공인중개사',
                 icon: Icons.business_outlined,
-                color: AppColors.kSecondary,
+                color: AirbnbColors.primary,
                 onTap: () {
                   Navigator.push(
                     context,
@@ -97,7 +97,7 @@ class UserTypeSelectionPage extends StatelessWidget {
                     '이미 계정이 있으신가요? 로그인',
                     style: TextStyle(
                       fontSize: 14,
-                      color: AppColors.kPrimary,
+                      color: AirbnbColors.primary,
                       fontWeight: FontWeight.w500,
                     ),
                   ),
@@ -135,7 +135,7 @@ class _UserTypeCard extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(32),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: AirbnbColors.background,
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
             color: color.withValues(alpha: 0.3),
@@ -185,7 +185,7 @@ class _UserTypeCard extends StatelessWidget {
                     description,
                     style: TextStyle(
                       fontSize: 14,
-                      color: AppColors.kTextSecondary,
+                      color: AirbnbColors.textSecondary,
                       height: 1.5,
                     ),
                   ),

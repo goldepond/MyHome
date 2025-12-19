@@ -200,7 +200,7 @@ class _BrokerQuoteDetailPageState extends State<BrokerQuoteDetailPage> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('최소 한 개 이상의 답변 항목을 입력해주세요.'),
-          backgroundColor: Colors.orange,
+          backgroundColor: AirbnbColors.warning,
         ),
       );
       return;
@@ -232,7 +232,7 @@ class _BrokerQuoteDetailPageState extends State<BrokerQuoteDetailPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('✅ 답변이 성공적으로 전송되었습니다!'),
-            backgroundColor: AppColors.kSuccess,
+            backgroundColor: AirbnbColors.success,
           ),
         );
         Navigator.pop(context, true); // 성공 반환
@@ -241,7 +241,7 @@ class _BrokerQuoteDetailPageState extends State<BrokerQuoteDetailPage> {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
               content: Text('답변 전송에 문제가 있었어요. 잠시 후 다시 시도해주세요.'),
-              backgroundColor: Colors.red,
+              backgroundColor: AirbnbColors.error,
             ),
           );
         }
@@ -254,7 +254,7 @@ class _BrokerQuoteDetailPageState extends State<BrokerQuoteDetailPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('오류가 발생했습니다: $e'),
-            backgroundColor: Colors.red,
+            backgroundColor: AirbnbColors.error,
           ),
         );
       }
@@ -272,15 +272,15 @@ class _BrokerQuoteDetailPageState extends State<BrokerQuoteDetailPage> {
     return GestureDetector(
       onTap: () => FocusScope.of(context).unfocus(),
       child: Scaffold(
-      backgroundColor: AppColors.kBackground,
+      backgroundColor: AirbnbColors.surface,
         resizeToAvoidBottomInset: true,
       appBar: AppBar(
-        backgroundColor: Colors.white,
-        foregroundColor: AppColors.kPrimary,
+        backgroundColor: AirbnbColors.background,
+        foregroundColor: AirbnbColors.primary,
         elevation: 0.5,
         title: const HomeLogoButton(
           fontSize: 18,
-          color: AppColors.kPrimary,
+          color: AirbnbColors.primary,
         ),
       ),
       body: Form(
@@ -339,11 +339,11 @@ class _BrokerQuoteDetailPageState extends State<BrokerQuoteDetailPage> {
               Container(
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: AirbnbColors.background,
                   borderRadius: BorderRadius.circular(16),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.06),
+                      color: AirbnbColors.textPrimary.withValues(alpha: 0.06),
                       blurRadius: 20,
                       offset: const Offset(0, 4),
                     ),
@@ -354,14 +354,14 @@ class _BrokerQuoteDetailPageState extends State<BrokerQuoteDetailPage> {
                   children: [
                     Row(
                       children: [
-                        Icon(Icons.reply, color: AppColors.kPrimary, size: 24),
+                        Icon(Icons.reply, color: AirbnbColors.primary, size: 24),
                         const SizedBox(width: 12),
                         const Text(
                           '상담 답변 작성',
                           style: TextStyle(
                             fontSize: 20,
                             fontWeight: FontWeight.bold,
-                            color: Color(0xFF2C3E50),
+                            color: AirbnbColors.textPrimary,
                           ),
                         ),
                       ],
@@ -371,7 +371,7 @@ class _BrokerQuoteDetailPageState extends State<BrokerQuoteDetailPage> {
                       '전하고 싶은 내용을 정리해 남겨주세요.',
                       style: TextStyle(
                         fontSize: 13,
-                        color: Colors.grey[600],
+                        color: AirbnbColors.textSecondary,
                       ),
                     ),
                     const SizedBox(height: 24),
@@ -477,7 +477,7 @@ class _BrokerQuoteDetailPageState extends State<BrokerQuoteDetailPage> {
                                             : '처리 중 문제가 발생했어요. 잠시 후 다시 시도해주세요.',
                                       ),
                                       backgroundColor:
-                                          success ? AppColors.kInfo : Colors.red,
+                                          success ? AirbnbColors.primary : AirbnbColors.error,
                                     ),
                                   );
                                   if (success) {
@@ -488,22 +488,22 @@ class _BrokerQuoteDetailPageState extends State<BrokerQuoteDetailPage> {
                         icon: const Icon(
                           Icons.block,
                           size: 20,
-                          color: Colors.red,
+                          color: AirbnbColors.error,
                         ),
                         label: const Text(
                           '보류하기',
                           style: TextStyle(
                             fontSize: 14,
                             fontWeight: FontWeight.w600,
-                            color: Colors.red,
+                            color: AirbnbColors.error,
                           ),
                         ),
                         style: OutlinedButton.styleFrom(
-                          side: const BorderSide(color: Colors.redAccent),
+                          side: const BorderSide(color: AirbnbColors.error),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
                           ),
-                          foregroundColor: Colors.red,
+                          foregroundColor: AirbnbColors.error,
                         ),
                       ),
                     ),
@@ -521,7 +521,7 @@ class _BrokerQuoteDetailPageState extends State<BrokerQuoteDetailPage> {
                                 child: CircularProgressIndicator(
                                   strokeWidth: 2,
                                   valueColor:
-                                      AlwaysStoppedAnimation<Color>(Colors.white),
+                                      AlwaysStoppedAnimation<Color>(AirbnbColors.background),
                                 ),
                               )
                             : const Icon(Icons.send, size: 24),
@@ -533,8 +533,8 @@ class _BrokerQuoteDetailPageState extends State<BrokerQuoteDetailPage> {
                           ),
                         ),
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.kPrimary,
-                          foregroundColor: Colors.white,
+                          backgroundColor: AirbnbColors.textPrimary, // 에어비엔비 스타일: 검은색 배경
+                          foregroundColor: AirbnbColors.background,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
                           ),
@@ -576,7 +576,7 @@ class _BrokerQuoteDetailPageState extends State<BrokerQuoteDetailPage> {
           style: const TextStyle(
             fontSize: 14,
             fontWeight: FontWeight.w600,
-            color: Color(0xFF2C3E50),
+            color: AirbnbColors.textPrimary,
           ),
         ),
         const SizedBox(height: 8),
@@ -589,7 +589,7 @@ class _BrokerQuoteDetailPageState extends State<BrokerQuoteDetailPage> {
               borderRadius: BorderRadius.circular(12),
             ),
             filled: true,
-            fillColor: Colors.grey.withValues(alpha: 0.05),
+            fillColor: AirbnbColors.textSecondary.withValues(alpha: 0.05),
             contentPadding: EdgeInsets.symmetric(
               horizontal: 16,
               vertical: maxLines > 1 ? 16 : 14,

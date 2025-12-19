@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:property/constants/app_constants.dart';
+import 'package:property/constants/spacing.dart';
+import 'package:property/constants/typography.dart';
 
 /// 공통 디자인 시스템
 /// 모든 페이지에서 일관된 디자인을 위해 사용
 class CommonDesignSystem {
   // 배경색
-  static const Color backgroundColor = AppColors.kBackground;
-  static const Color surfaceColor = AppColors.kSurface;
+  static const Color backgroundColor = AirbnbColors.surface;
+  static const Color surfaceColor = AirbnbColors.background;
   
   // 카드 스타일
   static BoxDecoration cardDecoration({
@@ -15,11 +17,11 @@ class CommonDesignSystem {
     List<BoxShadow>? boxShadow,
   }) {
     return BoxDecoration(
-      color: color ?? Colors.white,
+      color: color ?? AirbnbColors.background,
       borderRadius: BorderRadius.circular(borderRadius ?? 16),
       boxShadow: boxShadow ?? [
         BoxShadow(
-          color: Colors.black.withValues(alpha: 0.06),
+          color: AirbnbColors.textPrimary.withValues(alpha: 0.06),
           blurRadius: 20,
           offset: const Offset(0, 4),
         ),
@@ -32,11 +34,11 @@ class CommonDesignSystem {
     Color? color,
   }) {
     return BoxDecoration(
-      color: color ?? Colors.white,
+      color: color ?? AirbnbColors.background,
       borderRadius: BorderRadius.circular(12),
       boxShadow: [
         BoxShadow(
-          color: Colors.black.withValues(alpha: 0.05),
+          color: AirbnbColors.textPrimary.withValues(alpha: 0.05),
           blurRadius: 8,
           offset: const Offset(0, 2),
         ),
@@ -53,17 +55,13 @@ class CommonDesignSystem {
     return AppBar(
       title: Text(
         title,
-        style: const TextStyle(
-          fontSize: 20,
-          fontWeight: FontWeight.bold,
-          color: AppColors.kTextPrimary,
-        ),
+        style: AppTypography.withColor(AppTypography.h3, AirbnbColors.textPrimary),
       ),
-      backgroundColor: Colors.white,
-      foregroundColor: AppColors.kPrimary,
+      backgroundColor: AirbnbColors.background,
+      foregroundColor: AirbnbColors.textPrimary, // 에어비엔비 스타일: 검은색 아이콘
       elevation: 2,
       toolbarHeight: 70,
-      shadowColor: Colors.black.withValues(alpha: 0.1),
+      shadowColor: AirbnbColors.textPrimary.withValues(alpha: 0.1),
       surfaceTintColor: Colors.transparent,
       centerTitle: false,
       actions: actions,
@@ -71,7 +69,7 @@ class CommonDesignSystem {
     );
   }
   
-  // AppBar 스타일 (TabBar 있는 페이지용)
+  // AppBar 스타일 (TabBar 있는 페이지용) - 에어비엔비 스타일: 흰색 배경
   static AppBar tabAppBar({
     required String title,
     required TabBar tabBar,
@@ -80,17 +78,13 @@ class CommonDesignSystem {
     return AppBar(
       title: Text(
         title,
-        style: const TextStyle(
-          fontSize: 20,
-          fontWeight: FontWeight.bold,
-          color: Colors.white,
-        ),
+        style: AppTypography.withColor(AppTypography.h3, AirbnbColors.textPrimary), // 에어비엔비 스타일: 검은색 텍스트
       ),
-      backgroundColor: AppColors.kPrimary,
-      foregroundColor: Colors.white,
+      backgroundColor: AirbnbColors.background, // 에어비엔비 스타일: 흰색 배경
+      foregroundColor: AirbnbColors.textPrimary,
       elevation: 0,
       toolbarHeight: 70,
-      shadowColor: Colors.black.withValues(alpha: 0.1),
+      shadowColor: AirbnbColors.textPrimary.withValues(alpha: 0.1),
       surfaceTintColor: Colors.transparent,
       centerTitle: false,
       actions: actions,
@@ -104,53 +98,130 @@ class CommonDesignSystem {
   // 섹션 제목 스타일
   static Widget sectionTitle(String title) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.screenPadding,
+        vertical: AppSpacing.screenPadding,
+      ),
       child: Text(
         title,
-        style: const TextStyle(
-          fontSize: 20,
-          fontWeight: FontWeight.bold,
-          color: AppColors.kTextPrimary,
-        ),
+        style: AppTypography.withColor(AppTypography.h3, AirbnbColors.textPrimary),
       ),
     );
   }
   
-  // 표준 간격
-  static const double standardPadding = 16.0;
-  static const double standardMargin = 16.0;
-  static const double cardSpacing = 16.0;
-  static const double sectionSpacing = 24.0;
+  // 표준 간격 (하위 호환성을 위해 유지, AppSpacing 사용 권장)
+  @Deprecated('Use AppSpacing instead')
+  static const double standardPadding = AppSpacing.md;
+  @Deprecated('Use AppSpacing instead')
+  static const double standardMargin = AppSpacing.md;
+  @Deprecated('Use AppSpacing instead')
+  static const double cardSpacing = AppSpacing.cardSpacing;
+  @Deprecated('Use AppSpacing instead')
+  static const double sectionSpacing = AppSpacing.sectionSpacing;
   
-  // 표준 버튼 스타일
+  // 표준 버튼 스타일 (에어비엔비 스타일: 검은색 배경)
   static ButtonStyle primaryButtonStyle({
     double? height,
     double? borderRadius,
   }) {
     return ElevatedButton.styleFrom(
-      backgroundColor: AppColors.kPrimary,
-      foregroundColor: Colors.white,
+      backgroundColor: AirbnbColors.textPrimary, // 에어비엔비 스타일: 검은색 배경
+      foregroundColor: AirbnbColors.textWhite,
       elevation: 2,
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.lg,
+        vertical: AppSpacing.md,
+      ),
       minimumSize: Size(0, height ?? 50),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(borderRadius ?? 12),
       ),
+      textStyle: AppTypography.button,
     );
   }
   
+  // 에어비엔비 스타일: 흰색 배경 + 검은색 테두리
   static ButtonStyle secondaryButtonStyle({
     double? height,
     double? borderRadius,
   }) {
     return OutlinedButton.styleFrom(
-      foregroundColor: AppColors.kPrimary,
-      side: const BorderSide(color: AppColors.kPrimary, width: 1.5),
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+      foregroundColor: AirbnbColors.textPrimary, // 에어비엔비 스타일: 검은색 텍스트
+      side: const BorderSide(color: AirbnbColors.textPrimary, width: 1.5), // 에어비엔비 스타일: 검은색 테두리
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.lg,
+        vertical: AppSpacing.md,
+      ),
       minimumSize: Size(0, height ?? 50),
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(borderRadius ?? 12),
       ),
+      textStyle: AppTypography.button,
+    );
+  }
+  
+  // 비활성화된 버튼 스타일 (에어비엔비 스타일: 흰색 배경 + 회색 테두리)
+  static ButtonStyle disabledButtonStyle({
+    double? height,
+    double? borderRadius,
+    bool requiresLogin = false,
+  }) {
+    return ElevatedButton.styleFrom(
+      backgroundColor: AirbnbColors.background, // 흰색 배경
+      foregroundColor: requiresLogin 
+          ? AirbnbColors.primary.withValues(alpha: 0.6)  // 로그인 필요: 연한 보라색
+          : AirbnbColors.textSecondary,  // 일반 비활성화: 회색
+      disabledBackgroundColor: AirbnbColors.background,
+      disabledForegroundColor: requiresLogin 
+          ? AirbnbColors.primary.withValues(alpha: 0.6)
+          : AirbnbColors.textSecondary,
+      elevation: 0,
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.lg,
+        vertical: AppSpacing.md,
+      ),
+      minimumSize: Size(0, height ?? 50),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(borderRadius ?? 12),
+        side: BorderSide(
+          color: requiresLogin 
+              ? AirbnbColors.primary.withValues(alpha: 0.3)  // 로그인 필요: 연한 보라색 테두리
+              : AirbnbColors.border,  // 일반 비활성화: 회색 테두리
+          width: requiresLogin ? 1.5 : 1,
+        ),
+      ),
+      textStyle: AppTypography.button,
+    );
+  }
+  
+  // 비활성화된 Outlined 버튼 스타일
+  static ButtonStyle disabledOutlinedButtonStyle({
+    double? height,
+    double? borderRadius,
+    bool requiresLogin = false,
+  }) {
+    return OutlinedButton.styleFrom(
+      foregroundColor: requiresLogin 
+          ? AirbnbColors.primary.withValues(alpha: 0.6)
+          : AirbnbColors.textSecondary,
+      disabledForegroundColor: requiresLogin 
+          ? AirbnbColors.primary.withValues(alpha: 0.6)
+          : AirbnbColors.textSecondary,
+      side: BorderSide(
+        color: requiresLogin 
+            ? AirbnbColors.primary.withValues(alpha: 0.3)
+            : AirbnbColors.border,
+        width: requiresLogin ? 1.5 : 1,
+      ),
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.lg,
+        vertical: AppSpacing.md,
+      ),
+      minimumSize: Size(0, height ?? 50),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(borderRadius ?? 12),
+      ),
+      textStyle: AppTypography.button,
     );
   }
   
@@ -165,20 +236,97 @@ class CommonDesignSystem {
       hintText: hint,
       prefixIcon: prefixIcon,
       filled: true,
-      fillColor: Colors.grey[50],
+      fillColor: AirbnbColors.surface,
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: BorderSide(color: Colors.grey[300]!),
+        borderSide: const BorderSide(color: AirbnbColors.border),
       ),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: BorderSide(color: Colors.grey[300]!),
+        borderSide: const BorderSide(color: AirbnbColors.border),
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
-        borderSide: const BorderSide(color: AppColors.kPrimary, width: 2),
+        borderSide: const BorderSide(color: AirbnbColors.primary, width: 2),
       ),
-      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+      contentPadding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.inputPadding,
+        vertical: AppSpacing.inputPadding,
+      ),
+    );
+  }
+}
+
+/// 접근성 개선을 위한 헬퍼 위젯
+class AccessibleWidget {
+  /// 접근 가능한 아이콘 버튼 생성
+  /// Semantics와 Tooltip을 자동으로 추가
+  static Widget iconButton({
+    required IconData icon,
+    required VoidCallback? onPressed,
+    required String tooltip,
+    String? semanticLabel,
+    Color? color,
+    double? iconSize,
+  }) {
+    final button = IconButton(
+      icon: Icon(icon, size: iconSize),
+      onPressed: onPressed,
+      color: color,
+      tooltip: tooltip,
+    );
+    
+    return Semantics(
+      label: semanticLabel ?? tooltip,
+      button: true,
+      enabled: onPressed != null,
+      child: Tooltip(
+        message: tooltip,
+        child: button,
+      ),
+    );
+  }
+  
+  /// 접근 가능한 텍스트 버튼 생성
+  static Widget textButton({
+    required String label,
+    required VoidCallback? onPressed,
+    String? semanticLabel,
+    TextStyle? textStyle,
+  }) {
+    return Semantics(
+      label: semanticLabel ?? label,
+      button: true,
+      enabled: onPressed != null,
+      child: TextButton(
+        onPressed: onPressed,
+        child: Text(
+          label,
+          style: textStyle ?? AppTypography.button,
+        ),
+      ),
+    );
+  }
+  
+  /// 접근 가능한 Elevated 버튼 생성
+  static Widget elevatedButton({
+    required String label,
+    required VoidCallback? onPressed,
+    String? semanticLabel,
+    ButtonStyle? style,
+  }) {
+    return Semantics(
+      label: semanticLabel ?? label,
+      button: true,
+      enabled: onPressed != null,
+      child: ElevatedButton(
+        onPressed: onPressed,
+        style: style ?? CommonDesignSystem.primaryButtonStyle(),
+        child: Text(
+          label,
+          style: AppTypography.button,
+        ),
+      ),
     );
   }
 }

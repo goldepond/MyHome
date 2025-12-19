@@ -254,7 +254,7 @@ class _PropertyRegistrationFormPageState extends State<PropertyRegistrationFormP
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('사진 선택 중 오류가 발생했습니다: $e'),
-          backgroundColor: Colors.red,
+          backgroundColor: AirbnbColors.error,
         ),
       );
     }
@@ -307,7 +307,7 @@ class _PropertyRegistrationFormPageState extends State<PropertyRegistrationFormP
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text('일부 이미지 업로드에 실패했습니다. (${urls.length}/${_selectedImages.length}개 성공)'),
-              backgroundColor: Colors.orange,
+              backgroundColor: AirbnbColors.warning,
               duration: const Duration(seconds: 3),
             ),
           );
@@ -318,7 +318,7 @@ class _PropertyRegistrationFormPageState extends State<PropertyRegistrationFormP
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
               content: Text('이미지 업로드가 완료되었습니다.'),
-              backgroundColor: Colors.green,
+              backgroundColor: AirbnbColors.success,
               duration: Duration(seconds: 2),
             ),
           );
@@ -334,7 +334,7 @@ class _PropertyRegistrationFormPageState extends State<PropertyRegistrationFormP
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('이미지 업로드 중 오류가 발생했습니다: $e'),
-            backgroundColor: Colors.red,
+            backgroundColor: AirbnbColors.error,
             duration: const Duration(seconds: 5),
           ),
         );
@@ -379,7 +379,7 @@ class _PropertyRegistrationFormPageState extends State<PropertyRegistrationFormP
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('임시 저장되었습니다.'),
-          backgroundColor: AppColors.kSuccess,
+          backgroundColor: AirbnbColors.success,
           duration: Duration(seconds: 2),
         ),
       );
@@ -388,7 +388,7 @@ class _PropertyRegistrationFormPageState extends State<PropertyRegistrationFormP
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('임시 저장 실패: $e'),
-          backgroundColor: Colors.red,
+          backgroundColor: AirbnbColors.error,
         ),
       );
     } finally {
@@ -414,7 +414,7 @@ class _PropertyRegistrationFormPageState extends State<PropertyRegistrationFormP
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('매매가를 입력해주세요.'),
-            backgroundColor: Colors.orange,
+            backgroundColor: AirbnbColors.warning,
           ),
         );
         return;
@@ -426,7 +426,7 @@ class _PropertyRegistrationFormPageState extends State<PropertyRegistrationFormP
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('월세 금액을 입력해주세요.'),
-            backgroundColor: Colors.orange,
+            backgroundColor: AirbnbColors.warning,
           ),
         );
         return;
@@ -439,7 +439,7 @@ class _PropertyRegistrationFormPageState extends State<PropertyRegistrationFormP
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('전세 보증금을 입력해주세요.'),
-            backgroundColor: Colors.orange,
+            backgroundColor: AirbnbColors.warning,
           ),
         );
         return;
@@ -462,7 +462,7 @@ class _PropertyRegistrationFormPageState extends State<PropertyRegistrationFormP
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(
                   content: Text('이미지 업로드에 실패했습니다. 사진 없이 등록됩니다.'),
-                  backgroundColor: Colors.orange,
+                  backgroundColor: AirbnbColors.warning,
                   duration: Duration(seconds: 3),
                 ),
               );
@@ -475,7 +475,7 @@ class _PropertyRegistrationFormPageState extends State<PropertyRegistrationFormP
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Text('이미지 업로드 중 오류가 발생했습니다. 사진 없이 등록됩니다.\n$e'),
-                backgroundColor: Colors.orange,
+                backgroundColor: AirbnbColors.warning,
                 duration: const Duration(seconds: 4),
               ),
             );
@@ -575,7 +575,7 @@ class _PropertyRegistrationFormPageState extends State<PropertyRegistrationFormP
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('매물 등록에 실패했습니다.'),
-            backgroundColor: Colors.red,
+            backgroundColor: AirbnbColors.error,
           ),
         );
       }
@@ -584,7 +584,7 @@ class _PropertyRegistrationFormPageState extends State<PropertyRegistrationFormP
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('매물 등록 중 오류가 발생했습니다: $e'),
-          backgroundColor: Colors.red,
+          backgroundColor: AirbnbColors.error,
         ),
       );
     } finally {
@@ -605,12 +605,12 @@ class _PropertyRegistrationFormPageState extends State<PropertyRegistrationFormP
     final horizontalPadding = isWeb ? 24.0 : 16.0;
 
     return Scaffold(
-      backgroundColor: AppColors.kBackground,
+      backgroundColor: AirbnbColors.surface,
       resizeToAvoidBottomInset: true,
       appBar: AppBar(
         title: const Text('매물 등록'),
-        backgroundColor: AppColors.kPrimary,
-        foregroundColor: Colors.white,
+        backgroundColor: AirbnbColors.background, // 에어비엔비 스타일: 흰색 배경
+        foregroundColor: AirbnbColors.background,
         actions: [
           // 임시 저장 버튼
           TextButton.icon(
@@ -619,12 +619,12 @@ class _PropertyRegistrationFormPageState extends State<PropertyRegistrationFormP
                 ? const SizedBox(
                     width: 16,
                     height: 16,
-                    child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                    child: CircularProgressIndicator(strokeWidth: 2, color: AirbnbColors.background),
                   )
-                : const Icon(Icons.save_outlined, color: Colors.white, size: 20),
+                : const Icon(Icons.save_outlined, color: AirbnbColors.background, size: 20),
             label: Text(
               _isSavingDraft ? '저장 중...' : '임시 저장',
-              style: const TextStyle(color: Colors.white, fontSize: 14),
+              style: const TextStyle(color: AirbnbColors.background, fontSize: 14),
             ),
           ),
         ],
@@ -656,22 +656,22 @@ class _PropertyRegistrationFormPageState extends State<PropertyRegistrationFormP
                   Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: AppColors.kPrimary.withValues(alpha: 0.1),
+                      color: AirbnbColors.primary.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(
-                        color: AppColors.kPrimary.withValues(alpha: 0.3),
+                        color: AirbnbColors.primary.withValues(alpha: 0.3),
                       ),
                     ),
                     child: Row(
                       children: [
-                        Icon(Icons.info_outline, color: AppColors.kPrimary, size: 20),
+                        Icon(Icons.info_outline, color: AirbnbColors.primary, size: 20),
                         const SizedBox(width: 12),
                         Expanded(
                           child: Text(
                             '매물 정보를 입력한 후 등록하시면 집 구하기 목록에 노출됩니다.',
                             style: TextStyle(
                               fontSize: 13,
-                              color: AppColors.kPrimary,
+                              color: AirbnbColors.primary,
                               height: 1.4,
                             ),
                           ),
@@ -752,7 +752,7 @@ class _PropertyRegistrationFormPageState extends State<PropertyRegistrationFormP
                   const SizedBox(height: 8),
                   Text(
                     '매물 사진을 첨부해주시면 더 좋아요 (선택사항)',
-                    style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                    style: TextStyle(fontSize: 12, color: AirbnbColors.textSecondary),
                   ),
                   const SizedBox(height: 12),
                   _buildImagePickerSection(),
@@ -763,7 +763,7 @@ class _PropertyRegistrationFormPageState extends State<PropertyRegistrationFormP
                   const SizedBox(height: 8),
                   Text(
                     '아래 정보는 상담 요청에서 가져온 기본 정보예요. 필요하시면 수정해주세요.',
-                    style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                    style: TextStyle(fontSize: 12, color: AirbnbColors.textSecondary),
                   ),
                   const SizedBox(height: 12),
                   _buildTextField(
@@ -854,7 +854,7 @@ class _PropertyRegistrationFormPageState extends State<PropertyRegistrationFormP
                         const SizedBox(height: 8),
                         Text(
                           '아래 정보는 자동으로 조회된 참조 정보입니다.',
-                          style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                          style: TextStyle(fontSize: 12, color: AirbnbColors.textSecondary),
                         ),
                         const SizedBox(height: 12),
                         ApiReferenceInfoCard(
@@ -890,7 +890,7 @@ class _PropertyRegistrationFormPageState extends State<PropertyRegistrationFormP
                           ? const SizedBox(
                               width: 20,
                               height: 20,
-                              child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                              child: CircularProgressIndicator(strokeWidth: 2, color: AirbnbColors.background),
                             )
                           : const Icon(Icons.check_circle),
                       label: Text(
@@ -898,8 +898,8 @@ class _PropertyRegistrationFormPageState extends State<PropertyRegistrationFormP
                         style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                       ),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.kPrimary,
-                        foregroundColor: Colors.white,
+                        backgroundColor: AirbnbColors.background, // 에어비엔비 스타일: 흰색 배경
+                        foregroundColor: AirbnbColors.background,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
@@ -925,7 +925,7 @@ class _PropertyRegistrationFormPageState extends State<PropertyRegistrationFormP
       style: const TextStyle(
         fontSize: 18,
         fontWeight: FontWeight.bold,
-        color: Color(0xFF2C3E50),
+        color: AirbnbColors.textPrimary,
       ),
     );
   }
@@ -951,7 +951,7 @@ class _PropertyRegistrationFormPageState extends State<PropertyRegistrationFormP
           borderRadius: BorderRadius.circular(12),
         ),
         filled: true,
-        fillColor: Colors.grey.withValues(alpha: 0.05),
+        fillColor: AirbnbColors.textSecondary.withValues(alpha: 0.05),
         contentPadding: EdgeInsets.symmetric(
           horizontal: 16,
           vertical: maxLines > 1 ? 16 : 14,
@@ -995,7 +995,7 @@ class _PropertyRegistrationFormPageState extends State<PropertyRegistrationFormP
             ),
             style: OutlinedButton.styleFrom(
               side: BorderSide(
-                color: AppColors.kPrimary,
+                color: AirbnbColors.primary,
                 width: 2,
               ),
               shape: RoundedRectangleBorder(
@@ -1031,7 +1031,7 @@ class _PropertyRegistrationFormPageState extends State<PropertyRegistrationFormP
                             fit: BoxFit.cover,
                             errorBuilder: (context, error, stackTrace) {
                               return Container(
-                                color: Colors.grey[300],
+                                color: AirbnbColors.border,
                                 child: const Icon(Icons.error),
                               );
                             },
@@ -1041,7 +1041,7 @@ class _PropertyRegistrationFormPageState extends State<PropertyRegistrationFormP
                             fit: BoxFit.cover,
                             errorBuilder: (context, error, stackTrace) {
                               return Container(
-                                color: Colors.grey[300],
+                                color: AirbnbColors.border,
                                 child: const Icon(Icons.error),
                               );
                             },
@@ -1056,12 +1056,12 @@ class _PropertyRegistrationFormPageState extends State<PropertyRegistrationFormP
                       child: Container(
                         padding: const EdgeInsets.all(4),
                         decoration: const BoxDecoration(
-                          color: Colors.red,
+                          color: AirbnbColors.error,
                           shape: BoxShape.circle,
                         ),
                         child: const Icon(
                           Icons.close,
-                          color: Colors.white,
+                          color: AirbnbColors.background,
                           size: 16,
                         ),
                       ),

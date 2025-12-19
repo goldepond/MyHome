@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:property/constants/app_constants.dart';
 import 'package:property/utils/network_status.dart';
 
 /// 오프라인 상태를 표시하는 배너 위젯
@@ -60,20 +61,20 @@ class _OfflineBannerState extends State<OfflineBanner> {
             color: Colors.orange,
             child: Row(
               children: [
-                const Icon(Icons.wifi_off, color: Colors.white, size: 20),
+                const Icon(Icons.wifi_off, color: AirbnbColors.background, size: 20),
                 const SizedBox(width: 8),
                 const Expanded(
                   child: Text(
                     '인터넷 연결이 없습니다. 일부 기능이 제한될 수 있습니다.',
                     style: TextStyle(
-                      color: Colors.white,
+                      color: AirbnbColors.background,
                       fontSize: 13,
                       fontWeight: FontWeight.w500,
                     ),
                   ),
                 ),
                 IconButton(
-                  icon: const Icon(Icons.refresh, color: Colors.white, size: 18),
+                  icon: const Icon(Icons.refresh, color: AirbnbColors.background, size: 18),
                   onPressed: _checkNetworkStatus,
                   tooltip: '연결 확인',
                   padding: EdgeInsets.zero,

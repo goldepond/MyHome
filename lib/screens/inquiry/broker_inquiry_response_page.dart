@@ -6,7 +6,6 @@ import 'package:property/models/quote_request.dart';
 import 'package:property/api_request/apt_info_service.dart';
 import 'package:property/api_request/vworld_service.dart';
 import 'package:property/api_request/address_service.dart';
-import 'package:flutter/services.dart';
 import 'package:property/utils/transaction_type_helper.dart';
 
 /// 공인중개사용 문의 답변 페이지
@@ -41,7 +40,6 @@ class _BrokerInquiryResponsePageState extends State<BrokerInquiryResponsePage> {
   Map<String, dynamic>? _aptInfo;
   Map<String, String>? _fullAddrAPIData;
   String? _kaptCode;
-  bool _isLoadingApiInfo = false;
 
   @override
   void initState() {
@@ -61,10 +59,6 @@ class _BrokerInquiryResponsePageState extends State<BrokerInquiryResponsePage> {
     final hadAptInfo = _aptInfo != null && _aptInfo!.isNotEmpty;
     final hadKaptCode = _kaptCode != null && _kaptCode!.isNotEmpty;
     final hadAll = hadFullAddr && hadCoords && hadAptInfo;
-
-    setState(() {
-      _isLoadingApiInfo = true;
-    });
     
     try {
       if (!hadAll) {
@@ -148,17 +142,10 @@ class _BrokerInquiryResponsePageState extends State<BrokerInquiryResponsePage> {
           // 실패 정보는 화면에 표시하지 않고 내부적으로만 유지
         }
       }
-      
-      if (mounted) {
-        setState(() {
-          _isLoadingApiInfo = false;
-        });
-      }
     } catch (e) {
+      // API 정보 로드 실패 처리
       if (mounted) {
-        setState(() {
-          _isLoadingApiInfo = false;
-        });
+        // 실패 시 별도 처리 없음
       }
     }
   }
@@ -171,10 +158,10 @@ class _BrokerInquiryResponsePageState extends State<BrokerInquiryResponsePage> {
           width: 32,
           height: 32,
           decoration: BoxDecoration(
-            color: AppColors.kPrimary.withValues(alpha: 0.08),
+            color: AirbnbColors.primary.withValues(alpha: 0.08),
             shape: BoxShape.circle,
           ),
-          child: Icon(icon, size: 16, color: AppColors.kPrimary),
+          child: Icon(icon, size: 16, color: AirbnbColors.primary),
         ),
         const SizedBox(width: 10),
         Expanded(
@@ -186,7 +173,7 @@ class _BrokerInquiryResponsePageState extends State<BrokerInquiryResponsePage> {
                 style: TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.w600,
-                  color: Colors.grey[700],
+                  color: AirbnbColors.textSecondary,
                 ),
               ),
               const SizedBox(height: 2),
@@ -195,7 +182,7 @@ class _BrokerInquiryResponsePageState extends State<BrokerInquiryResponsePage> {
                 style: const TextStyle(
                   fontSize: 15,
                   fontWeight: FontWeight.w700,
-                  color: Color(0xFF111827),
+                  color: AirbnbColors.textPrimary,
                   height: 1.3,
                 ),
               ),
@@ -210,20 +197,20 @@ class _BrokerInquiryResponsePageState extends State<BrokerInquiryResponsePage> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
       decoration: BoxDecoration(
-        color: Colors.grey.withValues(alpha: 0.12),
+        color: AirbnbColors.textSecondary.withValues(alpha: 0.12),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 14, color: Colors.grey[800]),
+          Icon(icon, size: 14, color: AirbnbColors.textPrimary),
           const SizedBox(width: 6),
           Text(
             text,
             style: const TextStyle(
               fontSize: 13,
               fontWeight: FontWeight.w600,
-              color: Color(0xFF1F2937),
+              color: AirbnbColors.textPrimary,
             ),
           ),
         ],
@@ -365,7 +352,7 @@ class _BrokerInquiryResponsePageState extends State<BrokerInquiryResponsePage> {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
               content: Text('답변 전송에 실패했습니다. 다시 시도해주세요.'),
-              backgroundColor: Colors.red,
+              backgroundColor: AirbnbColors.error,
             ),
           );
         }
@@ -411,7 +398,7 @@ class _BrokerInquiryResponsePageState extends State<BrokerInquiryResponsePage> {
       return Scaffold(
         appBar: AppBar(
           title: const Text('문의 정보'),
-          backgroundColor: AppColors.kPrimary,
+          backgroundColor: AirbnbColors.textPrimary, // 에어비엔비 스타일: 검은색 배경
         ),
         body: Center(
           child: Container(
@@ -419,13 +406,13 @@ class _BrokerInquiryResponsePageState extends State<BrokerInquiryResponsePage> {
             child: const Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(Icons.error_outline, size: 64, color: Colors.red),
+                Icon(Icons.error_outline, size: 64, color: AirbnbColors.error),
                 SizedBox(height: 16),
                 Text('문의를 찾을 수 없습니다.'),
                 SizedBox(height: 8),
                 Text(
                   '링크가 만료되었거나 잘못된 접근입니다.',
-                  style: TextStyle(color: Colors.grey),
+                  style: TextStyle(color: AirbnbColors.textSecondary),
                 ),
               ],
             ),
@@ -441,8 +428,8 @@ class _BrokerInquiryResponsePageState extends State<BrokerInquiryResponsePage> {
       child: Scaffold(
         appBar: AppBar(
           title: const Text('문의 답변'),
-          backgroundColor: AppColors.kPrimary,
-          foregroundColor: Colors.white,
+          backgroundColor: AirbnbColors.textPrimary, // 에어비엔비 스타일: 검은색 배경
+          foregroundColor: AirbnbColors.background,
         ),
         resizeToAvoidBottomInset: true,
         body: SafeArea(
@@ -468,17 +455,16 @@ class _BrokerInquiryResponsePageState extends State<BrokerInquiryResponsePage> {
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [AppColors.kPrimary.withValues(alpha: 0.1), AppColors.kSecondary.withValues(alpha: 0.1)],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
+                color: AirbnbColors.primary.withValues(alpha: 0.08),
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: AppColors.kPrimary.withValues(alpha: 0.3)),
+                border: Border.all(
+                  color: AirbnbColors.primary.withValues(alpha: 0.2),
+                  width: 1.5,
+                ),
               ),
               child: Row(
                 children: const [
-                  Icon(Icons.info_outline, color: AppColors.kPrimary, size: 24),
+                  Icon(Icons.info_outline, color: AirbnbColors.primary, size: 24),
                   SizedBox(width: 12),
                   Expanded(
                     child: Text(
@@ -497,12 +483,12 @@ class _BrokerInquiryResponsePageState extends State<BrokerInquiryResponsePage> {
               width: double.infinity,
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: AirbnbColors.background,
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: AppColors.kPrimary.withValues(alpha: 0.25)),
+                border: Border.all(color: AirbnbColors.primary.withValues(alpha: 0.25)),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.04),
+                    color: AirbnbColors.textPrimary.withValues(alpha: 0.04),
                     blurRadius: 16,
                     offset: const Offset(0, 6),
                   ),
@@ -513,33 +499,33 @@ class _BrokerInquiryResponsePageState extends State<BrokerInquiryResponsePage> {
                 children: [
                   Row(
                     children: [
-                      const Icon(Icons.person_pin_circle, color: AppColors.kPrimary, size: 22),
+                      const Icon(Icons.person_pin_circle, color: AirbnbColors.primary, size: 22),
                       const SizedBox(width: 8),
                       const Text(
                         '문의 정보',
                         style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
-                          color: Color(0xFF1F2937),
+                          color: AirbnbColors.textPrimary,
                         ),
                       ),
                       const Spacer(),
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                         decoration: BoxDecoration(
-                          color: AppColors.kPrimary.withValues(alpha: 0.08),
+                          color: AirbnbColors.primary.withValues(alpha: 0.08),
                           borderRadius: BorderRadius.circular(16),
                         ),
                         child: Row(
                           children: const [
-                            Icon(Icons.flash_on, size: 14, color: AppColors.kPrimary),
+                            Icon(Icons.flash_on, size: 14, color: AirbnbColors.primary),
                             SizedBox(width: 6),
                             Text(
                               '중요 정보',
                               style: TextStyle(
                                 fontSize: 12,
                                 fontWeight: FontWeight.w700,
-                                color: AppColors.kPrimary,
+                                color: AirbnbColors.primary,
                               ),
                             ),
                           ],
@@ -578,11 +564,11 @@ class _BrokerInquiryResponsePageState extends State<BrokerInquiryResponsePage> {
             Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: AirbnbColors.background,
                 borderRadius: BorderRadius.circular(16),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.06),
+                    color: AirbnbColors.textPrimary.withValues(alpha: 0.06),
                     blurRadius: 20,
                     offset: const Offset(0, 4),
                   ),
@@ -593,14 +579,14 @@ class _BrokerInquiryResponsePageState extends State<BrokerInquiryResponsePage> {
                 children: [
                   Row(
                     children: [
-                      Icon(Icons.reply, color: AppColors.kPrimary, size: 24),
+                      Icon(Icons.reply, color: AirbnbColors.primary, size: 24),
                       const SizedBox(width: 12),
                       Text(
                         _hasExistingAnswer ? '상담 답변 수정' : '상담 답변 작성',
                         style: const TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.bold,
-                          color: Color(0xFF2C3E50),
+                          color: AirbnbColors.textPrimary,
                         ),
                       ),
                     ],
@@ -610,7 +596,7 @@ class _BrokerInquiryResponsePageState extends State<BrokerInquiryResponsePage> {
                     '전하고 싶은 내용을 정리해 남겨주세요.',
                     style: TextStyle(
                       fontSize: 13,
-                      color: Colors.grey[600],
+                      color: AirbnbColors.textSecondary,
                     ),
                   ),
                   if (_hasExistingAnswer) ...[
@@ -618,20 +604,20 @@ class _BrokerInquiryResponsePageState extends State<BrokerInquiryResponsePage> {
                     Container(
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: Colors.blue.withValues(alpha: 0.1),
+                        color: AirbnbColors.primary.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: Colors.blue.withValues(alpha: 0.3)),
+                        border: Border.all(color: AirbnbColors.primary.withValues(alpha: 0.3)),
                       ),
                       child: Row(
                         children: [
-                          Icon(Icons.edit, color: Colors.blue, size: 18),
+                          Icon(Icons.edit, color: AirbnbColors.primary, size: 18),
                           const SizedBox(width: 8),
                           Expanded(
                             child: Text(
                               '기존 답변을 수정한 후 다시 전송할 수 있습니다.',
                               style: TextStyle(
                                 fontSize: 12,
-                                color: Colors.blue[700],
+                                color: AirbnbColors.primary.withValues(alpha: 0.7),
                                 fontWeight: FontWeight.w500,
                               ),
                             ),
@@ -651,20 +637,20 @@ class _BrokerInquiryResponsePageState extends State<BrokerInquiryResponsePage> {
                         width: double.infinity,
                         padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
-                          color: AppColors.kPrimary.withValues(alpha: 0.1),
+                          color: AirbnbColors.primary.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(8),
-                          border: Border.all(color: AppColors.kPrimary.withValues(alpha: 0.3)),
+                          border: Border.all(color: AirbnbColors.primary.withValues(alpha: 0.3)),
                         ),
                         child: Row(
                           children: const [
-                            Icon(Icons.info_outline, color: AppColors.kPrimary, size: 18),
+                            Icon(Icons.info_outline, color: AirbnbColors.primary, size: 18),
                             SizedBox(width: 8),
                             Expanded(
                               child: Text(
                                 '위 특이사항을 참고하여 답변을 작성해주세요.',
                                 style: TextStyle(
                                   fontSize: 12,
-                                  color: AppColors.kPrimary,
+                                  color: AirbnbColors.primary,
                                   fontWeight: FontWeight.w500,
                                 ),
                               ),
@@ -736,7 +722,7 @@ class _BrokerInquiryResponsePageState extends State<BrokerInquiryResponsePage> {
                         height: 24,
                         child: CircularProgressIndicator(
                           strokeWidth: 2,
-                          valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                          valueColor: AlwaysStoppedAnimation<Color>(AirbnbColors.background),
                         ),
                       )
                     : const Icon(Icons.send, size: 24),
@@ -748,8 +734,8 @@ class _BrokerInquiryResponsePageState extends State<BrokerInquiryResponsePage> {
                   ),
                 ),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.kPrimary,
-                  foregroundColor: Colors.white,
+                  backgroundColor: AirbnbColors.textPrimary, // 에어비엔비 스타일: 검은색 배경
+                  foregroundColor: AirbnbColors.background,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
@@ -770,56 +756,6 @@ class _BrokerInquiryResponsePageState extends State<BrokerInquiryResponsePage> {
     );
   }
 
-  Widget _buildSection({required String title, required List<Widget> children}) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          title,
-          style: const TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-            color: AppColors.kPrimary,
-          ),
-        ),
-        const SizedBox(height: 12),
-        ...children,
-      ],
-    );
-  }
-
-  Widget _buildInfoRow(String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          SizedBox(
-            width: 100,
-            child: Text(
-              label,
-              style: TextStyle(
-                fontSize: 13,
-                color: Colors.grey[700],
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Text(
-              value,
-              style: const TextStyle(
-                fontSize: 14,
-                color: Color(0xFF2C3E50),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-  
   Widget _buildTextField({
     required String label,
     required TextEditingController controller,
@@ -835,7 +771,7 @@ class _BrokerInquiryResponsePageState extends State<BrokerInquiryResponsePage> {
           style: const TextStyle(
             fontSize: 14,
             fontWeight: FontWeight.w600,
-            color: Color(0xFF2C3E50),
+            color: AirbnbColors.textPrimary,
           ),
         ),
         const SizedBox(height: 8),
@@ -848,7 +784,7 @@ class _BrokerInquiryResponsePageState extends State<BrokerInquiryResponsePage> {
               borderRadius: BorderRadius.circular(12),
             ),
             filled: true,
-            fillColor: Colors.grey.withValues(alpha: 0.05),
+            fillColor: AirbnbColors.textSecondary.withValues(alpha: 0.05),
             contentPadding: EdgeInsets.symmetric(
               horizontal: 16,
               vertical: maxLines > 1 ? 16 : 14,

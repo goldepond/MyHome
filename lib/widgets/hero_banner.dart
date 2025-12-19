@@ -1,256 +1,183 @@
 import 'package:flutter/material.dart';
 import '../constants/app_constants.dart';
+import '../constants/typography.dart';
+import '../constants/spacing.dart';
 
 class HeroBanner extends StatefulWidget {
-  const HeroBanner({super.key});
+  final TextEditingController? searchController;
+  final VoidCallback? onSearchSubmitted;
+  final Function(String)? onSearchChanged;
+  final bool showSearchBar;
+  
+  const HeroBanner({
+    super.key,
+    this.searchController,
+    this.onSearchSubmitted,
+    this.onSearchChanged,
+    this.showSearchBar = true,
+  });
 
   @override
   State<HeroBanner> createState() => _HeroBannerState();
 }
 
 class _HeroBannerState extends State<HeroBanner> {
-  // 히어로 배너 단계 (1: 주소 입력, 2: 주소 선택, 3: 공인중개사 찾기)
-  int _currentHeroStep = 1;
+  bool _hasSearchText = false;
 
-  String get _heroTitle {
-    switch (_currentHeroStep) {
-      case 1:
-        return '쉽고 빠른\n부동산 상담';
-      case 2:
-        return '주소를 정확히\n선택해 주세요';
-      case 3:
-        return '중개사 견적을\n비교해서 선택하세요';
-      default:
-        return '쉽고 빠른\n부동산 상담';
+  @override
+  void initState() {
+    super.initState();
+    widget.searchController?.addListener(_onSearchTextChanged);
+  }
+
+  @override
+  void dispose() {
+    widget.searchController?.removeListener(_onSearchTextChanged);
+    super.dispose();
+  }
+
+  void _onSearchTextChanged() {
+    final hasText = widget.searchController?.text.isNotEmpty ?? false;
+    if (_hasSearchText != hasText) {
+      setState(() {
+        _hasSearchText = hasText;
+      });
     }
   }
 
-  String get _heroSubtitle {
-    switch (_currentHeroStep) {
-      case 1:
-        return '도로명·건물명 일부만 입력해도 자동완성이 나옵니다';
-      case 2:
-        return '추천 리스트에서 내가 원하는 주소를 탭해서 선택하세요';
-      case 3:
-        return '받은 견적과 후기를 보고 믿을 수 있는 공인중개사를 고르세요';
-      default:
-        return '주소만 입력하면 근처 공인중개사를 찾아드립니다';
-    }
-  }
-
-  /// 히어로 배너 그라데이션 색상
-  List<Color> get _heroGradientColors {
-    switch (_currentHeroStep) {
-      case 1:
-        return const [Color(0xFF5B21B6), Color(0xFF1E3A8A)];
-      case 2:
-        return const [Color(0xFF1E3A8A), Color(0xFF065F46)];
-      case 3:
-        return const [Color(0xFF065F46), Color(0xFF4C1D95)];
-      default:
-        return const [AppColors.kPrimary, AppColors.kSecondary];
-    }
-  }
-
-  /// 히어로 배너 아이콘
-  IconData get _heroIconData {
-    switch (_currentHeroStep) {
-      case 1:
-        return Icons.edit_location_alt_rounded;
-      case 2:
-        return Icons.place_rounded;
-      case 3:
-        return Icons.handshake_rounded;
-      default:
-        return Icons.home_rounded;
-    }
-  }
-
-  Widget _buildStepChip(int step, String label, {bool isVerySmallScreen = false, bool isTinyScreen = false}) {
-    final bool isSelected = _currentHeroStep == step;
-
-    return InkWell(
-      onTap: () {
-        setState(() {
-          _currentHeroStep = step;
-        });
-      },
-      borderRadius: BorderRadius.circular(999),
-      child: Padding(
-        padding: EdgeInsets.symmetric(
-          horizontal: isTinyScreen ? 1 : (isVerySmallScreen ? 2 : 4),
-          vertical: 4,
+  @override
+  Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isMobile = screenWidth < 768;
+    final isTablet = screenWidth >= 768 && screenWidth < 1024;
+    
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.symmetric(
+        vertical: isMobile ? AppSpacing.xxl : AppSpacing.xxxl, // 48px / 64px
+        horizontal: isMobile ? AppSpacing.lg : AppSpacing.xxl, // 24px / 48px
+      ),
+      decoration: BoxDecoration(
+        color: AirbnbColors.background,
+      ),
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(
+          maxWidth: 1200, // 더 넓은 최대 너비
         ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            Container(
-              width: isTinyScreen ? 16 : (isVerySmallScreen ? 18 : 20),
-              height: isTinyScreen ? 16 : (isVerySmallScreen ? 18 : 20),
-              alignment: Alignment.center,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: isSelected
-                    ? Colors.white
-                    : Colors.white.withValues(alpha: 0.25),
-              ),
-              child: Text(
-                '$step',
-                style: TextStyle(
-                  fontSize: isTinyScreen ? 9 : (isVerySmallScreen ? 10 : 11),
-                  fontWeight: FontWeight.bold,
-                  color: isSelected
-                      ? AppColors.kPrimary
-                      : Colors.white.withValues(alpha: 0.9),
+            // 매우 큰 헤드라인 (Stripe/Vercel 스타일)
+            Text(
+              '쉽고 빠른\n부동산 상담',
+              textAlign: TextAlign.center,
+              style: AppTypography.withColor(
+                AppTypography.display.copyWith(
+                  fontSize: isMobile ? 40 : (isTablet ? 52 : 64), // 40px / 52px / 64px
+                  fontWeight: FontWeight.w800, // w900보다 약간 가벼운
+                  letterSpacing: -1.5,
+                  height: 1.1, // 타이트한 줄 간격
                 ),
+                AirbnbColors.textPrimary,
               ),
             ),
-            SizedBox(width: isTinyScreen ? 3 : (isVerySmallScreen ? 4 : 6)),
-            Flexible(
-              child: Text(
-                label,
-                style: TextStyle(
-                  fontSize: isTinyScreen ? 10 : (isVerySmallScreen ? 11 : 12),
-                  fontWeight: FontWeight.w600,
-                  color: isSelected
-                      ? Colors.white
-                      : Colors.white.withValues(alpha: 0.8),
-                  letterSpacing: isTinyScreen ? -0.3 : 0,
+            
+            SizedBox(height: AppSpacing.lg), // 24px
+            
+            // 큰 서브헤드
+            Text(
+              '도로명·건물명 일부만 입력해도 자동완성이 나옵니다',
+              textAlign: TextAlign.center,
+              style: AppTypography.withColor(
+                AppTypography.bodyLarge.copyWith(
+                  fontSize: isMobile ? 18 : 22,
+                  fontWeight: FontWeight.w400,
+                  height: 1.6,
                 ),
-                overflow: TextOverflow.ellipsis,
-                maxLines: 1,
+                AirbnbColors.textSecondary,
               ),
             ),
+            
+            SizedBox(height: AppSpacing.xxxl), // 64px - 넓은 여백
+            
+            // 검색창 통합 (핵심 CTA)
+            if (widget.showSearchBar && widget.searchController != null)
+              _buildSearchBar(context, isMobile),
           ],
         ),
       ),
     );
   }
 
-  Widget _buildStepDivider() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 6),
-      child: Container(
-        width: 16,
-        height: 1,
-        color: Colors.white.withValues(alpha: 0.5),
-      ),
-    );
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final screenWidth = MediaQuery.of(context).size.width;
-    final isVerySmallScreen = screenWidth < 400;
-    final isTinyScreen = screenWidth < 370;
-
-    return AnimatedContainer(
-      height: 360,
+  /// Stripe/Vercel 스타일의 프리미엄 검색창
+  Widget _buildSearchBar(BuildContext context, bool isMobile) {
+    return Container(
+      constraints: const BoxConstraints(maxWidth: 680), // 검색창 최대 너비
       width: double.infinity,
-      padding: EdgeInsets.symmetric(
-        vertical: 32,
-        horizontal: isTinyScreen ? 12 : (isVerySmallScreen ? 16 : 24),
-      ),
-      duration: const Duration(milliseconds: 450),
-      curve: Curves.easeInOutCubic,
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: _heroGradientColors,
+        color: AirbnbColors.background,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: AirbnbColors.border,
+          width: 1.5,
         ),
-        borderRadius: BorderRadius.zero,
         boxShadow: [
           BoxShadow(
-            color: AppColors.kPrimary.withValues(alpha: 0.25),
-            offset: const Offset(0, 12),
-            blurRadius: 28,
+            color: AirbnbColors.primary.withValues(alpha: 0.08),
+            offset: const Offset(0, 4),
+            blurRadius: 16,
+            spreadRadius: 0,
           ),
         ],
       ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          AnimatedSwitcher(
-            duration: const Duration(milliseconds: 350),
-            transitionBuilder: (child, animation) =>
-                ScaleTransition(scale: animation, child: child),
-            child: Icon(
-              _heroIconData,
-              key: ValueKey<int>(_currentHeroStep),
-              size: 52,
-              color: Colors.white,
+      child: Material(
+        color: Colors.transparent,
+        child: TextField(
+          controller: widget.searchController,
+          onChanged: widget.onSearchChanged,
+          onSubmitted: (_) => widget.onSearchSubmitted?.call(),
+          autofocus: false,
+          style: AppTypography.withColor(
+            AppTypography.h4,
+            AirbnbColors.textPrimary,
+          ),
+          decoration: InputDecoration(
+            hintText: '예) 서울특별시 강북구 덕릉로 138',
+            hintStyle: AppTypography.withColor(
+              AppTypography.h4,
+              AirbnbColors.textLight,
+            ),
+            prefixIcon: Icon(
+              Icons.search_rounded,
+              color: AirbnbColors.primary,
+              size: 24,
+            ),
+            suffixIcon: _hasSearchText
+                ? IconButton(
+                    icon: Icon(
+                      Icons.close_rounded,
+                      color: AirbnbColors.textSecondary,
+                      size: 20,
+                    ),
+                    onPressed: () {
+                      widget.searchController?.clear();
+                      widget.onSearchChanged?.call('');
+                      setState(() {
+                        _hasSearchText = false;
+                      });
+                    },
+                  )
+                : null,
+            border: InputBorder.none,
+            contentPadding: EdgeInsets.symmetric(
+              horizontal: AppSpacing.lg,
+              vertical: isMobile ? AppSpacing.md : AppSpacing.lg, // 16px / 24px
             ),
           ),
-          const SizedBox(height: 18),
-          Text(
-            _heroTitle,
-            textAlign: TextAlign.center,
-            style: const TextStyle(
-              fontSize: 34,
-              fontWeight: FontWeight.w900,
-              color: Colors.white,
-              letterSpacing: -0.8,
-              height: 1.2,
-            ),
-          ),
-          const SizedBox(height: 10),
-          Text(
-            _heroSubtitle,
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 16,
-              color: Colors.white.withValues(alpha: 0.92),
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-          const SizedBox(height: 20),
-          Container(
-            padding: EdgeInsets.symmetric(
-              horizontal: isTinyScreen ? 4 : (isVerySmallScreen ? 8 : 18),
-              vertical: 10,
-            ),
-            decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.12),
-              borderRadius: BorderRadius.circular(999),
-              border: Border.all(color: Colors.white.withValues(alpha: 0.25)),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Flexible(
-                  child: _buildStepChip(
-                    1, 
-                    isTinyScreen ? '입력' : '주소 입력',
-                    isVerySmallScreen: isVerySmallScreen,
-                    isTinyScreen: isTinyScreen,
-                  ),
-                ),
-                _buildStepDivider(),
-                Flexible(
-                  child: _buildStepChip(
-                    2,
-                    isTinyScreen ? '선택' : '주소 선택',
-                    isVerySmallScreen: isVerySmallScreen,
-                    isTinyScreen: isTinyScreen,
-                  ),
-                ),
-                _buildStepDivider(),
-                Flexible(
-                  child: _buildStepChip(
-                    3,
-                    isTinyScreen ? '중개사' : (isVerySmallScreen ? '중개사찾기' : '공인중개사 찾기'),
-                    isVerySmallScreen: isVerySmallScreen,
-                    isTinyScreen: isTinyScreen,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }
-}
 
+}

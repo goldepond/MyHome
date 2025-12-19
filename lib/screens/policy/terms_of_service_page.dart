@@ -7,25 +7,25 @@ class TermsOfServicePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.kBackground,
+      backgroundColor: AirbnbColors.surface,
       appBar: AppBar(
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black,
+        backgroundColor: AirbnbColors.background,
+        foregroundColor: AirbnbColors.textPrimary,
         elevation: 1,
-        title: const Text('이용약관', style: TextStyle(color: Colors.black)),
+        title: const Text('이용약관', style: TextStyle(color: AirbnbColors.textPrimary)),
         centerTitle: false,
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Card(
-          color: Colors.white,
+          color: AirbnbColors.background,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           child: const Padding(
             padding: EdgeInsets.all(16),
             child: Text(
               '본 문서는 서비스 이용과 관련된 권리, 의무 및 책임사항을 규정합니다.\n\n'
               '샘플 텍스트입니다. 실제 운영에 맞춰 내용을 채워주세요.',
-              style: TextStyle(fontSize: 14, height: 1.6, color: AppColors.kTextPrimary),
+              style: TextStyle(fontSize: 14, height: 1.6, color: AirbnbColors.textPrimary),
             ),
           ),
         ),

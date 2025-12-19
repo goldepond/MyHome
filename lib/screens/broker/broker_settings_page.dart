@@ -87,7 +87,7 @@ class _BrokerSettingsPageState extends State<BrokerSettingsPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('정보를 불러오는데 실패했습니다: $e'),
-            backgroundColor: Colors.red,
+            backgroundColor: AirbnbColors.error,
           ),
         );
       }
@@ -127,7 +127,7 @@ class _BrokerSettingsPageState extends State<BrokerSettingsPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('정보가 성공적으로 저장되었습니다.'),
-            backgroundColor: Colors.green,
+            backgroundColor: AirbnbColors.success,
           ),
         );
         // 저장 후 정보 다시 로드
@@ -136,7 +136,7 @@ class _BrokerSettingsPageState extends State<BrokerSettingsPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('정보 저장에 실패했습니다.'),
-            backgroundColor: Colors.red,
+            backgroundColor: AirbnbColors.error,
           ),
         );
       }
@@ -145,7 +145,7 @@ class _BrokerSettingsPageState extends State<BrokerSettingsPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('정보 저장 중 오류가 발생했습니다: $e'),
-            backgroundColor: Colors.red,
+            backgroundColor: AirbnbColors.error,
           ),
         );
       }
@@ -162,7 +162,7 @@ class _BrokerSettingsPageState extends State<BrokerSettingsPage> {
   Widget build(BuildContext context) {
     if (_isLoading) {
       return const Scaffold(
-        backgroundColor: AppColors.kBackground,
+        backgroundColor: AirbnbColors.surface,
         body: Center(
           child: CircularProgressIndicator(),
         ),
@@ -172,7 +172,7 @@ class _BrokerSettingsPageState extends State<BrokerSettingsPage> {
     return GestureDetector(
       onTap: () => FocusScope.of(context).unfocus(),
       child: Scaffold(
-      backgroundColor: AppColors.kBackground,
+      backgroundColor: AirbnbColors.surface,
         resizeToAvoidBottomInset: true,
         body: SafeArea(
           child: LayoutBuilder(
@@ -197,11 +197,11 @@ class _BrokerSettingsPageState extends State<BrokerSettingsPage> {
                 width: double.infinity,
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
-                  gradient: AppGradients.primaryDiagonal,
+                  color: AirbnbColors.background,
                   borderRadius: BorderRadius.circular(16),
                   boxShadow: [
                     BoxShadow(
-                      color: AppColors.kPrimary.withValues(alpha: 0.3),
+                      color: AirbnbColors.primary.withValues(alpha: 0.3),
                       blurRadius: 10,
                       offset: const Offset(0, 4),
                     ),
@@ -213,7 +213,7 @@ class _BrokerSettingsPageState extends State<BrokerSettingsPage> {
                     const Text(
                       '내 정보 관리',
                       style: TextStyle(
-                        color: Colors.white,
+                        color: AirbnbColors.background,
                         fontSize: 24,
                         fontWeight: FontWeight.bold,
                       ),
@@ -236,7 +236,7 @@ class _BrokerSettingsPageState extends State<BrokerSettingsPage> {
               _buildSectionCard(
                 title: '기본 정보',
                 icon: Icons.person_rounded,
-                color: Colors.blue,
+                color: AirbnbColors.primary,
                 children: [
                   _buildTextField(
                     controller: _brokerNameController,
@@ -262,7 +262,7 @@ class _BrokerSettingsPageState extends State<BrokerSettingsPage> {
               _buildSectionCard(
                 title: '사업자 정보',
                 icon: Icons.business_rounded,
-                color: Colors.green,
+                color: AirbnbColors.success,
                 children: [
                   _buildTextField(
                     controller: _brokerLicenseNumberController,
@@ -275,22 +275,22 @@ class _BrokerSettingsPageState extends State<BrokerSettingsPage> {
                   Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
-                      color: Colors.blue.withValues(alpha: 0.1),
+                      color: AirbnbColors.primary.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(8),
                       border: Border.all(
-                        color: Colors.blue.withValues(alpha: 0.3),
+                        color: AirbnbColors.primary.withValues(alpha: 0.3),
                       ),
                     ),
                     child: Row(
                       children: [
-                        Icon(Icons.info_outline, color: Colors.blue[700], size: 18),
+                        Icon(Icons.info_outline, color: AirbnbColors.primary.withValues(alpha: 0.7), size: 18),
                         const SizedBox(width: 8),
                         Expanded(
                           child: Text(
                             '등록번호는 변경할 수 없습니다.',
                             style: TextStyle(
                               fontSize: 12,
-                              color: Colors.blue[700],
+                              color: AirbnbColors.primary.withValues(alpha: 0.7),
                             ),
                           ),
                         ),
@@ -320,7 +320,7 @@ class _BrokerSettingsPageState extends State<BrokerSettingsPage> {
               _buildSectionCard(
                 title: '소개',
                 icon: Icons.description_rounded,
-                color: Colors.purple,
+                color: AirbnbColors.primary,
                 children: [
                   TextFormField(
                     controller: _brokerIntroductionController,
@@ -330,18 +330,18 @@ class _BrokerSettingsPageState extends State<BrokerSettingsPage> {
                       hintText: '자신의 전문성, 경력, 특별한 서비스 등을 자유롭게 작성해주세요.\n예: 10년 이상의 경력으로 강남 지역 부동산 전문...',
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide(color: Colors.grey[300]!),
+                        borderSide: const BorderSide(color: AirbnbColors.border),
                       ),
                       enabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide(color: Colors.grey[300]!),
+                        borderSide: const BorderSide(color: AirbnbColors.border),
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
-                        borderSide: const BorderSide(color: AppColors.kPrimary, width: 2),
+                        borderSide: const BorderSide(color: AirbnbColors.primary, width: 2),
                       ),
                       filled: true,
-                      fillColor: Colors.grey[50],
+                      fillColor: AirbnbColors.surface,
                       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
                     ),
                   ),
@@ -357,8 +357,8 @@ class _BrokerSettingsPageState extends State<BrokerSettingsPage> {
                 child: ElevatedButton(
                   onPressed: _isSaving ? null : _saveBrokerInfo,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.kPrimary,
-                    foregroundColor: Colors.white,
+                    backgroundColor: AirbnbColors.primary,
+                    foregroundColor: AirbnbColors.background,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
@@ -370,7 +370,7 @@ class _BrokerSettingsPageState extends State<BrokerSettingsPage> {
                           width: 20,
                           child: CircularProgressIndicator(
                             strokeWidth: 2,
-                            valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                            valueColor: AlwaysStoppedAnimation<Color>(AirbnbColors.background),
                           ),
                         )
                       : const Text(
@@ -403,11 +403,11 @@ class _BrokerSettingsPageState extends State<BrokerSettingsPage> {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AirbnbColors.background,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withValues(alpha: 0.1),
+            color: AirbnbColors.textSecondary.withValues(alpha: 0.1),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -470,26 +470,26 @@ class _BrokerSettingsPageState extends State<BrokerSettingsPage> {
         hintText: hint,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: Colors.grey[300]!),
+          borderSide: const BorderSide(color: AirbnbColors.border),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: BorderSide(color: Colors.grey[300]!),
+          borderSide: const BorderSide(color: AirbnbColors.border),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: AppColors.kPrimary, width: 2),
+          borderSide: const BorderSide(color: AirbnbColors.primary, width: 2),
         ),
         errorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: Colors.red, width: 2),
+          borderSide: const BorderSide(color: AirbnbColors.error, width: 2),
         ),
         focusedErrorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
-          borderSide: const BorderSide(color: Colors.red, width: 2),
+          borderSide: const BorderSide(color: AirbnbColors.error, width: 2),
         ),
         filled: true,
-        fillColor: Colors.grey[50],
+        fillColor: AirbnbColors.surface,
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
       ),
       validator: required

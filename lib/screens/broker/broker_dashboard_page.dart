@@ -137,16 +137,16 @@ class _BrokerDashboardPageState extends State<BrokerDashboardPage> with SingleTi
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.kBackground,
+      backgroundColor: AirbnbColors.surface,
       appBar: AppBar(
         title: const HomeLogoButton(
           fontSize: 18,
-          color: AppColors.kPrimary,
+          color: AirbnbColors.primary,
         ),
-        backgroundColor: Colors.white,
-        foregroundColor: AppColors.kPrimary,
+        backgroundColor: AirbnbColors.background,
+        foregroundColor: AirbnbColors.primary,
         elevation: 0.5,
-        iconTheme: const IconThemeData(color: AppColors.kPrimary),
+        iconTheme: const IconThemeData(color: AirbnbColors.primary),
         actions: [
           IconButton(
             icon: const Icon(Icons.notifications_outlined),
@@ -175,13 +175,13 @@ class _BrokerDashboardPageState extends State<BrokerDashboardPage> with SingleTi
                 );
               }
             },
-            icon: const Icon(Icons.home_outlined, size: 18, color: AppColors.kPrimary),
+            icon: const Icon(Icons.home_outlined, size: 18, color: AirbnbColors.primary),
             label: const Text(
               '일반 화면',
               style: TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.w600,
-                color: AppColors.kPrimary,
+                color: AirbnbColors.primary,
               ),
             ),
           ),
@@ -196,16 +196,16 @@ class _BrokerDashboardPageState extends State<BrokerDashboardPage> with SingleTi
           child: Container(
             decoration: const BoxDecoration(
               border: Border(
-                top: BorderSide(color: Color(0xFFE0E0E0), width: 0.5),
-                bottom: BorderSide(color: Color(0xFFE0E0E0), width: 0.5),
+                top: BorderSide(color: AirbnbColors.border, width: 0.5),
+                bottom: BorderSide(color: AirbnbColors.border, width: 0.5),
               ),
             ),
             child: TabBar(
               controller: _tabController,
-              indicatorColor: AppColors.kPrimary,
+              indicatorColor: AirbnbColors.primary,
               indicatorWeight: 3,
-              labelColor: AppColors.kPrimary,
-              unselectedLabelColor: Color(0xFF9E9E9E),
+              labelColor: AirbnbColors.primary,
+              unselectedLabelColor: AirbnbColors.textSecondary,
               tabs: const [
                 Tab(
                   icon: Icon(Icons.chat_bubble_outline),
@@ -237,106 +237,46 @@ class _BrokerDashboardPageState extends State<BrokerDashboardPage> with SingleTi
                   final isWeb = screenWidth > 800;
                   final maxWidth = isWeb ? 1400.0 : screenWidth;
                   final horizontalPadding = isWeb ? 24.0 : 16.0;
-
+                  final isMobile = screenWidth < 768;
+                  final isTablet = screenWidth >= 768 && screenWidth < 1024;
+                  
                   return Container(
-                    padding: EdgeInsets.fromLTRB(horizontalPadding, 16, horizontalPadding, 8),
+                    padding: EdgeInsets.symmetric(
+                      horizontal: horizontalPadding,
+                      vertical: isMobile ? 48.0 : 64.0,
+                    ),
                     decoration: const BoxDecoration(
-                      gradient: AppGradients.primaryDiagonal,
+                      color: AirbnbColors.background,
                     ),
                     child: Center(
                       child: Container(
                         constraints: BoxConstraints(maxWidth: maxWidth),
-                        padding: const EdgeInsets.all(20),
                         child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+                          crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
-                        Row(
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.all(10),
-                              decoration: BoxDecoration(
-                                color: Colors.white.withValues(alpha: 0.18),
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                              child: const Icon(
-                                Icons.business,
-                                color: Colors.white,
-                                size: 28,
+                            // 매우 큰 헤드라인 (Stripe/Vercel 스타일)
+                            Text(
+                              '상담 관리 대시보드',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                fontSize: isMobile ? 40 : (isTablet ? 52 : 64),
+                                fontWeight: FontWeight.w800,
+                                letterSpacing: -1.5,
+                                height: 1.1,
+                                color: AirbnbColors.textPrimary,
                               ),
                             ),
-                            const SizedBox(width: 16),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  const Text(
-                                    '상담 관리 대시보드',
-                                    style: TextStyle(
-                                      fontSize: 22,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.white,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 4),
-                                  Text(
-                                    widget.brokerName,
-                                    style: TextStyle(
-                                      fontSize: 15,
-                                      color: Colors.white70,
-                                    ),
-                                  ),
-                                ],
+                            const SizedBox(height: 24),
+                            Text(
+                              widget.brokerName,
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                fontSize: isMobile ? 18 : 22,
+                                fontWeight: FontWeight.w400,
+                                height: 1.6,
+                                color: AirbnbColors.textSecondary,
                               ),
                             ),
-                          ],
-                        ),
-                        const SizedBox(height: 16),
-                        Row(
-                          children: [
-                            _buildStatCard(
-                              '전체',
-                              _quotes.length.toString(),
-                              AppColors.kPrimary,
-                              'all',
-                            ),
-                            const SizedBox(width: 12),
-                            _buildStatCard(
-                              '대기/수집중',
-                              _quotes
-                                  .where((q) =>
-                                      QuoteLifecycleStatus.fromQuote(q) ==
-                                      QuoteLifecycleStatus.requested)
-                                  .length
-                                  .toString(),
-                              Colors.orange,
-                              'pending',
-                            ),
-                            const SizedBox(width: 12),
-                            _buildStatCard(
-                              '검토중',
-                              _quotes
-                                  .where((q) =>
-                                      QuoteLifecycleStatus.fromQuote(q) ==
-                                      QuoteLifecycleStatus.comparing)
-                                  .length
-                                  .toString(),
-                              Colors.blueAccent,
-                              'completed',
-                            ),
-                            const SizedBox(width: 12),
-                            _buildStatCard(
-                              '선택됨',
-                              _quotes
-                                  .where((q) =>
-                                      QuoteLifecycleStatus.fromQuote(q) ==
-                                      QuoteLifecycleStatus.selected)
-                                  .length
-                                  .toString(),
-                              Colors.greenAccent,
-                              'selected',
-                            ),
-                          ],
-                        ),
                           ],
                         ),
                       ),
@@ -382,14 +322,14 @@ class _BrokerDashboardPageState extends State<BrokerDashboardPage> with SingleTi
             // 히어로 배경 위에 떠 있는 흰색 카드 느낌으로 통일
             // 선택된 경우 배경색을 약간 강조
             color: isSelected 
-                ? Colors.white 
-                : Colors.white.withValues(alpha: 0.85),
+                ? AirbnbColors.background 
+                : AirbnbColors.background.withValues(alpha: 0.85),
             borderRadius: BorderRadius.circular(12),
             border: Border.all(
               // 선택된 경우 테두리를 해당 상태 색상으로 강조
               color: isSelected 
                   ? color 
-                  : Colors.white.withValues(alpha: 0.6),
+                  : AirbnbColors.background.withValues(alpha: 0.6),
               width: isSelected ? 2.5 : 1,
             ),
             boxShadow: isSelected 
@@ -410,7 +350,7 @@ class _BrokerDashboardPageState extends State<BrokerDashboardPage> with SingleTi
                 style: TextStyle(
                   fontSize: 14,
                   fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
-                  color: isSelected ? color : const Color(0xFF111827),
+                  color: isSelected ? color : AirbnbColors.textPrimary,
                 ),
               ),
               const SizedBox(height: 6),
@@ -433,7 +373,7 @@ class _BrokerDashboardPageState extends State<BrokerDashboardPage> with SingleTi
     if (_isLoading) {
       return const Center(
         child: CircularProgressIndicator(
-          valueColor: AlwaysStoppedAnimation<Color>(AppColors.kPrimary),
+          valueColor: AlwaysStoppedAnimation<Color>(AirbnbColors.primary),
         ),
       );
     }
@@ -443,13 +383,13 @@ class _BrokerDashboardPageState extends State<BrokerDashboardPage> with SingleTi
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.error_outline, size: 64, color: Colors.red[300]),
+            Icon(Icons.error_outline, size: 64, color: AirbnbColors.error.withValues(alpha: 0.3)),
             const SizedBox(height: 16),
             Text(
               _error!,
               style: TextStyle(
                 fontSize: 16,
-                color: Colors.grey[600],
+                color: AirbnbColors.textSecondary,
               ),
             ),
             const SizedBox(height: 24),
@@ -470,7 +410,7 @@ class _BrokerDashboardPageState extends State<BrokerDashboardPage> with SingleTi
             Icon(
               Icons.inbox_outlined,
               size: 80,
-              color: Colors.grey[300],
+              color: AirbnbColors.border,
             ),
             const SizedBox(height: 24),
             Text(
@@ -480,7 +420,7 @@ class _BrokerDashboardPageState extends State<BrokerDashboardPage> with SingleTi
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
-                color: Colors.grey[600],
+                color: AirbnbColors.textSecondary,
               ),
             ),
             const SizedBox(height: 8),
@@ -489,7 +429,7 @@ class _BrokerDashboardPageState extends State<BrokerDashboardPage> with SingleTi
               textAlign: TextAlign.center,
               style: TextStyle(
                 fontSize: 14,
-                color: Colors.grey[500],
+                color: AirbnbColors.textSecondary,
               ),
             ),
           ],
@@ -513,14 +453,14 @@ class _BrokerDashboardPageState extends State<BrokerDashboardPage> with SingleTi
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AirbnbColors.background,
         borderRadius: BorderRadius.circular(16),
         border: hasAnswer
-            ? Border.all(color: Colors.green.withValues(alpha: 0.3), width: 2)
-            : Border.all(color: Colors.orange.withValues(alpha: 0.3), width: 2),
+            ? Border.all(color: AirbnbColors.success.withValues(alpha: 0.3), width: 2)
+            : Border.all(color: AirbnbColors.warning.withValues(alpha: 0.3), width: 2),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.06),
+            color: AirbnbColors.textPrimary.withValues(alpha: 0.06),
             blurRadius: 20,
             offset: const Offset(0, 4),
           ),
@@ -551,13 +491,13 @@ class _BrokerDashboardPageState extends State<BrokerDashboardPage> with SingleTi
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
                       color: hasAnswer
-                          ? Colors.green.withValues(alpha: 0.1)
-                          : Colors.orange.withValues(alpha: 0.1),
+                          ? AirbnbColors.success.withValues(alpha: 0.1)
+                          : AirbnbColors.warning.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Icon(
                       hasAnswer ? Icons.check_circle : Icons.schedule,
-                      color: hasAnswer ? Colors.green : Colors.orange,
+                      color: hasAnswer ? AirbnbColors.success : AirbnbColors.warning,
                       size: 20,
                     ),
                   ),
@@ -571,7 +511,7 @@ class _BrokerDashboardPageState extends State<BrokerDashboardPage> with SingleTi
                           style: const TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
-                            color: Color(0xFF2C3E50),
+                            color: AirbnbColors.textPrimary,
                           ),
                         ),
                         const SizedBox(height: 4),
@@ -579,7 +519,7 @@ class _BrokerDashboardPageState extends State<BrokerDashboardPage> with SingleTi
                           dateFormat.format(quote.requestDate),
                           style: TextStyle(
                             fontSize: 12,
-                            color: Colors.grey[600],
+                            color: AirbnbColors.textSecondary,
                           ),
                         ),
                       ],
@@ -588,13 +528,13 @@ class _BrokerDashboardPageState extends State<BrokerDashboardPage> with SingleTi
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                     decoration: BoxDecoration(
-                      color: hasAnswer ? Colors.green : Colors.orange,
+                      color: hasAnswer ? AirbnbColors.success : AirbnbColors.warning,
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: Text(
                       hasAnswer ? '답변완료' : '대기중',
                       style: const TextStyle(
-                        color: Colors.white,
+                        color: AirbnbColors.background,
                         fontSize: 12,
                         fontWeight: FontWeight.bold,
                       ),
@@ -609,7 +549,7 @@ class _BrokerDashboardPageState extends State<BrokerDashboardPage> with SingleTi
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: Colors.grey.withValues(alpha: 0.05),
+                  color: AirbnbColors.textSecondary.withValues(alpha: 0.05),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Column(
@@ -617,7 +557,7 @@ class _BrokerDashboardPageState extends State<BrokerDashboardPage> with SingleTi
                   children: [
                     Row(
                       children: [
-                        Icon(Icons.location_on, size: 16, color: Colors.grey[600]),
+                        Icon(Icons.location_on, size: 16, color: AirbnbColors.textSecondary),
                         const SizedBox(width: 8),
                         Expanded(
                           child: Text(
@@ -625,7 +565,7 @@ class _BrokerDashboardPageState extends State<BrokerDashboardPage> with SingleTi
                             style: const TextStyle(
                               fontSize: 14,
                               fontWeight: FontWeight.w600,
-                              color: Color(0xFF2C3E50),
+                              color: AirbnbColors.textPrimary,
                             ),
                           ),
                         ),
@@ -635,13 +575,13 @@ class _BrokerDashboardPageState extends State<BrokerDashboardPage> with SingleTi
                       const SizedBox(height: 8),
                       Row(
                         children: [
-                          Icon(Icons.square_foot, size: 16, color: Colors.grey[600]),
+                          Icon(Icons.square_foot, size: 16, color: AirbnbColors.textSecondary),
                           const SizedBox(width: 8),
                           Text(
                             '${quote.propertyArea}㎡',
                             style: TextStyle(
                               fontSize: 13,
-                              color: Colors.grey[700],
+                              color: AirbnbColors.textSecondary,
                             ),
                           ),
                         ],
@@ -651,13 +591,13 @@ class _BrokerDashboardPageState extends State<BrokerDashboardPage> with SingleTi
                       const SizedBox(height: 8),
                       Row(
                         children: [
-                          Icon(Icons.attach_money, size: 16, color: Colors.grey[600]),
+                          Icon(Icons.attach_money, size: 16, color: AirbnbColors.textSecondary),
                           const SizedBox(width: 8),
                           Text(
                             '희망가: ${quote.desiredPrice}',
                             style: TextStyle(
                               fontSize: 13,
-                              color: Colors.grey[700],
+                              color: AirbnbColors.textSecondary,
                             ),
                           ),
                         ],
@@ -709,14 +649,14 @@ class _BrokerDashboardPageState extends State<BrokerDashboardPage> with SingleTi
                                     : '처리 중 문제가 발생했어요. 잠시 후 다시 시도해주세요.',
                               ),
                               backgroundColor:
-                                  success ? AppColors.kInfo : Colors.red,
+                                  success ? AirbnbColors.primary : AirbnbColors.error,
                             ),
                           );
                         }
                       },
                       style: OutlinedButton.styleFrom(
-                        foregroundColor: Colors.red,
-                        side: const BorderSide(color: Colors.redAccent),
+                        foregroundColor: AirbnbColors.error,
+                        side: const BorderSide(color: AirbnbColors.error),
                         padding: const EdgeInsets.symmetric(
                           horizontal: 12,
                           vertical: 10,
@@ -760,8 +700,8 @@ class _BrokerDashboardPageState extends State<BrokerDashboardPage> with SingleTi
                       ),
                     ),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.kPrimary,
-                      foregroundColor: Colors.white,
+                      backgroundColor: AirbnbColors.textPrimary, // 에어비엔비 스타일: 검은색 배경
+                      foregroundColor: AirbnbColors.background,
                       padding: const EdgeInsets.symmetric(
                         horizontal: 14,
                         vertical: 10,

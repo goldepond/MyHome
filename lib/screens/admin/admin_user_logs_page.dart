@@ -24,14 +24,14 @@ class _AdminUserLogsPageState extends State<AdminUserLogsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.kBackground,
+      backgroundColor: AirbnbColors.surface,
       body: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // 헤더
           Container(
             padding: const EdgeInsets.all(20),
-            color: Colors.white,
+            color: AirbnbColors.background,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -40,7 +40,7 @@ class _AdminUserLogsPageState extends State<AdminUserLogsPage> {
                   style: TextStyle(
                     fontSize: 24,
                     fontWeight: FontWeight.bold,
-                    color: AppColors.kPrimary,
+                    color: AirbnbColors.primary,
                   ),
                 ),
                 const SizedBox(height: 8),
@@ -48,7 +48,7 @@ class _AdminUserLogsPageState extends State<AdminUserLogsPage> {
                   '앱 내 사용자들의 주요 활동 내역을 실시간으로 확인합니다.',
                   style: TextStyle(
                     fontSize: 14,
-                    color: Colors.grey[600],
+                    color: AirbnbColors.textSecondary,
                   ),
                 ),
               ],
@@ -100,19 +100,19 @@ class _AdminUserLogsPageState extends State<AdminUserLogsPage> {
     switch (log.actionType) {
       case 'view_screen':
         icon = Icons.visibility;
-        color = Colors.blue;
+        color = AirbnbColors.primary;
         break;
       case 'click':
         icon = Icons.touch_app;
-        color = Colors.orange;
+        color = AirbnbColors.warning;
         break;
       case 'submit':
         icon = Icons.send;
-        color = Colors.green;
+        color = AirbnbColors.success;
         break;
       default:
         icon = Icons.info_outline;
-        color = Colors.grey;
+        color = AirbnbColors.textSecondary;
     }
 
     return ListTile(
@@ -130,14 +130,14 @@ class _AdminUserLogsPageState extends State<AdminUserLogsPage> {
           Text('User: ${log.userId}'),
           Text(
             dateFormat.format(log.timestamp),
-            style: TextStyle(color: Colors.grey[500], fontSize: 12),
+            style: TextStyle(color: AirbnbColors.textSecondary, fontSize: 12),
           ),
           if (log.metadata.isNotEmpty)
             Container(
               margin: const EdgeInsets.only(top: 4),
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: Colors.grey[100],
+                color: AirbnbColors.surface,
                 borderRadius: BorderRadius.circular(4),
               ),
               child: Text(

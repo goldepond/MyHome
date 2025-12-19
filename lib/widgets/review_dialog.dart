@@ -85,7 +85,7 @@ class _ReviewDialogState extends State<ReviewDialog> {
             itemPadding: const EdgeInsets.symmetric(horizontal: 2.0),
             itemBuilder: (context, _) => const Icon(
               Icons.star,
-              color: Colors.amber,
+              color: AirbnbColors.orange,
             ),
             onRatingUpdate: (rating) {
               setState(() {
@@ -112,14 +112,14 @@ class _ReviewDialogState extends State<ReviewDialog> {
         ElevatedButton(
           onPressed: _isSubmitting ? null : _submitReview,
           style: ElevatedButton.styleFrom(
-            backgroundColor: AppColors.kPrimary,
-            foregroundColor: Colors.white,
+            backgroundColor: AirbnbColors.primary,
+            foregroundColor: AirbnbColors.background,
           ),
           child: _isSubmitting
               ? const SizedBox(
                   width: 20,
                   height: 20,
-                  child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                  child: CircularProgressIndicator(strokeWidth: 2, color: AirbnbColors.background),
                 )
               : const Text('등록'),
         ),

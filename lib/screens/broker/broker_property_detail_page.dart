@@ -61,11 +61,11 @@ class BrokerPropertyDetailPage extends StatelessWidget {
     }
 
     return Scaffold(
-      backgroundColor: AppColors.kBackground,
+      backgroundColor: AirbnbColors.surface,
       appBar: AppBar(
         title: const Text('매물 상세보기'),
-        backgroundColor: AppColors.kPrimary,
-        foregroundColor: Colors.white,
+        backgroundColor: AirbnbColors.primary,
+        foregroundColor: AirbnbColors.background,
         actions: [
           IconButton(
             icon: const Icon(Icons.edit),
@@ -162,7 +162,7 @@ class BrokerPropertyDetailPage extends StatelessWidget {
                           style: const TextStyle(
                             fontSize: 14,
                             height: 1.6,
-                            color: Color(0xFF2C3E50),
+                            color: AirbnbColors.textPrimary,
                           ),
                         ),
                       ),
@@ -238,8 +238,8 @@ class BrokerPropertyDetailPage extends StatelessWidget {
                       style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                     ),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.kPrimary,
-                      foregroundColor: Colors.white,
+                      backgroundColor: AirbnbColors.primary,
+                      foregroundColor: AirbnbColors.background,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
@@ -260,7 +260,7 @@ class BrokerPropertyDetailPage extends StatelessWidget {
       height: 300,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(12),
-        color: Colors.grey[200],
+        color: AirbnbColors.borderLight,
       ),
       child: PageView.builder(
         itemCount: imageUrls.length,
@@ -272,16 +272,16 @@ class BrokerPropertyDetailPage extends StatelessWidget {
               fit: BoxFit.cover,
               errorBuilder: (context, error, stackTrace) {
                 return Container(
-                  color: Colors.grey[300],
+                  color: AirbnbColors.border,
                   child: const Center(
-                    child: Icon(Icons.error_outline, size: 48, color: Colors.grey),
+                    child: Icon(Icons.error_outline, size: 48, color: AirbnbColors.textSecondary),
                   ),
                 );
               },
               loadingBuilder: (context, child, loadingProgress) {
                 if (loadingProgress == null) return child;
                 return Container(
-                  color: Colors.grey[200],
+                  color: AirbnbColors.borderLight,
                   child: Center(
                     child: CircularProgressIndicator(
                       value: loadingProgress.expectedTotalBytes != null
@@ -307,11 +307,11 @@ class BrokerPropertyDetailPage extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AirbnbColors.background,
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.06),
+            color: AirbnbColors.textPrimary.withValues(alpha: 0.06),
             blurRadius: 10,
             offset: const Offset(0, 2),
           ),
@@ -322,14 +322,14 @@ class BrokerPropertyDetailPage extends StatelessWidget {
         children: [
           Row(
             children: [
-              Icon(icon, color: AppColors.kPrimary, size: 24),
+              Icon(icon, color: AirbnbColors.primary, size: 24),
               const SizedBox(width: 12),
               Text(
                 title,
                 style: const TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
-                  color: Color(0xFF2C3E50),
+                  color: AirbnbColors.textPrimary,
                 ),
               ),
             ],
@@ -353,7 +353,7 @@ class BrokerPropertyDetailPage extends StatelessWidget {
               label,
               style: TextStyle(
                 fontSize: 14,
-                color: Colors.grey[700],
+                color: AirbnbColors.textSecondary,
                 fontWeight: FontWeight.w600,
               ),
             ),
@@ -363,7 +363,7 @@ class BrokerPropertyDetailPage extends StatelessWidget {
               value,
               style: const TextStyle(
                 fontSize: 14,
-                color: Color(0xFF2C3E50),
+                color: AirbnbColors.textPrimary,
                 fontWeight: FontWeight.w500,
               ),
             ),

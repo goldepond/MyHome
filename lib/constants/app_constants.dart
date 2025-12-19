@@ -42,6 +42,157 @@ class AppGradients {
   );
 }
 
+/// 에어비엔비 스타일 색상 시스템 (보라색 계열 + 다양한 조화 색상)
+class AirbnbColors {
+  // ========== 주력 색상 (보라색 계열) ==========
+  static const Color primary = Color(0xFF8b5cf6);      // 메인 보라색 (주력색)
+  static const Color primaryHover = Color(0xFF7c3aed); // 진한 보라색
+  static const Color primaryLight = Color(0xFFa78bfa); // 연한 보라색
+  static const Color primaryDark = Color(0xFF6d28d9);  // 더 진한 보라색
+  
+  // ========== 중성 색상 ==========
+  static const Color background = Color(0xFFFFFFFF);
+  static const Color surface = Color(0xFFF7F7F7);  // 매우 연한 회색 배경
+  static const Color border = Color(0xFFDDDDDD);  // 연한 회색 테두리
+  static const Color borderLight = Color(0xFFEBEBEB);
+  
+  // ========== 텍스트 ==========
+  static const Color textPrimary = Color(0xFF222222);  // 거의 검정
+  static const Color textSecondary = Color(0xFF717171);  // 중간 회색
+  static const Color textLight = Color(0xFFB0B0B0);  // 연한 회색
+  static const Color textWhite = Color(0xFFFFFFFF);
+  
+  // ========== 상태 색상 (에러/경고/성공/정보) ==========
+  static const Color success = Color(0xFF10b981);      // 성공 (녹색)
+  static const Color successLight = Color(0xFF34d399);
+  static const Color warning = Color(0xFFf59e0b);      // 경고 (주황)
+  static const Color error = Color(0xFFef4444);        // 에러 (빨강)
+  static const Color info = Color(0xFF3b82f6);         // 정보 (파랑)
+  
+  // ========== 다양한 용도별 색상 (에어비엔비 스타일) ==========
+  // 청록색 계열 (정보, 진행중, 활성화)
+  static const Color teal = Color(0xFF00A699);        // 에어비엔비 청록색
+  static const Color tealLight = Color(0xFF00D9C4);
+  static const Color tealDark = Color(0xFF008B7A);
+  
+  // 파란색 계열 (링크, 정보, 신뢰)
+  static const Color blue = Color(0xFF3b82f6);         // 정보 (파랑)
+  static const Color blueLight = Color(0xFF60a5fa);
+  static const Color blueDark = Color(0xFF2563eb);
+  
+  // 주황색 계열 (대기, 진행중, 알림)
+  static const Color orange = Color(0xFFf59e0b);       // 경고 (주황)
+  static const Color orangeLight = Color(0xFFfbbf24);
+  static const Color orangeDark = Color(0xFFd97706);
+  
+  // 녹색 계열 (완료, 성공, 활성)
+  static const Color green = Color(0xFF10b981);        // 성공 (녹색)
+  static const Color greenLight = Color(0xFF34d399);
+  static const Color greenDark = Color(0xFF059669);
+  
+  // 빨간색 계열 (에러, 취소, 위험)
+  static const Color red = Color(0xFFef4444);          // 에러 (빨강)
+  static const Color redLight = Color(0xFFf87171);
+  static const Color redDark = Color(0xFFdc2626);
+  
+  // 보라색 계열 (특별, 프리미엄, 강조)
+  static const Color purple = Color(0xFF8b5cf6);       // 메인 보라색과 동일
+  static const Color purpleLight = Color(0xFFa78bfa);
+  static const Color purpleDark = Color(0xFF7c3aed);
+  
+  // 분홍색 계열 (강조, 특별 이벤트)
+  static const Color pink = Color(0xFFec4899);
+  static const Color pinkLight = Color(0xFFf472b6);
+  static const Color pinkDark = Color(0xFFdb2777);
+  
+  // ========== 카테고리별 색상 (에어비엔비처럼 다양한 용도) ==========
+  // 거래 유형별
+  static const Color categorySale = primary;           // 매매 (보라색)
+  static const Color categoryRent = teal;             // 전세/월세 (청록색)
+  static const Color categoryManagement = blue;        // 관리 (파란색)
+  
+  // 상태별
+  static const Color statusPending = orange;           // 대기중 (주황)
+  static const Color statusProgress = blue;             // 진행중 (파랑)
+  static const Color statusCompleted = green;           // 완료 (녹색)
+  static const Color statusCancelled = red;             // 취소 (빨강)
+  
+  // 우선순위별
+  static const Color priorityHigh = red;               // 높음 (빨강)
+  static const Color priorityMedium = orange;           // 중간 (주황)
+  static const Color priorityLow = blue;                // 낮음 (파랑)
+  
+  // ========== 그림자 (에어비엔비 스타일 - 부드럽고 깊이감 있는 그림자) ==========
+  static BoxShadow get cardShadow => BoxShadow(
+    color: textPrimary.withValues(alpha: 0.06),
+    blurRadius: 20,
+    offset: const Offset(0, 2),
+    spreadRadius: 0,
+  );
+  
+  static BoxShadow get cardShadowHover => BoxShadow(
+    color: textPrimary.withValues(alpha: 0.12),
+    blurRadius: 24,
+    offset: const Offset(0, 4),
+    spreadRadius: 0,
+  );
+  
+  // 더 부드러운 그림자 (히어로 섹션 등 큰 카드용)
+  static BoxShadow get cardShadowLarge => BoxShadow(
+    color: textPrimary.withValues(alpha: 0.08),
+    blurRadius: 32,
+    offset: const Offset(0, 4),
+    spreadRadius: 0,
+  );
+  
+  // 미세한 그림자 (작은 요소용)
+  static BoxShadow get cardShadowSubtle => BoxShadow(
+    color: textPrimary.withValues(alpha: 0.04),
+    blurRadius: 8,
+    offset: const Offset(0, 1),
+    spreadRadius: 0,
+  );
+  
+  // ========== 헬퍼 메서드 ==========
+  /// 상태에 따른 색상 반환 (에어비엔비 스타일)
+  static Color getStatusColor(String status) {
+    switch (status.toLowerCase()) {
+      case 'pending':
+      case '대기':
+      case '요청됨':
+        return statusPending;
+      case 'progress':
+      case '진행중':
+      case '수집중':
+      case '검토중':
+        return statusProgress;
+      case 'completed':
+      case '완료':
+      case '선택됨':
+        return statusCompleted;
+      case 'cancelled':
+      case '취소':
+      case '취소됨':
+        return statusCancelled;
+      default:
+        return primary;
+    }
+  }
+  
+  /// 거래 유형에 따른 색상 반환
+  static Color getTransactionTypeColor(String? type) {
+    switch (type) {
+      case '매매':
+        return categorySale;
+      case '전세':
+      case '월세':
+        return categoryRent;
+      default:
+        return primary;
+    }
+  }
+}
+
 // CODEF API 관련 상수
 class CodefApiKeys {
   static String get clientId => _getEnv('CODEF_CLIENT_ID');

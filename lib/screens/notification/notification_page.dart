@@ -23,18 +23,18 @@ class _NotificationPageState extends State<NotificationPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.kBackground,
+      backgroundColor: AirbnbColors.surface,
       appBar: AppBar(
         title: const Text(
           '알림 센터',
           style: TextStyle(
-            color: Colors.black87,
+            color: AirbnbColors.textPrimary,
             fontWeight: FontWeight.bold,
           ),
         ),
-        backgroundColor: Colors.white,
+        backgroundColor: AirbnbColors.background,
         elevation: 0.5,
-        foregroundColor: Colors.black87,
+        foregroundColor: AirbnbColors.textPrimary,
         actions: [
           IconButton(
             icon: Icon(
@@ -115,7 +115,7 @@ class _NotificationPageState extends State<NotificationPage> {
                         ? Icons.notifications_off_outlined 
                         : Icons.mark_email_read_outlined,
                     size: 64,
-                    color: Colors.grey,
+                    color: AirbnbColors.textSecondary,
                   ),
                   const SizedBox(height: 16),
                   Text(
@@ -124,7 +124,7 @@ class _NotificationPageState extends State<NotificationPage> {
                         : '읽지 않은 알림이 없습니다',
                     style: const TextStyle(
                       fontSize: 16,
-                      color: Colors.grey,
+                      color: AirbnbColors.textSecondary,
                       fontWeight: FontWeight.w500,
                     ),
                   ),
@@ -168,7 +168,7 @@ class _NotificationPageState extends State<NotificationPage> {
           // 예: if (notification.type == 'quote_answered') ...
         },
         child: Container(
-          color: notification.isRead ? Colors.white : Colors.blue.withValues(alpha: 0.05),
+          color: notification.isRead ? AirbnbColors.background : AirbnbColors.primary.withValues(alpha: 0.05),
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -199,7 +199,7 @@ class _NotificationPageState extends State<NotificationPage> {
                             style: TextStyle(
                               fontSize: 15,
                               fontWeight: notification.isRead ? FontWeight.w600 : FontWeight.bold,
-                              color: Colors.black87,
+                              color: AirbnbColors.textPrimary,
                             ),
                           ),
                         ),
@@ -207,7 +207,7 @@ class _NotificationPageState extends State<NotificationPage> {
                           dateFormat.format(notification.createdAt),
                           style: TextStyle(
                             fontSize: 12,
-                            color: Colors.grey[500],
+                            color: AirbnbColors.textSecondary,
                           ),
                         ),
                       ],
@@ -217,7 +217,7 @@ class _NotificationPageState extends State<NotificationPage> {
                       notification.message,
                       style: TextStyle(
                         fontSize: 14,
-                        color: Colors.grey[700],
+                        color: AirbnbColors.textSecondary,
                         height: 1.4,
                       ),
                     ),
@@ -246,26 +246,26 @@ class _NotificationPageState extends State<NotificationPage> {
   Color _getIconColor(String type) {
     switch (type) {
       case 'quote_answered':
-        return Colors.blue;
+        return AirbnbColors.primary;
       case 'broker_selected':
-        return Colors.green;
+        return AirbnbColors.success;
       case 'property_registered':
-        return Colors.orange;
+        return AirbnbColors.warning;
       default:
-        return Colors.grey;
+        return AirbnbColors.textSecondary;
     }
   }
 
   Color _getIconBackgroundColor(String type) {
     switch (type) {
       case 'quote_answered':
-        return Colors.blue.withValues(alpha: 0.1);
+        return AirbnbColors.primary.withValues(alpha: 0.1);
       case 'broker_selected':
-        return Colors.green.withValues(alpha: 0.1);
+        return AirbnbColors.success.withValues(alpha: 0.1);
       case 'property_registered':
-        return Colors.orange.withValues(alpha: 0.1);
+        return AirbnbColors.warning.withValues(alpha: 0.1);
       default:
-        return Colors.grey.withValues(alpha: 0.1);
+        return AirbnbColors.textSecondary.withValues(alpha: 0.1);
     }
   }
 }

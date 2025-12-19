@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:property/constants/app_constants.dart';
+import 'package:property/constants/responsive_constants.dart';
+import 'package:property/constants/typography.dart';
+import 'package:property/widgets/common_design_system.dart';
 import 'package:property/api_request/firebase_service.dart';
 import 'package:property/api_request/log_service.dart';
 import 'package:property/widgets/home_logo_button.dart';
@@ -114,39 +117,40 @@ class _MainPageState extends State<MainPage> {
   Widget build(BuildContext context) {
     if (_isLoading) {
       return Scaffold(
-        backgroundColor: AppColors.kBackground,
+        backgroundColor: AirbnbColors.background,
         body: const Center(
           child: CircularProgressIndicator(
-            valueColor: AlwaysStoppedAnimation<Color>(AppColors.kPrimary),
+            valueColor: AlwaysStoppedAnimation<Color>(AirbnbColors.primary),
           ),
         ),
       );
     }
 
     return Scaffold(
-      backgroundColor: AppColors.kBackground,
+      backgroundColor: AirbnbColors.background,
       appBar: _buildTopNavigationBar(),
       body: IndexedStack(index: _currentIndex, children: _pages),
     );
   }
 
   PreferredSizeWidget _buildTopNavigationBar() {
-    final screenWidth = MediaQuery.of(context).size.width;
-    final isMobile = screenWidth < 600;
+    final isMobile = ResponsiveHelper.isMobile(context);
 
     return AppBar(
-      backgroundColor: Colors.white,
-      foregroundColor: Colors.black,
-      elevation: 2,
+      backgroundColor: AirbnbColors.background,
+      foregroundColor: AirbnbColors.textPrimary,
+      elevation: 0,
       toolbarHeight: 70,
-      shadowColor: Colors.black.withValues(alpha: 0.1),
+      shadowColor: AirbnbColors.textPrimary.withValues(alpha: 0.08),
       surfaceTintColor: Colors.transparent,
       title: isMobile ? _buildMobileHeader() : _buildDesktopHeader(),
       actions: [
         if (widget.userId.isNotEmpty)
-          IconButton(
-            icon: const Icon(Icons.notifications_outlined, color: Colors.black87),
+          AccessibleWidget.iconButton(
+            icon: Icons.notifications_outlined,
+            color: AirbnbColors.textPrimary,
             tooltip: '알림',
+            semanticLabel: '알림 보기',
             onPressed: () {
               Navigator.push(
                 context,
@@ -181,13 +185,12 @@ class _MainPageState extends State<MainPage> {
                   ),
                 );
               },
-              icon: const Icon(Icons.business, size: 20, color: AppColors.kPrimary),
-              label: const Text(
+              icon: const Icon(Icons.business, size: 20, color: AirbnbColors.primary),
+              label: Text(
                 '중개사 대시보드',
-                style: TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.kPrimary,
+                style: AppTypography.withColor(
+                  AppTypography.bodySmall.copyWith(fontWeight: FontWeight.w600),
+                  AirbnbColors.primary,
                 ),
               ),
             ),
@@ -261,9 +264,9 @@ class _MainPageState extends State<MainPage> {
       children: [
         // 로고
         LogoWithText(
-          fontSize: 24,
+          fontSize: AppTypography.h2.fontSize!,
           logoHeight: 60,
-          textColor: AppColors.kPrimary,
+          textColor: AirbnbColors.primary,
           onTap: () {
             // 첫 번째 탭(홈)으로 이동
             setState(() {
@@ -316,10 +319,10 @@ class _MainPageState extends State<MainPage> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         decoration: BoxDecoration(
-          color: AppColors.kPrimary.withValues(alpha: 0.08), // 단색 배경
+          color: AirbnbColors.primary.withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
-            color: AppColors.kPrimary.withValues(alpha: 0.3), // 테두리 강화
+            color: AirbnbColors.primary.withValues(alpha: 0.3),
             width: 1.5,
           ),
         ),
@@ -328,16 +331,15 @@ class _MainPageState extends State<MainPage> {
           children: [
             Icon(
               isLoggedIn ? Icons.logout : Icons.login,
-              color: AppColors.kPrimary,
+              color: AirbnbColors.primary,
               size: 20,
             ),
             const SizedBox(width: 6),
             Text(
               isLoggedIn ? '로그아웃' : '로그인',
-              style: const TextStyle(
-                color: AppColors.kPrimary,
-                fontWeight: FontWeight.w600,
-                fontSize: 15,
+              style: AppTypography.withColor(
+                AppTypography.buttonSmall.copyWith(fontWeight: FontWeight.w600),
+                AirbnbColors.primary,
               ),
             ),
           ],
@@ -407,8 +409,8 @@ class _MainPageState extends State<MainPage> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('로그인에 실패했습니다. 이메일/비밀번호를 확인해주세요.'),
-            backgroundColor: Colors.red,
+            content: Text('로그인에 실패했습니다. 이메일/비밀번호를 확인해주세요.', style: AppTypography.body),
+            backgroundColor: AirbnbColors.error,
           ),
         );
       }
@@ -462,7 +464,7 @@ class _MainPageState extends State<MainPage> {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
               content: Text('로그인이 필요한 서비스입니다.'),
-              backgroundColor: Colors.orange,
+              backgroundColor: AirbnbColors.warning,
               duration: Duration(seconds: 2),
             ),
           );
@@ -487,10 +489,9 @@ class _MainPageState extends State<MainPage> {
       borderRadius: BorderRadius.circular(8),
       child: LayoutBuilder(
         builder: (context, constraints) {
-          final screenWidth = MediaQuery.of(context).size.width;
           // 화면 크기별 세밀한 조정
-          final isSmallScreen = screenWidth < 450;
-          final fontSize = isSmallScreen ? 10.5 : (isMobile ? 13.0 : 15.0);
+          final isSmallScreen = ResponsiveHelper.isMobile(context) && MediaQuery.of(context).size.width < 450;
+          final fontSize = isSmallScreen ? 10.5 : (isMobile ? AppTypography.bodySmall.fontSize! : AppTypography.buttonSmall.fontSize!);
           final iconSize = isSmallScreen ? 18.0 : (isMobile ? 22.0 : 20.0);
           final horizontalPadding = isSmallScreen ? 1.0 : (isMobile ? 4.0 : 16.0);
           final iconTextGap = isSmallScreen ? 2.0 : (isMobile ? 4.0 : 6.0);
@@ -501,11 +502,11 @@ class _MainPageState extends State<MainPage> {
               vertical: isMobile ? 6 : 10,
             ),
             decoration: BoxDecoration(
-              color: isSelected ? Colors.white : Colors.transparent,
+              color: isSelected ? AirbnbColors.primaryDark.withValues(alpha: 0.1) : Colors.transparent,
               borderRadius: BorderRadius.circular(8),
               border: Border.all(
-                color: isSelected ? AppColors.kPrimary.withValues(alpha: 0.7) : Colors.transparent,
-                width: isSelected ? 1.5 : 1,
+                color: isSelected ? AirbnbColors.primaryDark : Colors.transparent,
+                width: isSelected ? 1.5 : 0,
               ),
             ),
             child: Row(
@@ -514,7 +515,7 @@ class _MainPageState extends State<MainPage> {
               children: [
                 Icon(
                   icon,
-                  color: isSelected ? AppColors.kPrimary : Colors.grey[700],
+                  color: isSelected ? AirbnbColors.primaryDark : AirbnbColors.textSecondary,
                   size: iconSize,
                 ),
                 if (showLabelOnly) ...[
@@ -522,11 +523,13 @@ class _MainPageState extends State<MainPage> {
                   Flexible(
                     child: Text(
                       label,
-                      style: TextStyle(
-                        color: isSelected ? AppColors.kPrimary : Colors.grey[700],
-                        fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-                        fontSize: fontSize,
-                        letterSpacing: isSmallScreen ? -0.3 : 0,
+                      style: AppTypography.withColor(
+                        (isMobile ? AppTypography.bodySmall : AppTypography.buttonSmall).copyWith(
+                          fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                          fontSize: fontSize,
+                          letterSpacing: isSmallScreen ? -0.3 : 0,
+                        ),
+                        isSelected ? AirbnbColors.primaryDark : AirbnbColors.textSecondary,
                       ),
                       overflow: TextOverflow.ellipsis,
                       maxLines: 1,

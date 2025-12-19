@@ -283,7 +283,7 @@ class _PropertyEditFormPageState extends State<PropertyEditFormPage> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('사진 선택 중 오류가 발생했습니다: $e'),
-          backgroundColor: Colors.red,
+          backgroundColor: AirbnbColors.error,
         ),
       );
     }
@@ -337,7 +337,7 @@ class _PropertyEditFormPageState extends State<PropertyEditFormPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('이미지 업로드 중 오류가 발생했습니다: $e'),
-            backgroundColor: Colors.red,
+            backgroundColor: AirbnbColors.error,
           ),
         );
       }
@@ -356,7 +356,7 @@ class _PropertyEditFormPageState extends State<PropertyEditFormPage> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('매물 사진을 최소 1장 이상 첨부해주세요.'),
-          backgroundColor: Colors.orange,
+          backgroundColor: AirbnbColors.warning,
         ),
       );
       return;
@@ -370,7 +370,7 @@ class _PropertyEditFormPageState extends State<PropertyEditFormPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('매매가를 입력해주세요.'),
-            backgroundColor: Colors.orange,
+            backgroundColor: AirbnbColors.warning,
           ),
         );
         return;
@@ -382,7 +382,7 @@ class _PropertyEditFormPageState extends State<PropertyEditFormPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('월세 금액을 입력해주세요.'),
-            backgroundColor: Colors.orange,
+            backgroundColor: AirbnbColors.warning,
           ),
         );
         return;
@@ -394,7 +394,7 @@ class _PropertyEditFormPageState extends State<PropertyEditFormPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('전세 보증금을 입력해주세요.'),
-            backgroundColor: Colors.orange,
+            backgroundColor: AirbnbColors.warning,
           ),
         );
         return;
@@ -484,14 +484,14 @@ class _PropertyEditFormPageState extends State<PropertyEditFormPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('매물 정보가 수정되었습니다.'),
-            backgroundColor: AppColors.kSuccess,
+            backgroundColor: AirbnbColors.success,
           ),
         );
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('매물 수정에 실패했습니다.'),
-            backgroundColor: Colors.red,
+            backgroundColor: AirbnbColors.error,
           ),
         );
       }
@@ -500,7 +500,7 @@ class _PropertyEditFormPageState extends State<PropertyEditFormPage> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('매물 수정 중 오류가 발생했습니다: $e'),
-          backgroundColor: Colors.red,
+          backgroundColor: AirbnbColors.error,
         ),
       );
     } finally {
@@ -523,12 +523,12 @@ class _PropertyEditFormPageState extends State<PropertyEditFormPage> {
     return GestureDetector(
       onTap: () => FocusScope.of(context).unfocus(),
       child: Scaffold(
-      backgroundColor: AppColors.kBackground,
+      backgroundColor: AirbnbColors.surface,
         resizeToAvoidBottomInset: true,
       appBar: AppBar(
         title: const Text('매물 수정'),
-        backgroundColor: AppColors.kPrimary,
-        foregroundColor: Colors.white,
+        backgroundColor: AirbnbColors.primary,
+        foregroundColor: AirbnbColors.background,
       ),
       body: Form(
         key: _formKey,
@@ -555,22 +555,22 @@ class _PropertyEditFormPageState extends State<PropertyEditFormPage> {
                   Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: AppColors.kPrimary.withValues(alpha: 0.1),
+                      color: AirbnbColors.primary.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(
-                        color: AppColors.kPrimary.withValues(alpha: 0.3),
+                        color: AirbnbColors.primary.withValues(alpha: 0.3),
                       ),
                     ),
                     child: Row(
                       children: [
-                        Icon(Icons.info_outline, color: AppColors.kPrimary, size: 20),
+                        Icon(Icons.info_outline, color: AirbnbColors.primary, size: 20),
                         const SizedBox(width: 12),
                         Expanded(
                           child: Text(
                             '매물 정보를 수정한 후 저장하시면 변경사항이 반영됩니다.',
                             style: TextStyle(
                               fontSize: 13,
-                              color: AppColors.kPrimary,
+                              color: AirbnbColors.primary,
                               height: 1.4,
                             ),
                           ),
@@ -640,7 +640,7 @@ class _PropertyEditFormPageState extends State<PropertyEditFormPage> {
                   const SizedBox(height: 8),
                   Text(
                     '매물 사진을 최소 1장 이상 첨부해주세요.',
-                    style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                    style: TextStyle(fontSize: 12, color: AirbnbColors.textSecondary),
                   ),
                   const SizedBox(height: 12),
                   _buildImagePickerSection(),
@@ -737,7 +737,7 @@ class _PropertyEditFormPageState extends State<PropertyEditFormPage> {
                         const SizedBox(height: 8),
                         Text(
                           '아래 정보는 API로 불러온 참조 정보입니다. 필요시 수정해주세요.',
-                          style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                          style: TextStyle(fontSize: 12, color: AirbnbColors.textSecondary),
                         ),
                         const SizedBox(height: 12),
                         _buildEditableReferenceInfo(),
@@ -767,7 +767,7 @@ class _PropertyEditFormPageState extends State<PropertyEditFormPage> {
                           ? const SizedBox(
                               width: 20,
                               height: 20,
-                              child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                              child: CircularProgressIndicator(strokeWidth: 2, color: AirbnbColors.background),
                             )
                           : const Icon(Icons.save),
                       label: Text(
@@ -775,8 +775,8 @@ class _PropertyEditFormPageState extends State<PropertyEditFormPage> {
                         style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                       ),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.kPrimary,
-                        foregroundColor: Colors.white,
+                        backgroundColor: AirbnbColors.primary,
+                        foregroundColor: AirbnbColors.background,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
@@ -804,7 +804,7 @@ class _PropertyEditFormPageState extends State<PropertyEditFormPage> {
       style: const TextStyle(
         fontSize: 18,
         fontWeight: FontWeight.bold,
-        color: Color(0xFF2C3E50),
+        color: AirbnbColors.textPrimary,
       ),
     );
   }
@@ -830,7 +830,7 @@ class _PropertyEditFormPageState extends State<PropertyEditFormPage> {
           borderRadius: BorderRadius.circular(12),
         ),
         filled: true,
-        fillColor: Colors.grey.withValues(alpha: 0.05),
+        fillColor: AirbnbColors.textSecondary.withValues(alpha: 0.05),
         contentPadding: EdgeInsets.symmetric(
           horizontal: 16,
           vertical: maxLines > 1 ? 16 : 14,
@@ -877,8 +877,8 @@ class _PropertyEditFormPageState extends State<PropertyEditFormPage> {
             style: OutlinedButton.styleFrom(
               side: BorderSide(
                 color: totalImages == 0
-                    ? Colors.red
-                    : AppColors.kPrimary,
+                    ? AirbnbColors.error
+                    : AirbnbColors.primary,
                 width: 2,
               ),
               shape: RoundedRectangleBorder(
@@ -894,7 +894,7 @@ class _PropertyEditFormPageState extends State<PropertyEditFormPage> {
             '※ 매물 사진은 필수입니다.',
             style: TextStyle(
               fontSize: 12,
-              color: Colors.red[600],
+              color: AirbnbColors.error.withValues(alpha: 0.6),
               fontWeight: FontWeight.w500,
             ),
           ),
@@ -907,7 +907,7 @@ class _PropertyEditFormPageState extends State<PropertyEditFormPage> {
             style: TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.w500,
-              color: Colors.grey[700],
+              color: AirbnbColors.textSecondary,
             ),
           ),
           const SizedBox(height: 8),
@@ -932,7 +932,7 @@ class _PropertyEditFormPageState extends State<PropertyEditFormPage> {
                       fit: BoxFit.cover,
                       errorBuilder: (context, error, stackTrace) {
                         return Container(
-                          color: Colors.grey[300],
+                          color: AirbnbColors.border,
                           child: const Icon(Icons.error),
                         );
                       },
@@ -946,12 +946,12 @@ class _PropertyEditFormPageState extends State<PropertyEditFormPage> {
                       child: Container(
                         padding: const EdgeInsets.all(4),
                         decoration: const BoxDecoration(
-                          color: Colors.red,
+                          color: AirbnbColors.error,
                           shape: BoxShape.circle,
                         ),
                         child: const Icon(
                           Icons.close,
-                          color: Colors.white,
+                          color: AirbnbColors.background,
                           size: 16,
                         ),
                       ),
@@ -970,7 +970,7 @@ class _PropertyEditFormPageState extends State<PropertyEditFormPage> {
             style: TextStyle(
               fontSize: 14,
               fontWeight: FontWeight.w500,
-              color: Colors.grey[700],
+              color: AirbnbColors.textSecondary,
             ),
           ),
           const SizedBox(height: 8),
@@ -996,7 +996,7 @@ class _PropertyEditFormPageState extends State<PropertyEditFormPage> {
                             fit: BoxFit.cover,
                             errorBuilder: (context, error, stackTrace) {
                               return Container(
-                                color: Colors.grey[300],
+                                color: AirbnbColors.border,
                                 child: const Icon(Icons.error),
                               );
                             },
@@ -1006,7 +1006,7 @@ class _PropertyEditFormPageState extends State<PropertyEditFormPage> {
                             fit: BoxFit.cover,
                             errorBuilder: (context, error, stackTrace) {
                               return Container(
-                                color: Colors.grey[300],
+                                color: AirbnbColors.border,
                                 child: const Icon(Icons.error),
                               );
                             },
@@ -1020,12 +1020,12 @@ class _PropertyEditFormPageState extends State<PropertyEditFormPage> {
                       child: Container(
                         padding: const EdgeInsets.all(4),
                         decoration: const BoxDecoration(
-                          color: Colors.red,
+                          color: AirbnbColors.error,
                           shape: BoxShape.circle,
                         ),
                         child: const Icon(
                           Icons.close,
-                          color: Colors.white,
+                          color: AirbnbColors.background,
                           size: 16,
                         ),
                       ),
@@ -1050,23 +1050,23 @@ class _PropertyEditFormPageState extends State<PropertyEditFormPage> {
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: Colors.blue.withValues(alpha: 0.05),
+              color: AirbnbColors.primary.withValues(alpha: 0.05),
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Colors.blue.withValues(alpha: 0.2)),
+              border: Border.all(color: AirbnbColors.primary.withValues(alpha: 0.2)),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Row(
                   children: [
-                    Icon(Icons.location_on, size: 18, color: Colors.blue[700]),
+                    Icon(Icons.location_on, size: 18, color: AirbnbColors.primary.withValues(alpha: 0.7)),
                     const SizedBox(width: 8),
                     Text(
                       '주소 상세 정보',
                       style: TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.bold,
-                        color: Colors.blue[900],
+                        color: AirbnbColors.primary.withValues(alpha: 0.9),
                       ),
                     ),
                   ],
@@ -1103,23 +1103,23 @@ class _PropertyEditFormPageState extends State<PropertyEditFormPage> {
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: Colors.green.withValues(alpha: 0.05),
+              color: AirbnbColors.success.withValues(alpha: 0.05),
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Colors.green.withValues(alpha: 0.2)),
+              border: Border.all(color: AirbnbColors.success.withValues(alpha: 0.2)),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Row(
                   children: [
-                    Icon(Icons.my_location, size: 18, color: Colors.green[700]),
+                    Icon(Icons.my_location, size: 18, color: AirbnbColors.success.withValues(alpha: 0.7)),
                     const SizedBox(width: 8),
                     Text(
                       '좌표 정보',
                       style: TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.bold,
-                        color: Colors.green[900],
+                        color: AirbnbColors.success.withValues(alpha: 0.9),
                       ),
                     ),
                   ],
@@ -1159,23 +1159,23 @@ class _PropertyEditFormPageState extends State<PropertyEditFormPage> {
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: Colors.purple.withValues(alpha: 0.05),
+              color: AirbnbColors.primary.withValues(alpha: 0.05),
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Colors.purple.withValues(alpha: 0.2)),
+              border: Border.all(color: AirbnbColors.primary.withValues(alpha: 0.2)),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Row(
                   children: [
-                    Icon(Icons.apartment, size: 18, color: Colors.purple[700]),
+                    Icon(Icons.apartment, size: 18, color: AirbnbColors.primary.withValues(alpha: 0.7)),
                     const SizedBox(width: 8),
                     Text(
                       '아파트 단지 정보',
                       style: TextStyle(
                         fontSize: 15,
                         fontWeight: FontWeight.bold,
-                        color: Colors.purple[900],
+                        color: AirbnbColors.primary.withValues(alpha: 0.9),
                       ),
                     ),
                   ],
@@ -1185,7 +1185,7 @@ class _PropertyEditFormPageState extends State<PropertyEditFormPage> {
                   '아파트 단지 정보는 위의 "아파트 단지 정보" 섹션에서 수정할 수 있습니다.',
                   style: TextStyle(
                     fontSize: 13,
-                    color: Colors.grey[700],
+                    color: AirbnbColors.textSecondary,
                   ),
                 ),
               ],

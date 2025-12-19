@@ -21,7 +21,7 @@ class LoadingOverlay extends StatelessWidget {
         child,
         if (isLoading)
           Container(
-            color: Colors.black.withValues(alpha: 0.5),
+            color: AirbnbColors.textPrimary.withValues(alpha: 0.5),
             child: Center(
               child: Card(
                 elevation: 8,
@@ -34,7 +34,7 @@ class LoadingOverlay extends StatelessWidget {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       const CircularProgressIndicator(
-                        valueColor: AlwaysStoppedAnimation<Color>(AppColors.kPrimary),
+                        valueColor: AlwaysStoppedAnimation<Color>(AirbnbColors.primary),
                       ),
                       if (message != null) ...[
                         const SizedBox(height: 16),
@@ -78,7 +78,7 @@ class LoadingOverlay extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   const CircularProgressIndicator(
-                    valueColor: AlwaysStoppedAnimation<Color>(AppColors.kPrimary),
+                    valueColor: AlwaysStoppedAnimation<Color>(AirbnbColors.primary),
                   ),
                   if (message != null) ...[
                     const SizedBox(height: 16),

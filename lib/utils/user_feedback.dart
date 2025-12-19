@@ -23,7 +23,7 @@ class UserFeedback {
             Expanded(child: Text(message)),
           ],
         ),
-        backgroundColor: AppColors.kSuccess,
+        backgroundColor: AirbnbColors.success,
         duration: duration,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(
@@ -72,7 +72,7 @@ class UserFeedback {
             Expanded(child: Text(message)),
           ],
         ),
-        backgroundColor: Colors.blue,
+        backgroundColor: AirbnbColors.primary,
         duration: duration,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(
@@ -106,7 +106,7 @@ class UserFeedback {
             Expanded(child: Text(message)),
           ],
         ),
-        backgroundColor: Colors.orange,
+        backgroundColor: AirbnbColors.warning,
         duration: duration,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(

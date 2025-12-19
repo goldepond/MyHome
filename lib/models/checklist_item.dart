@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:property/constants/app_constants.dart';
 
 class ChecklistItem {
   final String id;
@@ -121,13 +122,13 @@ extension ChecklistStatusExtension on ChecklistStatus {
   Color get color {
     switch (this) {
       case ChecklistStatus.pending:
-        return Colors.grey;
+        return AirbnbColors.textSecondary; // 회색
       case ChecklistStatus.submitted:
-        return Colors.blue;
+        return AirbnbColors.blue;          // 파랑
       case ChecklistStatus.rejected:
-        return Colors.red;
+        return AirbnbColors.red;            // 빨강
       case ChecklistStatus.approved:
-        return Colors.green;
+        return AirbnbColors.green;          // 녹색
     }
   }
 

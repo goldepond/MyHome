@@ -31,12 +31,12 @@ class CustomerServiceDialog extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(10),
                 decoration: BoxDecoration(
-                  color: AppColors.kPrimary.withValues(alpha: 0.1),
+                  color: AirbnbColors.primary.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: const Icon(
                   Icons.support_agent,
-                  color: AppColors.kPrimary,
+                  color: AirbnbColors.primary,
                   size: 24,
                 ),
               ),
@@ -50,7 +50,7 @@ class CustomerServiceDialog extends StatelessWidget {
                       style: TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
-                        color: Color(0xFF2C3E50),
+                        color: AirbnbColors.textPrimary,
                       ),
                     ),
                     SizedBox(height: 4),
@@ -58,14 +58,14 @@ class CustomerServiceDialog extends StatelessWidget {
                       '원하시는 채널을 선택해주세요',
                       style: TextStyle(
                         fontSize: 14,
-                        color: Colors.grey,
+                        color: AirbnbColors.textSecondary,
                       ),
                     ),
                   ],
                 ),
               ),
               IconButton(
-                icon: const Icon(Icons.close, color: Colors.grey),
+                icon: const Icon(Icons.close, color: AirbnbColors.textSecondary),
                 onPressed: () => Navigator.pop(context),
               ),
             ],
@@ -102,7 +102,7 @@ class CustomerServiceDialog extends StatelessWidget {
           _buildServiceOption(
             context,
             icon: Icons.email_outlined,
-            iconColor: AppColors.kPrimary,
+            iconColor: AirbnbColors.primary,
             title: '이메일 문의',
             subtitle: CustomerServiceUrls.supportEmail,
             onTap: () => _launchEmail(context),
@@ -129,7 +129,7 @@ class CustomerServiceDialog extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          border: Border.all(color: Colors.grey[300]!),
+          border: Border.all(color: AirbnbColors.border),
           borderRadius: BorderRadius.circular(12),
         ),
         child: Row(
@@ -152,7 +152,7 @@ class CustomerServiceDialog extends StatelessWidget {
                     style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
-                      color: Color(0xFF2C3E50),
+                      color: AirbnbColors.textPrimary,
                     ),
                   ),
                   const SizedBox(height: 4),
@@ -160,13 +160,13 @@ class CustomerServiceDialog extends StatelessWidget {
                     subtitle,
                     style: TextStyle(
                       fontSize: 13,
-                      color: Colors.grey[600],
+                      color: AirbnbColors.textSecondary,
                     ),
                   ),
                 ],
               ),
             ),
-            const Icon(Icons.chevron_right, color: Colors.grey),
+            const Icon(Icons.chevron_right, color: AirbnbColors.textSecondary),
           ],
         ),
       ),

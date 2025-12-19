@@ -80,7 +80,7 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
           ),
           TextButton(
             onPressed: () => Navigator.of(context).pop(true),
-            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            style: TextButton.styleFrom(foregroundColor: AirbnbColors.error),
             child: const Text('로그아웃'),
           ),
         ],
@@ -124,7 +124,7 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
           ),
           TextButton(
             onPressed: () => Navigator.of(context).pop(true),
-            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            style: TextButton.styleFrom(foregroundColor: AirbnbColors.error),
             child: const Text('탈퇴하기'),
           ),
         ],
@@ -139,7 +139,7 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
       builder: (context) => AlertDialog(
         title: const Text(
           '⚠️ 최종 확인',
-          style: TextStyle(color: Colors.red),
+          style: TextStyle(color: AirbnbColors.error),
         ),
         content: const Text(
           '회원탈퇴를 진행하시겠습니까?\n\n'
@@ -152,7 +152,7 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
           ),
           TextButton(
             onPressed: () => Navigator.of(context).pop(true),
-            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            style: TextButton.styleFrom(foregroundColor: AirbnbColors.error),
             child: const Text(
               '탈퇴하기',
               style: TextStyle(fontWeight: FontWeight.bold),
@@ -192,7 +192,7 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
               content: Text('회원탈퇴가 완료되었습니다.'),
-              backgroundColor: Colors.green,
+              backgroundColor: AirbnbColors.success,
               duration: Duration(seconds: 3),
             ),
           );
@@ -214,7 +214,7 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(errorMessage),
-              backgroundColor: Colors.red,
+              backgroundColor: AirbnbColors.error,
               duration: const Duration(seconds: 5),
             ),
           );
@@ -228,7 +228,7 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('회원탈퇴 중 오류가 발생했습니다: $e'),
-            backgroundColor: Colors.red,
+            backgroundColor: AirbnbColors.error,
             duration: const Duration(seconds: 5),
           ),
         );
@@ -238,64 +238,68 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
 
   @override
   Widget build(BuildContext context) {
-    const double bannerHeight = 360;
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isMobile = screenWidth < 768;
+    final isTablet = screenWidth >= 768 && screenWidth < 1024;
+    final bannerHeight = isMobile ? 320.0 : (isTablet ? 360.0 : 400.0);
     const double overlapHeight = 80;
 
     return Scaffold(
-      backgroundColor: AppColors.kBackground,
+      backgroundColor: AirbnbColors.background,
       body: SafeArea(
         child: SingleChildScrollView(
           child: Stack(
             alignment: Alignment.topCenter,
           children: [
-              // 히어로 배너
+              // 히어로 배너 (메인페이지 스타일)
             Container(
                 height: bannerHeight,
               width: double.infinity,
-              padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 24),
-              decoration: BoxDecoration(
-                gradient: AppGradients.primaryDiagonal,
-                boxShadow: [
-                  BoxShadow(
-                    color: AppColors.kPrimary.withValues(alpha: 0.3),
-                      offset: const Offset(0, 12),
-                      blurRadius: 28,
-                  ),
-                ],
+              padding: EdgeInsets.symmetric(
+                vertical: isMobile ? 48.0 : 64.0,
+                horizontal: isMobile ? 24.0 : 48.0,
               ),
-              child: Column(
+              decoration: BoxDecoration(
+                color: AirbnbColors.background,
+              ),
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 1200),
+                child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Text(
-                    '내 정보',
-                    style: TextStyle(
-                        fontSize: 34,
-                        fontWeight: FontWeight.w900,
-                      color: Colors.white,
-                        letterSpacing: -0.8,
-                        height: 1.2,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    // 매우 큰 헤드라인 (Stripe/Vercel 스타일)
+                    Text(
+                      '내 정보',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: isMobile ? 40 : (isTablet ? 52 : 64),
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: -1.5,
+                        height: 1.1,
+                        color: AirbnbColors.textPrimary,
+                      ),
                     ),
-                    textAlign: TextAlign.center,
-                  ),
-                    const SizedBox(height: 10),
-                  Text(
-                    '내 계정 정보를 확인하고 관리하세요',
-                    style: TextStyle(
-                        fontSize: 16,
-                        color: Colors.white.withValues(alpha: 0.92),
-                      fontWeight: FontWeight.w500,
+                    const SizedBox(height: 24),
+                    // 큰 서브헤드
+                    Text(
+                      '내 계정 정보를 확인하고 관리하세요',
+                      textAlign: TextAlign.center,
+                      style: TextStyle(
+                        fontSize: isMobile ? 18 : 22,
+                        fontWeight: FontWeight.w400,
+                        height: 1.6,
+                        color: AirbnbColors.textSecondary,
+                      ),
                     ),
-                    textAlign: TextAlign.center,
-                  ),
-                    // 컨텐츠와 겹치는 부분 고려하여 여백 추가
-                    const SizedBox(height: 60),
-                ],
+                  ],
+                ),
               ),
             ),
 
               // 메인 콘텐츠 (배너와 겹치게 배치)
               Padding(
-                padding: const EdgeInsets.only(top: bannerHeight - overlapHeight), // 360 - 80 = 280
+                padding: EdgeInsets.only(top: bannerHeight - overlapHeight),
                 child: Center(
                   child: Container(
                     constraints: const BoxConstraints(maxWidth: 900),
@@ -307,8 +311,8 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
                     Card(
                       elevation: 0,
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                      color: Colors.white,
-                      shadowColor: Colors.black.withValues(alpha: 0.06),
+                      color: AirbnbColors.background,
+                      shadowColor: AirbnbColors.textPrimary.withValues(alpha: 0.06),
                       child: Padding(
                         padding: const EdgeInsets.all(20),
                         child: Column(
@@ -319,7 +323,7 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
                               style: TextStyle(
                                 fontSize: 20,
                                 fontWeight: FontWeight.bold,
-                                color: Color(0xFF2C3E50),
+                                color: AirbnbColors.textPrimary,
                               ),
                             ),
                             const SizedBox(height: 16),
@@ -334,18 +338,18 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
                                     ),
                                   );
                                 },
-                                icon: const Icon(Icons.password, color: Colors.white),
+                                icon: const Icon(Icons.password, color: AirbnbColors.background),
                                 label: const Text(
                                   '비밀번호 변경',
                                   style: TextStyle(
                                     fontSize: 16,
                                     fontWeight: FontWeight.bold,
-                                    color: Colors.white,
+                                    color: AirbnbColors.background,
                                   ),
                                 ),
                                 style: ElevatedButton.styleFrom(
-                                  backgroundColor: AppColors.kPrimary,
-                                  foregroundColor: Colors.white,
+                                  backgroundColor: AirbnbColors.textPrimary, // 에어비엔비 스타일: 검은색 배경
+                                  foregroundColor: AirbnbColors.background,
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(12),
                                   ),
@@ -404,8 +408,8 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
                       Card(
                         elevation: 0,
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                        color: Colors.white,
-                        shadowColor: Colors.black.withValues(alpha: 0.06),
+                        color: AirbnbColors.background,
+                        shadowColor: AirbnbColors.textPrimary.withValues(alpha: 0.06),
                         child: Padding(
                           padding: const EdgeInsets.all(20),
                           child: Column(
@@ -416,7 +420,7 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
                                 style: TextStyle(
                                   fontSize: 20,
                                   fontWeight: FontWeight.bold,
-                                  color: Color(0xFF2C3E50),
+                                  color: AirbnbColors.textPrimary,
                                 ),
                               ),
                               const SizedBox(height: 16),
@@ -446,8 +450,8 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
                     Card(
                       elevation: 0,
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                      color: Colors.white,
-                      shadowColor: Colors.black.withValues(alpha: 0.06),
+                      color: AirbnbColors.background,
+                      shadowColor: AirbnbColors.textPrimary.withValues(alpha: 0.06),
                       child: Padding(
                         padding: const EdgeInsets.all(12),
                         child: Column(
@@ -460,12 +464,12 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
                                 style: TextStyle(
                                   fontSize: 18,
                                   fontWeight: FontWeight.bold,
-                                  color: Color(0xFF2C3E50),
+                                  color: AirbnbColors.textPrimary,
                                 ),
                               ),
                             ),
                             ListTile(
-                              leading: const Icon(Icons.support_agent_outlined, color: AppColors.kPrimary),
+                              leading: const Icon(Icons.support_agent_outlined, color: AirbnbColors.primary),
                               title: const Text('문의하기 / 피드백'),
                               subtitle: const Text('카카오톡, 페이스북, 스레드, 이메일'),
                               trailing: const Icon(Icons.chevron_right),
@@ -483,8 +487,8 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
                     Card(
                       elevation: 0,
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                      color: Colors.white,
-                      shadowColor: Colors.black.withValues(alpha: 0.06),
+                      color: AirbnbColors.background,
+                      shadowColor: AirbnbColors.textPrimary.withValues(alpha: 0.06),
                       child: Padding(
                         padding: const EdgeInsets.all(12),
                         child: Column(
@@ -497,12 +501,12 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
                                 style: TextStyle(
                                   fontSize: 18,
                                   fontWeight: FontWeight.bold,
-                                  color: Color(0xFF2C3E50),
+                                  color: AirbnbColors.textPrimary,
                                 ),
                               ),
                             ),
                             ListTile(
-                              leading: const Icon(Icons.privacy_tip_outlined, color: AppColors.kPrimary),
+                              leading: const Icon(Icons.privacy_tip_outlined, color: AirbnbColors.primary),
                               title: const Text('개인정보 처리방침'),
                               trailing: const Icon(Icons.chevron_right),
                               onTap: () {
@@ -513,7 +517,7 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
                             ),
                             const Divider(height: 1),
                             ListTile(
-                              leading: const Icon(Icons.description_outlined, color: AppColors.kPrimary),
+                              leading: const Icon(Icons.description_outlined, color: AirbnbColors.primary),
                               title: const Text('이용약관'),
                               trailing: const Icon(Icons.chevron_right),
                               onTap: () {
@@ -532,8 +536,8 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
                     Card(
                       elevation: 0,
                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                      color: Colors.white,
-                      shadowColor: Colors.black.withValues(alpha: 0.06),
+                      color: AirbnbColors.background,
+                      shadowColor: AirbnbColors.textPrimary.withValues(alpha: 0.06),
                       child: Padding(
                         padding: const EdgeInsets.all(20),
                         child: Column(
@@ -544,7 +548,7 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
                               style: TextStyle(
                                 fontSize: 20,
                                 fontWeight: FontWeight.bold,
-                                color: Color(0xFF2C3E50),
+                                color: AirbnbColors.textPrimary,
                               ),
                             ),
                             const SizedBox(height: 16),
@@ -553,18 +557,18 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
                               height: 50,
                               child: ElevatedButton.icon(
                                 onPressed: () => _logout(context),
-                                icon: const Icon(Icons.logout, color: Colors.white),
+                                icon: const Icon(Icons.logout, color: AirbnbColors.background),
                                 label: const Text(
                                   '로그아웃',
                                   style: TextStyle(
                                     fontSize: 16,
                                     fontWeight: FontWeight.bold,
-                                    color: Colors.white,
+                                    color: AirbnbColors.background,
                                   ),
                                 ),
                                 style: ElevatedButton.styleFrom(
-                                  backgroundColor: Colors.red,
-                                  foregroundColor: Colors.white,
+                                  backgroundColor: AirbnbColors.error,
+                                  foregroundColor: AirbnbColors.background,
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(12),
                                   ),
@@ -577,18 +581,18 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
                               height: 50,
                               child: OutlinedButton.icon(
                                 onPressed: () => _deleteAccount(context),
-                                icon: const Icon(Icons.delete_forever, color: Colors.red),
+                                icon: const Icon(Icons.delete_forever, color: AirbnbColors.error),
                                 label: const Text(
                                   '회원탈퇴',
                                   style: TextStyle(
                                     fontSize: 16,
                                     fontWeight: FontWeight.bold,
-                                    color: Colors.red,
+                                    color: AirbnbColors.error,
                                   ),
                                 ),
                                 style: OutlinedButton.styleFrom(
-                                  foregroundColor: Colors.red,
-                                  side: const BorderSide(color: Colors.red, width: 2),
+                                  foregroundColor: AirbnbColors.error,
+                                  side: const BorderSide(color: AirbnbColors.error, width: 2),
                                   shape: RoundedRectangleBorder(
                                     borderRadius: BorderRadius.circular(12),
                                   ),
@@ -653,13 +657,13 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
         Container(
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
-            color: Colors.grey[200],
+            color: AirbnbColors.borderLight,
             borderRadius: BorderRadius.circular(12),
           ),
           child: Icon(
             icon,
             size: 24,
-            color: AppColors.kPrimary,
+            color: AirbnbColors.primary,
           ),
         ),
         const SizedBox(width: 16),
@@ -671,7 +675,7 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
                 label,
                 style: const TextStyle(
                   fontSize: 13,
-                  color: Colors.grey,
+                  color: AirbnbColors.textSecondary,
                   fontWeight: FontWeight.w500,
                 ),
               ),
@@ -680,7 +684,7 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
                 value,
                 style: const TextStyle(
                   fontSize: 16,
-                  color: Color(0xFF2C3E50),
+                  color: AirbnbColors.textPrimary,
                   fontWeight: FontWeight.w600,
                 ),
               ),
@@ -698,13 +702,13 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
         Container(
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
-            color: Colors.grey[200],
+            color: AirbnbColors.borderLight,
             borderRadius: BorderRadius.circular(12),
           ),
           child: Icon(
             icon,
             size: 24,
-            color: AppColors.kPrimary,
+            color: AirbnbColors.primary,
           ),
         ),
         const SizedBox(width: 16),
@@ -716,7 +720,7 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
                 label,
                 style: const TextStyle(
                   fontSize: 13,
-                  color: Colors.grey,
+                  color: AirbnbColors.textSecondary,
                   fontWeight: FontWeight.w500,
                 ),
               ),
@@ -725,7 +729,7 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
                 value,
                 style: const TextStyle(
                   fontSize: 16,
-                  color: Color(0xFF2C3E50),
+                  color: AirbnbColors.textPrimary,
                   fontWeight: FontWeight.w600,
                 ),
               ),
@@ -733,7 +737,7 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
           ),
         ),
         IconButton(
-          icon: const Icon(Icons.edit, color: AppColors.kPrimary),
+          icon: const Icon(Icons.edit, color: AirbnbColors.primary),
           onPressed: onEdit,
           tooltip: '$label 수정',
         ),
@@ -771,7 +775,7 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
                     content: Text('이름을 입력해주세요.'),
-                    backgroundColor: Colors.red,
+                    backgroundColor: AirbnbColors.error,
                   ),
                 );
                 return;
@@ -779,8 +783,8 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
               Navigator.pop(context, true);
             },
             style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.kPrimary,
-              foregroundColor: Colors.white,
+              backgroundColor: AirbnbColors.textPrimary, // 에어비엔비 스타일: 검은색 배경
+              foregroundColor: AirbnbColors.background,
             ),
             child: const Text('저장'),
           ),
@@ -805,7 +809,7 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
               content: Text('이름이 수정되었습니다.'),
-              backgroundColor: Colors.green,
+              backgroundColor: AirbnbColors.success,
             ),
           );
           // 정보 다시 로드
@@ -814,7 +818,7 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
               content: Text('이름 수정에 실패했습니다.'),
-              backgroundColor: Colors.red,
+              backgroundColor: AirbnbColors.error,
             ),
           );
         }
@@ -824,7 +828,7 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('오류가 발생했습니다: $e'),
-            backgroundColor: Colors.red,
+            backgroundColor: AirbnbColors.error,
           ),
         );
       }
@@ -864,7 +868,7 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
                     content: Text('휴대폰 번호를 입력해주세요.'),
-                    backgroundColor: Colors.red,
+                    backgroundColor: AirbnbColors.error,
                   ),
                 );
                 return;
@@ -876,7 +880,7 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
                     content: Text('올바른 휴대폰 번호 형식이 아닙니다.\n예: 010-1234-5678 또는 01012345678'),
-                    backgroundColor: Colors.red,
+                    backgroundColor: AirbnbColors.error,
                   ),
                 );
                 return;
@@ -891,7 +895,7 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
                     content: Text('휴대폰 번호는 010, 011, 016, 017, 018, 019로 시작해야 합니다.'),
-                    backgroundColor: Colors.red,
+                    backgroundColor: AirbnbColors.error,
                   ),
                 );
                 return;
@@ -900,8 +904,8 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
               Navigator.pop(context, true);
             },
             style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.kPrimary,
-              foregroundColor: Colors.white,
+              backgroundColor: AirbnbColors.textPrimary, // 에어비엔비 스타일: 검은색 배경
+              foregroundColor: AirbnbColors.background,
             ),
             child: const Text('저장'),
           ),
@@ -926,7 +930,7 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
               content: Text('휴대폰 번호가 수정되었습니다.'),
-              backgroundColor: Colors.green,
+              backgroundColor: AirbnbColors.success,
             ),
           );
           // 정보 다시 로드
@@ -935,7 +939,7 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
               content: Text('휴대폰 번호 수정에 실패했습니다.'),
-              backgroundColor: Colors.red,
+              backgroundColor: AirbnbColors.error,
             ),
           );
         }
@@ -945,7 +949,7 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('오류가 발생했습니다: $e'),
-            backgroundColor: Colors.red,
+            backgroundColor: AirbnbColors.error,
           ),
         );
       }

@@ -25,10 +25,10 @@ class SelectedQuoteCard extends StatelessWidget {
           width: double.infinity,
           padding: const EdgeInsets.all(20),
           decoration: BoxDecoration(
-            color: AppColors.kSuccess.withValues(alpha: 0.1),
+            color: AirbnbColors.success.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
-              color: AppColors.kSuccess.withValues(alpha: 0.6),
+              color: AirbnbColors.success.withValues(alpha: 0.6),
               width: 1.5,
             ),
           ),
@@ -37,7 +37,7 @@ class SelectedQuoteCard extends StatelessWidget {
             children: [
               Row(
                 children: const [
-                  Icon(Icons.check_circle, color: AppColors.kSuccess, size: 28),
+                  Icon(Icons.check_circle, color: AirbnbColors.success, size: 28),
                   SizedBox(width: 12),
                   Expanded(
                     child: Text(
@@ -45,7 +45,7 @@ class SelectedQuoteCard extends StatelessWidget {
                       style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
-                        color: AppColors.kSuccess,
+                        color: AirbnbColors.success,
                       ),
                     ),
                   ),
@@ -77,7 +77,7 @@ class SelectedQuoteCard extends StatelessWidget {
                 child: ElevatedButton.icon(
                   onPressed: (isSubmitting || isRegistered) ? null : onRegisterPressed,
                   icon: isSubmitting 
-                      ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                      ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: AirbnbColors.background))
                       : Icon(isRegistered ? Icons.check : Icons.upload_file),
                   label: Text(
                     isSubmitting 
@@ -85,8 +85,8 @@ class SelectedQuoteCard extends StatelessWidget {
                         : (isRegistered ? '매물 등록 완료' : '집 구하기에 매물 등록하기')
                   ),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: isRegistered ? Colors.grey : AppColors.kPrimary,
-                    foregroundColor: Colors.white,
+                    backgroundColor: isRegistered ? AirbnbColors.textSecondary : AirbnbColors.primary,
+                    foregroundColor: AirbnbColors.background,
                     elevation: isRegistered ? 0 : 2,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
@@ -106,7 +106,7 @@ class SelectedQuoteCard extends StatelessWidget {
                       : '매물 등록 시 집 구하기 목록에 즉시 노출됩니다.',
                   style: const TextStyle(
                     fontSize: 12,
-                    color: Colors.grey,
+                    color: AirbnbColors.textSecondary,
                   ),
                 ),
               ),
@@ -124,14 +124,14 @@ class SelectedQuoteCard extends StatelessWidget {
   }) {
     return Row(
       children: [
-        Icon(Icons.phone, size: 20, color: Colors.grey[600]),
+        Icon(Icons.phone, size: 20, color: AirbnbColors.textSecondary),
         const SizedBox(width: 12),
         Text(
           '휴대폰',
           style: TextStyle(
             fontSize: 14,
             fontWeight: FontWeight.bold,
-            color: Colors.grey[700],
+            color: AirbnbColors.textSecondary,
           ),
         ),
         const SizedBox(width: 12),
@@ -143,7 +143,7 @@ class SelectedQuoteCard extends StatelessWidget {
                 style: const TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
-                  color: AppColors.kPrimary,
+                  color: AirbnbColors.primary,
                 ),
               ),
               if (phone != '미등록' && phone != '-') ...[
@@ -156,7 +156,7 @@ class SelectedQuoteCard extends StatelessWidget {
                     label: const Text('전화걸기', style: TextStyle(fontSize: 12)),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.green,
-                      foregroundColor: Colors.white,
+                      foregroundColor: AirbnbColors.background,
                       padding: const EdgeInsets.symmetric(horizontal: 12),
                       elevation: 0,
                     ),
@@ -178,14 +178,14 @@ class SelectedQuoteCard extends StatelessWidget {
   }) {
     return Row(
       children: [
-        Icon(icon, size: 20, color: Colors.grey[600]),
+        Icon(icon, size: 20, color: AirbnbColors.textSecondary),
         const SizedBox(width: 12),
         Text(
           label,
           style: TextStyle(
             fontSize: 14,
             fontWeight: FontWeight.bold,
-            color: Colors.grey[700],
+            color: AirbnbColors.textSecondary,
           ),
         ),
         const SizedBox(width: 12),
@@ -195,7 +195,7 @@ class SelectedQuoteCard extends StatelessWidget {
             style: TextStyle(
               fontSize: isHighlight ? 18 : 15,
               fontWeight: isHighlight ? FontWeight.bold : FontWeight.w500,
-              color: isHighlight ? AppColors.kPrimary : const Color(0xFF2C3E50),
+              color: isHighlight ? AirbnbColors.primary : AirbnbColors.textPrimary,
             ),
           ),
         ),

@@ -18,11 +18,11 @@ class RequestInfoCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AirbnbColors.background,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.06),
+            color: AirbnbColors.textPrimary.withValues(alpha: 0.06),
             blurRadius: 20,
             offset: const Offset(0, 4),
           ),
@@ -36,12 +36,12 @@ class RequestInfoCard extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: AppColors.kPrimary.withValues(alpha: 0.1),
+                  color: AirbnbColors.primary.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: const Icon(
                   Icons.person,
-                  color: AppColors.kPrimary,
+                  color: AirbnbColors.primary,
                   size: 24,
                 ),
               ),
@@ -55,7 +55,7 @@ class RequestInfoCard extends StatelessWidget {
                       style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
-                        color: Color(0xFF2C3E50),
+                        color: AirbnbColors.textPrimary,
                       ),
                     ),
                     const SizedBox(height: 4),
@@ -63,7 +63,7 @@ class RequestInfoCard extends StatelessWidget {
                       quote.userName,
                       style: TextStyle(
                         fontSize: 14,
-                        color: Colors.grey[600],
+                        color: AirbnbColors.textSecondary,
                       ),
                     ),
                   ],
@@ -73,7 +73,7 @@ class RequestInfoCard extends StatelessWidget {
                 dateFormat.format(quote.requestDate),
                 style: TextStyle(
                   fontSize: 12,
-                  color: Colors.grey[500],
+                  color: AirbnbColors.textSecondary,
                 ),
               ),
             ],

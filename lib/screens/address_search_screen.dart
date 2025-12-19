@@ -125,15 +125,15 @@ class _AddressSearchScreenState extends State<AddressSearchScreen> {
                       hintText: '주소를 입력하세요',
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide(color: AppColors.kBrown.withAlpha((0.2 * 255).toInt())),
+                        borderSide: BorderSide(color: AirbnbColors.primary.withAlpha((0.2 * 255).toInt())),
                       ),
                       enabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide(color: AppColors.kBrown.withAlpha((0.1 * 255).toInt())),
+                        borderSide: BorderSide(color: AirbnbColors.primary.withAlpha((0.1 * 255).toInt())),
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide(color: AppColors.kBrown, width: 2),
+                        borderSide: BorderSide(color: AirbnbColors.primary, width: 2),
                       ),
                     ),
                     onChanged: (value) {
@@ -169,7 +169,7 @@ class _AddressSearchScreenState extends State<AddressSearchScreen> {
           if (_isLoading)
             const Center(child: CircularProgressIndicator())
           else if (_errorMessage != null)
-            Center(child: Text(_errorMessage!, style: const TextStyle(color: Colors.red)))
+            Center(child: Text(_errorMessage!, style: const TextStyle(color: AirbnbColors.error)))
           else
             Expanded(
               child: ListView.builder(

@@ -64,7 +64,7 @@ class SubmitSuccessPage extends StatelessWidget {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('로그인에 실패했습니다. 이메일/비밀번호를 확인해주세요.'),
-          backgroundColor: Colors.red,
+          backgroundColor: AirbnbColors.error,
         ),
       );
     }
@@ -73,12 +73,12 @@ class SubmitSuccessPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.kBackground,
+      backgroundColor: AirbnbColors.surface,
       appBar: AppBar(
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black,
+        backgroundColor: AirbnbColors.background,
+        foregroundColor: AirbnbColors.textPrimary,
         elevation: 2,
-        title: const Text('요청 완료', style: TextStyle(color: Colors.black)),
+        title: const Text('요청 완료', style: TextStyle(color: AirbnbColors.textPrimary)),
         centerTitle: false,
       ),
       body: Center(
@@ -88,11 +88,11 @@ class SubmitSuccessPage extends StatelessWidget {
             constraints: const BoxConstraints(maxWidth: 560),
             padding: const EdgeInsets.all(24),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: AirbnbColors.background,
               borderRadius: BorderRadius.circular(16),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.06),
+                  color: AirbnbColors.textPrimary.withValues(alpha: 0.06),
                   blurRadius: 20,
                   offset: const Offset(0, 6),
                 ),
@@ -101,14 +101,14 @@ class SubmitSuccessPage extends StatelessWidget {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(Icons.check_circle, color: AppColors.kSuccess, size: 72),
+                Icon(Icons.check_circle, color: AirbnbColors.success, size: 72),
                 const SizedBox(height: 16),
                 Text(
                   title,
                   style: const TextStyle(
                     fontSize: 22,
                     fontWeight: FontWeight.bold,
-                    color: AppColors.kTextPrimary,
+                    color: AirbnbColors.textPrimary,
                   ),
                   textAlign: TextAlign.center,
                 ),
@@ -117,7 +117,7 @@ class SubmitSuccessPage extends StatelessWidget {
                   description,
                   style: const TextStyle(
                     fontSize: 14,
-                    color: AppColors.kTextSecondary,
+                    color: AirbnbColors.textSecondary,
                     height: 1.6,
                   ),
                   textAlign: TextAlign.center,
@@ -128,23 +128,23 @@ class SubmitSuccessPage extends StatelessWidget {
                     width: double.infinity,
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: Colors.blue.withValues(alpha: 0.08),
+                      color: AirbnbColors.primary.withValues(alpha: 0.08),
                       borderRadius: BorderRadius.circular(12),
                       border: Border.all(
-                        color: Colors.blue.withValues(alpha: 0.2),
+                        color: AirbnbColors.primary.withValues(alpha: 0.2),
                       ),
                     ),
                     child: Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: const [
-                        Icon(Icons.info_outline, color: Colors.blue, size: 22),
+                        Icon(Icons.info_outline, color: AirbnbColors.primary, size: 22),
                         SizedBox(width: 12),
                         Expanded(
                           child: Text(
                             '게스트 모드로 전송되었습니다. 로그인하면 상담 현황이 자동으로 저장되고 알림을 받을 수 있어요.',
                             style: TextStyle(
                               fontSize: 12,
-                              color: AppColors.kTextSecondary,
+                              color: AirbnbColors.textSecondary,
                               height: 1.6,
                             ),
                           ),
@@ -162,8 +162,8 @@ class SubmitSuccessPage extends StatelessWidget {
                       child: OutlinedButton(
                         onPressed: () => Navigator.pop(context),
                         style: OutlinedButton.styleFrom(
-                          foregroundColor: AppColors.kPrimary,
-                          side: const BorderSide(color: AppColors.kPrimary),
+                          foregroundColor: AirbnbColors.primary,
+                          side: const BorderSide(color: AirbnbColors.primary),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(10),
                           ),
@@ -180,8 +180,8 @@ class SubmitSuccessPage extends StatelessWidget {
                       child: ElevatedButton(
                         onPressed: () => _handleHistoryTap(context),
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.kPrimary,
-                          foregroundColor: Colors.white,
+                          backgroundColor: AirbnbColors.primary,
+                          foregroundColor: AirbnbColors.background,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(10),
                           ),

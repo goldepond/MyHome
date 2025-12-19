@@ -35,7 +35,7 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('현재/새 비밀번호를 모두 입력해주세요.'),
-          backgroundColor: Colors.orange,
+          backgroundColor: AirbnbColors.warning,
         ),
       );
       return;
@@ -45,7 +45,7 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('새 비밀번호와 확인이 일치하지 않습니다.'),
-          backgroundColor: Colors.red,
+          backgroundColor: AirbnbColors.error,
         ),
       );
       return;
@@ -55,7 +55,7 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('비밀번호는 6자 이상 입력해주세요.'),
-          backgroundColor: Colors.orange,
+          backgroundColor: AirbnbColors.warning,
         ),
       );
       return;
@@ -79,7 +79,7 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('비밀번호가 변경되었습니다.'),
-          backgroundColor: Colors.green,
+          backgroundColor: AirbnbColors.success,
         ),
       );
       Navigator.of(context).pop(true);
@@ -87,7 +87,7 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(errorMessage),
-          backgroundColor: Colors.red,
+          backgroundColor: AirbnbColors.error,
         ),
       );
     }
@@ -109,8 +109,8 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
         child: Scaffold(
         resizeToAvoidBottomInset: true,
       appBar: AppBar(
-        backgroundColor: Colors.white,
-        foregroundColor: AppColors.kPrimary,
+        backgroundColor: AirbnbColors.background,
+        foregroundColor: AirbnbColors.primary,
         elevation: 2,
         title: const Text(
           '비밀번호 변경',
@@ -137,11 +137,11 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
             Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: AirbnbColors.background,
                 borderRadius: BorderRadius.circular(16),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.06),
+                    color: AirbnbColors.textPrimary.withValues(alpha: 0.06),
                     blurRadius: 12,
                     offset: const Offset(0, 4),
                   ),
@@ -176,7 +176,7 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
                         borderRadius: BorderRadius.circular(12),
                       ),
                       filled: true,
-                      fillColor: Colors.grey.withValues(alpha: 0.05),
+                      fillColor: AirbnbColors.textSecondary.withValues(alpha: 0.05),
                     ),
                   ),
                   const SizedBox(height: 16),
@@ -207,14 +207,14 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
                         borderRadius: BorderRadius.circular(12),
                       ),
                       filled: true,
-                      fillColor: Colors.grey.withValues(alpha: 0.05),
+                      fillColor: AirbnbColors.textSecondary.withValues(alpha: 0.05),
                     ),
                   ),
                   if (_newController.text.isNotEmpty) ...[
                     const SizedBox(height: 8),
                     LinearProgressIndicator(
                       value: ValidationUtils.getPasswordStrength(_newController.text) / 4,
-                      backgroundColor: Colors.grey[300],
+                      backgroundColor: AirbnbColors.border,
                       valueColor: AlwaysStoppedAnimation<Color>(
                         _strengthColor(ValidationUtils.getPasswordStrength(_newController.text)),
                       ),
@@ -248,7 +248,7 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
                         borderRadius: BorderRadius.circular(12),
                       ),
                       filled: true,
-                      fillColor: Colors.grey.withValues(alpha: 0.05),
+                      fillColor: AirbnbColors.textSecondary.withValues(alpha: 0.05),
                     ),
                   ),
                   const SizedBox(height: 20),
@@ -258,8 +258,8 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
                     child: ElevatedButton(
                       onPressed: _isLoading ? null : _changePassword,
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.kPrimary,
-                        foregroundColor: Colors.white,
+                        backgroundColor: AirbnbColors.textPrimary, // 에어비엔비 스타일: 검은색 배경
+                        foregroundColor: AirbnbColors.background,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
@@ -270,7 +270,7 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
                               height: 22,
                               child: CircularProgressIndicator(
                                 strokeWidth: 2,
-                                valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                valueColor: AlwaysStoppedAnimation<Color>(AirbnbColors.background),
                               ),
                             )
                           : const Text(
@@ -295,10 +295,10 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
   }
 
   Color _strengthColor(int strength) {
-    if (strength <= 1) return Colors.red;
-    if (strength == 2) return Colors.orange;
-    if (strength == 3) return Colors.blue;
-    return Colors.green;
+    if (strength <= 1) return AirbnbColors.error;
+    if (strength == 2) return AirbnbColors.warning;
+    if (strength == 3) return AirbnbColors.primary;
+    return AirbnbColors.success;
   }
 }
 

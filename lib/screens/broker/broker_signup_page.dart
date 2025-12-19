@@ -56,7 +56,7 @@ class _BrokerSignupPageState extends State<BrokerSignupPage> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('등록번호를 입력해주세요.'),
-          backgroundColor: Colors.orange,
+          backgroundColor: AirbnbColors.warning,
         ),
       );
       return;
@@ -66,7 +66,7 @@ class _BrokerSignupPageState extends State<BrokerSignupPage> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('대표자명을 입력해주세요.'),
-          backgroundColor: Colors.orange,
+          backgroundColor: AirbnbColors.warning,
         ),
       );
       return;
@@ -91,7 +91,7 @@ class _BrokerSignupPageState extends State<BrokerSignupPage> {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
               content: Text('이미 가입된 등록번호입니다. 로그인해주세요.'),
-              backgroundColor: Colors.red,
+              backgroundColor: AirbnbColors.error,
               duration: Duration(seconds: 3),
             ),
           );
@@ -124,7 +124,7 @@ class _BrokerSignupPageState extends State<BrokerSignupPage> {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
               content: Text('✅ 검증 성공! 정보가 자동으로 입력되었습니다.'),
-              backgroundColor: AppColors.kSuccess,
+              backgroundColor: AirbnbColors.success,
               duration: Duration(seconds: 2),
             ),
           );
@@ -134,7 +134,7 @@ class _BrokerSignupPageState extends State<BrokerSignupPage> {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(result.errorMessage ?? '검증에 실패했습니다.'),
-              backgroundColor: Colors.red,
+              backgroundColor: AirbnbColors.error,
               duration: const Duration(seconds: 3),
             ),
           );
@@ -148,7 +148,7 @@ class _BrokerSignupPageState extends State<BrokerSignupPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('검증 중 오류가 발생했습니다: $e'),
-            backgroundColor: Colors.red,
+            backgroundColor: AirbnbColors.error,
           ),
         );
       }
@@ -257,7 +257,7 @@ class _BrokerSignupPageState extends State<BrokerSignupPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('회원가입이 완료되었습니다!'),
-            backgroundColor: AppColors.kSuccess,
+            backgroundColor: AirbnbColors.success,
           ),
         );
 
@@ -271,7 +271,7 @@ class _BrokerSignupPageState extends State<BrokerSignupPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(errorMessage ?? '회원가입에 실패했습니다. 다시 시도해주세요.'),
-            backgroundColor: Colors.red,
+            backgroundColor: AirbnbColors.error,
             duration: const Duration(seconds: 4),
           ),
         );
@@ -284,7 +284,7 @@ class _BrokerSignupPageState extends State<BrokerSignupPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('오류가 발생했습니다: $e'),
-            backgroundColor: Colors.red,
+            backgroundColor: AirbnbColors.error,
           ),
         );
       }
@@ -305,15 +305,15 @@ class _BrokerSignupPageState extends State<BrokerSignupPage> {
       child: GestureDetector(
         onTap: () => FocusScope.of(context).unfocus(),
         child: Scaffold(
-      backgroundColor: AppColors.kBackground,
+      backgroundColor: AirbnbColors.surface,
         resizeToAvoidBottomInset: true,
       appBar: AppBar(
-        backgroundColor: Colors.white,
-        foregroundColor: AppColors.kPrimary,
+        backgroundColor: AirbnbColors.background,
+        foregroundColor: AirbnbColors.primary,
         elevation: 0.5,
         title: const HomeLogoButton(
           fontSize: 18,
-          color: AppColors.kPrimary,
+          color: AirbnbColors.primary,
         ),
       ),
         body: SafeArea(
@@ -331,7 +331,7 @@ class _BrokerSignupPageState extends State<BrokerSignupPage> {
                 style: TextStyle(
                   fontSize: 28,
                   fontWeight: FontWeight.bold,
-                  color: Color(0xFF2C3E50),
+                  color: AirbnbColors.textPrimary,
                 ),
               ),
               const SizedBox(height: 8),
@@ -339,7 +339,7 @@ class _BrokerSignupPageState extends State<BrokerSignupPage> {
                 '등록번호 검증은 선택사항입니다 (검증 없이도 가입 가능)',
                 style: TextStyle(
                   fontSize: 14,
-                  color: Colors.grey[600],
+                  color: AirbnbColors.textSecondary,
                 ),
               ),
 
@@ -349,17 +349,17 @@ class _BrokerSignupPageState extends State<BrokerSignupPage> {
               Container(
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: AirbnbColors.background,
                   borderRadius: BorderRadius.circular(16),
                   border: Border.all(
                     color: _validatedBrokerInfo != null
-                        ? AppColors.kSuccess
-                        : Colors.grey.withValues(alpha: 0.3),
+                        ? AirbnbColors.success
+                        : AirbnbColors.textSecondary.withValues(alpha: 0.3),
                     width: 2,
                   ),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.05),
+                      color: AirbnbColors.textPrimary.withValues(alpha: 0.05),
                       blurRadius: 10,
                       offset: const Offset(0, 2),
                     ),
@@ -375,8 +375,8 @@ class _BrokerSignupPageState extends State<BrokerSignupPage> {
                               ? Icons.verified
                               : Icons.verified_user,
                           color: _validatedBrokerInfo != null
-                              ? AppColors.kSuccess
-                              : AppColors.kPrimary,
+                              ? AirbnbColors.success
+                              : AirbnbColors.primary,
                           size: 24,
                         ),
                         const SizedBox(width: 12),
@@ -385,7 +385,7 @@ class _BrokerSignupPageState extends State<BrokerSignupPage> {
                           style: TextStyle(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
-                            color: Color(0xFF2C3E50),
+                            color: AirbnbColors.textPrimary,
                           ),
                         ),
                         if (_validatedBrokerInfo != null) ...[
@@ -396,7 +396,7 @@ class _BrokerSignupPageState extends State<BrokerSignupPage> {
                               vertical: 4,
                             ),
                             decoration: BoxDecoration(
-                              color: AppColors.kSuccess.withValues(alpha: 0.1),
+                              color: AirbnbColors.success.withValues(alpha: 0.1),
                               borderRadius: BorderRadius.circular(12),
                             ),
                             child: const Text(
@@ -404,7 +404,7 @@ class _BrokerSignupPageState extends State<BrokerSignupPage> {
                               style: TextStyle(
                                 fontSize: 12,
                                 fontWeight: FontWeight.bold,
-                                color: AppColors.kSuccess,
+                                color: AirbnbColors.success,
                               ),
                             ),
                           ),
@@ -422,7 +422,7 @@ class _BrokerSignupPageState extends State<BrokerSignupPage> {
                           borderRadius: BorderRadius.circular(12),
                         ),
                         filled: true,
-                        fillColor: Colors.grey.withValues(alpha: 0.05),
+                        fillColor: AirbnbColors.textSecondary.withValues(alpha: 0.05),
                       ),
                       enabled: !_isValidating,
                       keyboardType: TextInputType.number,
@@ -447,7 +447,7 @@ class _BrokerSignupPageState extends State<BrokerSignupPage> {
                           borderRadius: BorderRadius.circular(12),
                         ),
                         filled: true,
-                        fillColor: Colors.grey.withValues(alpha: 0.05),
+                        fillColor: AirbnbColors.textSecondary.withValues(alpha: 0.05),
                       ),
                       enabled: !_isValidating,
                       validator: (value) {
@@ -469,7 +469,7 @@ class _BrokerSignupPageState extends State<BrokerSignupPage> {
                                 height: 20,
                                 child: CircularProgressIndicator(
                                   strokeWidth: 2,
-                                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                  valueColor: AlwaysStoppedAnimation<Color>(AirbnbColors.background),
                                 ),
                               )
                             : const Icon(Icons.verified_user, size: 20),
@@ -481,8 +481,8 @@ class _BrokerSignupPageState extends State<BrokerSignupPage> {
                           ),
                         ),
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.kPrimary,
-                          foregroundColor: Colors.white,
+                          backgroundColor: AirbnbColors.primary,
+                          foregroundColor: AirbnbColors.background,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
                           ),
@@ -499,11 +499,11 @@ class _BrokerSignupPageState extends State<BrokerSignupPage> {
               Container(
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: AirbnbColors.background,
                   borderRadius: BorderRadius.circular(16),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.05),
+                      color: AirbnbColors.textPrimary.withValues(alpha: 0.05),
                       blurRadius: 10,
                       offset: const Offset(0, 2),
                     ),
@@ -517,7 +517,7 @@ class _BrokerSignupPageState extends State<BrokerSignupPage> {
                       style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
-                        color: Color(0xFF2C3E50),
+                        color: AirbnbColors.textPrimary,
                       ),
                     ),
                     const SizedBox(height: 20),
@@ -538,26 +538,26 @@ class _BrokerSignupPageState extends State<BrokerSignupPage> {
                         enabledBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                           borderSide: BorderSide(
-                            color: _emailError != null ? Colors.red : Colors.grey[300]!,
+                            color: _emailError != null ? AirbnbColors.error : AirbnbColors.border,
                           ),
                         ),
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                           borderSide: BorderSide(
-                            color: _emailError != null ? Colors.red : AppColors.kPrimary,
+                            color: _emailError != null ? AirbnbColors.error : AirbnbColors.primary,
                             width: 2,
                           ),
                         ),
                         errorBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
-                          borderSide: const BorderSide(color: Colors.red, width: 2),
+                          borderSide: const BorderSide(color: AirbnbColors.error, width: 2),
                         ),
                         focusedErrorBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
-                          borderSide: const BorderSide(color: Colors.red, width: 2),
+                          borderSide: const BorderSide(color: AirbnbColors.error, width: 2),
                         ),
                         filled: true,
-                        fillColor: Colors.grey.withValues(alpha: 0.05),
+                        fillColor: AirbnbColors.textSecondary.withValues(alpha: 0.05),
                         errorText: _emailError,
                         errorStyle: const TextStyle(fontSize: 12),
                       ),
@@ -599,26 +599,26 @@ class _BrokerSignupPageState extends State<BrokerSignupPage> {
                         enabledBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                           borderSide: BorderSide(
-                            color: _passwordError != null ? Colors.red : Colors.grey[300]!,
+                            color: _passwordError != null ? AirbnbColors.error : AirbnbColors.border,
                           ),
                         ),
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                           borderSide: BorderSide(
-                            color: _passwordError != null ? Colors.red : AppColors.kPrimary,
+                            color: _passwordError != null ? AirbnbColors.error : AirbnbColors.primary,
                             width: 2,
                           ),
                         ),
                         errorBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
-                          borderSide: const BorderSide(color: Colors.red, width: 2),
+                          borderSide: const BorderSide(color: AirbnbColors.error, width: 2),
                         ),
                         focusedErrorBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
-                          borderSide: const BorderSide(color: Colors.red, width: 2),
+                          borderSide: const BorderSide(color: AirbnbColors.error, width: 2),
                         ),
                         filled: true,
-                        fillColor: Colors.grey.withValues(alpha: 0.05),
+                        fillColor: AirbnbColors.textSecondary.withValues(alpha: 0.05),
                         errorText: _passwordError,
                         errorStyle: const TextStyle(fontSize: 12),
                       ),
@@ -663,26 +663,26 @@ class _BrokerSignupPageState extends State<BrokerSignupPage> {
                         enabledBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                           borderSide: BorderSide(
-                            color: _passwordConfirmError != null ? Colors.red : Colors.grey[300]!,
+                            color: _passwordConfirmError != null ? AirbnbColors.error : AirbnbColors.border,
                           ),
                         ),
                         focusedBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                           borderSide: BorderSide(
-                            color: _passwordConfirmError != null ? Colors.red : AppColors.kPrimary,
+                            color: _passwordConfirmError != null ? AirbnbColors.error : AirbnbColors.primary,
                             width: 2,
                           ),
                         ),
                         errorBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
-                          borderSide: const BorderSide(color: Colors.red, width: 2),
+                          borderSide: const BorderSide(color: AirbnbColors.error, width: 2),
                         ),
                         focusedErrorBorder: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
-                          borderSide: const BorderSide(color: Colors.red, width: 2),
+                          borderSide: const BorderSide(color: AirbnbColors.error, width: 2),
                         ),
                         filled: true,
-                        fillColor: Colors.grey.withValues(alpha: 0.05),
+                        fillColor: AirbnbColors.textSecondary.withValues(alpha: 0.05),
                         errorText: _passwordConfirmError,
                         errorStyle: const TextStyle(fontSize: 12),
                       ),
@@ -713,7 +713,7 @@ class _BrokerSignupPageState extends State<BrokerSignupPage> {
                           borderRadius: BorderRadius.circular(12),
                         ),
                         filled: true,
-                        fillColor: Colors.grey.withValues(alpha: 0.05),
+                        fillColor: AirbnbColors.textSecondary.withValues(alpha: 0.05),
                       ),
                       validator: (value) {
                         if (value == null || value.trim().isEmpty) {
@@ -733,7 +733,7 @@ class _BrokerSignupPageState extends State<BrokerSignupPage> {
                           borderRadius: BorderRadius.circular(12),
                         ),
                         filled: true,
-                        fillColor: Colors.grey.withValues(alpha: 0.05),
+                        fillColor: AirbnbColors.textSecondary.withValues(alpha: 0.05),
                       ),
                       keyboardType: TextInputType.phone,
                       inputFormatters: [
@@ -758,7 +758,7 @@ class _BrokerSignupPageState extends State<BrokerSignupPage> {
                           height: 24,
                           child: CircularProgressIndicator(
                             strokeWidth: 2,
-                            valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                            valueColor: AlwaysStoppedAnimation<Color>(AirbnbColors.background),
                           ),
                         )
                       : const Icon(Icons.person_add, size: 24),
@@ -770,8 +770,8 @@ class _BrokerSignupPageState extends State<BrokerSignupPage> {
                     ),
                   ),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.kPrimary,
-                    foregroundColor: Colors.white,
+                    backgroundColor: AirbnbColors.primary,
+                    foregroundColor: AirbnbColors.background,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(12),
                     ),
@@ -790,7 +790,7 @@ class _BrokerSignupPageState extends State<BrokerSignupPage> {
                     '이미 계정이 있으신가요? 로그인',
                     style: TextStyle(
                       fontSize: 14,
-                      color: AppColors.kPrimary,
+                      color: AirbnbColors.primary,
                     ),
                   ),
                 ),

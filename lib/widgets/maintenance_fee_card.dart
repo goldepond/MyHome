@@ -31,16 +31,16 @@ class MaintenanceFeeCard extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: AirbnbColors.background,
           borderRadius: BorderRadius.circular(8),
           border: Border.all(
             color: maintenanceFee.hasWarning 
                 ? Colors.red.withValues(alpha:0.3) 
-                : Colors.grey.withValues(alpha:0.2),
+                : AirbnbColors.textSecondary.withValues(alpha:0.2),
           ),
           boxShadow: [
             BoxShadow(
-              color: Colors.grey.withValues(alpha:0.1),
+              color: AirbnbColors.textSecondary.withValues(alpha:0.1),
               spreadRadius: 1,
               blurRadius: 3,
               offset: const Offset(0, 1),
@@ -187,7 +187,7 @@ class MaintenanceFeeCard extends StatelessWidget {
             // 헤더
             Row(
               children: [
-                const Icon(Icons.account_balance_wallet, color: AppColors.kBrown),
+                const Icon(Icons.account_balance_wallet, color: AirbnbColors.primary),
                 const SizedBox(width: 8),
                 const Text(
                   '관리비 투명성',
@@ -248,7 +248,7 @@ class MaintenanceFeeCard extends StatelessWidget {
                         '면적당 ${maintenanceFee.amountPerArea.toStringAsFixed(0)}원/㎡',
                         style: TextStyle(
                           fontSize: 14,
-                          color: Colors.grey[600],
+                          color: AirbnbColors.textSecondary,
                         ),
                       ),
                     ],
@@ -455,7 +455,7 @@ class MaintenanceFeeCard extends StatelessWidget {
                           return FlSpot(entry.key.toDouble(), entry.value.amount);
                         }).toList(),
                         isCurved: true,
-                        color: AppColors.kBrown,
+                        color: AirbnbColors.primary,
                         barWidth: 3,
                         dotData: FlDotData(show: true),
                       ),

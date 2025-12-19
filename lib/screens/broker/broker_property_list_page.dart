@@ -33,11 +33,11 @@ class _BrokerPropertyListPageState extends State<BrokerPropertyListPage> {
     final horizontalPadding = isWeb ? 24.0 : 16.0;
 
     return Scaffold(
-      backgroundColor: AppColors.kBackground,
+      backgroundColor: AirbnbColors.surface,
       appBar: AppBar(
         title: const Text('내가 등록한 매물'),
-        backgroundColor: AppColors.kPrimary,
-        foregroundColor: Colors.white,
+        backgroundColor: AirbnbColors.background, // 에어비엔비 스타일: 흰색 배경
+        foregroundColor: AirbnbColors.textPrimary,
       ),
       body: StreamBuilder<List<Property>>(
         stream: _firebaseService.getPropertiesByBrokerId(widget.brokerId),
@@ -51,11 +51,11 @@ class _BrokerPropertyListPageState extends State<BrokerPropertyListPage> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Icon(Icons.error_outline, size: 64, color: Colors.red),
+                  const Icon(Icons.error_outline, size: 64, color: AirbnbColors.error),
                   const SizedBox(height: 16),
                   Text(
                     '매물 목록을 불러오는 중 오류가 발생했습니다.',
-                    style: TextStyle(color: Colors.grey[600]),
+                    style: TextStyle(color: AirbnbColors.textSecondary),
                   ),
                   const SizedBox(height: 16),
                   ElevatedButton(
@@ -74,13 +74,13 @@ class _BrokerPropertyListPageState extends State<BrokerPropertyListPage> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.home_outlined, size: 64, color: Colors.grey[400]),
+                  Icon(Icons.home_outlined, size: 64, color: AirbnbColors.textLight),
                   const SizedBox(height: 16),
                   Text(
                     '등록한 매물이 없습니다.',
                     style: TextStyle(
                       fontSize: 16,
-                      color: Colors.grey[600],
+                      color: AirbnbColors.textSecondary,
                     ),
                   ),
                 ],
@@ -176,7 +176,7 @@ class _BrokerPropertyListPageState extends State<BrokerPropertyListPage> {
                       icon: const Icon(Icons.visibility, size: 18),
                       label: const Text('상세보기'),
                       style: TextButton.styleFrom(
-                        foregroundColor: AppColors.kPrimary,
+                        foregroundColor: AirbnbColors.primary,
                       ),
                     ),
                     IconButton(
@@ -193,7 +193,7 @@ class _BrokerPropertyListPageState extends State<BrokerPropertyListPage> {
                         );
                       },
                       tooltip: '수정',
-                      color: AppColors.kPrimary,
+                      color: AirbnbColors.primary,
                     ),
                   ],
                 ),
@@ -206,14 +206,14 @@ class _BrokerPropertyListPageState extends State<BrokerPropertyListPage> {
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                     decoration: BoxDecoration(
-                      color: AppColors.kPrimary.withValues(alpha: 0.1),
+                      color: AirbnbColors.getTransactionTypeColor(property.transactionType).withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(4),
                     ),
                     child: Text(
                       property.transactionType,
                       style: TextStyle(
                         fontSize: 12,
-                        color: AppColors.kPrimary,
+                        color: AirbnbColors.getTransactionTypeColor(property.transactionType),
                         fontWeight: FontWeight.w500,
                       ),
                     ),
@@ -224,7 +224,7 @@ class _BrokerPropertyListPageState extends State<BrokerPropertyListPage> {
                     style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
-                      color: Color(0xFF2C3E50),
+                      color: AirbnbColors.textPrimary,
                     ),
                   ),
                 ],
@@ -235,7 +235,7 @@ class _BrokerPropertyListPageState extends State<BrokerPropertyListPage> {
                 '면적: ${property.area!.toStringAsFixed(2)}㎡',
                 style: TextStyle(
                   fontSize: 14,
-                  color: Colors.grey[600],
+                  color: AirbnbColors.textSecondary,
                 ),
               ),
             ],
@@ -263,7 +263,7 @@ class _BrokerPropertyListPageState extends State<BrokerPropertyListPage> {
                     '등록일: ${dateFormat.format(property.createdAt)}',
                     style: TextStyle(
                       fontSize: 12,
-                      color: Colors.grey[500],
+                      color: AirbnbColors.textSecondary,
                     ),
                   ),
                 ],
@@ -277,15 +277,15 @@ class _BrokerPropertyListPageState extends State<BrokerPropertyListPage> {
   Color _getStatusColor(String status) {
     switch (status) {
       case '대기':
-        return Colors.blue;
+        return AirbnbColors.primary;
       case '진행중':
-        return Colors.orange;
+        return AirbnbColors.warning;
       case '완료':
-        return Colors.green;
+        return AirbnbColors.success;
       case '취소':
-        return Colors.red;
+        return AirbnbColors.error;
       default:
-        return Colors.grey;
+        return AirbnbColors.textSecondary;
     }
   }
 }

@@ -43,27 +43,31 @@ class AdminApp extends StatelessWidget {
       title: 'MyHome 관리자',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        primaryColor: AppColors.kPrimary,
-        scaffoldBackgroundColor: AppColors.kBackground,
+        primaryColor: AirbnbColors.primary,
+        scaffoldBackgroundColor: AirbnbColors.surface,
         colorScheme: ColorScheme.fromSeed(
-          seedColor: AppColors.kPrimary,
-          primary: AppColors.kPrimary,
-          secondary: AppColors.kSecondary,
-          surface: AppColors.kSurface,
+          seedColor: AirbnbColors.primary,
+          primary: AirbnbColors.primary,
+          secondary: AirbnbColors.success,
+          surface: AirbnbColors.surface,
+          background: AirbnbColors.background,
         ),
         appBarTheme: AppBarTheme(
-          backgroundColor: AppColors.kPrimary,
-          foregroundColor: Colors.white,
-          elevation: 2,
+          backgroundColor: AirbnbColors.background,
+          foregroundColor: AirbnbColors.textPrimary,
+          elevation: 0,
+          shadowColor: Colors.black.withValues(alpha: 0.08),
         ),
         elevatedButtonTheme: ElevatedButtonThemeData(
           style: ElevatedButton.styleFrom(
-            backgroundColor: AppColors.kPrimary,
-            foregroundColor: Colors.white,
+            backgroundColor: AirbnbColors.textPrimary, // 에어비엔비 스타일: 검은색 배경
+            foregroundColor: AirbnbColors.textWhite,
             elevation: 2,
+            shadowColor: AirbnbColors.textPrimary.withValues(alpha: 0.2),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(8),
             ),
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
           ),
         ),
         useMaterial3: true,

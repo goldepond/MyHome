@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:property/constants/app_constants.dart';
 
 class ApiReferenceInfoCard extends StatelessWidget {
   final bool isLoading;
@@ -21,12 +22,12 @@ class ApiReferenceInfoCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AirbnbColors.background,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: Colors.blue.withValues(alpha: 0.3), width: 2),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.06),
+            color: AirbnbColors.textPrimary.withValues(alpha: 0.06),
             blurRadius: 20,
             offset: const Offset(0, 4),
           ),
@@ -44,7 +45,7 @@ class ApiReferenceInfoCard extends StatelessWidget {
                 style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
-                  color: Color(0xFF2C3E50),
+                  color: AirbnbColors.textPrimary,
                 ),
               ),
             ],
@@ -54,7 +55,7 @@ class ApiReferenceInfoCard extends StatelessWidget {
             '주소 검색 시 API로 불러온 정보입니다. 답변 작성 시 참고하세요.',
             style: TextStyle(
               fontSize: 13,
-              color: Colors.grey[600],
+              color: AirbnbColors.textSecondary,
             ),
           ),
           const SizedBox(height: 20),
@@ -214,19 +215,19 @@ class ApiReferenceInfoCard extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  color: Colors.grey.withValues(alpha: 0.05),
+                  color: AirbnbColors.textSecondary.withValues(alpha: 0.05),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Row(
                   children: [
-                    Icon(Icons.info_outline, color: Colors.grey[600], size: 20),
+                    Icon(Icons.info_outline, color: AirbnbColors.textSecondary, size: 20),
                     const SizedBox(width: 8),
                     Expanded(
                       child: Text(
                         'API 정보를 불러올 수 없습니다.\n주소 정보를 확인해주세요.',
                         style: TextStyle(
                           fontSize: 13,
-                          color: Colors.grey[700],
+                          color: AirbnbColors.textSecondary,
                         ),
                       ),
                     ),
@@ -245,9 +246,9 @@ class ApiReferenceInfoCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.grey.withValues(alpha: 0.03),
+        color: AirbnbColors.textSecondary.withValues(alpha: 0.03),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey.withValues(alpha: 0.2)),
+        border: Border.all(color: AirbnbColors.textSecondary.withValues(alpha: 0.2)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -285,7 +286,7 @@ class ApiReferenceInfoCard extends StatelessWidget {
               label,
               style: TextStyle(
                 fontSize: 13,
-                color: Colors.grey[700],
+                color: AirbnbColors.textSecondary,
                 fontWeight: FontWeight.w600,
               ),
             ),
@@ -295,7 +296,7 @@ class ApiReferenceInfoCard extends StatelessWidget {
               value,
               style: const TextStyle(
                 fontSize: 13,
-                color: Color(0xFF1A1A1A),
+                color: AirbnbColors.textPrimary,
                 fontWeight: FontWeight.w500,
               ),
             ),

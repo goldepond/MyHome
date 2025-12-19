@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:property/constants/app_constants.dart';
+import 'package:property/constants/responsive_constants.dart';
+import 'package:property/constants/typography.dart';
+import 'package:property/constants/spacing.dart';
+import 'package:property/widgets/common_design_system.dart';
 import 'package:property/models/quote_request.dart';
 import 'package:property/widgets/home_logo_button.dart';
 import 'package:intl/intl.dart';
@@ -88,7 +92,7 @@ class _QuoteComparisonPageState extends State<QuoteComparisonPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('이미 이 공인중개사와 진행 중입니다.'),
-            backgroundColor: AppColors.kInfo,
+            backgroundColor: AirbnbColors.background, // 에어비엔비 스타일: 흰색 배경
           ),
         );
       }
@@ -101,7 +105,7 @@ class _QuoteComparisonPageState extends State<QuoteComparisonPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('로그인 후에 공인중개사를 선택할 수 있습니다.'),
-            backgroundColor: Colors.orange,
+            backgroundColor: AirbnbColors.warning,
           ),
         );
       }
@@ -127,8 +131,8 @@ class _QuoteComparisonPageState extends State<QuoteComparisonPage> {
           ElevatedButton(
             onPressed: () => Navigator.pop(context, true),
             style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.kPrimary,
-              foregroundColor: Colors.white,
+              backgroundColor: AirbnbColors.textPrimary, // 에어비엔비 스타일: 검은색 배경
+              foregroundColor: AirbnbColors.background,
             ),
             child: const Text('확인'),
           ),
@@ -171,7 +175,7 @@ class _QuoteComparisonPageState extends State<QuoteComparisonPage> {
               '"${quote.brokerName}" 공인중개사에게 매물 판매 의뢰가 전달되었습니다.\n'
               '곧 중개사에게서 연락이 올 거예요.',
             ),
-            backgroundColor: AppColors.kSuccess,
+            backgroundColor: AirbnbColors.success,
             duration: const Duration(seconds: 4),
           ),
         );
@@ -182,7 +186,7 @@ class _QuoteComparisonPageState extends State<QuoteComparisonPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('공인중개사 선택 처리 중 오류가 발생했습니다. 다시 시도해주세요.'),
-            backgroundColor: Colors.red,
+            backgroundColor: AirbnbColors.error,
           ),
         );
       }
@@ -195,7 +199,7 @@ class _QuoteComparisonPageState extends State<QuoteComparisonPage> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('오류가 발생했습니다: $e'),
-          backgroundColor: Colors.red,
+          backgroundColor: AirbnbColors.error,
         ),
       );
     }
@@ -365,14 +369,14 @@ class _QuoteComparisonPageState extends State<QuoteComparisonPage> {
 
     if (respondedQuotes.isEmpty) {
       return Scaffold(
-        backgroundColor: AppColors.kBackground,
+        backgroundColor: AirbnbColors.surface,
         appBar: AppBar(
-          backgroundColor: Colors.white,
-          foregroundColor: AppColors.kPrimary,
+          backgroundColor: AirbnbColors.background,
+          foregroundColor: AirbnbColors.primary,
           elevation: 0.5,
-          title: const HomeLogoButton(
-            fontSize: 18,
-            color: AppColors.kPrimary,
+          title: HomeLogoButton(
+            fontSize: AppTypography.h4.fontSize!,
+            color: AirbnbColors.primary,
           ),
         ),
         body: Center(
@@ -382,24 +386,23 @@ class _QuoteComparisonPageState extends State<QuoteComparisonPage> {
               Icon(
                 Icons.compare_arrows,
                 size: 80,
-                color: Colors.grey[400],
+                color: AirbnbColors.textLight,
               ),
               const SizedBox(height: 24),
               Text(
                 '확인할 견적이 없습니다',
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.grey[600],
+                style: AppTypography.withColor(
+                  AppTypography.h3.copyWith(fontWeight: FontWeight.bold),
+                  AirbnbColors.textSecondary,
                 ),
               ),
               const SizedBox(height: 8),
               Text(
                 '공인중개사로부터 답변을 받으면\n여기서 견적을 비교할 수 있습니다',
                 textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 14,
-                  color: Colors.grey[500],
+                style: AppTypography.withColor(
+                  AppTypography.bodySmall,
+                  AirbnbColors.textSecondary,
                 ),
               ),
             ],
@@ -421,14 +424,14 @@ class _QuoteComparisonPageState extends State<QuoteComparisonPage> {
     
     if (propertyKeys.isEmpty) {
       return Scaffold(
-        backgroundColor: AppColors.kBackground,
+        backgroundColor: AirbnbColors.surface,
         appBar: AppBar(
-          backgroundColor: Colors.white,
-          foregroundColor: AppColors.kPrimary,
+          backgroundColor: AirbnbColors.background,
+          foregroundColor: AirbnbColors.primary,
           elevation: 0.5,
-          title: const HomeLogoButton(
-            fontSize: 18,
-            color: AppColors.kPrimary,
+          title: HomeLogoButton(
+            fontSize: AppTypography.h4.fontSize!,
+            color: AirbnbColors.primary,
           ),
         ),
         body: Center(
@@ -438,24 +441,23 @@ class _QuoteComparisonPageState extends State<QuoteComparisonPage> {
               Icon(
                 Icons.warning_amber_rounded,
                 size: 80,
-                color: Colors.orange[400],
+                color: AirbnbColors.warning.withValues(alpha: 0.4),
               ),
               const SizedBox(height: 24),
               Text(
                 '확인할 견적이 없습니다',
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.grey[600],
+                style: AppTypography.withColor(
+                  AppTypography.h3.copyWith(fontWeight: FontWeight.bold),
+                  AirbnbColors.textSecondary,
                 ),
               ),
               const SizedBox(height: 8),
               Text(
                 '매물 주소 정보가 있는 견적만 비교할 수 있습니다',
                 textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 14,
-                  color: Colors.grey[500],
+                style: AppTypography.withColor(
+                  AppTypography.bodySmall,
+                  AirbnbColors.textSecondary,
                 ),
               ),
             ],
@@ -485,14 +487,14 @@ class _QuoteComparisonPageState extends State<QuoteComparisonPage> {
 
     if (quotePrices.isEmpty) {
       return Scaffold(
-        backgroundColor: AppColors.kBackground,
+        backgroundColor: AirbnbColors.surface,
         appBar: AppBar(
-          backgroundColor: Colors.white,
-          foregroundColor: AppColors.kPrimary,
+          backgroundColor: AirbnbColors.background,
+          foregroundColor: AirbnbColors.primary,
           elevation: 0.5,
-          title: const HomeLogoButton(
-            fontSize: 18,
-            color: AppColors.kPrimary,
+          title: HomeLogoButton(
+            fontSize: AppTypography.h4.fontSize!,
+            color: AirbnbColors.primary,
           ),
         ),
         body: const Center(
@@ -544,37 +546,32 @@ class _QuoteComparisonPageState extends State<QuoteComparisonPage> {
 
     final dateFormat = DateFormat('yyyy.MM.dd');
 
-    // 반응형 레이아웃: 모바일/태블릿/PC 화면 고려
-    final screenWidth = MediaQuery.of(context).size.width;
-    final isMobile = screenWidth < 600;
-    final isWeb = screenWidth > 800;
-    final isLargeScreen = screenWidth > 1200;
-    final maxWidth = isWeb ? (isLargeScreen ? 1600.0 : 1400.0) : screenWidth;
-    final horizontalPadding = isMobile 
-        ? 12.0 
-        : (isWeb ? (isLargeScreen ? 48.0 : 32.0) : 16.0);
-    final cardSpacing = isMobile 
-        ? 12.0 
-        : (isWeb ? (isLargeScreen ? 24.0 : 20.0) : 16.0);
-    final columns = isLargeScreen ? 3 : (isWeb ? 2 : 1);
+    // 반응형 레이아웃: 표준화된 반응형 디자인 사용
+    final maxWidth = ResponsiveHelper.getMaxWidth(context);
+    final horizontalPadding = ResponsiveHelper.getHorizontalPadding(context);
+    final cardSpacing = ResponsiveHelper.getCardSpacing(context);
+    final columns = ResponsiveHelper.getGridColumns(context);
+    final isMobile = ResponsiveHelper.isMobile(context);
+    final isWeb = ResponsiveHelper.isWeb(context);
     
     // 표시용 이름 생성
     final displayName = _buildPropertyDisplayName(selectedPropertyQuotes.first);
 
     return Scaffold(
-      backgroundColor: AppColors.kBackground,
+      backgroundColor: AirbnbColors.surface,
       appBar: AppBar(
-        backgroundColor: Colors.white,
-        foregroundColor: AppColors.kPrimary,
+        backgroundColor: AirbnbColors.background,
+        foregroundColor: AirbnbColors.primary,
         elevation: 0.5,
-        title: const HomeLogoButton(
-          fontSize: 18,
-          color: AppColors.kPrimary,
+        title: HomeLogoButton(
+          fontSize: AppTypography.h4.fontSize!,
+          color: AirbnbColors.primary,
         ),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.info_outline),
-            tooltip: '견적 비교',
+          AccessibleWidget.iconButton(
+            icon: Icons.info_outline,
+            tooltip: '견적 비교 가이드',
+            semanticLabel: '견적 비교 가이드 보기',
             onPressed: () {
               showDialog(
                 context: context,
@@ -607,19 +604,16 @@ class _QuoteComparisonPageState extends State<QuoteComparisonPage> {
           if (hasNoAddressQuotes && groupedQuotes['주소없음']!.isNotEmpty)
             Container(
               width: double.infinity,
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              color: Colors.orange[50],
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.md),
+              color: AirbnbColors.warning.withValues(alpha: 0.1),
               child: Row(
                 children: [
-                  Icon(Icons.warning_amber_rounded, color: Colors.orange[700], size: 20),
-                  const SizedBox(width: 8),
+                  Icon(Icons.warning_amber_rounded, color: AirbnbColors.warning, size: 20),
+                  const SizedBox(width: AppSpacing.sm),
                   Expanded(
                     child: Text(
                       '주소 정보가 없는 견적 ${groupedQuotes['주소없음']!.length}개가 제외되었습니다.',
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: Colors.orange[900],
-                      ),
+                      style: AppTypography.withColor(AppTypography.caption, AirbnbColors.warning),
                     ),
                   ),
                 ],
@@ -629,7 +623,7 @@ class _QuoteComparisonPageState extends State<QuoteComparisonPage> {
           // 매물 선택 탭 (여러 매물이 있는 경우에만 표시)
           if (propertyKeys.length > 1)
             Container(
-              color: Colors.white,
+              color: AirbnbColors.background,
               padding: EdgeInsets.symmetric(
                 horizontal: isMobile ? 12 : 16, 
                 vertical: isMobile ? 6 : 8
@@ -671,8 +665,8 @@ class _QuoteComparisonPageState extends State<QuoteComparisonPage> {
                               ),
                               decoration: BoxDecoration(
                                 color: isSelected 
-                                    ? Colors.white.withValues(alpha: 0.3)
-                                    : Colors.grey.withValues(alpha: 0.2),
+                                    ? AirbnbColors.background.withValues(alpha: 0.3)
+                                    : AirbnbColors.textSecondary.withValues(alpha: 0.2),
                                 borderRadius: BorderRadius.circular(10),
                               ),
                               child: Text(
@@ -680,7 +674,7 @@ class _QuoteComparisonPageState extends State<QuoteComparisonPage> {
                                 style: TextStyle(
                                   fontSize: isMobile ? 10 : 11,
                                   fontWeight: FontWeight.bold,
-                                  color: isSelected ? Colors.white : Colors.grey[700],
+                                  color: isSelected ? AirbnbColors.background : AirbnbColors.textSecondary,
                                 ),
                               ),
                             ),
@@ -694,11 +688,11 @@ class _QuoteComparisonPageState extends State<QuoteComparisonPage> {
                             });
                           }
                         },
-                        selectedColor: AppColors.kPrimary,
+                        selectedColor: AirbnbColors.primary,
                         labelStyle: TextStyle(
-                          color: isSelected ? Colors.white : Colors.grey[700],
+                          color: isSelected ? AirbnbColors.background : AirbnbColors.textSecondary,
                         ),
-                        backgroundColor: Colors.grey[200],
+                        backgroundColor: AirbnbColors.borderLight,
                       ),
                     );
                   }),
@@ -727,9 +721,9 @@ class _QuoteComparisonPageState extends State<QuoteComparisonPage> {
                           padding: EdgeInsets.all(isMobile ? 12 : 16),
                           margin: EdgeInsets.only(bottom: isMobile ? 12 : 16),
                           decoration: BoxDecoration(
-                            color: Colors.white,
+                            color: AirbnbColors.background,
                             borderRadius: BorderRadius.circular(12),
-                            border: Border.all(color: AppColors.kPrimary.withValues(alpha: 0.3)),
+                            border: Border.all(color: AirbnbColors.primary.withValues(alpha: 0.3)),
                           ),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -738,7 +732,7 @@ class _QuoteComparisonPageState extends State<QuoteComparisonPage> {
                                 children: [
                                   Icon(
                                     Icons.home, 
-                                    color: AppColors.kPrimary, 
+                                    color: AirbnbColors.primary, 
                                     size: isMobile ? 18 : 20
                                   ),
                                   SizedBox(width: isMobile ? 6 : 8),
@@ -748,7 +742,7 @@ class _QuoteComparisonPageState extends State<QuoteComparisonPage> {
                                       style: TextStyle(
                                         fontSize: isMobile ? 13 : 14,
                                         fontWeight: FontWeight.w600,
-                                        color: Color(0xFF2C3E50),
+                                        color: AirbnbColors.textPrimary,
                                       ),
                                     ),
                                   ),
@@ -767,14 +761,14 @@ class _QuoteComparisonPageState extends State<QuoteComparisonPage> {
                                           vertical: isMobile ? 3 : 4
                                         ),
                                         decoration: BoxDecoration(
-                                          color: AppColors.kPrimary.withValues(alpha: 0.1),
+                                          color: AirbnbColors.primary.withValues(alpha: 0.1),
                                           borderRadius: BorderRadius.circular(6),
                                         ),
                                         child: Text(
                                           selectedPropertyQuotes.first.propertyType!,
                                           style: TextStyle(
                                             fontSize: isMobile ? 11 : 12,
-                                            color: AppColors.kPrimary,
+                                            color: AirbnbColors.primary,
                                             fontWeight: FontWeight.w500,
                                           ),
                                         ),
@@ -786,7 +780,7 @@ class _QuoteComparisonPageState extends State<QuoteComparisonPage> {
                                         '${selectedPropertyQuotes.first.propertyArea}㎡',
                                         style: TextStyle(
                                           fontSize: isMobile ? 11 : 12,
-                                          color: Colors.grey[600],
+                                          color: AirbnbColors.textSecondary,
                                         ),
                                       ),
                                   ],
@@ -800,11 +794,11 @@ class _QuoteComparisonPageState extends State<QuoteComparisonPage> {
                       Container(
                         padding: EdgeInsets.all(isMobile ? 16.0 : (isWeb ? 32.0 : 24.0)),
                         decoration: BoxDecoration(
-                          gradient: AppGradients.primaryDiagonal,
+                          color: AirbnbColors.background,
                           borderRadius: BorderRadius.circular(isMobile ? 16.0 : (isWeb ? 24.0 : 20.0)),
                           boxShadow: [
                             BoxShadow(
-                              color: AppColors.kPrimary.withValues(alpha: 0.3),
+                              color: AirbnbColors.primary.withValues(alpha: 0.3),
                               blurRadius: isMobile ? 16.0 : (isWeb ? 24.0 : 20.0),
                               offset: Offset(0, isMobile ? 4 : 8),
                             ),
@@ -817,15 +811,15 @@ class _QuoteComparisonPageState extends State<QuoteComparisonPage> {
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
                                 Expanded(
-                                  child: _buildSummaryItem('최저가', _formatPrice(minPrice), Colors.green[100]!, isMobile, isWeb),
+                                  child: _buildSummaryItem('최저가', _formatPrice(minPrice), AirbnbColors.success.withValues(alpha: 0.1), isMobile, isWeb),
                                 ),
                                 SizedBox(width: isMobile ? 8.0 : (isWeb ? 20.0 : 12.0)),
                                 Expanded(
-                                  child: _buildSummaryItem('평균가', _formatPrice(avgPrice), Colors.white, isMobile, isWeb),
+                                  child: _buildSummaryItem('평균가', _formatPrice(avgPrice), AirbnbColors.background, isMobile, isWeb),
                                 ),
                                 SizedBox(width: isMobile ? 8.0 : (isWeb ? 20.0 : 12.0)),
                                 Expanded(
-                                  child: _buildSummaryItem('최고가', _formatPrice(maxPrice), Colors.red[100]!, isMobile, isWeb),
+                                  child: _buildSummaryItem('최고가', _formatPrice(maxPrice), AirbnbColors.error.withValues(alpha: 0.1), isMobile, isWeb),
                                 ),
                               ],
                             ),
@@ -836,10 +830,10 @@ class _QuoteComparisonPageState extends State<QuoteComparisonPage> {
                                 padding: EdgeInsets.all(isMobile ? 16.0 : (isWeb ? 24.0 : 20.0)),
                                 decoration: BoxDecoration(
                                   // 수수료율 섹션: 명확한 배경으로 가독성 향상
-                                  color: Colors.white.withValues(alpha: 0.25),
+                                  color: AirbnbColors.background.withValues(alpha: 0.25),
                                   borderRadius: BorderRadius.circular(12),
                                   border: Border.all(
-                                    color: Colors.white,
+                                    color: AirbnbColors.background,
                                     width: 2.5,
                                   ),
                                 ),
@@ -850,14 +844,14 @@ class _QuoteComparisonPageState extends State<QuoteComparisonPage> {
                                       children: [
                                         Icon(
                                           Icons.percent,
-                                          color: Colors.white,
+                                          color: AirbnbColors.background,
                                           size: isMobile ? 22.0 : (isWeb ? 30.0 : 26.0),
                                         ),
                                         SizedBox(width: isMobile ? 8.0 : (isWeb ? 12.0 : 8.0)),
                                         Text(
                                           '수수료율 비교',
                                           style: TextStyle(
-                                            color: Colors.white,
+                                            color: AirbnbColors.background,
                                             fontSize: isMobile ? 16.0 : (isWeb ? 20.0 : 18.0),
                                             fontWeight: FontWeight.bold,
                                           ),
@@ -872,7 +866,7 @@ class _QuoteComparisonPageState extends State<QuoteComparisonPage> {
                                           child: _buildCommissionRateItem(
                                             '최저율',
                                             _formatCommissionRate(minCommissionRate),
-                                            Colors.green[200] ?? Colors.green,
+                                            AirbnbColors.success.withValues(alpha: 0.2),
                                             isMobile,
                                             isWeb,
                                           ),
@@ -884,7 +878,7 @@ class _QuoteComparisonPageState extends State<QuoteComparisonPage> {
                                             avgCommissionRate != null 
                                                 ? _formatCommissionRate(avgCommissionRate)
                                                 : '-',
-                                            Colors.white,
+                                            AirbnbColors.background,
                                             isMobile,
                                             isWeb,
                                           ),
@@ -894,7 +888,7 @@ class _QuoteComparisonPageState extends State<QuoteComparisonPage> {
                                           child: _buildCommissionRateItem(
                                             '최고율',
                                             _formatCommissionRate(maxCommissionRate),
-                                            Colors.red[200] ?? Colors.red,
+                                            AirbnbColors.error.withValues(alpha: 0.2),
                                             isMobile,
                                             isWeb,
                                           ),
@@ -909,7 +903,7 @@ class _QuoteComparisonPageState extends State<QuoteComparisonPage> {
                             Container(
                               padding: EdgeInsets.all(isMobile ? 10.0 : (isWeb ? 16.0 : 12.0)),
                               decoration: BoxDecoration(
-                                color: Colors.white.withValues(alpha: 0.2),
+                                color: AirbnbColors.background.withValues(alpha: 0.2),
                                 borderRadius: BorderRadius.circular(12),
                               ),
                               child: Row(
@@ -917,14 +911,14 @@ class _QuoteComparisonPageState extends State<QuoteComparisonPage> {
                                 children: [
                                   Icon(
                                     Icons.info_outline, 
-                                    color: Colors.white, 
+                                    color: AirbnbColors.background, 
                                     size: isMobile ? 18.0 : (isWeb ? 24.0 : 20.0)
                                   ),
                                   SizedBox(width: isMobile ? 8.0 : (isWeb ? 12.0 : 8.0)),
                                   Text(
                                     '${quotePrices.length}개 견적 비교 중',
                                     style: TextStyle(
-                                      color: Colors.white,
+                                      color: AirbnbColors.background,
                                       fontSize: isMobile ? 12.0 : (isWeb ? 16.0 : 14.0),
                                       fontWeight: FontWeight.w600,
                                     ),
@@ -944,7 +938,7 @@ class _QuoteComparisonPageState extends State<QuoteComparisonPage> {
                         style: TextStyle(
                           fontSize: isMobile ? 18.0 : (isWeb ? 24.0 : 20.0),
                           fontWeight: FontWeight.bold,
-                          color: const Color(0xFF2C3E50),
+                          color: AirbnbColors.textPrimary,
                         ),
                       ),
 
@@ -1046,16 +1040,16 @@ class _QuoteComparisonPageState extends State<QuoteComparisonPage> {
     return Container(
       margin: EdgeInsets.only(bottom: isWeb ? 0 : 16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AirbnbColors.background,
         borderRadius: BorderRadius.circular(borderRadius),
         border: isLowest
-            ? Border.all(color: Colors.green, width: isWeb ? 4 : 3)
-            : Border.all(color: Colors.grey.withValues(alpha: 0.2), width: isWeb ? 2 : 1),
+            ? Border.all(color: AirbnbColors.success, width: isWeb ? 4 : 3)
+            : Border.all(color: AirbnbColors.textSecondary.withValues(alpha: 0.2), width: isWeb ? 2 : 1),
         boxShadow: [
           BoxShadow(
             color: isLowest
-                ? Colors.green.withValues(alpha: 0.2)
-                : Colors.black.withValues(alpha: 0.08),
+                ? AirbnbColors.success.withValues(alpha: 0.2)
+                : AirbnbColors.textPrimary.withValues(alpha: 0.08),
             blurRadius: isWeb ? (isLowest ? 16 : 12) : (isLowest ? 12 : 8),
             offset: Offset(0, isWeb ? 6 : 4),
             spreadRadius: isWeb ? 1 : 0,
@@ -1070,10 +1064,10 @@ class _QuoteComparisonPageState extends State<QuoteComparisonPage> {
             padding: EdgeInsets.all(cardPadding),
             decoration: BoxDecoration(
               color: isLowest
-                  ? Colors.green.withValues(alpha: 0.1)
+                  ? AirbnbColors.success.withValues(alpha: 0.1)
                   : isHighest
-                      ? Colors.red.withValues(alpha: 0.1)
-                      : Colors.grey.withValues(alpha: 0.05),
+                      ? AirbnbColors.error.withValues(alpha: 0.1)
+                      : AirbnbColors.textSecondary.withValues(alpha: 0.05),
               borderRadius: BorderRadius.only(
                 topLeft: Radius.circular(borderRadius),
                 topRight: Radius.circular(borderRadius),
@@ -1090,7 +1084,7 @@ class _QuoteComparisonPageState extends State<QuoteComparisonPage> {
                         style: TextStyle(
                           fontSize: isMobile ? 16.0 : (isWeb ? 20.0 : 18.0),
                           fontWeight: FontWeight.bold,
-                          color: const Color(0xFF2C3E50),
+                          color: AirbnbColors.textPrimary,
                         ),
                       ),
                       if (quote.answerDate != null) ...[
@@ -1099,7 +1093,7 @@ class _QuoteComparisonPageState extends State<QuoteComparisonPage> {
                           '답변일: ${dateFormat.format(quote.answerDate!)}',
                           style: TextStyle(
                             fontSize: isMobile ? 11.0 : (isWeb ? 13.0 : 12.0),
-                            color: Colors.grey[600],
+                            color: AirbnbColors.textSecondary,
                           ),
                         ),
                       ],
@@ -1113,13 +1107,13 @@ class _QuoteComparisonPageState extends State<QuoteComparisonPage> {
                       vertical: isMobile ? 5 : (isWeb ? 8 : 6),
                     ),
                     decoration: BoxDecoration(
-                      color: Colors.green,
+                      color: AirbnbColors.success,
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: Text(
                       '최저가',
                       style: TextStyle(
-                        color: Colors.white,
+                        color: AirbnbColors.background,
                         fontSize: isMobile ? 11.0 : (isWeb ? 13.0 : 12.0),
                         fontWeight: FontWeight.bold,
                       ),
@@ -1132,13 +1126,13 @@ class _QuoteComparisonPageState extends State<QuoteComparisonPage> {
                       vertical: isMobile ? 5 : (isWeb ? 8 : 6),
                     ),
                     decoration: BoxDecoration(
-                      color: Colors.red,
+                      color: AirbnbColors.error,
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: Text(
                       '최고가',
                       style: TextStyle(
-                        color: Colors.white,
+                        color: AirbnbColors.background,
                         fontSize: isMobile ? 11.0 : (isWeb ? 13.0 : 12.0),
                         fontWeight: FontWeight.bold,
                       ),
@@ -1160,13 +1154,13 @@ class _QuoteComparisonPageState extends State<QuoteComparisonPage> {
                       padding: EdgeInsets.all(isMobile ? 14.0 : (isWeb ? 20.0 : 16.0)),
                       decoration: BoxDecoration(
                         color: isLowest
-                            ? Colors.green.withValues(alpha: 0.05)
-                            : const Color(0xFFF8F9FA),
+                            ? AirbnbColors.success.withValues(alpha: 0.05)
+                            : AirbnbColors.surface,
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(
                           color: isLowest
-                              ? Colors.green.withValues(alpha: 0.3)
-                              : Colors.grey.withValues(alpha: 0.2),
+                              ? AirbnbColors.success.withValues(alpha: 0.3)
+                              : AirbnbColors.textSecondary.withValues(alpha: 0.2),
                           width: isMobile ? 1 : (isWeb ? 1.5 : 1),
                         ),
                       ),
@@ -1178,8 +1172,8 @@ class _QuoteComparisonPageState extends State<QuoteComparisonPage> {
                               Icon(
                                 Icons.attach_money,
                                 color: isLowest
-                                    ? Colors.green[700]
-                                    : const Color(0xFF2C3E50),
+                                    ? AirbnbColors.success.withValues(alpha: 0.7)
+                                    : AirbnbColors.textPrimary,
                                 size: isMobile ? 18.0 : (isWeb ? 22.0 : 20.0),
                               ),
                               SizedBox(width: isMobile ? 6.0 : (isWeb ? 8.0 : 6.0)),
@@ -1188,7 +1182,7 @@ class _QuoteComparisonPageState extends State<QuoteComparisonPage> {
                                 style: TextStyle(
                                   fontSize: isMobile ? 14.0 : (isWeb ? 18.0 : 16.0),
                                   fontWeight: FontWeight.w600,
-                                  color: const Color(0xFF2C3E50),
+                                  color: AirbnbColors.textPrimary,
                                 ),
                               ),
                             ],
@@ -1199,8 +1193,8 @@ class _QuoteComparisonPageState extends State<QuoteComparisonPage> {
                               fontSize: isMobile ? 20.0 : (isWeb ? 28.0 : 24.0),
                               fontWeight: FontWeight.bold,
                               color: isLowest
-                                  ? Colors.green[700]
-                                  : const Color(0xFF2C3E50),
+                                  ? AirbnbColors.success.withValues(alpha: 0.7)
+                                  : AirbnbColors.textPrimary,
                             ),
                           ),
                         ],
@@ -1215,10 +1209,10 @@ class _QuoteComparisonPageState extends State<QuoteComparisonPage> {
                         padding: EdgeInsets.all(isMobile ? 14.0 : (isWeb ? 20.0 : 16.0)),
                         decoration: BoxDecoration(
                           // 수수료율: 명확한 배경색으로 가독성 향상
-                          color: AppColors.kPrimary.withValues(alpha: 0.12),
+                          color: AirbnbColors.primary.withValues(alpha: 0.12),
                           borderRadius: BorderRadius.circular(12),
                           border: Border.all(
-                            color: AppColors.kPrimary,
+                            color: AirbnbColors.primary,
                             width: isMobile ? 1.5 : (isWeb ? 2 : 1.5),
                           ),
                         ),
@@ -1229,7 +1223,7 @@ class _QuoteComparisonPageState extends State<QuoteComparisonPage> {
                               children: [
                                 Icon(
                                   Icons.percent,
-                                  color: const Color(0xFF2C3E50), // 진한 회색으로 변경
+                                  color: AirbnbColors.textPrimary, // 진한 회색으로 변경
                                   size: isMobile ? 18.0 : (isWeb ? 24.0 : 20.0),
                                 ),
                                 SizedBox(width: isMobile ? 6.0 : (isWeb ? 10.0 : 8.0)),
@@ -1238,7 +1232,7 @@ class _QuoteComparisonPageState extends State<QuoteComparisonPage> {
                                   style: TextStyle(
                                     fontSize: isMobile ? 14.0 : (isWeb ? 18.0 : 16.0),
                                     fontWeight: FontWeight.w600,
-                                    color: const Color(0xFF2C3E50), // 진한 회색으로 변경
+                                    color: AirbnbColors.textPrimary, // 진한 회색으로 변경
                                   ),
                                 ),
                               ],
@@ -1248,7 +1242,7 @@ class _QuoteComparisonPageState extends State<QuoteComparisonPage> {
                               style: TextStyle(
                                 fontSize: isMobile ? 24.0 : (isWeb ? 32.0 : 28.0),
                                 fontWeight: FontWeight.bold,
-                                color: const Color(0xFF1F2937), // 진한 검은색으로 변경
+                                color: AirbnbColors.textPrimary,
                               ),
                             ),
                           ],
@@ -1270,7 +1264,7 @@ class _QuoteComparisonPageState extends State<QuoteComparisonPage> {
                   Container(
                     padding: EdgeInsets.all(isMobile ? 10.0 : (isWeb ? 16.0 : 12.0)),
                     decoration: BoxDecoration(
-                      color: Colors.grey.withValues(alpha: 0.05),
+                      color: AirbnbColors.textSecondary.withValues(alpha: 0.05),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Column(
@@ -1281,7 +1275,7 @@ class _QuoteComparisonPageState extends State<QuoteComparisonPage> {
                           style: TextStyle(
                             fontSize: isMobile ? 11.0 : (isWeb ? 13.0 : 12.0),
                             fontWeight: FontWeight.w600,
-                            color: Colors.grey,
+                            color: AirbnbColors.textSecondary,
                           ),
                         ),
                         SizedBox(height: isMobile ? 6.0 : (isWeb ? 10.0 : 8.0)),
@@ -1289,7 +1283,7 @@ class _QuoteComparisonPageState extends State<QuoteComparisonPage> {
                           quote.brokerAnswer!,
                           style: TextStyle(
                             fontSize: isMobile ? 13.0 : (isWeb ? 15.0 : 14.0),
-                            color: const Color(0xFF2C3E50),
+                            color: AirbnbColors.textPrimary,
                             height: 1.5,
                           ),
                         ),
@@ -1322,11 +1316,11 @@ class _QuoteComparisonPageState extends State<QuoteComparisonPage> {
                     ),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: isAlreadySelected || isSelectedHere
-                          ? Colors.grey[300]
-                          : AppColors.kPrimary,
+                          ? AirbnbColors.border
+                          : AirbnbColors.primary,
                       foregroundColor: isAlreadySelected || isSelectedHere
-                          ? Colors.grey[800]
-                          : Colors.white,
+                          ? AirbnbColors.textPrimary
+                          : AirbnbColors.background,
                       padding: EdgeInsets.symmetric(vertical: isMobile ? 10 : 12),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(10),
@@ -1356,7 +1350,7 @@ class _QuoteComparisonPageState extends State<QuoteComparisonPage> {
               label,
               style: TextStyle(
                 fontSize: isMobile ? 12.0 : (isWeb ? 14.0 : 13.0),
-                color: Colors.grey[700],
+                color: AirbnbColors.textSecondary,
                 fontWeight: FontWeight.w600,
               ),
             ),
@@ -1366,7 +1360,7 @@ class _QuoteComparisonPageState extends State<QuoteComparisonPage> {
               style: TextStyle(
                 fontSize: isMobile ? 18.0 : (isWeb ? 24.0 : 20.0),
                 fontWeight: FontWeight.bold,
-                color: bgColor == Colors.white ? Colors.white : const Color(0xFF2C3E50),
+                color: bgColor == AirbnbColors.background ? AirbnbColors.background : AirbnbColors.textPrimary,
               ),
             ),
           ],
@@ -1385,7 +1379,7 @@ class _QuoteComparisonPageState extends State<QuoteComparisonPage> {
           color: bgColor,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: Colors.white.withValues(alpha: 0.6),
+            color: AirbnbColors.background.withValues(alpha: 0.6),
             width: 1.5,
           ),
         ),
@@ -1395,7 +1389,7 @@ class _QuoteComparisonPageState extends State<QuoteComparisonPage> {
               label,
               style: TextStyle(
                 fontSize: isMobile ? 13.0 : (isWeb ? 15.0 : 14.0),
-                color: bgColor == Colors.white ? Colors.white : Colors.grey[700],
+                color: bgColor == AirbnbColors.background ? AirbnbColors.background : AirbnbColors.textSecondary,
                 fontWeight: FontWeight.w600,
               ),
             ),
@@ -1405,7 +1399,7 @@ class _QuoteComparisonPageState extends State<QuoteComparisonPage> {
               style: TextStyle(
                 fontSize: isMobile ? 24.0 : (isWeb ? 32.0 : 28.0),
                 fontWeight: FontWeight.bold,
-                color: bgColor == Colors.white ? Colors.white : const Color(0xFF1F2937), // 진한 검은색으로 변경
+                color: bgColor == AirbnbColors.background ? AirbnbColors.background : AirbnbColors.textPrimary,
               ),
             ),
           ],
@@ -1424,7 +1418,7 @@ class _QuoteComparisonPageState extends State<QuoteComparisonPage> {
             label,
             style: TextStyle(
               fontSize: isMobile ? 13.0 : (isWeb ? 15.0 : 14.0),
-              color: Colors.grey[600],
+              color: AirbnbColors.textSecondary,
               fontWeight: FontWeight.w600,
             ),
           ),
@@ -1434,7 +1428,7 @@ class _QuoteComparisonPageState extends State<QuoteComparisonPage> {
             value,
             style: TextStyle(
               fontSize: isMobile ? 13.0 : (isWeb ? 15.0 : 14.0),
-              color: const Color(0xFF2C3E50),
+              color: AirbnbColors.textPrimary,
               fontWeight: FontWeight.w500,
             ),
           ),

@@ -40,10 +40,10 @@ class _SignupPageState extends State<SignupPage> {
   }
   
   Color _getPasswordStrengthColor(int strength) {
-    if (strength <= 1) return Colors.red;
-    if (strength == 2) return Colors.orange;
-    if (strength == 3) return Colors.blue;
-    return Colors.green;
+    if (strength <= 1) return AirbnbColors.error;
+    if (strength == 2) return AirbnbColors.warning;
+    if (strength == 3) return AirbnbColors.primary;
+    return AirbnbColors.success;
   }
 
   Future<void> _signup() async {
@@ -112,7 +112,7 @@ class _SignupPageState extends State<SignupPage> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('필수 약관에 동의해주세요'),
-          backgroundColor: Colors.red,
+          backgroundColor: AirbnbColors.error,
           duration: Duration(seconds: 2),
         ),
       );
@@ -153,7 +153,7 @@ class _SignupPageState extends State<SignupPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('회원가입이 완료되었습니다. 로그인해주세요.'),
-            backgroundColor: Colors.green,
+            backgroundColor: AirbnbColors.success,
             duration: Duration(seconds: 3),
           ),
         );
@@ -166,7 +166,7 @@ class _SignupPageState extends State<SignupPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('이미 존재하는 이메일입니다.'),
-            backgroundColor: Colors.red,
+            backgroundColor: AirbnbColors.error,
           ),
         );
       }
@@ -175,7 +175,7 @@ class _SignupPageState extends State<SignupPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('회원가입 중 오류가 발생했습니다: $e'),
-            backgroundColor: Colors.red,
+            backgroundColor: AirbnbColors.error,
           ),
         );
       }
@@ -202,15 +202,15 @@ class _SignupPageState extends State<SignupPage> {
       child: GestureDetector(
         onTap: () => FocusScope.of(context).unfocus(),
         child: Scaffold(
-      backgroundColor: AppColors.kBackground,
+      backgroundColor: AirbnbColors.surface,
         resizeToAvoidBottomInset: true,
       appBar: AppBar(
-        backgroundColor: Colors.white,
-        foregroundColor: AppColors.kPrimary,
+        backgroundColor: AirbnbColors.background,
+        foregroundColor: AirbnbColors.textPrimary,
         elevation: 0.5,
         title: const HomeLogoButton(
           fontSize: 18,
-          color: AppColors.kPrimary,
+          color: AirbnbColors.primary,
         ),
       ),
         body: SafeArea(
@@ -224,17 +224,21 @@ class _SignupPageState extends State<SignupPage> {
             const Text(
               '일반 회원가입',
               style: TextStyle(
-                fontSize: 28,
-                fontWeight: FontWeight.bold,
-                color: AppColors.kTextPrimary,
+                fontSize: 40,
+                fontWeight: FontWeight.w800,
+                color: AirbnbColors.textPrimary,
+                letterSpacing: -1.5,
+                height: 1.1,
               ),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 24),
             Text(
               '이메일과 비밀번호로 간단하게 가입하세요',
               style: TextStyle(
-                fontSize: 14,
-                color: AppColors.kTextLight,
+                fontSize: 18,
+                fontWeight: FontWeight.w400,
+                color: AirbnbColors.textSecondary,
+                height: 1.6,
               ),
             ),
 
@@ -244,11 +248,11 @@ class _SignupPageState extends State<SignupPage> {
             Container(
               padding: const EdgeInsets.all(24),
               decoration: BoxDecoration(
-                color: AppColors.kSurface,
+                color: AirbnbColors.surface,
                 borderRadius: BorderRadius.circular(16),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.05),
+                    color: AirbnbColors.textPrimary.withValues(alpha: 0.05),
                     blurRadius: 10,
                     offset: const Offset(0, 2),
                   ),
@@ -262,7 +266,7 @@ class _SignupPageState extends State<SignupPage> {
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
-                      color: AppColors.kTextPrimary,
+                      color: AirbnbColors.textPrimary,
                     ),
                   ),
                   const SizedBox(height: 24),
@@ -288,30 +292,30 @@ class _SignupPageState extends State<SignupPage> {
                       enabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
                         borderSide: BorderSide(
-                          color: _emailError != null ? Colors.red : Colors.grey[300]!,
+                          color: _emailError != null ? AirbnbColors.error : AirbnbColors.border,
                         ),
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
                         borderSide: BorderSide(
-                          color: _emailError != null ? Colors.red : AppColors.kPrimary, 
+                          color: _emailError != null ? AirbnbColors.error : AirbnbColors.primary, 
                           width: 2,
                         ),
                       ),
                       errorBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
-                        borderSide: const BorderSide(color: Colors.red, width: 2),
+                        borderSide: const BorderSide(color: AirbnbColors.error, width: 2),
                       ),
                       focusedErrorBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
-                        borderSide: const BorderSide(color: Colors.red, width: 2),
+                        borderSide: const BorderSide(color: AirbnbColors.error, width: 2),
                       ),
                       filled: true,
-                      fillColor: Colors.grey.withValues(alpha: 0.05),
+                      fillColor: AirbnbColors.textSecondary.withValues(alpha: 0.05),
                       errorText: _emailError,
                       errorStyle: const TextStyle(fontSize: 12),
                       helperText: _emailError == null ? '이메일이 로그인 ID로 사용됩니다' : null,
-                      helperStyle: TextStyle(fontSize: 12, color: AppColors.kTextLight),
+                      helperStyle: TextStyle(fontSize: 12, color: AirbnbColors.textLight),
                     ),
                   ),
                   const SizedBox(height: 16),
@@ -340,30 +344,30 @@ class _SignupPageState extends State<SignupPage> {
                       enabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
                         borderSide: BorderSide(
-                          color: _phoneError != null ? Colors.red : Colors.grey[300]!,
+                          color: _phoneError != null ? AirbnbColors.error : AirbnbColors.border,
                         ),
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
                         borderSide: BorderSide(
-                          color: _phoneError != null ? Colors.red : AppColors.kPrimary, 
+                          color: _phoneError != null ? AirbnbColors.error : AirbnbColors.primary, 
                           width: 2,
                         ),
                       ),
                       errorBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
-                        borderSide: const BorderSide(color: Colors.red, width: 2),
+                        borderSide: const BorderSide(color: AirbnbColors.error, width: 2),
                       ),
                       focusedErrorBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
-                        borderSide: const BorderSide(color: Colors.red, width: 2),
+                        borderSide: const BorderSide(color: AirbnbColors.error, width: 2),
                       ),
                       filled: true,
-                      fillColor: Colors.grey.withValues(alpha: 0.05),
+                      fillColor: AirbnbColors.textSecondary.withValues(alpha: 0.05),
                       errorText: _phoneError,
                       errorStyle: const TextStyle(fontSize: 12),
                       helperText: _phoneError == null ? '본인 확인 및 비밀번호 찾기에 사용됩니다' : null,
-                      helperStyle: TextStyle(fontSize: 12, color: AppColors.kTextLight),
+                      helperStyle: TextStyle(fontSize: 12, color: AirbnbColors.textLight),
                     ),
                   ),
                   const SizedBox(height: 16),
@@ -389,26 +393,26 @@ class _SignupPageState extends State<SignupPage> {
                       enabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
                         borderSide: BorderSide(
-                          color: _passwordError != null ? Colors.red : Colors.grey[300]!,
+                          color: _passwordError != null ? AirbnbColors.error : AirbnbColors.border,
                         ),
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
                         borderSide: BorderSide(
-                          color: _passwordError != null ? Colors.red : AppColors.kPrimary, 
+                          color: _passwordError != null ? AirbnbColors.error : AirbnbColors.primary, 
                           width: 2,
                         ),
                       ),
                       errorBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
-                        borderSide: const BorderSide(color: Colors.red, width: 2),
+                        borderSide: const BorderSide(color: AirbnbColors.error, width: 2),
                       ),
                       focusedErrorBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
-                        borderSide: const BorderSide(color: Colors.red, width: 2),
+                        borderSide: const BorderSide(color: AirbnbColors.error, width: 2),
                       ),
                       filled: true,
-                      fillColor: Colors.grey.withValues(alpha: 0.05),
+                      fillColor: AirbnbColors.textSecondary.withValues(alpha: 0.05),
                       errorText: _passwordError,
                       errorStyle: const TextStyle(fontSize: 12),
                     ),
@@ -423,7 +427,7 @@ class _SignupPageState extends State<SignupPage> {
                         Expanded(
                           child: LinearProgressIndicator(
                             value: ValidationUtils.getPasswordStrength(_passwordController.text) / 4,
-                            backgroundColor: Colors.grey[300],
+                            backgroundColor: AirbnbColors.border,
                             valueColor: AlwaysStoppedAnimation<Color>(
                               _getPasswordStrengthColor(ValidationUtils.getPasswordStrength(_passwordController.text)),
                             ),
@@ -467,26 +471,26 @@ class _SignupPageState extends State<SignupPage> {
                       enabledBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
                         borderSide: BorderSide(
-                          color: _passwordConfirmError != null ? Colors.red : Colors.grey[300]!,
+                          color: _passwordConfirmError != null ? AirbnbColors.error : AirbnbColors.border,
                         ),
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
                         borderSide: BorderSide(
-                          color: _passwordConfirmError != null ? Colors.red : AppColors.kPrimary, 
+                          color: _passwordConfirmError != null ? AirbnbColors.error : AirbnbColors.primary, 
                           width: 2,
                         ),
                       ),
                       errorBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
-                        borderSide: const BorderSide(color: Colors.red, width: 2),
+                        borderSide: const BorderSide(color: AirbnbColors.error, width: 2),
                       ),
                       focusedErrorBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
-                        borderSide: const BorderSide(color: Colors.red, width: 2),
+                        borderSide: const BorderSide(color: AirbnbColors.error, width: 2),
                       ),
                       filled: true,
-                      fillColor: Colors.grey.withValues(alpha: 0.05),
+                      fillColor: AirbnbColors.textSecondary.withValues(alpha: 0.05),
                       errorText: _passwordConfirmError,
                       errorStyle: const TextStyle(fontSize: 12),
                     ),
@@ -498,9 +502,9 @@ class _SignupPageState extends State<SignupPage> {
                   Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: Colors.grey[50],
+                      color: AirbnbColors.surface,
                       borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: Colors.grey[300]!),
+                      border: Border.all(color: AirbnbColors.border),
                     ),
                     child: Column(
                       children: [
@@ -510,7 +514,7 @@ class _SignupPageState extends State<SignupPage> {
                           title: const Text('서비스 이용약관 동의 (필수)', style: TextStyle(fontSize: 14)),
                           controlAffinity: ListTileControlAffinity.leading,
                           dense: true,
-                          activeColor: AppColors.kPrimary,
+                          activeColor: AirbnbColors.primary,
                         ),
                         CheckboxListTile(
                           value: _agreeToPrivacy,
@@ -518,7 +522,7 @@ class _SignupPageState extends State<SignupPage> {
                           title: const Text('개인정보 처리방침 동의 (필수)', style: TextStyle(fontSize: 14)),
                           controlAffinity: ListTileControlAffinity.leading,
                           dense: true,
-                          activeColor: AppColors.kPrimary,
+                          activeColor: AirbnbColors.primary,
                         ),
                         CheckboxListTile(
                           value: _agreeToMarketing,
@@ -526,7 +530,7 @@ class _SignupPageState extends State<SignupPage> {
                           title: const Text('마케팅 정보 수신 동의 (선택)', style: TextStyle(fontSize: 14)),
                           controlAffinity: ListTileControlAffinity.leading,
                           dense: true,
-                          activeColor: AppColors.kPrimary,
+                          activeColor: AirbnbColors.primary,
                         ),
                       ],
                     ),
@@ -549,7 +553,7 @@ class _SignupPageState extends State<SignupPage> {
                         height: 24,
                         child: CircularProgressIndicator(
                           strokeWidth: 2,
-                          valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                          valueColor: AlwaysStoppedAnimation<Color>(AirbnbColors.background),
                         ),
                       )
                     : const Icon(Icons.person_add, size: 24),
@@ -561,8 +565,8 @@ class _SignupPageState extends State<SignupPage> {
                   ),
                 ),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.kPrimary,
-                  foregroundColor: Colors.white,
+                  backgroundColor: AirbnbColors.textPrimary, // 에어비엔비 스타일: 검은색 배경
+                  foregroundColor: AirbnbColors.textWhite,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
@@ -581,7 +585,7 @@ class _SignupPageState extends State<SignupPage> {
                   '이미 계정이 있으신가요? 로그인',
                   style: TextStyle(
                     fontSize: 14,
-                    color: AppColors.kPrimary,
+                    color: AirbnbColors.primary,
                   ),
                 ),
               ),

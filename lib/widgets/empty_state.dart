@@ -29,13 +29,13 @@ class EmptyState extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(24),
               decoration: BoxDecoration(
-                color: AppColors.kPrimary.withValues(alpha: 0.1),
+                color: AirbnbColors.primary.withValues(alpha: 0.1),
                 shape: BoxShape.circle,
               ),
               child: Icon(
                 icon,
                 size: 64,
-                color: AppColors.kPrimary,
+                color: AirbnbColors.primary,
               ),
             ),
             const SizedBox(height: 24),
@@ -44,7 +44,7 @@ class EmptyState extends StatelessWidget {
               style: const TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,
-                color: AppColors.kTextPrimary,
+                color: AirbnbColors.textPrimary,
               ),
               textAlign: TextAlign.center,
             ),
@@ -53,7 +53,7 @@ class EmptyState extends StatelessWidget {
               message,
               style: TextStyle(
                 fontSize: 15,
-                color: Colors.grey[600],
+                color: AirbnbColors.textSecondary,
                 height: 1.5,
               ),
               textAlign: TextAlign.center,
@@ -65,8 +65,8 @@ class EmptyState extends StatelessWidget {
                 icon: const Icon(Icons.add, size: 20),
                 label: Text(buttonText!),
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.kPrimary,
-                  foregroundColor: Colors.white,
+                  backgroundColor: AirbnbColors.primary,
+                  foregroundColor: AirbnbColors.background,
                   padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),

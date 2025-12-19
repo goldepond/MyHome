@@ -51,7 +51,7 @@ class HomeLogoButton extends StatelessWidget {
                 // 로고 파일이 없으면 기본 아이콘 사용
                 return Icon(
                   Icons.home,
-                  color: color ?? Colors.white,
+                  color: color ?? AirbnbColors.background,
                   size: height,
                 );
               },
@@ -101,7 +101,7 @@ class LogoImage extends StatelessWidget {
                 // 로고 파일이 없으면 기본 아이콘 사용
                 return Icon(
                   Icons.home,
-                  color: color ?? AppColors.kPrimary,
+                  color: color ?? AirbnbColors.primary,
                   size: height ?? 24,
                 );
               },
@@ -148,7 +148,7 @@ class LogoWithText extends StatelessWidget {
                 style: TextStyle(
                   fontSize: fontSize,
                   fontWeight: FontWeight.bold,
-                  color: textColor ?? AppColors.kPrimary,
+                  color: textColor ?? AirbnbColors.primary,
                   letterSpacing: 0.5,
                 ),
               ),
@@ -191,14 +191,14 @@ class AppBarTitle extends StatelessWidget {
           Container(
             width: 1,
             height: 20,
-            color: Colors.white.withValues(alpha: 0.3),
+            color: AirbnbColors.background.withValues(alpha: 0.3),
           ),
           const SizedBox(width: 12),
           Text(
             title,
             style: const TextStyle(
               fontSize: 18,
-              color: Colors.white,
+              color: AirbnbColors.background,
             ),
           ),
         ],
@@ -209,7 +209,7 @@ class AppBarTitle extends StatelessWidget {
       title,
       style: const TextStyle(
         fontSize: 18,
-        color: Colors.white,
+        color: AirbnbColors.background,
       ),
     );
   }

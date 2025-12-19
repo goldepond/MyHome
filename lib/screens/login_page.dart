@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:property/constants/app_constants.dart';
+import 'package:property/constants/typography.dart';
+import 'package:property/constants/spacing.dart';
 import 'package:property/api_request/firebase_service.dart';
 import 'forgot_password_page.dart';
 import 'main_page.dart';
@@ -103,7 +105,7 @@ class _LoginPageState extends State<LoginPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('로그인에 실패했습니다. 이메일과 비밀번호를 확인해주세요.'),
-            backgroundColor: Colors.red,
+            backgroundColor: AirbnbColors.error,
           ),
         );
       }
@@ -128,7 +130,7 @@ class _LoginPageState extends State<LoginPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(errorMessage),
-            backgroundColor: Colors.red,
+            backgroundColor: AirbnbColors.error,
             duration: const Duration(seconds: 4),
           ),
         );
@@ -138,7 +140,7 @@ class _LoginPageState extends State<LoginPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('로그인 중 오류가 발생했습니다: ${e.toString()}'),
-            backgroundColor: Colors.red,
+            backgroundColor: AirbnbColors.error,
           ),
         );
       }
@@ -168,11 +170,11 @@ class _LoginPageState extends State<LoginPage> {
       backgroundColor: Colors.transparent,
         resizeToAvoidBottomInset: true,
       appBar: AppBar(
-        backgroundColor: Colors.white,
-        foregroundColor: AppColors.kPrimary,
+        backgroundColor: AirbnbColors.background,
+        foregroundColor: AirbnbColors.textPrimary,
         elevation: 2,
         toolbarHeight: 70,
-        shadowColor: Colors.black.withValues(alpha: 0.1),
+        shadowColor: AirbnbColors.textPrimary.withValues(alpha: 0.1),
         surfaceTintColor: Colors.transparent,
         automaticallyImplyLeading: false,
         leading: IconButton(
@@ -183,33 +185,32 @@ class _LoginPageState extends State<LoginPage> {
           tooltip: '뒤로가기',
         ),
         centerTitle: true,
-        title: const Text(
+        title: Text(
           'MyHome',
-          style: TextStyle(
-            fontSize: 24,
-            fontWeight: FontWeight.bold,
-            color: AppColors.kPrimary,
+          style: AppTypography.withColor(
+            AppTypography.h2.copyWith(fontWeight: FontWeight.bold),
+            AirbnbColors.primary,
           ),
         ),
       ),
       body: Container(
         decoration: const BoxDecoration(
-          gradient: AppGradients.primaryDiagonal,
+          color: AirbnbColors.background,
         ),
         child: SafeArea(
           child: SingleChildScrollView(
             physics: const AlwaysScrollableScrollPhysics(),
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 40),
+            padding: EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.xxl),
             child: Center(
               child: Container(
                 constraints: const BoxConstraints(maxWidth: 480),
-                padding: const EdgeInsets.all(40),
+                padding: EdgeInsets.all(AppSpacing.xxl),
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: AirbnbColors.background,
                   borderRadius: BorderRadius.circular(20),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.08),
+                      color: AirbnbColors.textPrimary.withValues(alpha: 0.08),
                       offset: const Offset(0, 8),
                       blurRadius: 24,
                       spreadRadius: 0,
@@ -220,46 +221,38 @@ class _LoginPageState extends State<LoginPage> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    // 타이틀 섹션
+                    // 타이틀 섹션 (메인페이지 스타일)
                     Center(
                       child: Column(
                         children: [
-                          Container(
-                            padding: const EdgeInsets.all(16),
-                            decoration: BoxDecoration(
-                              color: AppColors.kPrimary.withValues(alpha: 0.1),
-                              shape: BoxShape.circle,
-                            ),
-                            child: Icon(
-                              Icons.lock_outline,
-                              size: 32,
-                              color: AppColors.kPrimary,
-                            ),
-                          ),
-                          const SizedBox(height: 20),
-                          const Text(
+                          Text(
                             '로그인',
-                            style: TextStyle(
-                              fontSize: 28,
-                              fontWeight: FontWeight.bold,
-                              color: AppColors.kTextPrimary,
-                              letterSpacing: -0.5,
+                            style: AppTypography.withColor(
+                              AppTypography.display.copyWith(
+                                fontSize: 40,
+                                fontWeight: FontWeight.w800,
+                                letterSpacing: -1.5,
+                                height: 1.1,
+                              ),
+                              AirbnbColors.textPrimary,
                             ),
                           ),
-                          const SizedBox(height: 8),
+                          SizedBox(height: AppSpacing.lg),
                           Text(
                             '계정에 로그인하여 서비스를 이용하세요',
-                            style: TextStyle(
-                              fontSize: 14,
-                              color: AppColors.kTextSecondary,
-                              height: 1.5,
+                            style: AppTypography.withColor(
+                              AppTypography.bodyLarge.copyWith(
+                                fontWeight: FontWeight.w400,
+                                height: 1.6,
+                              ),
+                              AirbnbColors.textSecondary,
                             ),
                             textAlign: TextAlign.center,
                           ),
                         ],
                       ),
                     ),
-                    const SizedBox(height: 40),
+                    SizedBox(height: AppSpacing.xxl),
                     
                     // 아이디 입력
                     Column(
@@ -267,47 +260,46 @@ class _LoginPageState extends State<LoginPage> {
                       children: [
                         Text(
                           '이메일',
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: AppColors.kTextSecondary,
-                            fontWeight: FontWeight.w600,
+                          style: AppTypography.withColor(
+                            AppTypography.bodySmall.copyWith(fontWeight: FontWeight.w600),
+                            AirbnbColors.textSecondary,
                           ),
                         ),
-                        const SizedBox(height: 8),
+                        SizedBox(height: AppSpacing.sm),
                         TextField(
                           controller: _idController,
-                          style: const TextStyle(fontSize: 16),
+                          style: AppTypography.body,
                           decoration: InputDecoration(
                             hintText: '이메일을 입력하세요',
-                            hintStyle: TextStyle(
-                              color: AppColors.kTextLight,
-                              fontSize: 15,
+                            hintStyle: AppTypography.withColor(
+                              AppTypography.bodySmall.copyWith(fontSize: 15),
+                              AirbnbColors.textLight,
                             ),
                             prefixIcon: Icon(
                               Icons.person_outline,
-                              color: AppColors.kTextSecondary,
+                              color: AirbnbColors.textSecondary,
                               size: 20,
                             ),
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(12),
-                              borderSide: BorderSide(color: Colors.grey[300]!),
+                              borderSide: const BorderSide(color: AirbnbColors.border),
                             ),
                             enabledBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(12),
-                              borderSide: BorderSide(color: Colors.grey[300]!),
+                              borderSide: const BorderSide(color: AirbnbColors.border),
                             ),
                             focusedBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(12),
-                              borderSide: const BorderSide(color: AppColors.kPrimary, width: 2),
+                              borderSide: const BorderSide(color: AirbnbColors.primary, width: 2),
                             ),
                             filled: true,
-                            fillColor: Colors.grey[50],
-                            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                            fillColor: AirbnbColors.surface,
+                            contentPadding: EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.md),
                           ),
                         ),
                       ],
                     ),
-                    const SizedBox(height: 20),
+                    SizedBox(height: AppSpacing.lg),
                     
                     // 비밀번호 입력
                     Column(
@@ -315,33 +307,32 @@ class _LoginPageState extends State<LoginPage> {
                       children: [
                         Text(
                           '비밀번호',
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: AppColors.kTextSecondary,
-                            fontWeight: FontWeight.w600,
+                          style: AppTypography.withColor(
+                            AppTypography.bodySmall.copyWith(fontWeight: FontWeight.w600),
+                            AirbnbColors.textSecondary,
                           ),
                         ),
-                        const SizedBox(height: 8),
+                        SizedBox(height: AppSpacing.sm),
                         TextField(
                           controller: _passwordController,
                           obscureText: _obscurePassword,
-                          style: const TextStyle(fontSize: 16),
+                          style: AppTypography.body,
                           decoration: InputDecoration(
                             hintText: '비밀번호를 입력하세요',
-                            hintStyle: TextStyle(
-                              color: AppColors.kTextLight,
-                              fontSize: 15,
+                            hintStyle: AppTypography.withColor(
+                              AppTypography.bodySmall.copyWith(fontSize: 15),
+                              AirbnbColors.textLight,
                             ),
                             prefixIcon: Icon(
                               Icons.lock_outline,
-                              color: AppColors.kTextSecondary,
+                              color: AirbnbColors.textSecondary,
                               size: 20,
                             ),
                             suffixIcon: IconButton(
                               icon: Icon(
                                 _obscurePassword ? Icons.visibility_off_outlined : Icons.visibility_outlined,
                                 size: 20,
-                                color: AppColors.kTextSecondary,
+                                color: AirbnbColors.textSecondary,
                               ),
                               onPressed: () {
                                 setState(() {
@@ -351,19 +342,19 @@ class _LoginPageState extends State<LoginPage> {
                             ),
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(12),
-                              borderSide: BorderSide(color: Colors.grey[300]!),
+                              borderSide: const BorderSide(color: AirbnbColors.border),
                             ),
                             enabledBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(12),
-                              borderSide: BorderSide(color: Colors.grey[300]!),
+                              borderSide: const BorderSide(color: AirbnbColors.border),
                             ),
                             focusedBorder: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(12),
-                              borderSide: const BorderSide(color: AppColors.kPrimary, width: 2),
+                              borderSide: const BorderSide(color: AirbnbColors.primary, width: 2),
                             ),
                             filled: true,
-                            fillColor: Colors.grey[50],
-                            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                            fillColor: AirbnbColors.surface,
+                            contentPadding: EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.md),
                           ),
                         ),
                       ],
@@ -377,8 +368,8 @@ class _LoginPageState extends State<LoginPage> {
                       child: ElevatedButton(
                         onPressed: _isLoading ? null : _login,
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.kPrimary,
-                          foregroundColor: Colors.white,
+                          backgroundColor: AirbnbColors.textPrimary, // 에어비엔비 스타일: 검은색 배경
+                          foregroundColor: AirbnbColors.textWhite,
                           elevation: 0,
                           shadowColor: Colors.transparent,
                           shape: RoundedRectangleBorder(
@@ -391,7 +382,7 @@ class _LoginPageState extends State<LoginPage> {
                                 width: 24,
                                 child: CircularProgressIndicator(
                                   strokeWidth: 2.5,
-                                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                  valueColor: AlwaysStoppedAnimation<Color>(AirbnbColors.background),
                                 ),
                               )
                             : const Text(
@@ -421,27 +412,28 @@ class _LoginPageState extends State<LoginPage> {
                           minimumSize: Size.zero,
                           tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                         ),
-                        child: const Text(
+                        child: Text(
                           '비밀번호 찾기',
-                          style: TextStyle(
-                            color: AppColors.kPrimary,
-                            fontSize: 13,
-                            fontWeight: FontWeight.w600,
-                            decoration: TextDecoration.underline,
+                          style: AppTypography.withColor(
+                            AppTypography.caption.copyWith(
+                              fontWeight: FontWeight.w600,
+                              decoration: TextDecoration.underline,
+                            ),
+                            AirbnbColors.primary,
                           ),
                         ),
                       ),
                     ),
-                    const SizedBox(height: 24),
+                    SizedBox(height: AppSpacing.lg),
                     
                     // 회원가입 안내 섹션
                     Container(
-                      padding: const EdgeInsets.all(20),
+                      padding: EdgeInsets.all(AppSpacing.lg),
                       decoration: BoxDecoration(
-                        color: AppColors.kPrimary.withValues(alpha: 0.05),
+                        color: AirbnbColors.primary.withValues(alpha: 0.05),
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(
-                          color: AppColors.kPrimary.withValues(alpha: 0.2),
+                          color: AirbnbColors.primary.withValues(alpha: 0.2),
                           width: 1,
                         ),
                       ),
@@ -450,9 +442,9 @@ class _LoginPageState extends State<LoginPage> {
                         children: [
                           Text(
                             '계정이 없으신가요? ',
-                            style: TextStyle(
-                              fontSize: 14,
-                              color: AppColors.kTextSecondary,
+                            style: AppTypography.withColor(
+                              AppTypography.bodySmall,
+                              AirbnbColors.textSecondary,
                             ),
                           ),
                           TextButton(
@@ -465,17 +457,18 @@ class _LoginPageState extends State<LoginPage> {
                                 );
                             },
                             style: TextButton.styleFrom(
-                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                              padding: EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: 4),
                               minimumSize: Size.zero,
                               tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                             ),
-                            child: const Text(
+                            child: Text(
                               '회원가입',
-                              style: TextStyle(
-                                color: AppColors.kPrimary,
-                                fontSize: 14,
-                                fontWeight: FontWeight.bold,
-                                decoration: TextDecoration.underline,
+                              style: AppTypography.withColor(
+                                AppTypography.bodySmall.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                  decoration: TextDecoration.underline,
+                                ),
+                                AirbnbColors.primary,
                               ),
                             ),
                           ),

@@ -3,6 +3,8 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'dart:async';
 import 'dart:convert';
 import 'package:property/constants/app_constants.dart';
+import 'package:property/constants/typography.dart';
+import 'package:property/constants/spacing.dart';
 import 'package:property/api_request/address_service.dart';
 import 'package:property/api_request/firebase_service.dart'; // FirebaseService import
 import 'package:property/api_request/vworld_service.dart'; // VWorld API 서비스 추가
@@ -17,7 +19,6 @@ import 'broker_list_page.dart';
 import 'package:property/widgets/loading_overlay.dart';
 import 'package:property/api_request/apt_info_service.dart';
 import 'package:property/widgets/retry_view.dart';
-import 'package:property/widgets/customer_service_dialog.dart';
 import 'login_page.dart';
 
 class HomePage extends StatefulWidget {
@@ -27,37 +28,6 @@ class HomePage extends StatefulWidget {
 
   @override
   State<HomePage> createState() => _HomePageState();
-}
-
-class _GuestBenefitBullet extends StatelessWidget {
-  final IconData icon;
-  final String description;
-
-  const _GuestBenefitBullet({
-    required this.icon,
-    required this.description,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Icon(icon, size: 18, color: AppColors.kPrimary.withValues(alpha: 0.9)),
-        const SizedBox(width: 8),
-        Expanded(
-          child: Text(
-            description,
-            style: const TextStyle(
-              fontSize: 13,
-              color: AppColors.kTextSecondary,
-              height: 1.45,
-            ),
-          ),
-        ),
-      ],
-    );
-  }
 }
 
 class _HomePageState extends State<HomePage> {
@@ -110,7 +80,6 @@ class _HomePageState extends State<HomePage> {
   String? kaptCode;                        // 단지코드
   bool isLoadingAptInfo = false;            // 단지코드 조회 중
   String? kaptCodeStatusMessage;            // 단지코드 조회 상태 메시지
-  bool showGuestUpsell = true;
   String? _currentAptInfoRequestKey;
 
   @override
@@ -124,7 +93,7 @@ class _HomePageState extends State<HomePage> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('주소를 먼저 선택해주세요.'),
-          backgroundColor: Colors.orange,
+          backgroundColor: AirbnbColors.warning,
         ),
       );
       return;
@@ -142,7 +111,7 @@ class _HomePageState extends State<HomePage> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(vworldError ?? '위치 정보를 불러오지 못했습니다. 잠시 후 다시 시도해주세요.'),
-          backgroundColor: Colors.red,
+          backgroundColor: AirbnbColors.error,
         ),
       );
       return;
@@ -155,7 +124,7 @@ class _HomePageState extends State<HomePage> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('좌표 정보가 올바르지 않습니다.'),
-          backgroundColor: Colors.red,
+          backgroundColor: AirbnbColors.error,
         ),
       );
       return;
@@ -721,123 +690,6 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-  Widget _buildGuestConversionCard() {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.kPrimary.withValues(alpha: 0.25)),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.kPrimary.withValues(alpha: 0.08),
-            blurRadius: 18,
-            offset: const Offset(0, 6),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: const [
-              CircleAvatar(
-                radius: 18,
-                backgroundColor: AppColors.kPrimary,
-                child: Icon(Icons.lock_open, color: Colors.white, size: 20),
-              ),
-              SizedBox(width: 12),
-              Expanded(
-                child: Text(
-                  '로그인하면 상담 현황이 자동으로 저장되고, 답변 알림도 받아볼 수 있어요.',
-                  style: TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.kTextPrimary,
-                    height: 1.4,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          const _GuestBenefitBullet(
-            icon: Icons.history,
-            description: '견적 요청·답변 내역이 계정에 안전하게 보관됩니다.',
-          ),
-          const SizedBox(height: 8),
-          const _GuestBenefitBullet(
-            icon: Icons.notifications_active_outlined,
-            description: '답변/상태 변경 시 알림을 받아 놓치는 일이 줄어듭니다.',
-          ),
-          const SizedBox(height: 8),
-          const _GuestBenefitBullet(
-            icon: Icons.group_outlined,
-            description: '여러 중개사의 제안을 비교하고 선정한 기록을 유지할 수 있습니다.',
-          ),
-          const SizedBox(height: 16),
-          Row(
-            children: [
-              Expanded(
-                child: OutlinedButton(
-                  onPressed: () {
-                    AnalyticsService.instance.logEvent(
-                      AnalyticsEventNames.guestLoginSkip,
-                      params: {'source': 'home_banner'},
-                    );
-                    if (mounted) {
-                      setState(() {
-                        showGuestUpsell = false;
-                      });
-                    }
-                  },
-                  style: OutlinedButton.styleFrom(
-                    minimumSize: const Size(0, 48),
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
-                    side: BorderSide(color: AppColors.kSecondary.withValues(alpha: 0.25)),
-                    foregroundColor: AppColors.kSecondary.withValues(alpha: 0.8),
-                    backgroundColor: AppColors.kSecondary.withValues(alpha: 0.08),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                  ),
-                  child: const Text(
-                    '다음에 할게요',
-                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: ElevatedButton.icon(
-                  onPressed: () async {
-                    AnalyticsService.instance.logEvent(
-                      AnalyticsEventNames.guestLoginCtaTapped,
-                      params: {'source': 'home_banner'},
-                      userId: widget.userId.isNotEmpty ? widget.userId : null,
-                      userName: widget.userName.isNotEmpty ? widget.userName : null,
-                      stage: FunnelStage.addressSearch,
-                    );
-                    await _navigateToLoginAndRefresh();
-                  },
-                  style: ElevatedButton.styleFrom(
-                    minimumSize: const Size(0, 48),
-                    backgroundColor: AppColors.kSecondary,
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                  ),
-                  icon: const Icon(Icons.login, size: 18),
-                  label: const Text('로그인', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
   String _buildAptInfoRequestKey(String address, Map<String, String>? fullAddrAPIData) {
     final normalizedAddress = address.replaceAll(RegExp(r'\s+'), ' ').trim().toLowerCase();
     final roadCode = (fullAddrAPIData?['rnMgtSn'] ?? '').toString().trim();
@@ -985,7 +837,7 @@ class _HomePageState extends State<HomePage> {
               ? '저장 중...'
               : '위치 정보 조회 중...',
       child: Scaffold(
-        backgroundColor: AppColors.kBackground,
+        backgroundColor: AirbnbColors.background,
           resizeToAvoidBottomInset: true,
         body: SafeArea(
           child: SingleChildScrollView(
@@ -993,82 +845,28 @@ class _HomePageState extends State<HomePage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-              // 상단 타이틀 섹션
-              const HeroBanner(),
-              const SizedBox(height: 16),
-              // 고객센터 배너
-              Center(
-                child: Container(
-                  constraints: const BoxConstraints(maxWidth: 900),
-                  margin: const EdgeInsets.symmetric(horizontal: 24),
-                  child: _buildCustomerServiceBanner(),
-                ),
+              // 상단 타이틀 섹션 (검색창 통합)
+              HeroBanner(
+                searchController: _controller,
+                onSearchChanged: (val) {
+                  setState(() => queryAddress = val);
+                  // 자동 검색 (디바운싱은 searchRoadAddress 함수 내부에서 처리됨)
+                  if (val.trim().isNotEmpty) {
+                    searchRoadAddress(val.trim(), page: 1);
+                  }
+                },
+                onSearchSubmitted: () {
+                  if (_controller.text.trim().isNotEmpty) {
+                    searchRoadAddress(_controller.text.trim(), page: 1);
+                  }
+                },
               ),
-              const SizedBox(height: 16),
-              if (!isLoggedIn && showGuestUpsell)
-                Center(
-                  child: Container(
-                    constraints: const BoxConstraints(maxWidth: 900),
-                    margin: const EdgeInsets.symmetric(horizontal: 24),
-                    child: _buildGuestConversionCard(),
-                  ),
-                ),
-              if (!isLoggedIn && showGuestUpsell) const SizedBox(height: 16),
-              
-              // 검색 입력창
-              Center(
-                child: Container(
-                  constraints: const BoxConstraints(maxWidth: 900), // 600 -> 900으로 변경
-                  margin: const EdgeInsets.symmetric(horizontal: 24),
-                padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 24),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: const BorderRadius.all(Radius.circular(16)),
-                  border: Border.all(color: AppColors.kPrimary.withValues(alpha: 0.3), width: 1.5), // 테두리 추가
-                  boxShadow: [
-                    BoxShadow(
-                      color: AppColors.kPrimary.withValues(alpha: 0.2), // 그림자 강화
-                      blurRadius: 24,
-                      offset: const Offset(0, 6),
-                    ),
-                  ],
-                ),
-                child: TextField(
-                  controller: _controller,
-                  onChanged: (val) {
-                    setState(() => queryAddress = val);
-                    // 자동 검색 (디바운싱은 searchRoadAddress 함수 내부에서 처리됨)
-                    if (val.trim().isNotEmpty) {
-                      searchRoadAddress(val.trim(), page: 1);
-                    }
-                  },
-                  onSubmitted: (val) {
-                    if (val.trim().isNotEmpty) {
-                      searchRoadAddress(val.trim(), page: 1);
-                    }
-                  },
-                  decoration: InputDecoration(
-                    border: InputBorder.none,
-                    hintText: '예) 서울특별시 강북구 덕릉로 138',
-                    hintStyle: TextStyle(
-                      fontSize: 18,
-                      color: Colors.grey[400],
-                    ),
-                    prefixIcon: const Icon(Icons.search, color: AppColors.kPrimary),
-                  ),
-                  style: const TextStyle(
-                    fontSize: 18,
-                    color: AppColors.kTextPrimary,
-                  ),
-                  textAlign: TextAlign.left,
-                ),
-                ),
-              ),
+              SizedBox(height: AppSpacing.xl), // 32px - 주요 섹션 전환
               if (isSearchingRoadAddr)
                 const Padding(
                   padding: EdgeInsets.all(20.0),
                   child: CircularProgressIndicator(
-                    valueColor: AlwaysStoppedAnimation<Color>(AppColors.kPrimary),
+                    valueColor: const AlwaysStoppedAnimation<Color>(AirbnbColors.primary),
                   ),
                 ),
               if (roadAddressList.isNotEmpty)
@@ -1124,26 +922,6 @@ class _HomePageState extends State<HomePage> {
                     );
                   },
                 ),
-              if (addressSearchMessage != null && addressSearchMessage!.isNotEmpty)
-                Center(
-                  child: Container(
-                    constraints: const BoxConstraints(maxWidth: 900),
-                    margin: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
-                    child: _buildInfoBanner(
-                      addressSearchMessage!,
-                      icon: addressSearchMessageIsWarning ? Icons.warning_amber_rounded : Icons.info_outline,
-                      backgroundColor: addressSearchMessageIsWarning
-                          ? Colors.orange.withValues(alpha: 0.12)
-                          : Colors.blue.withValues(alpha: 0.08),
-                      borderColor: addressSearchMessageIsWarning
-                          ? Colors.orange.withValues(alpha: 0.3)
-                          : Colors.blue.withValues(alpha: 0.3),
-                      textColor: addressSearchMessageIsWarning
-                          ? Colors.orange[800]!
-                          : AppColors.kTextSecondary,
-                    ),
-                  ),
-                ),
               if (totalCount > ApiConstants.pageSize)
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -1162,11 +940,11 @@ class _HomePageState extends State<HomePage> {
                         ),
                       ),
                     Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md), // 16px
                       child: Text(
                         '페이지 $currentPage / ${((totalCount - 1) ~/ ApiConstants.pageSize) + 1}',
                         style: const TextStyle(
-                          color: AppColors.kPrimary,
+                          color: AirbnbColors.primary,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
@@ -1194,11 +972,11 @@ class _HomePageState extends State<HomePage> {
                     margin: const EdgeInsets.symmetric(horizontal: 24, vertical: 4),
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: AppColors.kPrimary.withValues(alpha: 0.05),
+                    color: AirbnbColors.primaryDark.withValues(alpha: 0.08),
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(
-                      color: AppColors.kPrimary.withValues(alpha: 0.2),
-                      width: 1,
+                      color: AirbnbColors.primaryDark.withValues(alpha: 0.3),
+                      width: 1.5,
                     ),
                   ),
                   child: Column(
@@ -1206,27 +984,25 @@ class _HomePageState extends State<HomePage> {
                     children: [
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
-                        children: const [
-                          Icon(Icons.check_circle, color: AppColors.kPrimary, size: 20),
-                          SizedBox(width: 12),
+                        children: [
+                          const Icon(Icons.check_circle, color: AirbnbColors.primaryDark, size: 20),
+                          const SizedBox(width: AppSpacing.md), // 16px
                           Text(
                             '선택된 주소',
-                            style: TextStyle(
-                              color: AppColors.kPrimary,
-                              fontSize: 12,
-                              fontWeight: FontWeight.w600,
+                            style: AppTypography.withColor(
+                              AppTypography.caption.copyWith(fontWeight: FontWeight.w600),
+                              AirbnbColors.primaryDark,
                             ),
                           ),
                         ],
                       ),
-                      const SizedBox(height: 4),
+                      const SizedBox(height: AppSpacing.xs), // 4px
                       Text(
                         selectedFullAddress,
                         textAlign: TextAlign.center,
-                        style: const TextStyle(
-                          color: AppColors.kPrimary,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
+                        style: AppTypography.withColor(
+                          AppTypography.body.copyWith(fontWeight: FontWeight.bold),
+                          AirbnbColors.primaryDark,
                         ),
                       ),
                     ],
@@ -1238,7 +1014,7 @@ class _HomePageState extends State<HomePage> {
                 Center(
                   child: Container(
                     constraints: const BoxConstraints(maxWidth: 900), // 600 -> 900으로 변경
-                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 4),
+                    padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.xs), // 24px, 4px
                     child: DetailAddressInput(
                       controller: _detailController,
                       onChanged: (val) {
@@ -1257,7 +1033,7 @@ class _HomePageState extends State<HomePage> {
                   ),
                 ),
                 
-                const SizedBox(height: 12),
+                const SizedBox(height: AppSpacing.md), // 16px
                 
                 // 공동주택 단지 정보 (주소 선택 후 자동으로 표시)
                 if (hasAttemptedSearch)
@@ -1271,33 +1047,36 @@ class _HomePageState extends State<HomePage> {
                         return Center(
                           child: Container(
                             constraints: const BoxConstraints(maxWidth: maxContentWidth),
-                            margin: const EdgeInsets.only(top: 24),
-                            padding: const EdgeInsets.symmetric(horizontal: 24),
+                            margin: const EdgeInsets.only(top: AppSpacing.lg), // 24px
+                            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg), // 24px
                             child: Container(
-                              padding: const EdgeInsets.all(24),
+                              padding: const EdgeInsets.all(AppSpacing.lg), // 24px
                               decoration: BoxDecoration(
-                                color: Colors.white,
+                                color: AirbnbColors.background,
                                 borderRadius: BorderRadius.circular(16),
-                                border: Border.all(color: Colors.grey[300]!),
+                                border: Border.all(color: AirbnbColors.border),
                                 boxShadow: [
                                   BoxShadow(
-                                    color: Colors.black.withValues(alpha: 0.05),
+                                    color: AirbnbColors.textPrimary.withValues(alpha: 0.05),
                                     blurRadius: 10,
                                     offset: const Offset(0, 2),
                                   ),
                                 ],
                               ),
-                              child: const Row(
+                              child: Row(
                                 children: [
-                                  SizedBox(
+                                  const SizedBox(
                                     width: 24,
                                     height: 24,
                                     child: CircularProgressIndicator(strokeWidth: 2),
                                   ),
-                                  SizedBox(width: 16),
+                                  const SizedBox(width: AppSpacing.md), // 16px
                                   Text(
                                     '공동주택 단지 정보 조회 중...',
-                                    style: TextStyle(fontSize: 16, color: Colors.grey, fontWeight: FontWeight.w500),
+                                    style: AppTypography.withColor(
+                                      AppTypography.body.copyWith(fontWeight: FontWeight.w500),
+                                      AirbnbColors.textSecondary,
+                                    ),
                                   ),
                                 ],
                               ),
@@ -1344,15 +1123,15 @@ class _HomePageState extends State<HomePage> {
                 Center(
                   child: Container(
                     constraints: const BoxConstraints(maxWidth: 600),
-                    margin: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
-                    padding: const EdgeInsets.all(16.0),
+                    margin: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.sm), // 24px, 8px
+                    padding: const EdgeInsets.all(AppSpacing.md), // 16px
                     decoration: BoxDecoration(
-                      color: Colors.orange[50],
+                      color: AirbnbColors.warning.withValues(alpha: 0.05),
                       borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: Colors.orange[200]!, width: 1),
+                      border: Border.all(color: AirbnbColors.warning.withValues(alpha: 0.2), width: 1),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.orange.withValues(alpha:0.1),
+                          color: AirbnbColors.warning.withValues(alpha:0.1),
                           blurRadius: 8,
                           offset: const Offset(0, 2),
                         ),
@@ -1362,17 +1141,16 @@ class _HomePageState extends State<HomePage> {
                       children: [
                         Icon(
                           Icons.warning_amber_rounded,
-                          color: Colors.orange[600],
+                          color: AirbnbColors.warning.withValues(alpha: 0.6),
                           size: 24,
                         ),
-                        const SizedBox(width: 12),
+                        const SizedBox(width: AppSpacing.md), // 16px
                         Expanded(
                           child: Text(
                             ownerMismatchError!,
-                            style: TextStyle(
-                              color: Colors.orange[800],
-                              fontSize: 14,
-                              fontWeight: FontWeight.w500,
+                            style: AppTypography.withColor(
+                              AppTypography.bodySmall.copyWith(fontWeight: FontWeight.w500),
+                              AirbnbColors.warning.withValues(alpha: 0.8),
                             ),
                           ),
                         ),
@@ -1391,7 +1169,7 @@ class _HomePageState extends State<HomePage> {
                 Center(
                   child: Container(
                     constraints: const BoxConstraints(maxWidth: 900), // 600 -> 900으로 변경
-                    padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                    padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.md), // 24px, 16px
                     child: ConstrainedBox(
                       constraints: const BoxConstraints(maxWidth: 280),
                       child: SizedBox(
@@ -1402,14 +1180,14 @@ class _HomePageState extends State<HomePage> {
                               ? null
                               : () async => _goToBrokerSearch(),
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: AppColors.kSecondary,
-                            foregroundColor: Colors.white,
+                            backgroundColor: AirbnbColors.textPrimary, // 에어비엔비 스타일: 검은색 배경
+                            foregroundColor: AirbnbColors.background,
                             shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(12),
                             ),
                             elevation: 2,
-                            shadowColor: AppColors.kSecondary.withValues(alpha: 0.5),
-                            textStyle: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                            shadowColor: AirbnbColors.primary.withValues(alpha: 0.5),
+                            textStyle: AppTypography.bodyLarge.copyWith(fontWeight: FontWeight.bold),
                           ),
                           icon: isVWorldLoading
                               ? const SizedBox(
@@ -1417,7 +1195,7 @@ class _HomePageState extends State<HomePage> {
                                   height: 20,
                                   child: CircularProgressIndicator(
                                     strokeWidth: 2,
-                                    valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                    valueColor: AlwaysStoppedAnimation<Color>(AirbnbColors.background),
                                   ),
                                 )
                               : const Icon(Icons.business, size: 24),
@@ -1431,12 +1209,12 @@ class _HomePageState extends State<HomePage> {
               if (hasAttemptedSearch &&
                   selectedFullAddress.isNotEmpty &&
                   !(isLoggedIn && registerResult != null))
-                const SizedBox(height: 56),
+                const SizedBox(height: AppSpacing.xxl), // 48px (버튼 높이 56px 고려하여 조정)
 
               _buildRegisterResultCard(isLoggedIn),
               
               // 웹 전용 푸터 여백 (영상 촬영용)
-              if (kIsWeb) const SizedBox(height: 600),
+              if (kIsWeb) const SizedBox(height: 600), // 특수 케이스 유지
             ],
             ),
           ),
@@ -1457,9 +1235,9 @@ class _HomePageState extends State<HomePage> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.grey[50],
+        color: AirbnbColors.surface,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey[200]!, width: 1),
+        border: Border.all(color: AirbnbColors.borderLight, width: 1),
       ),
       child: Row(
         children: [
@@ -1475,26 +1253,25 @@ class _HomePageState extends State<HomePage> {
               size: 20,
             ),
           ),
-          const SizedBox(width: 12),
+          const SizedBox(width: AppSpacing.md), // 16px
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   title,
-                  style: TextStyle(
-                    fontSize: 18,
-                    color: Colors.grey[700],
-                    fontWeight: FontWeight.bold,
+                  style: AppTypography.withColor(
+                    AppTypography.h4.copyWith(fontWeight: FontWeight.bold),
+                    AirbnbColors.textSecondary,
                   ),
                 ),
-                const SizedBox(height: 4),
+                const SizedBox(height: AppSpacing.xs), // 4px
                 Text(
                   content,
                   style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
-                    color: Color(0xFF2C3E50),
+                    color: AirbnbColors.textPrimary,
                   ),
                 ),
               ],
@@ -1513,19 +1290,19 @@ class _HomePageState extends State<HomePage> {
     return Center(
       child: Container(
         constraints: const BoxConstraints(maxWidth: 900),
-        margin: const EdgeInsets.symmetric(vertical: 8.0),
-        padding: const EdgeInsets.symmetric(horizontal: 16.0),
+        margin: const EdgeInsets.symmetric(vertical: AppSpacing.sm), // 8px
+        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md), // 16px
         child: Container(
           decoration: BoxDecoration(
-            color: Colors.white,
+            color: AirbnbColors.background,
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
-              color: AppColors.kPrimary.withValues(alpha: 0.2),
+              color: AirbnbColors.primary.withValues(alpha: 0.2),
               width: 1.5,
             ),
             boxShadow: [
               BoxShadow(
-                color: AppColors.kPrimary.withValues(alpha: 0.15),
+                color: AirbnbColors.primary.withValues(alpha: 0.15),
                 blurRadius: 20,
                 offset: const Offset(0, 6),
               ),
@@ -1535,9 +1312,9 @@ class _HomePageState extends State<HomePage> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Container(
-                padding: const EdgeInsets.all(20),
+                padding: const EdgeInsets.all(AppSpacing.lg), // 24px
                 decoration: const BoxDecoration(
-                  color: AppColors.kSecondary,
+                  color: AirbnbColors.primary,
                   borderRadius: BorderRadius.only(
                     topLeft: Radius.circular(16),
                     topRight: Radius.circular(16),
@@ -1546,25 +1323,24 @@ class _HomePageState extends State<HomePage> {
                 child: Row(
                   children: [
                     Container(
-                      padding: const EdgeInsets.all(8),
+                      padding: const EdgeInsets.all(AppSpacing.sm), // 8px
                       decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.2),
+                        color: AirbnbColors.background.withValues(alpha: 0.2),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: const Icon(
                         Icons.description,
-                        color: Colors.white,
+                        color: AirbnbColors.background,
                         size: 24,
                       ),
                     ),
-                    const SizedBox(width: 12),
-                    const Expanded(
+                    const SizedBox(width: AppSpacing.md), // 16px
+                    Expanded(
                       child: Text(
                         '등기부등본 조회 결과',
-                        style: TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
+                        style: AppTypography.withColor(
+                          AppTypography.h3.copyWith(fontWeight: FontWeight.bold),
+                          AirbnbColors.background,
                         ),
                       ),
                     ),
@@ -1572,7 +1348,7 @@ class _HomePageState extends State<HomePage> {
                 ),
               ),
               Container(
-                padding: const EdgeInsets.all(20),
+                padding: const EdgeInsets.all(AppSpacing.lg), // 24px
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -1580,26 +1356,26 @@ class _HomePageState extends State<HomePage> {
                       icon: Icons.location_on,
                       title: '부동산 주소',
                       content: selectedFullAddress,
-                      iconColor: Colors.blue,
+                      iconColor: AirbnbColors.primary,
                     ),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: AppSpacing.md), // 16px
                     _buildInfoCard(
                       icon: Icons.person,
                       title: '계약자',
                       content: widget.userName,
-                      iconColor: Colors.green,
+                      iconColor: AirbnbColors.success,
                     ),
                   ],
                 ),
               ),
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20),
+                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg), // 24px
                 child: _buildRegisterSummaryFromSummaryJson(),
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: AppSpacing.lg), // 24px
               if (selectedFullAddress.isNotEmpty)
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
                   child: SizedBox(
                     width: double.infinity,
                     height: 56,
@@ -1608,14 +1384,14 @@ class _HomePageState extends State<HomePage> {
                           ? null
                           : () async => _goToBrokerSearch(),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.kSecondary,
-                        foregroundColor: Colors.white,
+                        backgroundColor: AirbnbColors.textPrimary, // 에어비엔비 스타일: 검은색 배경
+                        foregroundColor: AirbnbColors.background,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
                         elevation: 2,
-                        shadowColor: AppColors.kSecondary.withValues(alpha: 0.5),
-                        textStyle: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                        shadowColor: AirbnbColors.primary.withValues(alpha: 0.5),
+                        textStyle: AppTypography.bodyLarge.copyWith(fontWeight: FontWeight.bold),
                       ),
                       icon: isVWorldLoading
                           ? const SizedBox(
@@ -1623,7 +1399,7 @@ class _HomePageState extends State<HomePage> {
                               height: 20,
                               child: CircularProgressIndicator(
                                 strokeWidth: 2,
-                                valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                valueColor: AlwaysStoppedAnimation<Color>(AirbnbColors.background),
                               ),
                             )
                           : const Icon(Icons.business, size: 24),
@@ -1632,7 +1408,7 @@ class _HomePageState extends State<HomePage> {
                   ),
                 ),
               if (selectedFullAddress.isNotEmpty)
-                const SizedBox(height: 56),
+                const SizedBox(height: AppSpacing.xxl), // 48px (56px → 48px로 조정)
             ],
           ),
         ),
@@ -1648,14 +1424,14 @@ class _HomePageState extends State<HomePage> {
     required Widget content,
   }) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 10),
+      margin: const EdgeInsets.only(bottom: AppSpacing.sm),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AirbnbColors.background,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey[200]!, width: 1),
+        border: Border.all(color: AirbnbColors.borderLight, width: 1),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.02),
+            color: AirbnbColors.textPrimary.withValues(alpha: 0.02),
             blurRadius: 6,
             offset: const Offset(0, 1),
           ),
@@ -1666,27 +1442,26 @@ class _HomePageState extends State<HomePage> {
         children: [
           // 헤더 - 더 컴팩트하게
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.sm), // 16px, 8px
             child: Row(
               children: [
                 Icon(icon, color: iconColor, size: 18),
-                const SizedBox(width: 8),
+                const SizedBox(width: AppSpacing.sm), // 8px
                 Text(
                   title,
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w700,
-                    color: iconColor,
+                  style: AppTypography.withColor(
+                    AppTypography.bodySmall.copyWith(fontWeight: FontWeight.w700),
+                    iconColor,
                   ),
                 ),
               ],
             ),
           ),
           // 구분선
-          Divider(height: 1, color: Colors.grey[200]),
+          Divider(height: 1, color: AirbnbColors.borderLight),
           // 내용
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.sm), // 16px, 8px
             child: content,
           ),
         ],
@@ -1705,24 +1480,25 @@ class _HomePageState extends State<HomePage> {
             flex: 2,
             child: Text(
               label,
-              style: TextStyle(
-                fontSize: 12,
-                color: Colors.grey[700],
-                fontWeight: FontWeight.w600,
+              style: AppTypography.withColor(
+                AppTypography.caption.copyWith(fontWeight: FontWeight.w600),
+                AirbnbColors.textSecondary,
               ),
               softWrap: true,
             ),
           ),
-          const SizedBox(width: 16),
+          const SizedBox(width: AppSpacing.md), // 16px
           Flexible(
             flex: 3,
             child: Text(
               value,
-              style: const TextStyle(
-                fontSize: 13.5,
-                color: Color(0xFF2C3E50),
-                fontWeight: FontWeight.w500,
-                height: 1.35,
+              style: AppTypography.withColor(
+                AppTypography.bodySmall.copyWith(
+                  fontSize: 13.5,
+                  fontWeight: FontWeight.w500,
+                  height: 1.35,
+                ),
+                AirbnbColors.textPrimary,
               ),
               softWrap: true,
             ),
@@ -1745,7 +1521,7 @@ class _HomePageState extends State<HomePage> {
         _buildRegisterCard(
           icon: Icons.info_outline,
           title: '기본 정보',
-          iconColor: AppColors.kPrimary,
+          iconColor: AirbnbColors.primary,
           content: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -1769,7 +1545,7 @@ class _HomePageState extends State<HomePage> {
           _buildRegisterCard(
             icon: Icons.manage_accounts,
             title: '일반 관리',
-            iconColor: Colors.blue,
+            iconColor: AirbnbColors.primary,
             content: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -1802,7 +1578,7 @@ class _HomePageState extends State<HomePage> {
           _buildRegisterCard(
             icon: Icons.security,
             title: '경비 관리',
-            iconColor: Colors.red,
+            iconColor: AirbnbColors.error,
             content: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -1823,7 +1599,7 @@ class _HomePageState extends State<HomePage> {
           _buildRegisterCard(
             icon: Icons.cleaning_services,
             title: '청소 관리',
-            iconColor: Colors.green,
+            iconColor: AirbnbColors.success,
             content: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -1844,7 +1620,7 @@ class _HomePageState extends State<HomePage> {
           _buildRegisterCard(
             icon: Icons.medical_services,
             title: '소독 관리',
-            iconColor: Colors.purple,
+            iconColor: AirbnbColors.primary,
             content: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -1867,7 +1643,7 @@ class _HomePageState extends State<HomePage> {
           _buildRegisterCard(
             icon: Icons.home,
             title: '건물/시설',
-            iconColor: Colors.orange,
+            iconColor: AirbnbColors.warning,
             content: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -1893,7 +1669,7 @@ class _HomePageState extends State<HomePage> {
           _buildRegisterCard(
             icon: Icons.elevator,
             title: '승강기/주차',
-            iconColor: Colors.teal,
+            iconColor: AirbnbColors.teal,
             content: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -1915,7 +1691,7 @@ class _HomePageState extends State<HomePage> {
           _buildRegisterCard(
             icon: Icons.camera_alt,
             title: '통신/보안시설',
-            iconColor: Colors.indigo,
+            iconColor: AirbnbColors.blue,
             content: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -1933,7 +1709,7 @@ class _HomePageState extends State<HomePage> {
           _buildRegisterCard(
             icon: Icons.local_convenience_store,
             title: '편의/복리시설',
-            iconColor: Colors.pink,
+            iconColor: AirbnbColors.pink,
             content: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -1974,7 +1750,7 @@ class _HomePageState extends State<HomePage> {
           _buildRegisterCard(
             icon: Icons.school,
             title: '교육시설',
-            iconColor: Colors.amber,
+            iconColor: AirbnbColors.orange,
             content: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -2026,7 +1802,7 @@ class _HomePageState extends State<HomePage> {
           _buildRegisterCard(
             icon: Icons.description,
             title: '등기사항전부증명서',
-            iconColor: Colors.blue,
+            iconColor: AirbnbColors.primary,
             content: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -2042,14 +1818,12 @@ class _HomePageState extends State<HomePage> {
           _buildRegisterCard(
             icon: Icons.people,
             title: '소유자 정보',
-            iconColor: Colors.green,
+            iconColor: AirbnbColors.success,
             content: Text(
               ownership.ownerRaw.isNotEmpty ? ownership.ownerRaw : '-',
-              style: const TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
-                color: Color(0xFF2C3E50),
-                height: 1.5,
+              style: AppTypography.withColor(
+                AppTypography.bodySmall.copyWith(fontWeight: FontWeight.w600, height: 1.5),
+                AirbnbColors.textPrimary,
               ),
             ),
           ),
@@ -2057,7 +1831,7 @@ class _HomePageState extends State<HomePage> {
           _buildRegisterCard(
             icon: Icons.home,
             title: '토지/건물 정보',
-            iconColor: AppColors.kPrimary,
+            iconColor: AirbnbColors.primary,
             content: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -2066,16 +1840,15 @@ class _HomePageState extends State<HomePage> {
                 _buildDetailRow('건물 구조', building.structure),
                 _buildDetailRow('건물 전체면적', building.areaTotal),
                 if (building.floors.isNotEmpty) ...[
-                  const SizedBox(height: 12),
+                  const SizedBox(height: AppSpacing.md), // 16px
                   Text(
                     '층별 면적',
-                    style: TextStyle(
-                      fontSize: 13,
-                      color: Colors.grey[700],
-                      fontWeight: FontWeight.w600,
+                    style: AppTypography.withColor(
+                      AppTypography.bodySmall.copyWith(fontWeight: FontWeight.w600),
+                      AirbnbColors.textSecondary,
                     ),
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: AppSpacing.sm), // 8px
                   ...building.floors.map((f) => Padding(
                     padding: const EdgeInsets.symmetric(vertical: 2),
                             child: Row(
@@ -2083,19 +1856,17 @@ class _HomePageState extends State<HomePage> {
                               children: [
                                 Text(
                                   f.floorLabel,
-                                  style: const TextStyle(
-                                    fontSize: 13,
-                                    color: Color(0xFF2C3E50),
-                                    fontWeight: FontWeight.w500,
+                                  style: AppTypography.withColor(
+                                    AppTypography.bodySmall.copyWith(fontWeight: FontWeight.w500),
+                                    AirbnbColors.textPrimary,
                                   ),
                                 ),
                                 Text(
                                   f.area,
-                                  style: const TextStyle(
-                                    fontSize: 13,
-                                    color: Color(0xFF2C3E50),
-                                    fontWeight: FontWeight.w500,
-                          ),
+                                  style: AppTypography.withColor(
+                                    AppTypography.bodySmall.copyWith(fontWeight: FontWeight.w500),
+                                    AirbnbColors.textPrimary,
+                                  ),
                         ),
                       ],
                     ),
@@ -2109,11 +1880,11 @@ class _HomePageState extends State<HomePage> {
             _buildRegisterCard(
               icon: Icons.gavel,
               title: '권리사항',
-              iconColor: Colors.orange,
+              iconColor: AirbnbColors.warning,
               content: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: liens.map((l) => Padding(
-                  padding: const EdgeInsets.only(bottom: 8),
+                  padding: const EdgeInsets.only(bottom: AppSpacing.sm), // 8px
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -2123,7 +1894,7 @@ class _HomePageState extends State<HomePage> {
                       if (liens.indexOf(l) != liens.length - 1)
                         Padding(
                           padding: const EdgeInsets.symmetric(vertical: 8),
-                          child: Divider(color: Colors.grey[300]),
+                          child: Divider(color: AirbnbColors.border),
                         ),
                     ],
                   ),
@@ -2135,123 +1906,16 @@ class _HomePageState extends State<HomePage> {
     } catch (e) {
       return Container(
         width: double.infinity,
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(AppSpacing.md), // 16px
         decoration: BoxDecoration(
-          color: AppColors.kLightBrown,
+          color: AirbnbColors.surface,
           borderRadius: BorderRadius.circular(8),
         ),
-        child: Text('핵심 정보 표시 중 오류: $e', style: const TextStyle(color: Colors.red)),
+        child: Text('핵심 정보 표시 중 오류: $e', style: const TextStyle(color: AirbnbColors.error)),
       );
     }
   }
 
-  Widget _buildInfoBanner(
-    String message, {
-    IconData icon = Icons.info_outline,
-    Color backgroundColor = const Color(0xFFE3F2FD),
-    Color borderColor = const Color(0xFF90CAF9),
-    Color textColor = AppColors.kTextSecondary,
-  }) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: backgroundColor,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: borderColor, width: 1),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(icon, color: textColor, size: 20),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Text(
-              message,
-              style: TextStyle(
-                color: textColor,
-                fontSize: 14,
-                height: 1.5,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  /// 고객센터 배너 위젯
-  Widget _buildCustomerServiceBanner() {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            AppColors.kPrimary.withValues(alpha: 0.1),
-            AppColors.kPrimary.withValues(alpha: 0.05),
-          ],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: AppColors.kPrimary.withValues(alpha: 0.2),
-          width: 1,
-        ),
-      ),
-      child: InkWell(
-        onTap: () {
-          showCustomerServiceDialog(context);
-        },
-        borderRadius: BorderRadius.circular(16),
-        child: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: AppColors.kPrimary.withValues(alpha: 0.15),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: const Icon(
-                Icons.feedback_outlined,
-                color: AppColors.kPrimary,
-                size: 24,
-              ),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(
-                    '💬 피드백을 남겨주세요',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFF2C3E50),
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    '불편사항이나 개선 아이디어를 알려주시면 더 나은 서비스를 만들 수 있습니다',
-                    style: TextStyle(
-                      fontSize: 13,
-                      color: Colors.grey[700],
-                      height: 1.4,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            const Icon(
-              Icons.chevron_right,
-              color: AppColors.kPrimary,
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 }
 
 /// 도로명 주소 검색 결과 리스트 위젯
@@ -2273,12 +1937,31 @@ class RoadAddressList extends StatelessWidget {
     final horizontalMargin = isMobile ? 16.0 : 40.0;
     final itemPadding = isMobile ? 14.0 : 12.0;
     final fontSize = isMobile ? 17.0 : 15.0;
+    // 18pt 이상인 경우 배경 사용, 미만인 경우 테두리/아이콘 강조
+    final isLargeText = fontSize >= 18.0;
 
     List<Widget> listItems = [];
     for (int i = 0; i < addresses.length; i++) {
       final addr = addresses[i];
       final fullData = fullAddrAPIDatas[i];
       final isSelected = selectedAddress.trim() == addr.trim();
+      
+      // 선택된 항목의 스타일 결정: 큰 텍스트는 배경, 작은 텍스트는 테두리/아이콘 강조
+      final selectedBackgroundColor = isSelected && isLargeText 
+          ? AirbnbColors.primaryDark  // 18pt 이상: 더 진한 보라색 배경
+          : (isSelected && !isLargeText 
+              ? AirbnbColors.primaryDark.withValues(alpha: 0.08)  // 18pt 미만: 연한 배경
+              : AirbnbColors.background);
+      final selectedBorderColor = isSelected 
+          ? AirbnbColors.primaryDark  // 선택된 항목: 더 진한 보라색 테두리
+          : AirbnbColors.border;
+      final selectedBorderWidth = isSelected ? (isLargeText ? 1.0 : 2.0) : 1.0;  // 작은 텍스트는 테두리 두껍게
+      final selectedTextColor = isSelected && isLargeText
+          ? AirbnbColors.background  // 큰 텍스트: 흰색
+          : (isSelected && !isLargeText
+              ? AirbnbColors.primaryDark  // 작은 텍스트: 보라색
+              : AirbnbColors.textPrimary);
+      
       listItems.add(
         Material(
           color: Colors.transparent,
@@ -2287,20 +1970,20 @@ class RoadAddressList extends StatelessWidget {
             onTap: () => onSelect(fullData, addr),
             child: Container(
               width: double.infinity,
-              margin: const EdgeInsets.symmetric(vertical: 4),
+              margin: const EdgeInsets.symmetric(vertical: AppSpacing.xs), // 4px
               padding: EdgeInsets.symmetric(
-                  vertical: itemPadding, horizontal: 18),
+                  vertical: itemPadding, horizontal: AppSpacing.lg), // 24px (18px → 24px)
               decoration: BoxDecoration(
-                color: isSelected ? AppColors.kPrimary : Colors.white,
+                color: selectedBackgroundColor,
                 borderRadius: const BorderRadius.all(Radius.circular(12)),
                 border: Border.all(
-                  color: isSelected ? AppColors.kPrimary : Colors.grey[300]!,
-                  width: 1,
+                  color: selectedBorderColor,
+                  width: selectedBorderWidth,
                 ),
                 boxShadow: isSelected
                     ? [
                   BoxShadow(
-                    color: AppColors.kPrimary.withValues(alpha: 0.3),
+                    color: AirbnbColors.primaryDark.withValues(alpha: 0.3),
                     blurRadius: 8,
                     offset: const Offset(0, 2),
                   ),
@@ -2309,9 +1992,11 @@ class RoadAddressList extends StatelessWidget {
               ),
               child: Row(
                 children: [
-                  if (isSelected) const Icon(
-                      Icons.check_circle, color: Colors.white, size: 20),
-                  if (isSelected) const SizedBox(width: 12),
+                  if (isSelected) Icon(
+                      Icons.check_circle, 
+                      color: isLargeText ? AirbnbColors.background : AirbnbColors.primaryDark, 
+                      size: 20),
+                  if (isSelected) const SizedBox(width: AppSpacing.md), // 16px
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -2319,7 +2004,7 @@ class RoadAddressList extends StatelessWidget {
                         Text(
                           addr.split('\n').first,
                           style: TextStyle(
-                            color: isSelected ? Colors.white : AppColors.kTextPrimary,
+                            color: selectedTextColor,
                             fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
                             fontSize: fontSize,
                           ),
@@ -2330,9 +2015,11 @@ class RoadAddressList extends StatelessWidget {
                             child: Text(
                               addr.split('\n').skip(1).join('\n'),
                               style: TextStyle(
-                                color: isSelected
-                                    ? Colors.white.withValues(alpha: 0.85)
-                                    : Colors.grey[600],
+                                color: isSelected && isLargeText
+                                    ? AirbnbColors.background.withValues(alpha: 0.85)
+                                    : (isSelected && !isLargeText
+                                        ? AirbnbColors.primaryDark.withValues(alpha: 0.7)
+                                        : AirbnbColors.textSecondary),
                                 fontWeight: FontWeight.w500,
                                 fontSize: fontSize - 2,
                                 height: 1.25,
@@ -2353,18 +2040,18 @@ class RoadAddressList extends StatelessWidget {
     return Center(
       child: Container(
         constraints: const BoxConstraints(maxWidth: 900),
-        margin: EdgeInsets.symmetric(horizontal: horizontalMargin, vertical: 16),
+        margin: EdgeInsets.symmetric(horizontal: horizontalMargin, vertical: AppSpacing.md), // 16px
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
           Container(
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: AirbnbColors.background,
               borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: AppColors.kPrimary.withValues(alpha: 0.2), width: 1),
+              border: Border.all(color: AirbnbColors.primary.withValues(alpha: 0.2), width: 1),
               boxShadow: [
                 BoxShadow(
-                  color: AppColors.kPrimary.withValues(alpha: 0.08),
+                  color: AirbnbColors.primary.withValues(alpha: 0.08),
                   blurRadius: 12,
                   offset: const Offset(0, 3),
                 ),
@@ -2373,23 +2060,21 @@ class RoadAddressList extends StatelessWidget {
             child: Row(
               children: [
                 Container(
-                  padding: const EdgeInsets.all(14),
+                  padding: const EdgeInsets.all(AppSpacing.md), // 16px (14px → 16px)
                   decoration: BoxDecoration(
-                    color: AppColors.kPrimary.withValues(alpha: 0.08),
+                    color: AirbnbColors.primary.withValues(alpha: 0.08),
                     borderRadius: const BorderRadius.horizontal(left: Radius.circular(12)),
                   ),
-                  child: const Icon(Icons.location_on, color: AppColors.kPrimary, size: 20),
+                  child: const Icon(Icons.location_on, color: AirbnbColors.primary, size: 20),
                 ),
                 Expanded(
                   child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
+                    padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.lg), // 16px, 24px
                     child: Text(
                       '검색 결과 ${addresses.length}건',
-                      style: const TextStyle(
-                        color: AppColors.kPrimary,
-                        fontWeight: FontWeight.w700,
-                        fontSize: 16,
-                        letterSpacing: -0.2,
+                      style: AppTypography.withColor(
+                        AppTypography.body.copyWith(fontWeight: FontWeight.w700, letterSpacing: -0.2),
+                        AirbnbColors.primary,
                       ),
                     ),
                   ),
@@ -2397,7 +2082,7 @@ class RoadAddressList extends StatelessWidget {
               ],
             ),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: AppSpacing.md), // 16px
           ...listItems,
         ],
       ),
@@ -2416,50 +2101,45 @@ class DetailAddressInput extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.symmetric(vertical: 12),
+      margin: const EdgeInsets.symmetric(vertical: AppSpacing.md), // 16px (12px → 16px)
       decoration: BoxDecoration(
-        color: AppColors.kPrimary.withValues(alpha: 0.05),
+        color: AirbnbColors.primary.withValues(alpha: 0.05),
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
-          color: AppColors.kPrimary.withValues(alpha: 0.3),
+          color: AirbnbColors.primary.withValues(alpha: 0.3),
           width: 1.5,
         ),
         boxShadow: [
           BoxShadow(
-            color: AppColors.kPrimary.withValues(alpha: 0.1),
+            color: AirbnbColors.primary.withValues(alpha: 0.1),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
         ],
       ),
-      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xs, vertical: AppSpacing.xs), // 4px
       child: TextField(
         controller: controller,
         onChanged: onChanged,
-        style: const TextStyle(
-          fontSize: 17,
-          fontWeight: FontWeight.w500,
-        ),
+        style: AppTypography.body.copyWith(fontWeight: FontWeight.w500),
         decoration: InputDecoration(
           labelText: '상세주소 (선택사항)',
-          labelStyle: TextStyle(
-            color: AppColors.kPrimary,
-            fontWeight: FontWeight.w600,
-            fontSize: 17,
+          labelStyle: AppTypography.withColor(
+            AppTypography.body.copyWith(fontWeight: FontWeight.w600),
+            AirbnbColors.primary,
           ),
           hintText: '예: 211동 1506호',
-          hintStyle: TextStyle(
-            color: Colors.grey[500],
-            fontSize: 17,
+          hintStyle: AppTypography.withColor(
+            AppTypography.body,
+            AirbnbColors.textSecondary,
           ),
           helperText: '💡 아파트/오피스텔은 동/호수 입력, 단독주택/다가구는 생략 가능합니다',
-          helperStyle: TextStyle(
-            color: Colors.grey[700],
-            fontSize: 13,
-            fontWeight: FontWeight.w500,
+          helperStyle: AppTypography.withColor(
+            AppTypography.bodySmall.copyWith(fontWeight: FontWeight.w500),
+            AirbnbColors.textSecondary,
           ),
           filled: true,
-          fillColor: Colors.white,
+          fillColor: AirbnbColors.background,
           border: OutlineInputBorder(
             borderRadius: const BorderRadius.all(Radius.circular(10)),
             borderSide: BorderSide.none,
@@ -2471,19 +2151,19 @@ class DetailAddressInput extends StatelessWidget {
           focusedBorder: OutlineInputBorder(
             borderRadius: const BorderRadius.all(Radius.circular(10)),
             borderSide: BorderSide(
-              color: AppColors.kPrimary,
+              color: AirbnbColors.primary,
               width: 2,
             ),
           ),
           contentPadding: const EdgeInsets.symmetric(
-            horizontal: 18,
-            vertical: 20,
+            horizontal: AppSpacing.lg, // 24px (18px → 24px)
+            vertical: AppSpacing.lg, // 24px (20px → 24px)
           ),
           prefixIcon: Container(
             margin: const EdgeInsets.only(right: 8),
             child: Icon(
               Icons.home_work,
-              color: AppColors.kPrimary,
+              color: AirbnbColors.primary,
               size: 26,
             ),
           ),
@@ -2521,21 +2201,20 @@ class VWorldDataWidget extends StatelessWidget {
                   children: [
                     Icon(
                       isLoading ? Icons.hourglass_empty : (error != null ? Icons.warning_rounded : Icons.location_on),
-                      color: isLoading ? Colors.grey : (error != null ? Colors.orange : AppColors.kPrimary),
+                      color: isLoading ? AirbnbColors.textSecondary : (error != null ? AirbnbColors.warning : AirbnbColors.primary),
                       size: 20,
                     ),
-                    const SizedBox(width: 8),
+                    const SizedBox(width: AppSpacing.sm), // 8px
                     Text(
                       isLoading ? '위치 정보 조회 중...' : (error != null ? '위치 정보 조회 실패' : '위치 정보'),
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: isLoading ? Colors.grey : (error != null ? Colors.orange : AppColors.kPrimary),
+                      style: AppTypography.withColor(
+                        AppTypography.body.copyWith(fontWeight: FontWeight.bold),
+                        isLoading ? AirbnbColors.textSecondary : (error != null ? AirbnbColors.warning : AirbnbColors.primary),
                       ),
                     ),
                   ],
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: AppSpacing.md), // 16px
                 
                 // 로딩 중
                 if (isLoading) ...[
@@ -2550,23 +2229,22 @@ class VWorldDataWidget extends StatelessWidget {
                 // 에러 메시지
                 if (error != null && !isLoading) ...[
                   Container(
-                    padding: const EdgeInsets.all(16),
+                    padding: const EdgeInsets.all(AppSpacing.md), // 16px
                     decoration: BoxDecoration(
-                      color: Colors.orange.withValues(alpha: 0.1),
+                      color: AirbnbColors.warning.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: Colors.orange.withValues(alpha: 0.3)),
+                      border: Border.all(color: AirbnbColors.warning.withValues(alpha: 0.3)),
                     ),
                     child: Row(
                       children: [
-                        const Icon(Icons.error_outline, color: Colors.orange, size: 24),
-                        const SizedBox(width: 12),
+                        const Icon(Icons.error_outline, color: AirbnbColors.warning, size: 24),
+                        const SizedBox(width: AppSpacing.md), // 16px
                         Expanded(
                           child: Text(
                             error!,
-                            style: const TextStyle(
-                              fontSize: 14,
-                              color: Colors.orange,
-                              fontWeight: FontWeight.w500,
+                            style: AppTypography.withColor(
+                              AppTypography.bodySmall.copyWith(fontWeight: FontWeight.w500),
+                              AirbnbColors.warning,
                             ),
                           ),
                         ),
@@ -2582,7 +2260,7 @@ class VWorldDataWidget extends StatelessWidget {
                     icon: Icons.pin_drop,
                     title: '좌표 정보',
                     content: '경도: ${coordinates!['x']}\n위도: ${coordinates!['y']}\n정확도: Level ${coordinates!['level'] ?? '-'}',
-                    iconColor: Colors.blue,
+                    iconColor: AirbnbColors.primary,
                   ),
                 ],
               ],
@@ -2599,9 +2277,9 @@ class VWorldDataWidget extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.grey[50],
+        color: AirbnbColors.surface,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey[200]!, width: 1),
+        border: Border.all(color: AirbnbColors.borderLight, width: 1),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -2614,26 +2292,24 @@ class VWorldDataWidget extends StatelessWidget {
             ),
             child: Icon(icon, color: iconColor, size: 20),
           ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: const TextStyle(
-          fontSize: 14,
-          fontWeight: FontWeight.bold,
-                    color: Color(0xFF2C3E50),
-                  ),
+                const SizedBox(width: AppSpacing.md), // 16px
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        title,
+                        style: AppTypography.withColor(
+                          AppTypography.bodySmall.copyWith(fontWeight: FontWeight.bold),
+                          AirbnbColors.textPrimary,
+                        ),
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: AppSpacing.sm), // 8px
                 Text(
                   content,
-                  style: TextStyle(
-                    fontSize: 13,
-                    color: Colors.grey[700],
-                    height: 1.5,
+                  style: AppTypography.withColor(
+                    AppTypography.caption.copyWith(height: 1.5),
+                    AirbnbColors.textSecondary,
                   ),
                 ),
               ],

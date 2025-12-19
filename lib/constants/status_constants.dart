@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:property/constants/app_constants.dart';
 import 'package:property/models/quote_request.dart';
 import 'package:property/models/property.dart';
 
@@ -71,23 +72,23 @@ class QuoteLifecycleStatus {
     }
   }
 
-  /// 라이프사이클별 대표 색상
+  /// 라이프사이클별 대표 색상 (에어비엔비 스타일 - 다양한 색상 조화)
   static Color color(String lifecycleStatus) {
     switch (lifecycleStatus) {
       case requested:
-        return const Color(0xFFFFA726); // 주황
+        return AirbnbColors.orange;      // 대기중 (주황)
       case collecting:
-        return const Color(0xFF42A5F5); // 파랑
+        return AirbnbColors.blue;        // 수집중 (파랑)
       case comparing:
-        return const Color(0xFF7E57C2); // 보라
+        return AirbnbColors.primary;     // 검토중 (보라색 - 주력색)
       case selected:
-        return const Color(0xFF26A69A); // 청록
+        return AirbnbColors.teal;        // 선택됨 (청록색)
       case completed:
-        return const Color(0xFF66BB6A); // 초록
+        return AirbnbColors.green;       // 완료 (녹색)
       case cancelled:
-        return const Color(0xFFEF5350); // 빨강
+        return AirbnbColors.red;         // 취소 (빨강)
       default:
-        return const Color(0xFF9E9E9E); // 회색
+        return AirbnbColors.textSecondary; // 회색
     }
   }
 }
@@ -163,17 +164,17 @@ class PropertyLifecycleStatus {
   static Color color(String lifecycleStatus) {
     switch (lifecycleStatus) {
       case assigned:
-        return const Color(0xFF42A5F5); // 파랑
+        return AirbnbColors.blue;        // 의뢰 확정 (파랑)
       case marketing:
-        return const Color(0xFF26A69A); // 청록
+        return AirbnbColors.teal;        // 광고 중 (청록색)
       case negotiating:
-        return const Color(0xFFFFA726); // 주황
+        return AirbnbColors.orange;      // 계약 진행 중 (주황)
       case finished:
-        return const Color(0xFF66BB6A); // 초록
+        return AirbnbColors.green;       // 거래 완료 (녹색)
       case paused:
-        return const Color(0xFFAB47BC); // 보라
+        return AirbnbColors.primary;      // 보류/예약 (보라색 - 주력색)
       default:
-        return const Color(0xFF9E9E9E); // 회색
+        return AirbnbColors.textSecondary; // 회색
     }
   }
 }

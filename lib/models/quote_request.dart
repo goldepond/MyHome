@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:property/constants/app_constants.dart';
 
 /// 견적문의 모델 (중개 상담 요청서)
 class QuoteRequest {
@@ -248,17 +249,17 @@ class QuoteRequest {
   static Color getStatusColor(String status) {
     switch (status) {
       case 'pending':
-        return const Color(0xFFFFA726); // 주황색
+        return AirbnbColors.orange; // 주황색
       case 'contacted':
-        return const Color(0xFF42A5F5); // 파란색
+        return AirbnbColors.blue; // 파란색
       case 'answered':
-        return const Color(0xFF9C27B0); // 보라색
+        return AirbnbColors.primary; // 보라색
       case 'completed':
-        return const Color(0xFF66BB6A); // 초록색
+        return AirbnbColors.green; // 초록색
       case 'cancelled':
-        return const Color(0xFFEF5350); // 빨간색
+        return AirbnbColors.red; // 빨간색
       default:
-        return const Color(0xFF9E9E9E); // 회색
+        return AirbnbColors.textSecondary; // 회색
     }
   }
   

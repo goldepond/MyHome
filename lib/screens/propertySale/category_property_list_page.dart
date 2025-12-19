@@ -86,20 +86,20 @@ class _CategoryPropertyListPageState extends State<CategoryPropertyListPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF8F9FA),
+      backgroundColor: AirbnbColors.surface,
       appBar: AppBar(
         title: Text(
           widget.categoryTitle,
           style: const TextStyle(
-            color: Colors.white,
+            color: AirbnbColors.background,
             fontWeight: FontWeight.bold,
             fontSize: 18,
           ),
         ),
-        backgroundColor: AppColors.kBrown,
+        backgroundColor: AirbnbColors.background, // 에어비엔비 스타일: 흰색 배경
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back, color: Colors.white),
+          icon: const Icon(Icons.arrow_back, color: AirbnbColors.background),
           onPressed: () => Navigator.pop(context),
         ),
         actions: [
@@ -107,13 +107,13 @@ class _CategoryPropertyListPageState extends State<CategoryPropertyListPage> {
             margin: const EdgeInsets.only(right: 16),
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
             decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha:0.2),
+              color: AirbnbColors.background.withValues(alpha:0.2),
               borderRadius: BorderRadius.circular(16),
             ),
             child: Text(
               '${_properties.length}개',
               style: const TextStyle(
-                color: Colors.white,
+                color: AirbnbColors.background,
                 fontWeight: FontWeight.bold,
                 fontSize: 14,
               ),
@@ -134,7 +134,7 @@ class _CategoryPropertyListPageState extends State<CategoryPropertyListPage> {
           constraints: const BoxConstraints(maxWidth: maxContentWidth),
           padding: const EdgeInsets.symmetric(horizontal: 16),
           child: const CircularProgressIndicator(
-            valueColor: AlwaysStoppedAnimation<Color>(AppColors.kBrown),
+            valueColor: AlwaysStoppedAnimation<Color>(AirbnbColors.primary),
           ),
         ),
       );
@@ -151,14 +151,14 @@ class _CategoryPropertyListPageState extends State<CategoryPropertyListPage> {
               Icon(
                 Icons.error_outline,
                 size: 64,
-                color: Colors.grey[400],
+                color: AirbnbColors.textLight,
               ),
               const SizedBox(height: 16),
               Text(
                 _errorMessage,
                 style: TextStyle(
                   fontSize: 16,
-                  color: Colors.grey[600],
+                  color: AirbnbColors.textSecondary,
                 ),
                 textAlign: TextAlign.center,
               ),
@@ -166,8 +166,8 @@ class _CategoryPropertyListPageState extends State<CategoryPropertyListPage> {
               ElevatedButton(
                 onPressed: _loadProperties,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.kBrown,
-                  foregroundColor: Colors.white,
+                  backgroundColor: AirbnbColors.background, // 에어비엔비 스타일: 흰색 배경
+                  foregroundColor: AirbnbColors.background,
                 ),
                 child: const Text('다시 시도'),
               ),
@@ -188,7 +188,7 @@ class _CategoryPropertyListPageState extends State<CategoryPropertyListPage> {
               Icon(
                 Icons.home_outlined,
                 size: 64,
-                color: Colors.grey[400],
+                color: AirbnbColors.textLight,
               ),
               const SizedBox(height: 16),
               Text(
@@ -196,7 +196,7 @@ class _CategoryPropertyListPageState extends State<CategoryPropertyListPage> {
                 style: TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
-                  color: Colors.grey[600],
+                  color: AirbnbColors.textSecondary,
                 ),
               ),
               const SizedBox(height: 8),
@@ -204,7 +204,7 @@ class _CategoryPropertyListPageState extends State<CategoryPropertyListPage> {
                 '다른 카테고리를 확인해보세요',
                 style: TextStyle(
                   fontSize: 14,
-                  color: Colors.grey[500],
+                  color: AirbnbColors.textSecondary,
                 ),
               ),
             ],
@@ -215,7 +215,7 @@ class _CategoryPropertyListPageState extends State<CategoryPropertyListPage> {
 
     return RefreshIndicator(
       onRefresh: _loadProperties,
-      color: AppColors.kBrown,
+      color: AirbnbColors.primary,
       child: Center(
         child: Container(
           constraints: const BoxConstraints(maxWidth: maxContentWidth),
@@ -239,11 +239,11 @@ class _CategoryPropertyListPageState extends State<CategoryPropertyListPage> {
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AirbnbColors.background,
         borderRadius: BorderRadius.circular(12),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha:0.05),
+            color: AirbnbColors.textPrimary.withValues(alpha:0.05),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -280,7 +280,7 @@ class _CategoryPropertyListPageState extends State<CategoryPropertyListPage> {
                       style: const TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
-                        color: AppColors.kBrown,
+                        color: AirbnbColors.primary,
                       ),
                     ),
                   ],
@@ -293,7 +293,7 @@ class _CategoryPropertyListPageState extends State<CategoryPropertyListPage> {
                   style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
-                    color: Color(0xFF2C3E50),
+                    color: AirbnbColors.textPrimary,
                   ),
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
@@ -307,14 +307,14 @@ class _CategoryPropertyListPageState extends State<CategoryPropertyListPage> {
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                         decoration: BoxDecoration(
-                          color: Colors.grey[100],
+                          color: AirbnbColors.surface,
                           borderRadius: BorderRadius.circular(6),
                         ),
                         child: Text(
                           property.buildingType!,
                           style: TextStyle(
                             fontSize: 12,
-                            color: Colors.grey[700],
+                            color: AirbnbColors.textSecondary,
                             fontWeight: FontWeight.w500,
                           ),
                         ),
@@ -324,14 +324,14 @@ class _CategoryPropertyListPageState extends State<CategoryPropertyListPage> {
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                       decoration: BoxDecoration(
-                        color: AppColors.kBrown.withValues(alpha:0.1),
+                        color: AirbnbColors.getTransactionTypeColor(property.transactionType).withValues(alpha:0.1),
                         borderRadius: BorderRadius.circular(6),
                       ),
                       child: Text(
                         _getTransactionTypeText(property.transactionType),
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 12,
-                          color: AppColors.kBrown,
+                          color: AirbnbColors.getTransactionTypeColor(property.transactionType),
                           fontWeight: FontWeight.w500,
                         ),
                       ),
@@ -346,14 +346,14 @@ class _CategoryPropertyListPageState extends State<CategoryPropertyListPage> {
                     Icon(
                       Icons.person_outline,
                       size: 16,
-                      color: Colors.grey[600],
+                      color: AirbnbColors.textSecondary,
                     ),
                     const SizedBox(width: 4),
                     Text(
                       property.mainContractor,
                       style: TextStyle(
                         fontSize: 14,
-                        color: Colors.grey[600],
+                        color: AirbnbColors.textSecondary,
                       ),
                     ),
                     const Spacer(),
@@ -361,7 +361,7 @@ class _CategoryPropertyListPageState extends State<CategoryPropertyListPage> {
                       _formatDate(property.createdAt),
                       style: TextStyle(
                         fontSize: 12,
-                        color: Colors.grey[500],
+                        color: AirbnbColors.textSecondary,
                       ),
                     ),
                   ],

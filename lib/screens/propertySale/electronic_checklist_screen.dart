@@ -126,7 +126,7 @@ class _ElectronicChecklistScreenState extends State<ElectronicChecklistScreen> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('${file.name} 파일이 업로드되었습니다.'),
-            backgroundColor: Colors.green,
+            backgroundColor: AirbnbColors.success,
           ),
         );
       }
@@ -137,7 +137,7 @@ class _ElectronicChecklistScreenState extends State<ElectronicChecklistScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('파일 업로드 중 오류가 발생했습니다: $e'),
-          backgroundColor: Colors.red,
+          backgroundColor: AirbnbColors.error,
         ),
       );
     }
@@ -187,7 +187,7 @@ class _ElectronicChecklistScreenState extends State<ElectronicChecklistScreen> {
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
                     content: Text('보완 필요로 처리되었습니다.'),
-                    backgroundColor: Colors.orange,
+                    backgroundColor: AirbnbColors.warning,
                   ),
                 );
               }
@@ -213,7 +213,7 @@ class _ElectronicChecklistScreenState extends State<ElectronicChecklistScreen> {
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text('${item.title}이 승인되었습니다.'),
-        backgroundColor: Colors.green,
+        backgroundColor: AirbnbColors.success,
       ),
     );
   }
@@ -227,7 +227,7 @@ class _ElectronicChecklistScreenState extends State<ElectronicChecklistScreen> {
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
         content: Text('확인·설명서 PDF가 생성되었습니다.'),
-        backgroundColor: Colors.blue,
+        backgroundColor: AirbnbColors.primary,
       ),
     );
   }
@@ -265,7 +265,7 @@ class _ElectronicChecklistScreenState extends State<ElectronicChecklistScreen> {
                         item.description,
                         style: TextStyle(
                           fontSize: 14,
-                          color: Colors.grey[600],
+                          color: AirbnbColors.textSecondary,
                         ),
                       ),
                     ],
@@ -295,12 +295,12 @@ class _ElectronicChecklistScreenState extends State<ElectronicChecklistScreen> {
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: Colors.blue.withValues(alpha:0.1),
+                  color: AirbnbColors.primary.withValues(alpha:0.1),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Row(
                   children: [
-                    const Icon(Icons.attach_file, color: Colors.blue, size: 20),
+                    const Icon(Icons.attach_file, color: AirbnbColors.primary, size: 20),
                     const SizedBox(width: 8),
                     Expanded(
                       child: Column(
@@ -313,7 +313,7 @@ class _ElectronicChecklistScreenState extends State<ElectronicChecklistScreen> {
                           if (item.uploadedAt != null)
                             Text(
                               '업로드: ${item.uploadedAt!.toString().substring(0, 19)}',
-                              style: TextStyle(fontSize: 10, color: Colors.grey[600]),
+                              style: TextStyle(fontSize: 10, color: AirbnbColors.textSecondary),
                             ),
                         ],
                       ),
@@ -328,27 +328,27 @@ class _ElectronicChecklistScreenState extends State<ElectronicChecklistScreen> {
               Container(
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
-                  color: Colors.red.withValues(alpha:0.1),
+                  color: AirbnbColors.error.withValues(alpha:0.1),
                   borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: Colors.red.withValues(alpha:0.3)),
+                  border: Border.all(color: AirbnbColors.error.withValues(alpha:0.3)),
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Row(
                       children: const [
-                        Icon(Icons.error_outline, color: Colors.red, size: 16),
+                        Icon(Icons.error_outline, color: AirbnbColors.error, size: 16),
                         SizedBox(width: 4),
                         Text(
                           '보완 필요 사유:',
-                          style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.red),
+                          style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: AirbnbColors.error),
                         ),
                       ],
                     ),
                     const SizedBox(height: 4),
                     Text(
                       item.rejectionReason!,
-                      style: const TextStyle(fontSize: 12, color: Colors.red),
+                      style: const TextStyle(fontSize: 12, color: AirbnbColors.error),
                     ),
                   ],
                 ),
@@ -365,8 +365,8 @@ class _ElectronicChecklistScreenState extends State<ElectronicChecklistScreen> {
                       icon: const Icon(Icons.upload_file, size: 16),
                       label: const Text('파일 업로드'),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.blue,
-                        foregroundColor: Colors.white,
+                        backgroundColor: AirbnbColors.primary,
+                        foregroundColor: AirbnbColors.background,
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                       ),
                     ),
@@ -379,8 +379,8 @@ class _ElectronicChecklistScreenState extends State<ElectronicChecklistScreen> {
                       icon: const Icon(Icons.close, size: 16),
                       label: const Text('보완요청'),
                       style: OutlinedButton.styleFrom(
-                        foregroundColor: Colors.red,
-                        side: const BorderSide(color: Colors.red),
+                        foregroundColor: AirbnbColors.error,
+                        side: const BorderSide(color: AirbnbColors.error),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                       ),
                     ),
@@ -392,8 +392,8 @@ class _ElectronicChecklistScreenState extends State<ElectronicChecklistScreen> {
                       icon: const Icon(Icons.check, size: 16),
                       label: const Text('승인'),
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.green,
-                        foregroundColor: Colors.white,
+                        backgroundColor: AirbnbColors.success,
+                        foregroundColor: AirbnbColors.background,
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                       ),
                     ),
@@ -412,15 +412,15 @@ class _ElectronicChecklistScreenState extends State<ElectronicChecklistScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('확인·설명서 전자체크'),
-        backgroundColor: AppColors.kBrown,
-        foregroundColor: Colors.white,
+        backgroundColor: AirbnbColors.primary,
+        foregroundColor: AirbnbColors.background,
         actions: [
           if (isAssistantMode)
             Container(
               margin: const EdgeInsets.only(right: 16),
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
               decoration: BoxDecoration(
-                color: Colors.orange,
+                color: AirbnbColors.warning,
                 borderRadius: BorderRadius.circular(12),
               ),
               child: const Text(
@@ -439,10 +439,10 @@ class _ElectronicChecklistScreenState extends State<ElectronicChecklistScreen> {
           Container(
             width: double.infinity,
             padding: const EdgeInsets.all(16),
-            color: Colors.orange.withValues(alpha:0.1),
+            color: AirbnbColors.warning.withValues(alpha:0.1),
             child: Row(
               children: [
-                const Icon(Icons.warning_amber, color: Colors.orange),
+                const Icon(Icons.warning_amber, color: AirbnbColors.warning),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
@@ -450,7 +450,7 @@ class _ElectronicChecklistScreenState extends State<ElectronicChecklistScreen> {
                     style: TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.bold,
-                      color: Colors.orange[800],
+                      color: AirbnbColors.warning.withValues(alpha: 0.8),
                     ),
                   ),
                 ),
@@ -462,7 +462,7 @@ class _ElectronicChecklistScreenState extends State<ElectronicChecklistScreen> {
           Container(
             width: double.infinity,
             padding: const EdgeInsets.all(16),
-            color: Colors.grey[50],
+            color: AirbnbColors.surface,
             child: Column(
               children: [
                 Row(
@@ -473,7 +473,7 @@ class _ElectronicChecklistScreenState extends State<ElectronicChecklistScreen> {
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
-                        color: Colors.grey[700],
+                        color: AirbnbColors.textSecondary,
                       ),
                     ),
                     Text(
@@ -481,7 +481,7 @@ class _ElectronicChecklistScreenState extends State<ElectronicChecklistScreen> {
                       style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
-                        color: isAllCompleted ? Colors.green : Colors.blue,
+                        color: isAllCompleted ? AirbnbColors.success : AirbnbColors.primary,
                       ),
                     ),
                   ],
@@ -489,9 +489,9 @@ class _ElectronicChecklistScreenState extends State<ElectronicChecklistScreen> {
                 const SizedBox(height: 8),
                 LinearProgressIndicator(
                   value: totalCount > 0 ? completedCount / totalCount : 0,
-                  backgroundColor: Colors.grey[300],
+                  backgroundColor: AirbnbColors.border,
                   valueColor: AlwaysStoppedAnimation<Color>(
-                    isAllCompleted ? Colors.green : Colors.blue,
+                    isAllCompleted ? AirbnbColors.success : AirbnbColors.primary,
                   ),
                 ),
               ],
@@ -513,10 +513,10 @@ class _ElectronicChecklistScreenState extends State<ElectronicChecklistScreen> {
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: AirbnbColors.background,
               boxShadow: [
                 BoxShadow(
-                  color: Colors.grey.withValues(alpha:0.2),
+                  color: AirbnbColors.textSecondary.withValues(alpha:0.2),
                   spreadRadius: 1,
                   blurRadius: 3,
                   offset: const Offset(0, -1),
@@ -533,8 +533,8 @@ class _ElectronicChecklistScreenState extends State<ElectronicChecklistScreen> {
                         icon: const Icon(Icons.download),
                         label: const Text('PDF 내려받기'),
                         style: OutlinedButton.styleFrom(
-                          foregroundColor: Colors.blue,
-                          side: const BorderSide(color: Colors.blue),
+                          foregroundColor: AirbnbColors.primary,
+                          side: const BorderSide(color: AirbnbColors.primary),
                           padding: const EdgeInsets.symmetric(vertical: 12),
                         ),
                       ),
@@ -547,8 +547,8 @@ class _ElectronicChecklistScreenState extends State<ElectronicChecklistScreen> {
                           Navigator.of(context).pop(true);
                         } : null,
                         style: ElevatedButton.styleFrom(
-                          backgroundColor: isAllCompleted ? AppColors.kBrown : Colors.grey,
-                          foregroundColor: Colors.white,
+                          backgroundColor: isAllCompleted ? AirbnbColors.primary : AirbnbColors.textSecondary,
+                          foregroundColor: AirbnbColors.background,
                           padding: const EdgeInsets.symmetric(vertical: 12),
                         ),
                         child: const Text('가계약 진행'),
@@ -561,7 +561,7 @@ class _ElectronicChecklistScreenState extends State<ElectronicChecklistScreen> {
                   '모든 확인 내역은 시간·IP가 찍힌 PDF로 보관되어 분쟁 시 증거가 됩니다.',
                   style: TextStyle(
                     fontSize: 12,
-                    color: Colors.grey[600],
+                    color: AirbnbColors.textSecondary,
                   ),
                   textAlign: TextAlign.center,
                 ),

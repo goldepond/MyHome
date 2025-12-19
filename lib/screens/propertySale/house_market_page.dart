@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:property/constants/app_constants.dart';
+import 'package:property/constants/responsive_constants.dart';
+import 'package:property/constants/typography.dart';
+import 'package:property/constants/spacing.dart';
+import 'package:property/widgets/common_design_system.dart';
 import 'package:property/models/property.dart';
 import 'package:property/api_request/firebase_service.dart';
 import 'package:property/widgets/empty_state.dart';
@@ -96,7 +100,7 @@ class _HouseMarketPageState extends State<HouseMarketPage> {
       isLoading: _isLoading,
       message: '매물 정보를 불러오는 중...',
       child: Scaffold(
-        backgroundColor: AppColors.kBackground,
+        backgroundColor: AirbnbColors.background,
         body: SafeArea(
           child: _errorMessage != null
               ? Center(
@@ -112,9 +116,12 @@ class _HouseMarketPageState extends State<HouseMarketPage> {
   }
 
   Widget _buildMainContent() {
-    const double maxContentWidth = 900;
-    const double bannerHeight = 360;
-    const double overlapHeight = 80; // 배너와 겹치는 높이 (40 -> 80으로 증가)
+    final maxContentWidth = ResponsiveHelper.getMaxWidth(context);
+    // 배너 높이는 반응형으로 계산 (메인페이지 스타일: 모바일 480px, 태블릿 560px, 데스크톱 640px)
+    final isMobile = ResponsiveHelper.isMobile(context);
+    final isTablet = ResponsiveHelper.isTablet(context);
+    final bannerHeight = isMobile ? 320.0 : (isTablet ? 360.0 : 400.0); // 콘텐츠 고려하여 약간 줄임
+    const double overlapHeight = 80; // 배너와 겹치는 높이
 
     return SingleChildScrollView(
       child: Stack(
@@ -125,27 +132,27 @@ class _HouseMarketPageState extends State<HouseMarketPage> {
 
           // 메인 컨텐츠
           Padding(
-            padding: const EdgeInsets.only(top: bannerHeight - overlapHeight),
+            padding: EdgeInsets.only(top: bannerHeight - overlapHeight),
             child: Center(
               child: Container(
-                constraints: const BoxConstraints(maxWidth: maxContentWidth),
-                padding: const EdgeInsets.symmetric(horizontal: 20),
+                constraints: BoxConstraints(maxWidth: maxContentWidth),
+                padding: EdgeInsets.symmetric(horizontal: ResponsiveHelper.getHorizontalPadding(context)),
                 child: Column(
                   children: [
                     // 거래 유형 필터
                     _buildTransactionTypeFilter(),
 
-                    const SizedBox(height: 20),
+                    SizedBox(height: AppSpacing.lg),
                     
                     // 매물 카테고리 카드들
                     _buildCategoryCards(),
 
-                    const SizedBox(height: 20),
+                    SizedBox(height: AppSpacing.lg),
                     
                     // 매물 목록
                     _buildPropertyList(),
                     
-                    const SizedBox(height: 20),
+                    SizedBox(height: AppSpacing.lg),
                     
                     // 웹 전용 푸터 여백 (영상 촬영용)
                     if (kIsWeb) const SizedBox(height: 600),
@@ -161,30 +168,19 @@ class _HouseMarketPageState extends State<HouseMarketPage> {
 
   Widget _buildTransactionTypeFilter() {
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 12),
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
+      margin: EdgeInsets.symmetric(horizontal: AppSpacing.md * 0.75),
+      padding: EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.md * 0.75),
+      decoration: CommonDesignSystem.cardDecoration(),
       child: Row(
         children: [
-          const Text(
+          Text(
             '거래 유형:',
-            style: TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w600,
-              color: Color(0xFF2C3E50),
+            style: AppTypography.withColor(
+              AppTypography.bodySmall.copyWith(fontWeight: FontWeight.w600),
+              AirbnbColors.textPrimary,
             ),
           ),
-          const SizedBox(width: 12),
+          SizedBox(width: AppSpacing.md * 0.75),
           Expanded(
             child: SegmentedButton<String?>(
               segments: const [
@@ -208,55 +204,51 @@ class _HouseMarketPageState extends State<HouseMarketPage> {
   }
 
   Widget _buildBuyHeroBanner() {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final isMobile = screenWidth < 768;
+    final isTablet = screenWidth >= 768 && screenWidth < 1024;
+    
     return Container(
-      height: 360,
       width: double.infinity,
-      padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 24),
+      padding: EdgeInsets.symmetric(
+        vertical: isMobile ? 48.0 : 64.0, // 48px / 64px
+        horizontal: isMobile ? 24.0 : 48.0, // 24px / 48px
+      ),
       decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            Color(0xFF1E3A8A), // Deep Blue
-            Color(0xFF00695C), // Teal Green
+        color: AirbnbColors.background,
+      ),
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 1200),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            // 매우 큰 헤드라인 (Stripe/Vercel 스타일)
+            Text(
+              '검증된 실매물을\n한눈에 확인하세요',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: isMobile ? 40 : (isTablet ? 52 : 64), // 40px / 52px / 64px
+                fontWeight: FontWeight.w800,
+                letterSpacing: -1.5,
+                height: 1.1,
+                color: AirbnbColors.textPrimary,
+              ),
+            ),
+            const SizedBox(height: 24), // 24px
+            // 큰 서브헤드
+            Text(
+              '원하는 조건의 매물을 쉽고 빠르게 찾을 수 있습니다',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontSize: isMobile ? 18 : 22,
+                fontWeight: FontWeight.w400,
+                height: 1.6,
+                color: AirbnbColors.textSecondary,
+              ),
+            ),
           ],
         ),
-        borderRadius: BorderRadius.zero,
-        boxShadow: const [
-          BoxShadow(
-            color: Color(0x401E3A8A),
-            blurRadius: 28,
-            offset: Offset(0, 12),
-          ),
-        ],
-      ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          const Text(
-            '검증된 실매물을\n한눈에 확인하세요',
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: 34,
-              fontWeight: FontWeight.w900,
-              letterSpacing: -0.8,
-              height: 1.2,
-            ),
-          ),
-          const SizedBox(height: 10),
-          Text(
-            '원하는 조건의 매물을 쉽고 빠르게 찾을 수 있습니다',
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              color: Colors.white.withValues(alpha: 0.92),
-              fontSize: 16,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-          // 카테고리 카드와 겹치는 부분 고려하여 텍스트 위치 상향 조정
-          const SizedBox(height: 60),
-        ],
       ),
     );
   }
@@ -299,11 +291,11 @@ class _HouseMarketPageState extends State<HouseMarketPage> {
       margin: const EdgeInsets.symmetric(horizontal: 12),
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 18),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AirbnbColors.background,
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.04),
+            color: AirbnbColors.textPrimary.withValues(alpha: 0.04),
             blurRadius: 24,
             offset: const Offset(0, 8),
           ),
@@ -401,7 +393,7 @@ class _HouseMarketPageState extends State<HouseMarketPage> {
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
-              color: Color(0xFF2C3E50),
+              color: AirbnbColors.textPrimary,
             ),
           ),
           const SizedBox(height: 12),
@@ -427,11 +419,11 @@ class _HouseMarketPageState extends State<HouseMarketPage> {
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AirbnbColors.background,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.06),
+            color: AirbnbColors.textPrimary.withValues(alpha: 0.06),
             blurRadius: 20,
             offset: const Offset(0, 4),
           ),
@@ -466,7 +458,7 @@ class _HouseMarketPageState extends State<HouseMarketPage> {
                         style: const TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.bold,
-                          color: Color(0xFF2C3E50),
+                          color: AirbnbColors.textPrimary,
                         ),
                       ),
                     ),
@@ -493,7 +485,7 @@ class _HouseMarketPageState extends State<HouseMarketPage> {
                     Icon(
                       Icons.attach_money,
                       size: 16,
-                      color: Colors.grey[600],
+                      color: AirbnbColors.textSecondary,
                     ),
                     const SizedBox(width: 4),
                     Text(
@@ -501,21 +493,21 @@ class _HouseMarketPageState extends State<HouseMarketPage> {
                       style: TextStyle(
                         fontSize: 14,
                         fontWeight: FontWeight.w600,
-                        color: Colors.grey[700],
+                        color: AirbnbColors.textSecondary,
                       ),
                     ),
                     const SizedBox(width: 16),
                     Icon(
                       Icons.person,
                       size: 16,
-                      color: Colors.grey[600],
+                      color: AirbnbColors.textSecondary,
                     ),
                     const SizedBox(width: 4),
                     Text(
                       property.mainContractor,
                       style: TextStyle(
                         fontSize: 14,
-                        color: Colors.grey[600],
+                        color: AirbnbColors.textSecondary,
                       ),
                     ),
                   ],
@@ -526,7 +518,7 @@ class _HouseMarketPageState extends State<HouseMarketPage> {
                     property.description,
                     style: TextStyle(
                       fontSize: 13,
-                      color: Colors.grey[600],
+                      color: AirbnbColors.textSecondary,
                     ),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
@@ -557,10 +549,10 @@ class _HouseMarketPageState extends State<HouseMarketPage> {
                       return Container(
                         padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
-                          color: Colors.indigo.withValues(alpha: 0.05),
+                          color: AirbnbColors.blue.withValues(alpha: 0.05),
                           borderRadius: BorderRadius.circular(8),
                           border: Border.all(
-                            color: Colors.indigo.withValues(alpha: 0.2),
+                            color: AirbnbColors.blue.withValues(alpha: 0.2),
                             width: 1,
                           ),
                         ),
@@ -569,7 +561,7 @@ class _HouseMarketPageState extends State<HouseMarketPage> {
                             const Icon(
                               Icons.business,
                               size: 18,
-                              color: Colors.indigo,
+                              color: AirbnbColors.blue,
                             ),
                             const SizedBox(width: 8),
                             Expanded(
@@ -581,7 +573,7 @@ class _HouseMarketPageState extends State<HouseMarketPage> {
                                     style: const TextStyle(
                                       fontSize: 14,
                                       fontWeight: FontWeight.bold,
-                                      color: Color(0xFF2C3E50),
+                                      color: AirbnbColors.textPrimary,
                                     ),
                                   ),
                                   if (hasPhoneNumber) ...[
@@ -590,7 +582,7 @@ class _HouseMarketPageState extends State<HouseMarketPage> {
                                       phoneNumber,
                                       style: TextStyle(
                                         fontSize: 12,
-                                        color: Colors.grey[600],
+                                        color: AirbnbColors.textSecondary,
                                       ),
                                     ),
                                   ],
@@ -611,7 +603,7 @@ class _HouseMarketPageState extends State<HouseMarketPage> {
                                       ScaffoldMessenger.of(context).showSnackBar(
                                         SnackBar(
                                           content: Text('전화 걸기 실패: $e'),
-                                          backgroundColor: Colors.red,
+                                          backgroundColor: AirbnbColors.error,
                                         ),
                                       );
                                     }
@@ -620,7 +612,7 @@ class _HouseMarketPageState extends State<HouseMarketPage> {
                                 child: Container(
                                   padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                                   decoration: BoxDecoration(
-                                    color: Colors.green,
+                                    color: AirbnbColors.success,
                                     borderRadius: BorderRadius.circular(6),
                                   ),
                                   child: const Row(
@@ -629,7 +621,7 @@ class _HouseMarketPageState extends State<HouseMarketPage> {
                                       Icon(
                                         Icons.call,
                                         size: 16,
-                                        color: Colors.white,
+                                        color: AirbnbColors.background,
                                       ),
                                       SizedBox(width: 4),
                                       Text(
@@ -637,7 +629,7 @@ class _HouseMarketPageState extends State<HouseMarketPage> {
                                         style: TextStyle(
                                           fontSize: 12,
                                           fontWeight: FontWeight.bold,
-                                          color: Colors.white,
+                                          color: AirbnbColors.background,
                                         ),
                                       ),
                                     ],
@@ -667,7 +659,7 @@ class _HouseMarketPageState extends State<HouseMarketPage> {
           Icon(
             Icons.error_outline,
             size: 64,
-            color: Colors.red[400],
+            color: AirbnbColors.error.withValues(alpha: 0.4),
           ),
           const SizedBox(height: 16),
           Text(
@@ -675,7 +667,7 @@ class _HouseMarketPageState extends State<HouseMarketPage> {
             style: TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.bold,
-              color: Colors.red[600],
+              color: AirbnbColors.error.withValues(alpha: 0.6),
             ),
           ),
           const SizedBox(height: 8),
@@ -683,7 +675,7 @@ class _HouseMarketPageState extends State<HouseMarketPage> {
             _errorMessage!,
             style: TextStyle(
               fontSize: 14,
-              color: Colors.grey[600],
+              color: AirbnbColors.textSecondary,
             ),
             textAlign: TextAlign.center,
           ),
@@ -691,8 +683,8 @@ class _HouseMarketPageState extends State<HouseMarketPage> {
           ElevatedButton(
             onPressed: _loadProperties,
             style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.kBrown,
-              foregroundColor: Colors.white,
+              backgroundColor: AirbnbColors.textPrimary, // 에어비엔비 스타일: 검은색 배경
+              foregroundColor: AirbnbColors.background,
             ),
             child: const Text('다시 시도'),
           ),
@@ -726,12 +718,12 @@ class _CategoryButton extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(10),
               decoration: BoxDecoration(
-                color: AppColors.kPrimary.withValues(alpha: 0.08),
+                color: AirbnbColors.primary.withValues(alpha: 0.08),
                 borderRadius: BorderRadius.circular(16),
               ),
               child: Icon(
                 icon,
-                color: AppColors.kPrimary,
+                color: AirbnbColors.primary,
                 size: 24,
               ),
             ),
@@ -742,7 +734,7 @@ class _CategoryButton extends StatelessWidget {
               style: const TextStyle(
                 fontSize: 12,
                 fontWeight: FontWeight.w600,
-                color: Color(0xFF1F2937),
+                color: AirbnbColors.textPrimary,
               ),
             ),
           ],

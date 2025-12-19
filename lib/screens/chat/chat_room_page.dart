@@ -30,12 +30,12 @@ class _ChatRoomPageState extends State<ChatRoomPage> {
     return GestureDetector(
       onTap: () => FocusScope.of(context).unfocus(),
       child: Scaffold(
-      backgroundColor: AppColors.kBackground,
+      backgroundColor: AirbnbColors.surface,
         resizeToAvoidBottomInset: true,
       appBar: AppBar(
         title: Text(widget.title),
-        backgroundColor: Colors.white,
-        foregroundColor: Colors.black,
+        backgroundColor: AirbnbColors.background,
+        foregroundColor: AirbnbColors.textPrimary,
         elevation: 1,
       ),
         body: SafeArea(
@@ -88,7 +88,7 @@ class _ChatRoomPageState extends State<ChatRoomPage> {
           if (isMe) ...[
             Text(
               timeFormat.format(message.timestamp),
-              style: TextStyle(fontSize: 10, color: Colors.grey[500]),
+              style: TextStyle(fontSize: 10, color: AirbnbColors.textSecondary),
             ),
             const SizedBox(width: 4),
           ],
@@ -96,14 +96,14 @@ class _ChatRoomPageState extends State<ChatRoomPage> {
             constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.7),
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
             decoration: BoxDecoration(
-              color: isMe ? AppColors.kPrimary : Colors.white,
+              color: isMe ? AirbnbColors.primary : AirbnbColors.background,
               borderRadius: BorderRadius.circular(16).copyWith(
                 bottomRight: isMe ? const Radius.circular(0) : null,
                 bottomLeft: !isMe ? const Radius.circular(0) : null,
               ),
               boxShadow: [
                 BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.05),
+                  color: AirbnbColors.textPrimary.withValues(alpha: 0.05),
                   blurRadius: 2,
                   offset: const Offset(0, 1),
                 ),
@@ -112,7 +112,7 @@ class _ChatRoomPageState extends State<ChatRoomPage> {
             child: Text(
               message.message,
               style: TextStyle(
-                color: isMe ? Colors.white : Colors.black87,
+                color: isMe ? AirbnbColors.background : AirbnbColors.textPrimary,
                 fontSize: 15,
               ),
             ),
@@ -121,7 +121,7 @@ class _ChatRoomPageState extends State<ChatRoomPage> {
             const SizedBox(width: 4),
             Text(
               timeFormat.format(message.timestamp),
-              style: TextStyle(fontSize: 10, color: Colors.grey[500]),
+              style: TextStyle(fontSize: 10, color: AirbnbColors.textSecondary),
             ),
           ],
         ],
@@ -132,7 +132,7 @@ class _ChatRoomPageState extends State<ChatRoomPage> {
   Widget _buildMessageInput() {
     return Container(
       padding: const EdgeInsets.all(16),
-      color: Colors.white,
+      color: AirbnbColors.background,
       child: SafeArea(
         child: Row(
           children: [
@@ -146,7 +146,7 @@ class _ChatRoomPageState extends State<ChatRoomPage> {
                     borderSide: BorderSide.none,
                   ),
                   filled: true,
-                  fillColor: Colors.grey[100],
+                  fillColor: AirbnbColors.surface,
                   contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
                 ),
                 minLines: 1,
@@ -155,9 +155,9 @@ class _ChatRoomPageState extends State<ChatRoomPage> {
             ),
             const SizedBox(width: 8),
             CircleAvatar(
-              backgroundColor: AppColors.kPrimary,
+              backgroundColor: AirbnbColors.primary,
               child: IconButton(
-                icon: const Icon(Icons.send, color: Colors.white, size: 20),
+                icon: const Icon(Icons.send, color: AirbnbColors.background, size: 20),
                 onPressed: _sendMessage,
               ),
             ),

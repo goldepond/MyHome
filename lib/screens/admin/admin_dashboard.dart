@@ -27,7 +27,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.kBackground,
+      backgroundColor: AirbnbColors.surface,
       appBar: _buildTopNavigationBar(),
       body: IndexedStack(
         index: _currentIndex,
@@ -59,11 +59,11 @@ class _AdminDashboardState extends State<AdminDashboard> {
     final isMobile = screenWidth < 600;
 
     return AppBar(
-      backgroundColor: Colors.white,
-      foregroundColor: Colors.black,
+      backgroundColor: AirbnbColors.background,
+      foregroundColor: AirbnbColors.textPrimary,
       elevation: 2,
       toolbarHeight: 70,
-      shadowColor: Colors.black.withValues(alpha: 0.1),
+      shadowColor: AirbnbColors.textPrimary.withValues(alpha: 0.1),
       surfaceTintColor: Colors.transparent,
       title: isMobile
           ? _buildMobileHeader()
@@ -101,17 +101,17 @@ class _AdminDashboardState extends State<AdminDashboard> {
                 LogoWithText(
                   fontSize: 24,
                   logoHeight: 60,
-                  textColor: AppColors.kPrimary,
+                  textColor: AirbnbColors.primary,
                   onTap: _goToHome,
                 ),
                 const SizedBox(width: 8),
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(
-                    color: AppColors.kPrimary.withValues(alpha: 0.15),
+                    color: AirbnbColors.primary.withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(
-                      color: AppColors.kPrimary.withValues(alpha: 0.3),
+                      color: AirbnbColors.primary.withValues(alpha: 0.3),
                       width: 1,
                     ),
                   ),
@@ -120,7 +120,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
                     children: const [
                       Icon(
                         Icons.admin_panel_settings,
-                        color: AppColors.kPrimary,
+                        color: AirbnbColors.primary,
                         size: 14,
                       ),
                       SizedBox(width: 4),
@@ -129,7 +129,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
                         style: TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.w600,
-                          color: AppColors.kPrimary,
+                          color: AirbnbColors.primary,
                         ),
                       ),
                     ],
@@ -178,18 +178,11 @@ class _AdminDashboardState extends State<AdminDashboard> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: [
-              AppColors.kPrimary.withValues(alpha: 0.1),
-              AppColors.kSecondary.withValues(alpha: 0.1),
-            ],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
+          color: AirbnbColors.primary.withValues(alpha: 0.08),
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
-            color: AppColors.kPrimary.withValues(alpha: 0.2),
-            width: 1,
+            color: AirbnbColors.primary.withValues(alpha: 0.2),
+            width: 1.5,
           ),
         ),
         child: Row(
@@ -197,14 +190,14 @@ class _AdminDashboardState extends State<AdminDashboard> {
           children: const [
             Icon(
               Icons.home,
-              color: AppColors.kPrimary,
+              color: AirbnbColors.primary,
               size: 20,
             ),
             SizedBox(width: 6),
             Text(
               '홈으로',
               style: TextStyle(
-                color: AppColors.kPrimary,
+                color: AirbnbColors.primary,
                 fontWeight: FontWeight.w600,
                 fontSize: 15,
               ),
@@ -217,7 +210,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
 
   Widget _buildNavButton(String label, int index, IconData icon, {bool isMobile = false}) {
     final isSelected = _currentIndex == index;
-    final Color unselectedColor = Colors.grey.shade600;
+    final Color unselectedColor = AirbnbColors.textSecondary;
 
     return InkWell(
       onTap: () {
@@ -232,12 +225,12 @@ class _AdminDashboardState extends State<AdminDashboard> {
           vertical: isMobile ? 6 : 12,
         ),
         decoration: BoxDecoration(
-              gradient: isSelected ? AppGradients.primaryDiagonal : null,
+              color: isSelected ? AirbnbColors.primary.withValues(alpha: 0.1) : null,
           borderRadius: BorderRadius.circular(8),
           boxShadow: isSelected
               ? [
                   BoxShadow(
-                    color: AppColors.kPrimary.withValues(alpha: 0.3),
+                    color: AirbnbColors.primary.withValues(alpha: 0.3),
                     offset: const Offset(0, 2),
                     blurRadius: 6,
                   ),
@@ -250,7 +243,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
           children: [
             Icon(
               icon,
-              color: isSelected ? Colors.white : unselectedColor,
+              color: isSelected ? AirbnbColors.background : unselectedColor,
               size: isMobile ? 22 : 20,
             ),
             SizedBox(width: isMobile ? 4 : 6),
@@ -258,13 +251,13 @@ class _AdminDashboardState extends State<AdminDashboard> {
               child: Text(
                 label,
                 style: TextStyle(
-                  color: isSelected ? Colors.white : unselectedColor,
+                  color: isSelected ? AirbnbColors.background : unselectedColor,
                   fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
                   fontSize: isMobile ? 13 : 15,
                   shadows: isSelected
                       ? [
                           Shadow(
-                            color: Colors.black.withValues(alpha: 0.2),
+                            color: AirbnbColors.textPrimary.withValues(alpha: 0.2),
                             offset: const Offset(0, 1),
                             blurRadius: 2,
                           ),
@@ -287,50 +280,53 @@ class _AdminDashboardState extends State<AdminDashboard> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // 환영 메시지
+          // 환영 메시지 (메인페이지 스타일)
           Container(
             width: double.infinity,
-            padding: const EdgeInsets.all(20),
+            padding: EdgeInsets.symmetric(
+              vertical: MediaQuery.of(context).size.width < 768 ? 48.0 : 64.0,
+              horizontal: MediaQuery.of(context).size.width < 768 ? 24.0 : 48.0,
+            ),
             decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [AppColors.kPrimary, AppColors.kPrimary.withValues(alpha: 0.8)],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
+              // Stripe 스타일: 밝은 배경에 미묘한 그라데이션
+              color: AirbnbColors.background,
               borderRadius: BorderRadius.circular(16),
-              boxShadow: [
-                BoxShadow(
-                  color: AppColors.kPrimary.withValues(alpha: 0.3),
-                  blurRadius: 10,
-                  offset: const Offset(0, 4),
-                ),
-              ],
             ),
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                const Text(
+                Text(
                   '관리자 대시보드',
+                  textAlign: TextAlign.center,
                   style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
+                    fontSize: MediaQuery.of(context).size.width < 768 ? 40 : 64,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: -1.5,
+                    height: 1.1,
+                    color: AirbnbColors.textPrimary,
+                  ),
+                ),
+                const SizedBox(height: 24),
+                Text(
+                  '안녕하세요, ${widget.userName}님',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: MediaQuery.of(context).size.width < 768 ? 18 : 22,
+                    fontWeight: FontWeight.w400,
+                    height: 1.6,
+                    color: AirbnbColors.textSecondary,
                   ),
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  '안녕하세요, ${widget.userName}님',
-                  style: const TextStyle(
-                    color: Colors.white70,
-                    fontSize: 16,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                const Text(
                   'MyHome 관리자 페이지에 오신 것을 환영합니다',
+                  textAlign: TextAlign.center,
                   style: TextStyle(
-                    color: Colors.white70,
-                    fontSize: 14,
+                    fontSize: MediaQuery.of(context).size.width < 768 ? 16 : 18,
+                    fontWeight: FontWeight.w400,
+                    height: 1.6,
+                    color: AirbnbColors.textSecondary,
                   ),
                 ),
               ],
@@ -391,11 +387,11 @@ class _AdminDashboardState extends State<AdminDashboard> {
         width: double.infinity,
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: AirbnbColors.background,
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.05),
+              color: AirbnbColors.textPrimary.withValues(alpha: 0.05),
               blurRadius: 10,
               offset: const Offset(0, 2),
             ),
@@ -407,12 +403,12 @@ class _AdminDashboardState extends State<AdminDashboard> {
               width: 48,
               height: 48,
               decoration: BoxDecoration(
-                color: AppColors.kPrimary.withValues(alpha: 0.1),
+                color: AirbnbColors.primary.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Icon(
                 icon,
-                color: AppColors.kPrimary,
+                color: AirbnbColors.primary,
                 size: 24,
               ),
             ),
@@ -426,7 +422,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
                     style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.w600,
-                      color: Colors.black87,
+                      color: AirbnbColors.textPrimary,
                     ),
                   ),
                   const SizedBox(height: 4),
@@ -434,7 +430,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
                     description,
                     style: TextStyle(
                       fontSize: 14,
-                      color: Colors.grey[600],
+                      color: AirbnbColors.textSecondary,
                     ),
                   ),
                 ],
@@ -442,7 +438,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
             ),
             Icon(
               Icons.arrow_forward_ios,
-              color: Colors.grey[400],
+              color: AirbnbColors.textLight,
               size: 16,
             ),
           ],

@@ -19,12 +19,12 @@ class RetryView extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.error_outline, size: 40, color: AppColors.kWarning),
+            Icon(Icons.error_outline, size: 40, color: AirbnbColors.warning),
             const SizedBox(height: 12),
             Text(
               message,
               textAlign: TextAlign.center,
-              style: const TextStyle(fontSize: 14, color: AppColors.kTextSecondary),
+              style: const TextStyle(fontSize: 14, color: AirbnbColors.textSecondary),
             ),
             const SizedBox(height: 12),
             ElevatedButton.icon(

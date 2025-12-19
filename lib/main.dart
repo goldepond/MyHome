@@ -71,66 +71,79 @@ class MyApp extends StatelessWidget {
       title: 'MyHome - 쉽고 빠른 부동산 상담', 
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        primaryColor: AppColors.kPrimary,
-        scaffoldBackgroundColor: AppColors.kBackground,
+        primaryColor: AirbnbColors.primary,
+        scaffoldBackgroundColor: AirbnbColors.surface,
         colorScheme: ColorScheme.fromSeed(
-          seedColor: AppColors.kPrimary,
-          primary: AppColors.kPrimary,
-          secondary: AppColors.kSecondary,
-          surface: AppColors.kSurface,
+          seedColor: AirbnbColors.primary,
+          primary: AirbnbColors.primary,
+          secondary: AirbnbColors.success,
+          surface: AirbnbColors.surface,
+          background: AirbnbColors.background,
         ),
         appBarTheme: AppBarTheme(
-          backgroundColor: AppColors.kPrimary,
-          foregroundColor: Colors.white,
-          elevation: 2,
+          backgroundColor: AirbnbColors.background,
+          foregroundColor: AirbnbColors.textPrimary,
+          elevation: 0,
+          shadowColor: Colors.black.withValues(alpha: 0.08),
         ),
         elevatedButtonTheme: ElevatedButtonThemeData(
           style: ElevatedButton.styleFrom(
-            backgroundColor: AppColors.kPrimary,
-            foregroundColor: Colors.white,
+            backgroundColor: AirbnbColors.textPrimary, // 에어비엔비 스타일: 검은색 배경
+            foregroundColor: AirbnbColors.textWhite,
             elevation: 2,
+            shadowColor: AirbnbColors.textPrimary.withValues(alpha: 0.2),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(8),
             ),
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
           ),
         ),
         outlinedButtonTheme: OutlinedButtonThemeData(
           style: OutlinedButton.styleFrom(
-            foregroundColor: AppColors.kPrimary,
-            side: BorderSide(color: AppColors.kPrimary),
+            foregroundColor: AirbnbColors.textPrimary,
+            side: const BorderSide(color: AirbnbColors.textPrimary, width: 1.5), // 에어비엔비 스타일: 검은색 테두리
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(8),
             ),
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
           ),
         ),
         textButtonTheme: TextButtonThemeData(
           style: TextButton.styleFrom(
-            foregroundColor: AppColors.kPrimary,
+            foregroundColor: AirbnbColors.primary,
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           ),
         ),
         floatingActionButtonTheme: FloatingActionButtonThemeData(
-          backgroundColor: AppColors.kPrimary,
-          foregroundColor: Colors.white,
+          backgroundColor: AirbnbColors.textPrimary, // 에어비엔비 스타일: 검은색 배경
+          foregroundColor: AirbnbColors.textWhite,
+          elevation: 3,
         ),
         cardTheme: CardThemeData(
-          elevation: 2,
+          elevation: 0,
+          color: AirbnbColors.background,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
+            side: const BorderSide(color: AirbnbColors.border, width: 1),
           ),
+          shadowColor: Colors.black.withValues(alpha: 0.08),
         ),
         inputDecorationTheme: InputDecorationTheme(
+          filled: true,
+          fillColor: AirbnbColors.background,
           border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(8),
-            borderSide: BorderSide(color: Colors.grey[300]!),
+            borderRadius: BorderRadius.circular(12),
+            borderSide: const BorderSide(color: AirbnbColors.border),
           ),
           focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(8),
-            borderSide: BorderSide(color: AppColors.kPrimary, width: 2),
+            borderRadius: BorderRadius.circular(12),
+            borderSide: const BorderSide(color: AirbnbColors.primary, width: 2),
           ),
           enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(8),
-            borderSide: BorderSide(color: Colors.grey[300]!),
+            borderRadius: BorderRadius.circular(12),
+            borderSide: const BorderSide(color: AirbnbColors.border),
           ),
+          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
         ),
         useMaterial3: true,
         fontFamily: 'NotoSansKR',
