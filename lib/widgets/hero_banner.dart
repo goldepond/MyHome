@@ -87,7 +87,7 @@ class _HeroBannerState extends State<HeroBanner> {
             
             // 큰 서브헤드
             Text(
-              '도로명·건물명 일부만 입력해도 자동완성이 나옵니다',
+              '여러 중개사를 비교하고\n최적의 상담을 선택하세요',
               textAlign: TextAlign.center,
               style: AppTypography.withColor(
                 AppTypography.bodyLarge.copyWith(
