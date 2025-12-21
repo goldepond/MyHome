@@ -61,6 +61,10 @@
 
   <!-- DNS Prefetch for performance -->
   <link rel="dns-prefetch" href="https://www.gstatic.com">
+  <link rel="dns-prefetch" href="https://fonts.googleapis.com">
+  
+  <!-- Preconnect for critical resources -->
+  <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
 
   <!-- 시스템 폰트 설정 -->
   <style>
@@ -87,18 +91,69 @@
         width: 100%;
       }
     }
+    
+    /* 로딩 화면 최적화 */
+    #loading {
+      align-items: center;
+      display: flex;
+      height: 100%;
+      justify-content: center;
+      width: 100%;
+      position: fixed;
+      top: 0;
+      left: 0;
+      background: #fff;
+      z-index: 9999;
+    }
+    
+    #loading img {
+      width: 50px;
+      height: 50px;
+      animation: 1s ease-in-out 0s infinite rotate;
+    }
+    
+    @keyframes rotate {
+      from { transform: rotate(0deg) }
+      to { transform: rotate(360deg) }
+    }
   </style>
 
   <title>MyHome - 쉽고 빠른 부동산 상담</title>
   <link rel="manifest" href="manifest.json">
 
-  <!-- Firebase SDK -->
-  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-storage-compat.js"></script>
+  <!-- Firebase SDK - 비동기 로딩으로 초기 렌더링 차단 방지 -->
+  <script>
+    // Firebase SDK를 동적으로 로드하여 초기 렌더링 차단 방지
+    (function() {
+      var firebaseScripts = [
+        'https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js',
+        'https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js',
+        'https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js',
+        'https://www.gstatic.com/firebasejs/10.8.0/firebase-storage-compat.js'
+      ];
+      
+      // 첫 번째 스크립트를 먼저 로드
+      var firstScript = document.createElement('script');
+      firstScript.src = firebaseScripts[0];
+      firstScript.async = true;
+      firstScript.defer = true;
+      
+      // 첫 번째 스크립트 로드 후 나머지 순차 로드
+      firstScript.onload = function() {
+        firebaseScripts.slice(1).forEach(function(src) {
+          var script = document.createElement('script');
+          script.src = src;
+          script.async = true;
+          script.defer = true;
+          document.head.appendChild(script);
+        });
+      };
+      
+      document.head.appendChild(firstScript);
+    })();
+  </script>
 
-  <!-- Flutter 초기화 -->
+  <!-- Flutter 초기화 - Firebase보다 우선하여 먼저 로드 -->
   <script src="flutter.js" defer></script>
 </head>
 <body>

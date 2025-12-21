@@ -39,8 +39,10 @@ echo.
 REM 웹 빌드
 echo [2/6] 웹 프로덕션 빌드...
 echo ⚠️  API 키 환경 변수가 설정되어 있는지 확인하세요
+echo 최적화: HTML 렌더러 사용 (빠른 초기 로딩)
 echo.
 flutter build web --release --base-href "/TESTHOME/" ^
+    --web-renderer html ^
     --dart-define=JUSO_API_KEY=%JUSO_API_KEY% ^
     --dart-define=VWORLD_API_KEY=%VWORLD_API_KEY% ^
     --dart-define=VWORLD_GEOCODER_API_KEY=%VWORLD_GEOCODER_API_KEY% ^

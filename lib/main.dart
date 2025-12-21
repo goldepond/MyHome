@@ -53,15 +53,56 @@ void main() async {
     }
   }
   
-  // Firebase 초기화
+  // 앱을 먼저 실행하여 초기 렌더링 지연 방지
+  runApp(const MyApp());
+  
+  // 백그라운드에서 Firebase 초기화 (웹에서는 지연 로딩)
+  _initializeFirebaseInBackground();
+}
+
+/// Firebase를 백그라운드에서 초기화하여 앱 시작 속도 향상
+Future<void> _initializeFirebaseInBackground() async {
   try {
-    if (Firebase.apps.isEmpty) {
-      await Firebase.initializeApp(
-        options: DefaultFirebaseOptions.currentPlatform,
-      );
-      Logger.info('Firebase 초기화 성공');
+    // 웹에서는 Firebase SDK가 로드될 때까지 대기 (최대 5초)
+    if (kIsWeb) {
+      var attempts = 0;
+      while (attempts < 50) {
+        try {
+          // Firebase 초기화 시도
+          if (Firebase.apps.isEmpty) {
+            await Firebase.initializeApp(
+              options: DefaultFirebaseOptions.currentPlatform,
+            );
+            Logger.info('Firebase 초기화 성공');
+            return;
+          } else {
+            Logger.info('Firebase가 이미 초기화되어 있습니다');
+            return;
+          }
+        } catch (e) {
+          // SDK가 아직 로드되지 않았거나 초기화 실패
+          // 100ms 후 재시도
+          await Future.delayed(const Duration(milliseconds: 100));
+          attempts++;
+        }
+      }
+      // 최대 시도 횟수 초과 시 마지막으로 한 번 더 시도
+      if (Firebase.apps.isEmpty) {
+        await Firebase.initializeApp(
+          options: DefaultFirebaseOptions.currentPlatform,
+        );
+        Logger.info('Firebase 초기화 성공 (지연 로딩)');
+      }
     } else {
-      Logger.info('Firebase가 이미 초기화되어 있습니다');
+      // 모바일/데스크톱에서는 즉시 초기화
+      if (Firebase.apps.isEmpty) {
+        await Firebase.initializeApp(
+          options: DefaultFirebaseOptions.currentPlatform,
+        );
+        Logger.info('Firebase 초기화 성공');
+      } else {
+        Logger.info('Firebase가 이미 초기화되어 있습니다');
+      }
     }
   } catch (e, stackTrace) {
     // Firebase 초기화 실패 시 에러 로깅
@@ -71,11 +112,8 @@ void main() async {
       stackTrace: stackTrace,
       context: 'firebase_initialization',
     );
-    // Windows에서는 Firebase 초기화 실패 시에도 앱을 계속 실행
-    // 하지만 사용자에게 경고를 표시할 수 있습니다
+    // Firebase 초기화 실패 시에도 앱은 계속 실행
   }
-  
-  runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
@@ -216,23 +254,54 @@ class _AuthGate extends StatefulWidget {
 class _AuthGateState extends State<_AuthGate> {
   Map<String, dynamic>? _cachedUserData;
   bool _isInitializingAnonymous = false;
+  bool _firebaseReady = false;
   
   @override
   void initState() {
     super.initState();
-    _initializeAnonymousUser();
+    _checkFirebaseAndInitialize();
+  }
+  
+  /// Firebase가 준비될 때까지 대기한 후 초기화
+  Future<void> _checkFirebaseAndInitialize() async {
+    // Firebase가 준비될 때까지 대기 (최대 5초)
+    var attempts = 0;
+    while (Firebase.apps.isEmpty && attempts < 50) {
+      await Future.delayed(const Duration(milliseconds: 100));
+      attempts++;
+    }
+    
+    if (mounted) {
+      setState(() {
+        _firebaseReady = true;
+      });
+      _initializeAnonymousUser();
+    }
   }
   
   Future<void> _initializeAnonymousUser() async {
+    // Firebase가 준비되지 않았으면 대기
+    if (!_firebaseReady || Firebase.apps.isEmpty) {
+      return;
+    }
+    
     // 이미 로그인된 사용자가 있으면 익명 로그인은 시도하지 않는다.
     if (FirebaseAuth.instance.currentUser != null) {
       return;
     }
+    
     setState(() {
       _isInitializingAnonymous = true;
     });
+    
     try {
       await FirebaseService().signInAnonymously();
+    } catch (e) {
+      // 익명 로그인 실패는 무시하고 계속 진행
+      Logger.warning(
+        '익명 로그인 실패',
+        metadata: {'error': e.toString()},
+      );
     } finally {
       if (mounted) {
         setState(() {
@@ -244,6 +313,13 @@ class _AuthGateState extends State<_AuthGate> {
   
   @override
   Widget build(BuildContext context) {
+    // Firebase가 준비되지 않았으면 로딩 화면 표시
+    if (!_firebaseReady) {
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+    
     return StreamBuilder<User?>(
       stream: FirebaseAuth.instance.authStateChanges(),
       builder: (context, snapshot) {

@@ -115,12 +115,8 @@ flutter:
   fonts:
     - family: NotoSansKR
       fonts:
-        - asset: assets/fonts/static/NotoSansKR-Thin.ttf
-          weight: 100
-        - asset: assets/fonts/static/NotoSansKR-ExtraLight.ttf
-          weight: 200
-        - asset: assets/fonts/static/NotoSansKR-Light.ttf
-          weight: 300
+        # 최적화: 사용하지 않는 weight 제거 (Thin, ExtraLight, Light)
+        # 사용 중인 weight만 유지: Regular(400), Medium(500), SemiBold(600), Bold(700), ExtraBold(800), Black(900)
         - asset: assets/fonts/static/NotoSansKR-Regular.ttf
           weight: 400
         - asset: assets/fonts/static/NotoSansKR-Medium.ttf
