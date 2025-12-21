@@ -60,7 +60,7 @@ class VWorldService {
         if (parcelResult != null && _isReliableGeocode(parcelResult, candidate)) {
           return parcelResult;
         }
-      } catch (e, stackTrace) {
+      } catch (e) {
         // 다음 변형 주소 시도 (경고만 로깅)
         Logger.warning(
           'Geocoder 변형 주소 시도 실패',

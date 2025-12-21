@@ -166,7 +166,7 @@ class AptInfoService {
           if (errorData['response'] != null && errorData['response']['header'] != null) {
             // 에러 처리 로직 필요 시 사용
           }
-        } catch (e, stackTrace) {
+        } catch (e) {
           // JSON 파싱 에러는 로깅 (사소한 에러)
           Logger.warning(
             'API 에러 응답 파싱 실패',
@@ -253,7 +253,7 @@ class AptInfoService {
 
       // 사용여부
       aptInfo['useYn'] = item['useYn'] ?? ''; // 사용여부
-    } catch (e, stackTrace) {
+    } catch (e) {
       // 파싱 오류 시 로깅
       Logger.warning(
         '아파트 정보 파싱 오류',

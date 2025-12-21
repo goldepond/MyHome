@@ -4,7 +4,6 @@ import 'package:property/constants/app_constants.dart';
 import 'package:property/constants/typography.dart';
 import 'package:property/constants/spacing.dart';
 import 'package:property/constants/responsive_constants.dart';
-import 'package:property/widgets/common_design_system.dart';
 import 'package:property/api_request/firebase_service.dart';
 import 'package:property/screens/main_page.dart';
 import 'package:property/screens/change_password_page.dart';

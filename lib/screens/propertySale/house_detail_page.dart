@@ -5,8 +5,6 @@ import 'package:geocoding/geocoding.dart';
 import 'package:property/constants/app_constants.dart';
 import 'package:property/constants/typography.dart';
 import 'package:property/constants/spacing.dart';
-import 'package:property/constants/responsive_constants.dart';
-import 'package:property/widgets/common_design_system.dart';
 import 'package:property/models/property.dart';
 import 'package:property/api_request/firebase_service.dart';
 import 'package:property/constants/status_constants.dart';
@@ -51,7 +49,7 @@ class _HouseDetailPageState extends State<HouseDetailPage> {
           return int.tryParse(map['total_amount'].toString().replaceAll(',', ''));
         }
       }
-    } catch (e, stackTrace) {
+    } catch (e) {
       Logger.warning(
         '등기부등본 데이터 파싱 중 오류 발생',
         metadata: {'error': e.toString()},

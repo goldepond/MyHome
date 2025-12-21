@@ -1,6 +1,5 @@
 import 'package:property/api_request/log_service.dart';
 import 'analytics_events.dart';
-import 'logger.dart';
 
 /// 간단한 퍼널/행동 로그 저장용 서비스.
 /// 기존에는 직접 Firestore에 저장했으나, 이제 LogService로 통합됨.

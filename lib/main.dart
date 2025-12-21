@@ -44,7 +44,7 @@ void main() async {
   if (!kIsWeb) {
     try {
       await dotenv.load(fileName: ".env");
-    } catch (e, stackTrace) {
+    } catch (e) {
       // .env 파일이 없어도 앱은 실행 가능
       Logger.warning(
         '.env 파일을 로드할 수 없습니다',
@@ -179,7 +179,7 @@ class MyApp extends StatelessWidget {
           if (adminRoute != null) {
             return adminRoute;
           }
-        } catch (e, stackTrace) {
+        } catch (e) {
           // 관리자 페이지 파일이 없는 경우 (외부로 분리된 경우)
           Logger.warning(
             '관리자 페이지 라우팅 실패',

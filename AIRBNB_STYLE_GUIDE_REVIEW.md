@@ -392,3 +392,4 @@ final FirebaseService _firebaseService = FirebaseService();
 **검토 기준**: Airbnb Style Guide (Dart/Flutter 적용)  
 **검토 범위**: 전체 lib 폴더 (약 120개 Dart 파일)
 
+

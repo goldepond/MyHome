@@ -312,68 +312,6 @@ class _BrokerDashboardPageState extends State<BrokerDashboardPage> with SingleTi
     );
   }
 
-  Widget _buildStatCard(String label, String value, Color color, String statusValue) {
-    final isSelected = _selectedStatus == statusValue;
-    
-    return Expanded(
-      child: InkWell(
-        onTap: () {
-          setState(() {
-            _selectedStatus = statusValue;
-          });
-        },
-        child: Container(
-          padding: const EdgeInsets.all(14),
-          decoration: BoxDecoration(
-            // 히어로 배경 위에 떠 있는 흰색 카드 느낌으로 통일
-            // 선택된 경우 배경색을 약간 강조
-            color: isSelected 
-                ? AirbnbColors.background 
-                : AirbnbColors.background.withValues(alpha: 0.85),
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(
-              // 선택된 경우 테두리를 해당 상태 색상으로 강조
-              color: isSelected 
-                  ? color 
-                  : AirbnbColors.background.withValues(alpha: 0.6),
-              width: isSelected ? 2.5 : 1,
-            ),
-            boxShadow: isSelected 
-                ? [
-                    BoxShadow(
-                      color: color.withValues(alpha: 0.3),
-                      blurRadius: 8,
-                      offset: const Offset(0, 2),
-                    )
-                  ] 
-                : [],
-          ),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text(
-                label,
-                style: AppTypography.withColor(
-                  AppTypography.bodySmall.copyWith(
-                    fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
-                  ),
-                  isSelected ? color : AirbnbColors.textPrimary,
-                ),
-              ),
-              SizedBox(height: AppSpacing.xs + AppSpacing.xs / 2),
-              Text(
-                value,
-                style: AppTypography.withColor(
-                  AppTypography.h2.copyWith(fontWeight: FontWeight.w800),
-                  color,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
 
   Widget _buildQuoteList() {
     if (_isLoading) {

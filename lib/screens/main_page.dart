@@ -69,7 +69,7 @@ class _MainPageState extends State<MainPage> {
           _brokerData = data;
         });
       }
-    } catch (e, stackTrace) {
+    } catch (e) {
       // 브로커 확인 중 오류 발생 시 로깅
       Logger.warning(
         '브로커 정보 확인 중 오류 발생',

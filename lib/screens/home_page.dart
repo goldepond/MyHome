@@ -20,7 +20,6 @@ import 'broker_list_page.dart';
 import 'package:property/widgets/loading_overlay.dart';
 import 'package:property/api_request/apt_info_service.dart';
 import 'package:property/widgets/retry_view.dart';
-import 'login_page.dart';
 import 'package:property/utils/logger.dart';
 
 class HomePage extends StatefulWidget {
@@ -162,15 +161,6 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Future<void> _navigateToLoginAndRefresh() async {
-    final result = await Navigator.of(context).push<Map<String, dynamic>>(
-      MaterialPageRoute(builder: (_) => const LoginPage()),
-    );
-    if (!mounted) return;
-    if (result != null) {
-      Navigator.of(context).pushNamedAndRemoveUntil('/', (route) => false);
-    }
-  }
 
   /// 등기부등본 데이터에서 소유자 이름을 추출하여 로그인 사용자와 비교한다.
   /// 일치 여부에 따라 ownerMismatchError를 갱신한다.

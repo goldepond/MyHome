@@ -16,7 +16,7 @@ void main() async {
   if (!kIsWeb) {
     try {
       await dotenv.load(fileName: ".env");
-    } catch (e, stackTrace) {
+    } catch (e) {
       // .env 파일이 없어도 앱은 실행 가능
       Logger.warning(
         '.env 파일을 로드할 수 없습니다',
@@ -122,7 +122,7 @@ class _AdminAuthGateState extends State<AdminAuthGate> {
       // 임시: 관리자도 일단 익명 로그인 등을 사용한다고 가정
       // 실제 운영 시에는 이메일/비밀번호 로그인 폼으로 대체 권장
       await FirebaseService().signInAnonymously();
-    } catch (e, stackTrace) {
+    } catch (e) {
       // 익명 로그인 실패는 로깅
       Logger.warning(
         '익명 로그인 실패 (관리자 앱)',

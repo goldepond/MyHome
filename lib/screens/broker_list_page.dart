@@ -540,7 +540,7 @@ class _BrokerListPageState extends State<BrokerListPage> {
               );
             }
           }
-        } catch (e, stackTrace) {
+        } catch (e) {
           // 테스트 중개사 주입 실패는 전체 플로우에 영향 주지 않음
           Logger.warning(
             '테스트 중개사 주입 실패',

@@ -326,7 +326,7 @@ class AddressService {
             errorMsg = '주소 검색 중 오류가 발생했습니다.';
           }
         }
-      } catch (e, stackTrace) {
+      } catch (e) {
         // 예외 처리 중 오류 발생 시 로깅
         Logger.warning(
           '주소 검색 예외 처리 중 오류',

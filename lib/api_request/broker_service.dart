@@ -702,7 +702,7 @@ class BrokerService {
             brokerLon = double.parse(coordinates[0].toString());
             brokerLat = double.parse(coordinates[1].toString());
             distance = _calculateHaversineDistance(baseLat, baseLon, brokerLat, brokerLon);
-          } catch (e, stackTrace) {
+          } catch (e) {
             // 좌표 파싱 실패 시 거리 계산 스킵
             Logger.warning(
               '좌표 파싱 실패',

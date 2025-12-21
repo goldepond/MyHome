@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:property/constants/app_constants.dart';
 import 'package:property/constants/typography.dart';
 import 'package:property/constants/spacing.dart';
-import 'package:property/widgets/common_design_system.dart';
 import 'package:property/widgets/home_logo_button.dart';
 import 'signup_page.dart';
 import 'broker/broker_signup_page.dart';
