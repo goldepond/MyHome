@@ -414,7 +414,7 @@ class _MainPageState extends State<MainPage> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('로그인에 실패했습니다. 이메일/비밀번호를 확인해주세요.', style: AppTypography.body),
+            content: Text('로그인에 실패했습니다. 이메일/전화번호를 확인해주세요.', style: AppTypography.body),
             backgroundColor: AirbnbColors.error,
           ),
         );

@@ -63,7 +63,7 @@ class SubmitSuccessPage extends StatelessWidget {
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('로그인에 실패했습니다. 이메일/비밀번호를 확인해주세요.'),
+          content: Text('로그인에 실패했습니다. 이메일/전화번호를 확인해주세요.'),
           backgroundColor: AirbnbColors.error,
         ),
       );

@@ -2629,6 +2629,9 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
 
   /// 내역 없음 카드
   Widget _buildEmptyCard() {
+    // 🔥 게스트 모드 여부 확인
+    final isGuestMode = widget.userId == null || widget.userId!.isEmpty;
+    
     return Container(
       padding: const EdgeInsets.all(48),
       decoration: BoxDecoration(
@@ -2651,19 +2654,30 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
                 color: AirbnbColors.textSecondary.withValues(alpha: 0.1),
                 shape: BoxShape.circle,
               ),
-              child: const Icon(Icons.inbox, size: 64, color: AirbnbColors.textSecondary),
+              child: Icon(
+                isGuestMode ? Icons.info_outline : Icons.inbox,
+                size: 64,
+                color: AirbnbColors.textSecondary,
+              ),
             ),
             const SizedBox(height: 24),
-            const Text(
-              '관리 중인 견적이 없습니다',
-              style: TextStyle(
+            Text(
+              // 🔥 게스트 모드일 때 다른 메시지
+              isGuestMode
+                  ? '게스트 모드입니다'
+                  : '관리 중인 견적이 없습니다',
+              style: const TextStyle(
+                fontSize: 20,
                 fontWeight: FontWeight.bold,
                 color: AirbnbColors.textPrimary,
               ),
             ),
             SizedBox(height: AppSpacing.md + AppSpacing.xs),
             Text(
-              '공인중개사에게 문의를 보내보세요!',
+              // 🔥 게스트 모드일 때 다른 안내 문구
+              isGuestMode
+                  ? '내집관리를 이용하려면\n매물상담을 먼저 진행해주세요'
+                  : '공인중개사에게 문의를 보내보세요!',
               style: AppTypography.withColor(
                 AppTypography.buttonSmall.copyWith(height: 1.5),
                 AirbnbColors.textSecondary,

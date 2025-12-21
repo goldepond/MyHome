@@ -45,5 +45,10 @@ class AnalyticsEventNames {
   static const String guestLoginCtaTapped = 'guest_login_cta_tapped';
   static const String guestLoginSkip = 'guest_login_skip';
   static const String guestLoginQuoteHistoryCta = 'guest_login_quote_history_cta';
+  
+  // Implicit registration (암묵적 회원가입)
+  static const String implicitAccountCreated = 'implicit_account_created';
+  static const String implicitAccountLogin = 'implicit_account_login';
+  static const String implicitAccountCreationFailed = 'implicit_account_creation_failed';
 }
 

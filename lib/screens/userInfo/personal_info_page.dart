@@ -345,7 +345,7 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
                                 },
                                 icon: const Icon(Icons.password, color: AirbnbColors.background),
                                 label: const Text(
-                                  '비밀번호 변경',
+                                  '전화번호 변경',
                                   style: TextStyle(
                                     fontSize: 16,
                                     fontWeight: FontWeight.bold,

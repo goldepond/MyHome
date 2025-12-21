@@ -11,6 +11,7 @@ import 'package:property/screens/common/submit_success_page.dart';
 import 'package:property/utils/analytics_service.dart';
 import 'package:property/utils/analytics_events.dart';
 import 'package:property/utils/transaction_type_helper.dart';
+import 'package:property/utils/validation_utils.dart';
 
 /// 견적문의 폼 페이지 (부동산 상담 요청서)
 class QuoteRequestFormPage extends StatefulWidget {
@@ -59,6 +60,10 @@ class _QuoteRequestFormPageState extends State<QuoteRequestFormPage> {
   bool _requestRecentCases = true;
   bool _isRequestInfoExpanded = true;
   
+  // 🔥 게스트 모드일 때 연락처 입력 필드
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _phoneController = TextEditingController();
+  
   @override
   void initState() {
     super.initState();
@@ -95,6 +100,11 @@ class _QuoteRequestFormPageState extends State<QuoteRequestFormPage> {
     _desiredPriceController.dispose();
     _targetPeriodController.dispose();
     _specialNotesController.dispose();
+    // 🔥 게스트 모드 필드 dispose
+    if (widget.userId.isEmpty) {
+      _emailController.dispose();
+      _phoneController.dispose();
+    }
     super.dispose();
   }
   
@@ -414,6 +424,71 @@ class _QuoteRequestFormPageState extends State<QuoteRequestFormPage> {
             Divider(color: Colors.grey[300], thickness: 1, height: 1),
             const SizedBox(height: 24),
             
+            // 🔥 게스트 모드일 때만 연락처 입력 섹션 표시
+            if (widget.userId.isEmpty) ...[
+              _buildSectionTitle('연락처 정보', '상담 요청 및 보안 강화를 위해 필요합니다', Colors.orange),
+              const SizedBox(height: 12),
+              _buildCard([
+                _buildTextField(
+                  label: '이메일 *',
+                  controller: _emailController,
+                  hint: '예: user@example.com',
+                  keyboardType: TextInputType.emailAddress,
+                  validator: (value) {
+                    if (value == null || value.trim().isEmpty) {
+                      return '이메일을 입력해주세요';
+                    }
+                    if (!ValidationUtils.isValidEmail(value)) {
+                      return '올바른 이메일 형식을 입력해주세요';
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 16),
+                _buildTextField(
+                  label: '전화번호 *',
+                  controller: _phoneController,
+                  hint: '예: 01012345678',
+                  keyboardType: TextInputType.phone,
+                  validator: (value) {
+                    if (value == null || value.trim().isEmpty) {
+                      return '전화번호를 입력해주세요';
+                    }
+                    final cleanPhone = value.replaceAll('-', '').replaceAll(' ', '').trim();
+                    if (!RegExp(r'^01[0-9]{8,9}$').hasMatch(cleanPhone)) {
+                      return '올바른 전화번호 형식을 입력해주세요';
+                    }
+                    return null;
+                  },
+                ),
+                const SizedBox(height: 12),
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.blue[50],
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: Colors.blue[200]!),
+                  ),
+                  child: const Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Icon(Icons.info_outline, size: 20, color: Colors.blue),
+                      SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          '공인중개사의 상담 응답을 받을 연락처를 적어주세요.\n상담 이후 응답은 내집관리에서 확인 가능합니다.',
+                          style: TextStyle(fontSize: 12, color: Colors.blue, height: 1.4),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ]),
+              const SizedBox(height: 24),
+              Divider(color: Colors.grey[300], thickness: 1, height: 1),
+              const SizedBox(height: 24),
+            ],
+            
             // 제출 버튼
             // 동의 체크
             _buildCard([
@@ -598,6 +673,7 @@ class _QuoteRequestFormPageState extends State<QuoteRequestFormPage> {
     int maxLines = 1,
     int? maxLength,
     String? suffix,
+    String? Function(String?)? validator,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -616,6 +692,7 @@ class _QuoteRequestFormPageState extends State<QuoteRequestFormPage> {
           keyboardType: keyboardType,
           maxLines: maxLines,
           maxLength: maxLength,
+          validator: validator,
           decoration: InputDecoration(
             hintText: hint,
             hintStyle: TextStyle(color: Colors.grey[400]),
@@ -757,6 +834,177 @@ class _QuoteRequestFormPageState extends State<QuoteRequestFormPage> {
     if (!_formKey.currentState!.validate()) {
       return;
     }
+    
+    // 🔥 게스트 모드일 때 이메일/전화번호 검증
+    final isGuestMode = widget.userId.isEmpty;
+    String? userEmail;
+    String? userPhone;
+    String effectiveUserId = widget.userId.isNotEmpty ? widget.userId : widget.userName;
+    String effectiveUserName = widget.userName;
+    
+    if (isGuestMode) {
+      // 이메일 검증
+      userEmail = _emailController.text.trim();
+      if (userEmail.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('이메일을 입력해주세요'),
+            backgroundColor: Colors.red,
+          ),
+        );
+        return;
+      }
+      if (!ValidationUtils.isValidEmail(userEmail)) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('올바른 이메일 형식을 입력해주세요'),
+            backgroundColor: Colors.red,
+          ),
+        );
+        return;
+      }
+      
+      // 전화번호 검증
+      userPhone = _phoneController.text.replaceAll('-', '').replaceAll(' ', '').trim();
+      if (userPhone.isEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('전화번호를 입력해주세요'),
+            backgroundColor: Colors.red,
+          ),
+        );
+        return;
+      }
+      if (!RegExp(r'^01[0-9]{8,9}$').hasMatch(userPhone)) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('올바른 전화번호 형식을 입력해주세요'),
+            backgroundColor: Colors.red,
+          ),
+        );
+        return;
+      }
+      
+      // 계정 자동 생성/로그인
+      try {
+        final id = userEmail.split('@')[0];
+        final password = userPhone; // 전화번호를 비밀번호로 사용
+        
+        // 계정 존재 여부 확인 (로그인 시도)
+        try {
+          final userData = await _firebaseService.authenticateUser(userEmail, password);
+          if (userData != null) {
+            // 로그인 성공 = 계정이 이미 존재
+            effectiveUserId = userData['uid'] as String;
+            effectiveUserName = userData['name'] as String? ?? id;
+            // Analytics: 기존 계정 로그인
+            AnalyticsService.instance.logEvent(
+              AnalyticsEventNames.implicitAccountLogin,
+              params: {'email': userEmail, 'source': 'quote_request_form'},
+              userId: effectiveUserId,
+              userName: effectiveUserName,
+            );
+          }
+        } catch (e) {
+          // 로그인 실패 = 계정이 없음, 새로 생성
+          final success = await _firebaseService.registerUser(
+            id,
+            password,
+            id,
+            email: userEmail,
+            phone: userPhone,
+            role: 'user',
+          );
+          
+          if (success) {
+            // 생성 후 자동 로그인
+            final userData = await _firebaseService.authenticateUser(userEmail, password);
+            if (userData != null) {
+              effectiveUserId = userData['uid'] as String;
+              effectiveUserName = userData['name'] as String? ?? id;
+              // Analytics: 새 계정 생성 성공
+              AnalyticsService.instance.logEvent(
+                AnalyticsEventNames.implicitAccountCreated,
+                params: {'email': userEmail, 'source': 'quote_request_form'},
+                userId: effectiveUserId,
+                userName: effectiveUserName,
+              );
+            }
+          } else {
+            // 🔥 계정 생성 실패 (이미 존재할 수 있음, 다시 로그인 시도)
+            try {
+              final userData = await _firebaseService.authenticateUser(userEmail, password);
+              if (userData != null) {
+                effectiveUserId = userData['uid'] as String;
+                effectiveUserName = userData['name'] as String? ?? id;
+                // Analytics: 계정 생성 실패 후 재로그인 성공
+                AnalyticsService.instance.logEvent(
+                  AnalyticsEventNames.implicitAccountLogin,
+                  params: {
+                    'email': userEmail,
+                    'source': 'quote_request_form',
+                    'retryAfterCreation': true,
+                  },
+                  userId: effectiveUserId,
+                  userName: effectiveUserName,
+                );
+                // 재로그인 성공, 계속 진행
+              } else {
+                // 로그인도 실패한 경우
+                // Analytics: 계정 생성 및 로그인 모두 실패
+                AnalyticsService.instance.logEvent(
+                  AnalyticsEventNames.implicitAccountCreationFailed,
+                  params: {
+                    'email': userEmail,
+                    'source': 'quote_request_form',
+                    'reason': 'both_failed',
+                  },
+                );
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('계정 생성 및 로그인에 실패했습니다. 다시 시도해주세요.'),
+                    backgroundColor: Colors.red,
+                  ),
+                );
+                return;
+              }
+            } catch (loginError) {
+              // 로그인 시도도 실패
+              // Analytics: 계정 생성 및 로그인 모두 실패
+              AnalyticsService.instance.logEvent(
+                AnalyticsEventNames.implicitAccountCreationFailed,
+                params: {
+                  'email': userEmail,
+                  'source': 'quote_request_form',
+                  'reason': 'both_failed',
+                },
+              );
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('계정 생성 및 로그인에 실패했습니다. 다시 시도해주세요.'),
+                  backgroundColor: Colors.red,
+                ),
+              );
+              return;
+            }
+          }
+        }
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('오류가 발생했습니다: ${e.toString()}'),
+            backgroundColor: Colors.red,
+          ),
+        );
+        return;
+      }
+    } else {
+      // 정식 로그인 사용자
+      userEmail = await _getUserEmail();
+      final userData = await _firebaseService.getUser(widget.userId);
+      userPhone = userData?['phone'] as String?;
+    }
+    
     if (!_agreeToConsent) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -768,12 +1016,12 @@ class _QuoteRequestFormPageState extends State<QuoteRequestFormPage> {
     }
     
     // 견적문의 객체 생성
-    final userEmail = await _getUserEmail();
                 final quoteRequest = QuoteRequest(
       id: '',
-                  userId: widget.userId.isNotEmpty ? widget.userId : widget.userName, // userId가 없으면 userName 사용
-                  userName: widget.userName,
-      userEmail: userEmail,
+                  userId: effectiveUserId,
+                  userName: effectiveUserName,
+      userEmail: userEmail!,
+      userPhone: userPhone,
       brokerName: widget.broker.name,
       brokerRegistrationNumber: widget.broker.registrationNumber,
       brokerRoadAddress: widget.broker.roadAddress,
@@ -812,8 +1060,8 @@ class _QuoteRequestFormPageState extends State<QuoteRequestFormPage> {
           'address': propertyAddress,
           'mode': 'single',
         },
-        userId: widget.userId.isNotEmpty ? widget.userId : widget.userName,
-        userName: widget.userName,
+        userId: effectiveUserId,
+        userName: effectiveUserName,
         stage: FunnelStage.quoteRequest,
       );
       Navigator.of(context).pushReplacement(
@@ -821,8 +1069,8 @@ class _QuoteRequestFormPageState extends State<QuoteRequestFormPage> {
           builder: (_) => SubmitSuccessPage(
             title: '제안 요청이 전송되었습니다',
             description: '${widget.broker.name}에게 요청을 보냈습니다.\n답변이 도착하면 현황에서 확인할 수 있어요.',
-            userName: widget.userName,
-            userId: widget.userId.isNotEmpty ? widget.userId : null,
+            userName: effectiveUserName,
+            userId: effectiveUserId.isNotEmpty && effectiveUserId != widget.userName ? effectiveUserId : null,
           ),
         ),
       );
@@ -835,8 +1083,8 @@ class _QuoteRequestFormPageState extends State<QuoteRequestFormPage> {
           'address': propertyAddress,
           'mode': 'single',
         },
-        userId: widget.userId.isNotEmpty ? widget.userId : widget.userName,
-        userName: widget.userName,
+        userId: effectiveUserId,
+        userName: effectiveUserName,
         stage: FunnelStage.quoteRequest,
       );
       ScaffoldMessenger.of(context).showSnackBar(

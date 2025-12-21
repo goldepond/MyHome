@@ -38,7 +38,7 @@ class _LoginPageState extends State<LoginPage> {
   Future<void> _login() async {
     if (_idController.text.isEmpty || _passwordController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('이메일과 비밀번호를 입력해주세요.')),
+        const SnackBar(content: Text('이메일과 전화번호를 입력해주세요.')),
       );
       return;
     }
@@ -48,9 +48,12 @@ class _LoginPageState extends State<LoginPage> {
     });
 
     try {
+      // 전화번호 형식 정리 (하이픈 제거)
+      final cleanPhone = _passwordController.text.replaceAll('-', '').replaceAll(' ', '').trim();
+      
       final result = await _firebaseService.authenticateUnified(
         _idController.text.trim(),
-        _passwordController.text,
+        cleanPhone,
       );
 
       if (result != null && mounted) {
@@ -105,7 +108,7 @@ class _LoginPageState extends State<LoginPage> {
       } else if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('로그인에 실패했습니다. 이메일과 비밀번호를 확인해주세요.'),
+            content: Text('로그인에 실패했습니다. 이메일과 전화번호를 확인해주세요.'),
             backgroundColor: AirbnbColors.error,
           ),
         );
@@ -118,7 +121,7 @@ class _LoginPageState extends State<LoginPage> {
           errorMessage = '등록되지 않은 이메일입니다.\n회원가입을 먼저 진행해주세요.';
           break;
         case 'wrong-password':
-          errorMessage = '비밀번호가 올바르지 않습니다.';
+          errorMessage = '전화번호가 올바르지 않습니다.';
           break;
         case 'invalid-email':
           errorMessage = '이메일 형식이 올바르지 않습니다.';
@@ -293,12 +296,12 @@ class _LoginPageState extends State<LoginPage> {
                     ),
                     SizedBox(height: AppSpacing.lg),
                     
-                    // 비밀번호 입력
+                    // 비밀번호 입력 (전화번호)
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          '비밀번호',
+                          '전화번호',
                           style: AppTypography.withColor(
                             AppTypography.bodySmall.copyWith(fontWeight: FontWeight.w600),
                             AirbnbColors.textSecondary,
@@ -308,9 +311,10 @@ class _LoginPageState extends State<LoginPage> {
                         TextField(
                           controller: _passwordController,
                           obscureText: _obscurePassword,
+                          keyboardType: TextInputType.phone,
                           style: AppTypography.body,
                           decoration: InputDecoration(
-                            hintText: '비밀번호를 입력하세요',
+                            hintText: '전화번호를 입력하세요',
                             hintStyle: AppTypography.withColor(
                               AppTypography.bodySmall,
                               AirbnbColors.textLight,
@@ -393,7 +397,7 @@ class _LoginPageState extends State<LoginPage> {
                           tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                         ),
                         child: Text(
-                          '비밀번호 찾기',
+                          '전화번호 찾기',
                           style: AppTypography.withColor(
                             AppTypography.caption.copyWith(
                               fontWeight: FontWeight.w600,

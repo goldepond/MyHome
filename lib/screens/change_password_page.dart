@@ -19,9 +19,6 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
   final TextEditingController _confirmController = TextEditingController();
   final FirebaseService _firebaseService = FirebaseService();
   bool _isLoading = false;
-  bool _obscureCurrent = true;
-  bool _obscureNew = true;
-  bool _obscureConfirm = true;
 
   @override
   void dispose() {
@@ -32,33 +29,47 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
   }
 
   Future<void> _changePassword() async {
-    if (_currentController.text.isEmpty ||
-        _newController.text.isEmpty ||
-        _confirmController.text.isEmpty) {
+    // 전화번호 형식 정리 (하이픈 제거)
+    final currentPhone = _currentController.text.replaceAll('-', '').replaceAll(' ', '').trim();
+    final newPhone = _newController.text.replaceAll('-', '').replaceAll(' ', '').trim();
+    final confirmPhone = _confirmController.text.replaceAll('-', '').replaceAll(' ', '').trim();
+    
+    if (currentPhone.isEmpty || newPhone.isEmpty || confirmPhone.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('현재/새 비밀번호를 모두 입력해주세요.'),
+          content: Text('현재/새 전화번호를 모두 입력해주세요.'),
           backgroundColor: AirbnbColors.warning,
         ),
       );
       return;
     }
 
-    if (_newController.text != _confirmController.text) {
+    // 전화번호 형식 검증
+    if (!RegExp(r'^01[0-9]{8,9}$').hasMatch(currentPhone)) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('새 비밀번호와 확인이 일치하지 않습니다.'),
+          content: Text('현재 전화번호 형식이 올바르지 않습니다.'),
           backgroundColor: AirbnbColors.error,
         ),
       );
       return;
     }
 
-    if (!ValidationUtils.isValidPasswordLength(_newController.text)) {
+    if (!RegExp(r'^01[0-9]{8,9}$').hasMatch(newPhone)) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('비밀번호는 6자 이상 입력해주세요.'),
-          backgroundColor: AirbnbColors.warning,
+          content: Text('새 전화번호 형식이 올바르지 않습니다. (01012345678 형식)'),
+          backgroundColor: AirbnbColors.error,
+        ),
+      );
+      return;
+    }
+
+    if (newPhone != confirmPhone) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('새 전화번호와 확인이 일치하지 않습니다.'),
+          backgroundColor: AirbnbColors.error,
         ),
       );
       return;
@@ -69,8 +80,8 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
     });
 
     final errorMessage = await _firebaseService.changePassword(
-      _currentController.text,
-      _newController.text,
+      currentPhone,
+      newPhone,
     );
 
     if (!mounted) return;
@@ -81,7 +92,7 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
     if (errorMessage == null) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('비밀번호가 변경되었습니다.'),
+          content: Text('전화번호가 변경되었습니다.'),
           backgroundColor: AirbnbColors.success,
         ),
       );
@@ -89,7 +100,7 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(errorMessage),
+          content: Text(errorMessage.replaceAll('비밀번호', '전화번호')),
           backgroundColor: AirbnbColors.error,
         ),
       );
@@ -116,7 +127,7 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
         foregroundColor: AirbnbColors.primary,
         elevation: 2,
         title: Text(
-          '비밀번호 변경',
+          '전화번호 변경',
           style: AppTypography.h3.copyWith(fontWeight: FontWeight.bold),
         ),
         centerTitle: true,
@@ -144,27 +155,16 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text(
-                    '현재 비밀번호',
+                    '현재 전화번호',
                     style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
                   ),
                   const SizedBox(height: 8),
                   TextField(
                     controller: _currentController,
-                    obscureText: _obscureCurrent,
+                    keyboardType: TextInputType.phone,
                     decoration: InputDecoration(
-                      hintText: '현재 비밀번호를 입력하세요',
-                      prefixIcon: const Icon(Icons.lock_outline),
-                      suffixIcon: IconButton(
-                        icon: Icon(
-                          _obscureCurrent ? Icons.visibility_off_outlined : Icons.visibility_outlined,
-                          size: 20,
-                        ),
-                        onPressed: () {
-                          setState(() {
-                            _obscureCurrent = !_obscureCurrent;
-                          });
-                        },
-                      ),
+                      hintText: '현재 전화번호를 입력하세요 (예: 01012345678)',
+                      prefixIcon: const Icon(Icons.phone_outlined),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
@@ -174,28 +174,17 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
                   ),
                   SizedBox(height: AppSpacing.md),
                   const Text(
-                    '새 비밀번호',
+                    '새 전화번호',
                     style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
                   ),
                   const SizedBox(height: 8),
                   TextField(
                     controller: _newController,
-                    obscureText: _obscureNew,
+                    keyboardType: TextInputType.phone,
                     onChanged: (_) => setState(() {}),
                     decoration: InputDecoration(
-                      hintText: '6자 이상 (영문/숫자/특수문자 권장)',
-                      prefixIcon: const Icon(Icons.lock),
-                      suffixIcon: IconButton(
-                        icon: Icon(
-                          _obscureNew ? Icons.visibility_off_outlined : Icons.visibility_outlined,
-                          size: 20,
-                        ),
-                        onPressed: () {
-                          setState(() {
-                            _obscureNew = !_obscureNew;
-                          });
-                        },
-                      ),
+                      hintText: '새 전화번호를 입력하세요 (예: 01012345678)',
+                      prefixIcon: const Icon(Icons.phone),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
@@ -203,40 +192,18 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
                       fillColor: AirbnbColors.textSecondary.withValues(alpha: 0.05),
                     ),
                   ),
-                  if (_newController.text.isNotEmpty) ...[
-                    const SizedBox(height: 8),
-                    LinearProgressIndicator(
-                      value: ValidationUtils.getPasswordStrength(_newController.text) / 4,
-                      backgroundColor: AirbnbColors.border,
-                      valueColor: AlwaysStoppedAnimation<Color>(
-                        _strengthColor(ValidationUtils.getPasswordStrength(_newController.text)),
-                      ),
-                      minHeight: 4,
-                    ),
-                  ],
                   SizedBox(height: AppSpacing.md),
                   const Text(
-                    '새 비밀번호 확인',
+                    '새 전화번호 확인',
                     style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
                   ),
                   const SizedBox(height: 8),
                   TextField(
                     controller: _confirmController,
-                    obscureText: _obscureConfirm,
+                    keyboardType: TextInputType.phone,
                     decoration: InputDecoration(
-                      hintText: '새 비밀번호를 다시 입력하세요',
-                      prefixIcon: const Icon(Icons.lock),
-                      suffixIcon: IconButton(
-                        icon: Icon(
-                          _obscureConfirm ? Icons.visibility_off_outlined : Icons.visibility_outlined,
-                          size: 20,
-                        ),
-                        onPressed: () {
-                          setState(() {
-                            _obscureConfirm = !_obscureConfirm;
-                          });
-                        },
-                      ),
+                      hintText: '새 전화번호를 다시 입력하세요',
+                      prefixIcon: const Icon(Icons.phone),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
@@ -267,7 +234,7 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
                               ),
                             )
                           : const Text(
-                              '비밀번호 변경',
+                              '전화번호 변경',
                               style: TextStyle(fontWeight: FontWeight.bold),
                             ),
                     ),
