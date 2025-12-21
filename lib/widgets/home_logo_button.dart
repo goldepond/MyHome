@@ -55,6 +55,9 @@ class _HomeLogoButtonState extends State<HomeLogoButton> with SingleTickerProvid
           Navigator.popUntil(context, (route) => route.isFirst);
         },
         borderRadius: BorderRadius.circular(8),
+        splashColor: Colors.transparent, // 리플 효과 제거
+        highlightColor: Colors.transparent, // 하이라이트 효과 제거
+        hoverColor: Colors.transparent, // 호버 효과 제거
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
           child: ScaleTransition(
@@ -232,6 +235,9 @@ class _LogoWithTextState extends State<LogoWithText> with SingleTickerProviderSt
             widget.onTap!();
           },
           borderRadius: BorderRadius.circular(8),
+          splashColor: Colors.transparent, // 리플 효과 제거
+          highlightColor: Colors.transparent, // 하이라이트 효과 제거
+          hoverColor: Colors.transparent, // 호버 효과 제거
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
             child: ScaleTransition(
