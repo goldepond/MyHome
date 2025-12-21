@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../constants/app_constants.dart';
 import '../constants/typography.dart';
 import '../constants/spacing.dart';
+import 'common_design_system.dart';
 
 class HeroBanner extends StatefulWidget {
   final TextEditingController? searchController;
@@ -70,7 +71,7 @@ class _HeroBannerState extends State<HeroBanner> {
           children: [
             // 매우 큰 헤드라인 (Stripe/Vercel 스타일)
             Text(
-              '쉽고 빠른\n부동산 상담',
+              '한 번 입력하면\n 여러 중개사 답합니다.',
               textAlign: TextAlign.center,
               style: AppTypography.withColor(
                 AppTypography.display.copyWith(
@@ -87,7 +88,7 @@ class _HeroBannerState extends State<HeroBanner> {
             
             // 큰 서브헤드
             Text(
-              '여러 중개사를 비교하고\n최적의 상담을 선택하세요',
+              '주소 한 번 입력으로\n 여러 중개사의 제안을 한곳에서 확인하세요.',
               textAlign: TextAlign.center,
               style: AppTypography.withColor(
                 AppTypography.bodyLarge.copyWith(
@@ -146,7 +147,7 @@ class _HeroBannerState extends State<HeroBanner> {
             hintText: '예) 서울특별시 강북구 덕릉로 138',
             hintStyle: AppTypography.withColor(
               AppTypography.h4,
-              AirbnbColors.textLight,
+              AirbnbColors.textSecondary, // textLight → textSecondary (WCAG AA 대비 비율 개선)
             ),
             prefixIcon: Icon(
               Icons.search_rounded,
@@ -154,12 +155,12 @@ class _HeroBannerState extends State<HeroBanner> {
               size: 24,
             ),
             suffixIcon: _hasSearchText
-                ? IconButton(
-                    icon: Icon(
-                      Icons.close_rounded,
-                      color: AirbnbColors.textSecondary,
-                      size: 20,
-                    ),
+                ? AccessibleWidget.iconButton(
+                    icon: Icons.close_rounded,
+                    tooltip: '검색어 지우기',
+                    semanticLabel: '검색어 지우기',
+                    color: AirbnbColors.textSecondary,
+                    iconSize: 20,
                     onPressed: () {
                       widget.searchController?.clear();
                       widget.onSearchChanged?.call('');

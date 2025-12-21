@@ -5,6 +5,7 @@ import 'package:property/models/quote_request.dart';
 import 'package:property/models/broker_review.dart';
 import 'package:property/models/notification_model.dart';
 import 'package:property/models/chat_model.dart';
+import 'package:property/utils/logger.dart';
 
 class FirebaseService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -102,9 +103,21 @@ class FirebaseService {
       }, SetOptions(merge: true));
       
       return true;
-    } on FirebaseAuthException catch (_) {
+    } on FirebaseAuthException catch (e, stackTrace) {
+      Logger.error(
+        '익명 계정 업그레이드 실패 (FirebaseAuth)',
+        error: e,
+        stackTrace: stackTrace,
+        context: 'linkAnonymousAccountToEmail',
+      );
       return false;
-    } catch (_) {
+    } catch (e, stackTrace) {
+      Logger.error(
+        '익명 계정 업그레이드 실패',
+        error: e,
+        stackTrace: stackTrace,
+        context: 'linkAnonymousAccountToEmail',
+      );
       return false;
     }
   }
@@ -177,9 +190,21 @@ class FirebaseService {
         'name': data['name'] ?? userCredential.user?.displayName ?? (data['id'] ?? uid),
         'userType': 'user',
       };
-    } on FirebaseAuthException catch (_) {
+    } on FirebaseAuthException catch (e, stackTrace) {
+      Logger.error(
+        '통합 로그인 실패 (FirebaseAuth)',
+        error: e,
+        stackTrace: stackTrace,
+        context: 'authenticateUnified',
+      );
       return null;
-    } catch (_) {
+    } catch (e, stackTrace) {
+      Logger.error(
+        '통합 로그인 실패',
+        error: e,
+        stackTrace: stackTrace,
+        context: 'authenticateUnified',
+      );
       return null;
     }
   }
@@ -225,9 +250,21 @@ class FirebaseService {
       } else {
         return null;
       }
-    } on FirebaseAuthException catch (_) {
+    } on FirebaseAuthException catch (e, stackTrace) {
+      Logger.error(
+        '사용자 로그인 실패 (FirebaseAuth)',
+        error: e,
+        stackTrace: stackTrace,
+        context: 'authenticateUser',
+      );
       return null;
-    } catch (_) {
+    } catch (e, stackTrace) {
+      Logger.error(
+        '사용자 로그인 실패',
+        error: e,
+        stackTrace: stackTrace,
+        context: 'authenticateUser',
+      );
       return null;
     }
   }
@@ -337,9 +374,21 @@ class FirebaseService {
     try {
       await _auth.sendPasswordResetEmail(email: email);
       return true;
-    } on FirebaseAuthException catch (_) {
+    } on FirebaseAuthException catch (e, stackTrace) {
+      Logger.error(
+        '비밀번호 재설정 이메일 발송 실패 (FirebaseAuth)',
+        error: e,
+        stackTrace: stackTrace,
+        context: 'sendPasswordResetEmail',
+      );
       return false;
-    } catch (_) {
+    } catch (e, stackTrace) {
+      Logger.error(
+        '비밀번호 재설정 이메일 발송 실패',
+        error: e,
+        stackTrace: stackTrace,
+        context: 'sendPasswordResetEmail',
+      );
       return false;
     }
   }
@@ -375,7 +424,13 @@ class FirebaseService {
         return '보안을 위해 다시 로그인한 후 시도해주세요.';
       }
       return '비밀번호 변경 중 오류가 발생했습니다.';
-    } catch (_) {
+    } catch (e, stackTrace) {
+      Logger.error(
+        '비밀번호 변경 실패 (알 수 없는 오류)',
+        error: e,
+        stackTrace: stackTrace,
+        context: 'changePassword',
+      );
       return '비밀번호 변경 중 알 수 없는 오류가 발생했습니다.';
     }
   }
@@ -1012,7 +1067,7 @@ class FirebaseService {
       
       final matchingProperties = <Property>[];
       
-      for (var doc in allPropertiesSnapshot.docs) {
+      for (final doc in allPropertiesSnapshot.docs) {
         final data = doc.data();
         final brokerInfo = data['brokerInfo'];
         
@@ -1640,9 +1695,21 @@ class FirebaseService {
       } else {
         return null;
       }
-    } on FirebaseAuthException catch (_) {
+    } on FirebaseAuthException catch (e, stackTrace) {
+      Logger.error(
+        '공인중개사 로그인 실패 (FirebaseAuth)',
+        error: e,
+        stackTrace: stackTrace,
+        context: 'authenticateBroker',
+      );
       return null;
-    } catch (_) {
+    } catch (e, stackTrace) {
+      Logger.error(
+        '공인중개사 로그인 실패',
+        error: e,
+        stackTrace: stackTrace,
+        context: 'authenticateBroker',
+      );
       return null;
     }
   }
@@ -1801,7 +1868,7 @@ class FirebaseService {
             .where('brokerRegistrationNumber', whereIn: batch)
             .get();
         
-        for (var doc in querySnapshot.docs) {
+        for (final doc in querySnapshot.docs) {
           final data = doc.data();
           final regNo = data['brokerRegistrationNumber'] as String?;
           if (regNo != null) {

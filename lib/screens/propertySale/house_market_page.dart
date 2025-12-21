@@ -204,15 +204,14 @@ class _HouseMarketPageState extends State<HouseMarketPage> {
   }
 
   Widget _buildBuyHeroBanner() {
-    final screenWidth = MediaQuery.of(context).size.width;
-    final isMobile = screenWidth < 768;
-    final isTablet = screenWidth >= 768 && screenWidth < 1024;
+    final isMobile = ResponsiveHelper.isMobile(context);
+    final isTablet = ResponsiveHelper.isTablet(context);
     
     return Container(
       width: double.infinity,
       padding: EdgeInsets.symmetric(
-        vertical: isMobile ? 48.0 : 64.0, // 48px / 64px
-        horizontal: isMobile ? 24.0 : 48.0, // 24px / 48px
+        vertical: isMobile ? AppSpacing.xxxl * 0.75 : AppSpacing.xxxl,
+        horizontal: isMobile ? AppSpacing.lg : AppSpacing.xxxl * 0.75,
       ),
       decoration: BoxDecoration(
         color: AirbnbColors.background,
@@ -227,24 +226,28 @@ class _HouseMarketPageState extends State<HouseMarketPage> {
             Text(
               '검증된 실매물을\n한눈에 확인하세요',
               textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: isMobile ? 40 : (isTablet ? 52 : 64), // 40px / 52px / 64px
-                fontWeight: FontWeight.w800,
-                letterSpacing: -1.5,
-                height: 1.1,
-                color: AirbnbColors.textPrimary,
+              style: AppTypography.withColor(
+                AppTypography.display.copyWith(
+                  fontSize: isMobile ? AppTypography.display.fontSize! : (isTablet ? AppTypography.display.fontSize! * 1.3 : AppTypography.display.fontSize! * 1.6),
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: -1.5,
+                  height: 1.1,
+                ),
+                AirbnbColors.textPrimary,
               ),
             ),
-            const SizedBox(height: 24), // 24px
+            SizedBox(height: AppSpacing.lg),
             // 큰 서브헤드
             Text(
               '원하는 조건의 매물을 쉽고 빠르게 찾을 수 있습니다',
               textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: isMobile ? 18 : 22,
-                fontWeight: FontWeight.w400,
-                height: 1.6,
-                color: AirbnbColors.textSecondary,
+              style: AppTypography.withColor(
+                AppTypography.bodyLarge.copyWith(
+                  fontSize: isMobile ? AppTypography.bodyLarge.fontSize! : AppTypography.h4.fontSize!,
+                  fontWeight: FontWeight.w400,
+                  height: 1.6,
+                ),
+                AirbnbColors.textSecondary,
               ),
             ),
           ],

@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:property/constants/app_constants.dart';
 import 'package:property/constants/typography.dart';
+import 'package:property/constants/spacing.dart';
 import 'package:property/constants/responsive_constants.dart';
+import 'package:property/widgets/common_design_system.dart';
 import 'package:property/api_request/firebase_service.dart';
 import 'package:property/models/quote_request.dart';
 import 'package:property/screens/quote_comparison_page.dart';
@@ -178,7 +180,7 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
           children: [
             Icon(Icons.phone, color: AirbnbColors.primary, size: 28),
             const SizedBox(width: 12),
-            const Text('재연락 방법', style: TextStyle(fontSize: 20)),
+            Text('재연락 방법', style: AppTypography.h4),
           ],
         ),
         content: Column(
@@ -189,7 +191,7 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
               '이 공인중개사와 재연락하는 방법을 선택하세요:',
               style: AppTypography.body.copyWith(height: 1.5),
             ),
-            const SizedBox(height: 16),
+            SizedBox(height: AppSpacing.md),
             ListTile(
               leading: const Icon(Icons.phone, color: AirbnbColors.success),
               title: const Text(
@@ -568,7 +570,7 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
                     '${quote.brokerName} 후기',
                     style: AppTypography.h4.copyWith(fontWeight: FontWeight.bold),
                   ),
-                  const SizedBox(height: 8),
+                  SizedBox(height: AppSpacing.sm),
                   Row(
                     children: [
                       Text('추천 여부', style: AppTypography.bodySmall),
@@ -594,7 +596,7 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 12),
+                  SizedBox(height: AppSpacing.md + AppSpacing.xs),
                   TextField(
                     controller: commentController,
                     maxLines: 4,
@@ -603,7 +605,7 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
                       border: OutlineInputBorder(),
                     ),
                   ),
-                  const SizedBox(height: 12),
+                  SizedBox(height: AppSpacing.md + AppSpacing.xs),
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
@@ -771,9 +773,9 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
             Text('삭제 확인', style: AppTypography.h3),
           ],
         ),
-        content: const Text(
+        content: Text(
           '이 견적문의를 삭제하시겠습니까?\n삭제된 내역은 복구할 수 없습니다.',
-          style: TextStyle(fontSize: 15, height: 1.5),
+          style: AppTypography.bodySmall.copyWith(height: 1.5),
         ),
         actions: [
           TextButton(
@@ -907,7 +909,7 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
                           if (quote.propertyArea != null)
                             _buildDetailRow('면적', '${quote.propertyArea} ㎡'),
                         ]),
-                        const SizedBox(height: 20),
+                        SizedBox(height: AppSpacing.lg + AppSpacing.xs),
                       ],
 
                       // 중개 제안
@@ -945,7 +947,7 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
                               ),
                           ],
                         ),
-                        const SizedBox(height: 20),
+                        SizedBox(height: AppSpacing.lg + AppSpacing.xs),
                       ],
 
                       // 공인중개사 답변
@@ -1072,7 +1074,7 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
               ),
             ],
           ),
-          const SizedBox(height: 12),
+          SizedBox(height: AppSpacing.md + AppSpacing.xs),
           ...children,
         ],
       ),
@@ -1116,30 +1118,29 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
     final isMobile = ResponsiveHelper.isMobile(context);
     
     // 모바일/데스크톱에 따른 값 설정 (메인페이지 스타일)
-    final screenWidth = MediaQuery.of(context).size.width;
-    final isTablet = screenWidth >= 768 && screenWidth < 1024;
-    final bannerHeight = isMobile ? 320.0 : (isTablet ? 360.0 : 400.0);
+    final isTablet = ResponsiveHelper.isTablet(context);
+    final bannerHeight = isMobile ? AppSpacing.xxxl * 5 : (isTablet ? AppSpacing.xxxl * 5.625 : AppSpacing.xxxl * 6.25);
     final bannerPadding = isMobile 
-        ? const EdgeInsets.symmetric(vertical: 48, horizontal: 24)
-        : const EdgeInsets.symmetric(vertical: 64, horizontal: 48);
-    final bannerTitleSize = isMobile ? 40.0 : (isTablet ? 52.0 : 64.0);
-    final bannerSubtitleSize = isMobile ? 18.0 : 22.0;
-    final contentTopPadding = isMobile ? 240.0 : 320.0; // 배너 높이 - 겹침
-    final contentHorizontalPadding = isMobile ? 16.0 : 24.0;
-    final cardPadding = isMobile ? 16.0 : 24.0;
-    final cardMargin = isMobile ? 16.0 : 24.0;
-    final cardBorderRadius = isMobile ? 16.0 : 24.0;
-    final titleFontSize = isMobile ? 16.0 : 18.0;
-    final subtitleFontSize = isMobile ? 12.0 : 14.0;
-    final buttonHeight = isMobile ? 48.0 : 52.0;
-    final buttonFontSize = isMobile ? 14.0 : 16.0;
+        ? EdgeInsets.symmetric(vertical: AppSpacing.xxxl * 0.75, horizontal: AppSpacing.lg)
+        : EdgeInsets.symmetric(vertical: AppSpacing.xxxl, horizontal: AppSpacing.xxxl * 0.75);
+    final bannerTitleSize = isMobile ? AppTypography.display.fontSize! : (isTablet ? AppTypography.display.fontSize! * 1.3 : AppTypography.display.fontSize! * 1.6);
+    final bannerSubtitleSize = isMobile ? AppTypography.bodyLarge.fontSize! : AppTypography.h4.fontSize!;
+    final contentTopPadding = isMobile ? AppSpacing.xxxl * 3.75 : AppSpacing.xxxl * 5; // 배너 높이 - 겹침
+    final contentHorizontalPadding = isMobile ? AppSpacing.md : AppSpacing.lg;
+    final cardPadding = isMobile ? AppSpacing.md : AppSpacing.lg;
+    final cardMargin = isMobile ? AppSpacing.md : AppSpacing.lg;
+    final cardBorderRadius = isMobile ? AppSpacing.md : AppSpacing.lg;
+    final titleFontSize = isMobile ? AppTypography.body.fontSize! : AppTypography.bodyLarge.fontSize!;
+    final subtitleFontSize = isMobile ? AppTypography.caption.fontSize! : AppTypography.bodySmall.fontSize!;
+    final buttonHeight = isMobile ? AppSpacing.xxxl * 0.75 : AppSpacing.xxxl * 0.8125;
+    final buttonFontSize = isMobile ? AppTypography.bodySmall.fontSize! : AppTypography.body.fontSize!;
     final filterPadding = isMobile 
-        ? const EdgeInsets.symmetric(horizontal: 16, vertical: 12)
-        : const EdgeInsets.symmetric(horizontal: 24, vertical: 16);
+        ? EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.md + AppSpacing.xs)
+        : EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.md);
     final filterChipPadding = isMobile
-        ? const EdgeInsets.symmetric(horizontal: 12, vertical: 8)
-        : const EdgeInsets.symmetric(horizontal: 16, vertical: 10);
-    final filterChipFontSize = isMobile ? 12.0 : 14.0;
+        ? EdgeInsets.symmetric(horizontal: AppSpacing.sm + AppSpacing.xs, vertical: AppSpacing.sm)
+        : EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.md + AppSpacing.xs);
+    final filterChipFontSize = isMobile ? AppTypography.caption.fontSize! : AppTypography.bodySmall.fontSize!;
     
     return Scaffold(
       backgroundColor: AirbnbColors.background,
@@ -1529,7 +1530,7 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
                     borderRadius: BorderRadius.circular(8),
                   ),
                 ),
-                const SizedBox(height: 12),
+                SizedBox(height: AppSpacing.md + AppSpacing.xs),
                 Container(
                   height: 14,
                   width: 220,
@@ -1538,7 +1539,7 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
                     borderRadius: BorderRadius.circular(8),
                   ),
                 ),
-                const SizedBox(height: 16),
+                SizedBox(height: AppSpacing.md),
                 Container(
                   height: 120,
                   decoration: BoxDecoration(
@@ -1584,7 +1585,7 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
                     color: AirbnbColors.primaryDark,
                   ),
                 ),
-                const SizedBox(height: 6),
+                SizedBox(height: AppSpacing.xs + AppSpacing.xs / 2),
                 const Text(
                   '지금은 게스트 모드입니다. 손쉽게 로그인하고 알림/비교 기능을 끝까지 활용해보세요.',
                   style: TextStyle(
@@ -1593,7 +1594,7 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
                     height: 1.5,
                   ),
                 ),
-                const SizedBox(height: 12),
+                SizedBox(height: AppSpacing.md + AppSpacing.xs),
                 Align(
                   alignment: Alignment.centerLeft,
                   child: ElevatedButton.icon(
@@ -1650,12 +1651,11 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
             const Text(
               '📊 주요 제안 비교',
               style: TextStyle(
-                fontSize: 16,
                 fontWeight: FontWeight.bold,
                 color: AirbnbColors.textPrimary,
               ),
             ),
-            const SizedBox(height: 12),
+            SizedBox(height: AppSpacing.md + AppSpacing.xs),
             SingleChildScrollView(
               scrollDirection: Axis.horizontal,
               child: DataTable(
@@ -1851,10 +1851,10 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
           children: [
             // 날짜별 섹션 헤더
             _buildDateSectionHeader(dateKey, quotesForDate.length, isLatestGroup),
-            const SizedBox(height: 12),
+            SizedBox(height: AppSpacing.md + AppSpacing.xs),
             // 해당 날짜의 견적 카드들
             ...quotesForDate.map((quote) {
-              final isMobile = MediaQuery.of(context).size.width < 600;
+              final isMobile = ResponsiveHelper.isMobile(context);
               return Padding(
                 padding: EdgeInsets.only(
                   bottom: isMobile ? 12 : 16,
@@ -1928,7 +1928,6 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
                 '최신',
                 style: TextStyle(
                   color: AirbnbColors.background,
-                  fontSize: 11,
                   fontWeight: FontWeight.bold,
                 ),
               ),
@@ -2056,7 +2055,7 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
                       ),
                       if (quote.brokerRoadAddress != null &&
                           quote.brokerRoadAddress!.isNotEmpty) ...[
-                        const SizedBox(height: 4),
+                        SizedBox(height: AppSpacing.xs),
                         Text(
                           quote.brokerRoadAddress!,
                           style: AppTypography.withColor(
@@ -2091,7 +2090,7 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
                       Text(
                         hasAnswer ? '답변완료' : '답변대기',
                         style: AppTypography.withColor(
-                          AppTypography.caption.copyWith(fontSize: 11, fontWeight: FontWeight.bold),
+                          AppTypography.caption.copyWith(fontWeight: FontWeight.bold),
                           AirbnbColors.background,
                         ),
                       ),
@@ -2130,7 +2129,7 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 12),
+                  SizedBox(height: AppSpacing.md + AppSpacing.xs),
                 ],
 
                 // 거래기간 / 수수료 비교
@@ -2155,7 +2154,7 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 12),
+                  SizedBox(height: AppSpacing.md + AppSpacing.xs),
                 ],
 
                 // 공인중개사 답변 (전체 텍스트 표시)
@@ -2194,14 +2193,14 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
                               Text(
                                 dateFormat.format(quote.answerDate!),
                                 style: AppTypography.withColor(
-                                  AppTypography.caption.copyWith(fontSize: 10),
+                                  AppTypography.caption,
                                   AirbnbColors.textSecondary,
                                 ),
                               ),
                             ],
                           ],
                         ),
-                        const SizedBox(height: 8),
+                        SizedBox(height: AppSpacing.sm),
                         Text(
                           quote.brokerAnswer!,
                           style: AppTypography.withColor(
@@ -2243,7 +2242,7 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
                   ),
                 ],
 
-                const SizedBox(height: 16),
+                SizedBox(height: AppSpacing.md),
                 // 1줄째: 중개사 상세 / 견적 상세 (둘 다 큰 버튼)
                 Row(
                   children: [
@@ -2387,7 +2386,7 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
                     ),
                   ),
                 ),
-                const SizedBox(height: 12),
+                SizedBox(height: AppSpacing.md + AppSpacing.xs),
                 Align(
                   alignment: Alignment.centerRight,
                   child: TextButton.icon(
@@ -2660,7 +2659,7 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
                         SizedBox(height: isMobile ? 10 : 12),
                         if (quote.hasTenant != null) ...[
                           _buildInfoRow('세입자', quote.hasTenant! ? '있음' : '없음', isMobile: isMobile),
-                          const SizedBox(height: 8),
+                          SizedBox(height: AppSpacing.sm),
                         ],
                         if (quote.desiredPrice != null &&
                             quote.desiredPrice!.isNotEmpty) ...[
@@ -2851,7 +2850,7 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
                             ],
                           ],
                         ),
-                        const SizedBox(height: 12),
+                        SizedBox(height: AppSpacing.md + AppSpacing.xs),
                         Container(
                           width: double.infinity,
                           padding: EdgeInsets.all(isMobile ? 12 : 14),
@@ -3114,12 +3113,11 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
             const Text(
               '관리 중인 견적이 없습니다',
               style: TextStyle(
-                fontSize: 20,
                 fontWeight: FontWeight.bold,
                 color: AirbnbColors.textPrimary,
               ),
             ),
-            const SizedBox(height: 12),
+            SizedBox(height: AppSpacing.md + AppSpacing.xs),
             Text(
               '공인중개사에게 문의를 보내보세요!',
               style: AppTypography.withColor(
@@ -3168,12 +3166,11 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
             const Text(
               '해당하는 문의 내역이 없습니다',
               style: TextStyle(
-                fontSize: 20,
                 fontWeight: FontWeight.bold,
                 color: AirbnbColors.textPrimary,
               ),
             ),
-            const SizedBox(height: 12),
+            SizedBox(height: AppSpacing.md + AppSpacing.xs),
             Text(
               '다른 필터를 선택해보세요.',
               style: AppTypography.withColor(

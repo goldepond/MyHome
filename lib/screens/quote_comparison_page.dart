@@ -576,15 +576,73 @@ class _QuoteComparisonPageState extends State<QuoteComparisonPage> {
               showDialog(
                 context: context,
                 builder: (context) => AlertDialog(
-                  title: const Text('견적 비교 가이드'),
-                  content: Text(
-                    '공인중개사로부터 받은 견적을 매물별로 비교할 수 있습니다.\n\n'
-                    '• 매물별로 탭을 선택하여 각 매물의 견적을 비교하세요\n'
-                    '• 최저가: 가장 낮은 견적\n'
-                    '• 평균가: 모든 견적의 평균\n'
-                    '• 최고가: 가장 높은 견적\n\n'
-                    '최저가 견적은 초록색으로 강조되어 표시됩니다.\n\n'
-                    '다른 매물의 견적은 함께 비교되지 않습니다.',
+                  title: Row(
+                    children: [
+                      Icon(Icons.compare_arrows, color: AirbnbColors.primary, size: 24),
+                      SizedBox(width: AppSpacing.sm),
+                      const Text('견적 비교 가이드'),
+                    ],
+                  ),
+                  content: SingleChildScrollView(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          '📊 견적 비교 방법',
+                          style: AppTypography.h4.copyWith(fontWeight: FontWeight.bold),
+                        ),
+                        SizedBox(height: AppSpacing.md),
+                        _buildGuideItem('매물별로 탭을 선택하여 각 매물의 견적을 비교하세요'),
+                        _buildGuideItem('최저가: 가장 낮은 견적 (초록색으로 강조)'),
+                        _buildGuideItem('평균가: 모든 견적의 평균'),
+                        _buildGuideItem('최고가: 가장 높은 견적'),
+                        SizedBox(height: AppSpacing.lg),
+                        Container(
+                          padding: const EdgeInsets.all(AppSpacing.md),
+                          decoration: BoxDecoration(
+                            color: AirbnbColors.success.withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: AirbnbColors.success.withValues(alpha: 0.3),
+                              width: 1,
+                            ),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  Icon(Icons.checklist, color: AirbnbColors.success, size: 20),
+                                  SizedBox(width: AppSpacing.xs),
+                                  Text(
+                                    '안전한 거래 체크리스트',
+                                    style: AppTypography.body.copyWith(
+                                      fontWeight: FontWeight.bold,
+                                      color: AirbnbColors.success,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              SizedBox(height: AppSpacing.sm),
+                              _buildChecklistItem('✅ 중개사 등록번호 확인'),
+                              _buildChecklistItem('✅ 견적서에 명시된 조건 확인'),
+                              _buildChecklistItem('✅ 수수료율 비교 (중요!)'),
+                              _buildChecklistItem('✅ 예상 거래기간 확인'),
+                              _buildChecklistItem('✅ 추가 메시지 내용 검토'),
+                              SizedBox(height: AppSpacing.sm),
+                              Text(
+                                '💡 팁: 최저가만 보고 선택하지 마세요.\n수수료율과 거래 조건도 함께 비교하세요!',
+                                style: AppTypography.bodySmall.copyWith(
+                                  color: AirbnbColors.textSecondary,
+                                  fontStyle: FontStyle.italic,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                   actions: [
                     TextButton(
@@ -609,7 +667,7 @@ class _QuoteComparisonPageState extends State<QuoteComparisonPage> {
               child: Row(
                 children: [
                   Icon(Icons.warning_amber_rounded, color: AirbnbColors.warning, size: 20),
-                  const SizedBox(width: AppSpacing.sm),
+                  SizedBox(width: AppSpacing.sm),
                   Expanded(
                     child: Text(
                       '주소 정보가 없는 견적 ${groupedQuotes['주소없음']!.length}개가 제외되었습니다.',
@@ -1434,6 +1492,45 @@ class _QuoteComparisonPageState extends State<QuoteComparisonPage> {
           ),
         ),
       ],
+    );
+  }
+  
+  /// 가이드 아이템 위젯
+  Widget _buildGuideItem(String text) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('• ', style: AppTypography.body.copyWith(color: AirbnbColors.primary)),
+          Expanded(
+            child: Text(
+              text,
+              style: AppTypography.body,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+  
+  /// 체크리스트 아이템 위젯
+  Widget _buildChecklistItem(String text) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: AppSpacing.xs),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(Icons.check_circle_outline, size: 16, color: AirbnbColors.success),
+          SizedBox(width: AppSpacing.xs),
+          Expanded(
+            child: Text(
+              text,
+              style: AppTypography.bodySmall,
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

@@ -3,6 +3,7 @@ import 'dart:async';
 import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:property/constants/app_constants.dart';
+import 'package:property/utils/logger.dart';
 
 // 도로명 주소 검색 결과 모델
 class AddressSearchResult {
@@ -325,8 +326,12 @@ class AddressService {
             errorMsg = '주소 검색 중 오류가 발생했습니다.';
           }
         }
-      } catch (_) {
-        // 예외 처리 중 오류 발생 시 기본 메시지 사용
+      } catch (e, stackTrace) {
+        // 예외 처리 중 오류 발생 시 로깅
+        Logger.warning(
+          '주소 검색 예외 처리 중 오류',
+          metadata: {'error': e.toString()},
+        );
       }
       
       return AddressSearchResult(

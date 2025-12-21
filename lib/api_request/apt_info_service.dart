@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 import 'package:property/constants/app_constants.dart';
+import 'package:property/utils/logger.dart';
 
 enum KaptCodeFailureReason {
   invalidInput,
@@ -165,8 +166,12 @@ class AptInfoService {
           if (errorData['response'] != null && errorData['response']['header'] != null) {
             // 에러 처리 로직 필요 시 사용
           }
-        } catch (_) {
-          // 에러 발생 시 무시
+        } catch (e, stackTrace) {
+          // JSON 파싱 에러는 로깅 (사소한 에러)
+          Logger.warning(
+            'API 에러 응답 파싱 실패',
+            metadata: {'error': e.toString()},
+          );
         }
         
         return null;
@@ -245,11 +250,15 @@ class AptInfoService {
       // 전기차 충전기
       aptInfo['groundElChargerCnt'] = item['groundElChargerCnt'] ?? ''; // 지상 전기차 충전기 수
       aptInfo['undergroundElChargerCnt'] = item['undergroundElChargerCnt'] ?? ''; // 지하 전기차 충전기 수
-      
+
       // 사용여부
       aptInfo['useYn'] = item['useYn'] ?? ''; // 사용여부
-    } catch (_) {
-      // 파싱 오류 시 빈 Map 반환
+    } catch (e, stackTrace) {
+      // 파싱 오류 시 로깅
+      Logger.warning(
+        '아파트 정보 파싱 오류',
+        metadata: {'error': e.toString()},
+      );
     }
     
     return aptInfo;
@@ -425,8 +434,14 @@ class AptInfoService {
           }
         }
       }
-    } catch (_) {
-      // 단지코드 검색 실패 시 null 반환
+    } catch (e, stackTrace) {
+      // 단지코드 검색 실패 시 로깅
+      Logger.error(
+        '법정동코드로 단지코드 검색 실패',
+        error: e,
+        stackTrace: stackTrace,
+        context: 'searchKaptCodeByBjdCode',
+      );
     }
     
     return null;
@@ -934,7 +949,7 @@ class AptInfoService {
     final sortedEntries = _kaptCodeCache.entries.toList()
       ..sort((a, b) => a.value.timestamp.compareTo(b.value.timestamp));
     final removeCount = _kaptCodeCache.length - _cacheLimit;
-    for (var i = 0; i < removeCount; i++) {
+    for (int i = 0; i < removeCount; i++) {
       _kaptCodeCache.remove(sortedEntries[i].key);
     }
   }

@@ -13,6 +13,7 @@ import 'widgets/retry_view.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'utils/app_analytics_observer.dart';
 import 'utils/admin_page_loader_actual.dart';
+import 'utils/logger.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -20,14 +21,22 @@ void main() async {
   // 전역 에러 핸들러 설정
   FlutterError.onError = (FlutterErrorDetails details) {
     FlutterError.presentError(details);
-    print('Flutter Error: ${details.exception}');
-    print('Stack trace: ${details.stack}');
+    Logger.error(
+      'Flutter Error 발생',
+      error: details.exception,
+      stackTrace: details.stack,
+      context: 'flutter_error_handler',
+    );
   };
   
   // 비동기 에러 핸들러 설정
   PlatformDispatcher.instance.onError = (error, stack) {
-    print('Platform Error: $error');
-    print('Stack trace: $stack');
+    Logger.error(
+      'Platform Error 발생',
+      error: error,
+      stackTrace: stack,
+      context: 'platform_error_handler',
+    );
     return true;
   };
   
@@ -35,9 +44,12 @@ void main() async {
   if (!kIsWeb) {
     try {
       await dotenv.load(fileName: ".env");
-    } catch (e) {
+    } catch (e, stackTrace) {
       // .env 파일이 없어도 앱은 실행 가능
-      print('Warning: .env 파일을 로드할 수 없습니다: $e');
+      Logger.warning(
+        '.env 파일을 로드할 수 없습니다',
+        metadata: {'error': e.toString()},
+      );
     }
   }
   
@@ -47,14 +59,18 @@ void main() async {
       await Firebase.initializeApp(
         options: DefaultFirebaseOptions.currentPlatform,
       );
-      print('Firebase 초기화 성공');
+      Logger.info('Firebase 초기화 성공');
     } else {
-      print('Firebase가 이미 초기화되어 있습니다');
+      Logger.info('Firebase가 이미 초기화되어 있습니다');
     }
   } catch (e, stackTrace) {
-    // Firebase 초기화 실패 시 에러 출력
-    print('Firebase 초기화 실패: $e');
-    print('Stack trace: $stackTrace');
+    // Firebase 초기화 실패 시 에러 로깅
+    Logger.error(
+      'Firebase 초기화 실패',
+      error: e,
+      stackTrace: stackTrace,
+      context: 'firebase_initialization',
+    );
     // Windows에서는 Firebase 초기화 실패 시에도 앱을 계속 실행
     // 하지만 사용자에게 경고를 표시할 수 있습니다
   }
@@ -163,8 +179,12 @@ class MyApp extends StatelessWidget {
           if (adminRoute != null) {
             return adminRoute;
           }
-        } catch (e) {
+        } catch (e, stackTrace) {
           // 관리자 페이지 파일이 없는 경우 (외부로 분리된 경우)
+          Logger.warning(
+            '관리자 페이지 라우팅 실패',
+            metadata: {'route': settings.name, 'error': e.toString()},
+          );
         }
         
         // 공인중개사용 답변 페이지 (/inquiry/:id)

@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:property/constants/app_constants.dart';
+import 'package:property/constants/typography.dart';
+import 'package:property/constants/spacing.dart';
+import 'package:property/widgets/common_design_system.dart';
 import 'package:property/widgets/home_logo_button.dart';
 import 'signup_page.dart';
 import 'broker/broker_signup_page.dart';
@@ -16,14 +19,14 @@ class UserTypeSelectionPage extends StatelessWidget {
         backgroundColor: AirbnbColors.background,
         foregroundColor: AirbnbColors.primary,
         elevation: 0.5,
-        title: const HomeLogoButton(
-          fontSize: 18,
+        title: HomeLogoButton(
+          fontSize: AppTypography.h4.fontSize!,
           color: AirbnbColors.primary,
         ),
       ),
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24),
+          padding: EdgeInsets.all(AppSpacing.lg),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -69,7 +72,7 @@ class UserTypeSelectionPage extends StatelessWidget {
                 },
               ),
               
-              const SizedBox(height: 24),
+              SizedBox(height: AppSpacing.lg),
               
               // 공인중개사 카드
               _UserTypeCard(
@@ -93,12 +96,11 @@ class UserTypeSelectionPage extends StatelessWidget {
               Center(
                 child: TextButton(
                   onPressed: () => Navigator.pop(context),
-                  child: const Text(
+                  child: Text(
                     '이미 계정이 있으신가요? 로그인',
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: AirbnbColors.primary,
-                      fontWeight: FontWeight.w500,
+                    style: AppTypography.withColor(
+                      AppTypography.bodySmall.copyWith(fontWeight: FontWeight.w500),
+                      AirbnbColors.primary,
                     ),
                   ),
                 ),
@@ -165,7 +167,7 @@ class _UserTypeCard extends StatelessWidget {
                 color: color,
               ),
             ),
-            const SizedBox(width: 24),
+            SizedBox(width: AppSpacing.lg),
             
             // 텍스트
             Expanded(
@@ -174,19 +176,17 @@ class _UserTypeCard extends StatelessWidget {
                 children: [
                   Text(
                     title,
-                    style: TextStyle(
-                      fontSize: 22,
-                      fontWeight: FontWeight.bold,
-                      color: color,
+                    style: AppTypography.withColor(
+                      AppTypography.h3.copyWith(fontWeight: FontWeight.bold),
+                      color,
                     ),
                   ),
-                  const SizedBox(height: 8),
+                  SizedBox(height: AppSpacing.sm),
                   Text(
                     description,
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: AirbnbColors.textSecondary,
-                      height: 1.5,
+                    style: AppTypography.withColor(
+                      AppTypography.bodySmall.copyWith(height: 1.5),
+                      AirbnbColors.textSecondary,
                     ),
                   ),
                 ],

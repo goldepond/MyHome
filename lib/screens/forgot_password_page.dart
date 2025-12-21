@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:property/constants/app_constants.dart';
+import 'package:property/constants/typography.dart';
+import 'package:property/constants/spacing.dart';
+import 'package:property/widgets/common_design_system.dart';
 import 'package:property/api_request/firebase_service.dart';
 import 'package:property/utils/validation_utils.dart';
 
@@ -134,17 +137,9 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                     children: [
                       // 로고 영역
                       Container(
-                        padding: const EdgeInsets.all(20),
-                        decoration: BoxDecoration(
-                          color: AirbnbColors.background,
-                          borderRadius: BorderRadius.circular(20),
-                          boxShadow: [
-                            BoxShadow(
-                              color: AirbnbColors.textPrimary.withValues(alpha: 0.1),
-                              blurRadius: 10,
-                              offset: const Offset(0, 5),
-                            ),
-                          ],
+                        padding: EdgeInsets.all(AppSpacing.lg + AppSpacing.xs),
+                        decoration: CommonDesignSystem.cardDecoration(
+                          borderRadius: 20,
                         ),
                         child: Column(
                           children: [
@@ -153,27 +148,29 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                               size: 48,
                               color: _emailSent ? AirbnbColors.success : AirbnbColors.primary,
                             ),
-                            const SizedBox(height: 16),
+                            SizedBox(height: AppSpacing.md),
                             Text(
                               _emailSent ? '이메일 발송 완료' : '비밀번호 찾기',
-                              style: const TextStyle(
-                                fontSize: 40,
-                                fontWeight: FontWeight.w800,
-                                color: AirbnbColors.textPrimary,
-                                letterSpacing: -1.5,
-                                height: 1.1,
+                              style: AppTypography.withColor(
+                                AppTypography.display.copyWith(
+                                  fontWeight: FontWeight.w800,
+                                  letterSpacing: -1.5,
+                                  height: 1.1,
+                                ),
+                                AirbnbColors.textPrimary,
                               ),
                             ),
-                            const SizedBox(height: 24),
+                            SizedBox(height: AppSpacing.lg),
                             Text(
                               _emailSent
                                 ? '비밀번호 재설정 링크를 발송했습니다'
                                 : '가입한 이메일을 입력하세요',
-                              style: const TextStyle(
-                                fontSize: 18,
-                                fontWeight: FontWeight.w400,
-                                color: AirbnbColors.textSecondary,
-                                height: 1.6,
+                              style: AppTypography.withColor(
+                                AppTypography.bodyLarge.copyWith(
+                                  fontWeight: FontWeight.w400,
+                                  height: 1.6,
+                                ),
+                                AirbnbColors.textSecondary,
                               ),
                               textAlign: TextAlign.center,
                             ),
@@ -214,10 +211,9 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                                     Expanded(
                                       child: Text(
                                         '가입 시 입력한 이메일로 비밀번호 재설정 링크를 발송합니다.',
-                                        style: TextStyle(
-                                          fontSize: 13,
-                                          color: AirbnbColors.primary.withValues(alpha: 0.9),
-                                          height: 1.4,
+                                        style: AppTypography.withColor(
+                                          AppTypography.caption.copyWith(height: 1.4),
+                                          AirbnbColors.primary.withValues(alpha: 0.9),
                                         ),
                                       ),
                                     ),
@@ -251,17 +247,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                                 height: 50,
                                 child: ElevatedButton(
                                   onPressed: _isLoading ? null : _sendResetEmail,
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: AirbnbColors.textPrimary, // 에어비엔비 스타일: 검은색 배경
-                                    foregroundColor: AirbnbColors.background,
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(12),
-                                    ),
-                                    textStyle: const TextStyle(
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
+                                  style: CommonDesignSystem.primaryButtonStyle(),
                                   child: _isLoading
                                       ? const SizedBox(
                                           height: 20,
@@ -308,13 +294,12 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                                   color: AirbnbColors.primary,
                                 ),
                               ),
-                              const SizedBox(height: 12),
+                              SizedBox(height: AppSpacing.sm),
                               Text(
                                 '위 이메일로 비밀번호 재설정 링크를 발송했습니다.\n이메일을 확인해주세요.',
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  color: AirbnbColors.textSecondary,
-                                  height: 1.5,
+                                style: AppTypography.withColor(
+                                  AppTypography.bodySmall.copyWith(height: 1.5),
+                                  AirbnbColors.textSecondary,
                                 ),
                                 textAlign: TextAlign.center,
                               ),
@@ -326,7 +311,7 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
                                   style: OutlinedButton.styleFrom(
                                     foregroundColor: AirbnbColors.primary,
                                     side: const BorderSide(color: AirbnbColors.primary),
-                                    padding: const EdgeInsets.symmetric(vertical: 14),
+                                    padding: EdgeInsets.symmetric(vertical: AppSpacing.md - AppSpacing.xs),
                                     shape: RoundedRectangleBorder(
                                       borderRadius: BorderRadius.circular(12),
                                     ),

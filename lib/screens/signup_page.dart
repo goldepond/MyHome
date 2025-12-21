@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:property/constants/app_constants.dart';
+import 'package:property/constants/typography.dart';
+import 'package:property/constants/spacing.dart';
+import 'package:property/widgets/common_design_system.dart';
 import 'package:property/api_request/firebase_service.dart';
 import 'package:property/widgets/home_logo_button.dart';
 import 'package:property/utils/validation_utils.dart';
@@ -208,68 +211,61 @@ class _SignupPageState extends State<SignupPage> {
         backgroundColor: AirbnbColors.background,
         foregroundColor: AirbnbColors.textPrimary,
         elevation: 0.5,
-        title: const HomeLogoButton(
-          fontSize: 18,
+        title: HomeLogoButton(
+          fontSize: AppTypography.h4.fontSize!,
           color: AirbnbColors.primary,
         ),
       ),
         body: SafeArea(
           child: SingleChildScrollView(
             physics: const AlwaysScrollableScrollPhysics(),
-        padding: const EdgeInsets.all(24),
+        padding: EdgeInsets.all(AppSpacing.lg),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // 제목
-            const Text(
+            Text(
               '일반 회원가입',
-              style: TextStyle(
-                fontSize: 40,
-                fontWeight: FontWeight.w800,
-                color: AirbnbColors.textPrimary,
-                letterSpacing: -1.5,
-                height: 1.1,
+              style: AppTypography.withColor(
+                AppTypography.display.copyWith(
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: -1.5,
+                  height: 1.1,
+                ),
+                AirbnbColors.textPrimary,
               ),
             ),
-            const SizedBox(height: 24),
+            SizedBox(height: AppSpacing.lg),
             Text(
               '이메일과 비밀번호로 간단하게 가입하세요',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.w400,
-                color: AirbnbColors.textSecondary,
-                height: 1.6,
+              style: AppTypography.withColor(
+                AppTypography.bodyLarge.copyWith(
+                  fontWeight: FontWeight.w400,
+                  height: 1.6,
+                ),
+                AirbnbColors.textSecondary,
               ),
             ),
 
-            const SizedBox(height: 32),
+            SizedBox(height: AppSpacing.xl),
 
             // 회원가입 폼
             Container(
-              padding: const EdgeInsets.all(24),
-              decoration: BoxDecoration(
+              padding: EdgeInsets.all(AppSpacing.lg),
+              decoration: CommonDesignSystem.cardDecoration(
                 color: AirbnbColors.surface,
-                borderRadius: BorderRadius.circular(16),
-                boxShadow: [
-                  BoxShadow(
-                    color: AirbnbColors.textPrimary.withValues(alpha: 0.05),
-                    blurRadius: 10,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
+                  Text(
                     '기본 정보',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: AirbnbColors.textPrimary,
+                    style: AppTypography.withColor(
+                      AppTypography.h4.copyWith(fontWeight: FontWeight.bold),
+                      AirbnbColors.textPrimary,
                     ),
                   ),
-                  const SizedBox(height: 24),
+                  SizedBox(height: AppSpacing.lg),
                   
                   // 이메일 입력 (필수)
                   TextField(
@@ -313,12 +309,15 @@ class _SignupPageState extends State<SignupPage> {
                       filled: true,
                       fillColor: AirbnbColors.textSecondary.withValues(alpha: 0.05),
                       errorText: _emailError,
-                      errorStyle: const TextStyle(fontSize: 12),
+                      errorStyle: AppTypography.caption,
                       helperText: _emailError == null ? '이메일이 로그인 ID로 사용됩니다' : null,
-                      helperStyle: TextStyle(fontSize: 12, color: AirbnbColors.textLight),
+                      helperStyle: AppTypography.withColor(
+                        AppTypography.caption,
+                        AirbnbColors.textLight,
+                      ),
                     ),
                   ),
-                  const SizedBox(height: 16),
+                  SizedBox(height: AppSpacing.md),
                   
                   // 휴대폰 번호 입력 (선택)
                   TextField(
@@ -365,12 +364,15 @@ class _SignupPageState extends State<SignupPage> {
                       filled: true,
                       fillColor: AirbnbColors.textSecondary.withValues(alpha: 0.05),
                       errorText: _phoneError,
-                      errorStyle: const TextStyle(fontSize: 12),
+                      errorStyle: AppTypography.caption,
                       helperText: _phoneError == null ? '본인 확인 및 비밀번호 찾기에 사용됩니다' : null,
-                      helperStyle: TextStyle(fontSize: 12, color: AirbnbColors.textLight),
+                      helperStyle: AppTypography.withColor(
+                        AppTypography.caption,
+                        AirbnbColors.textLight,
+                      ),
                     ),
                   ),
-                  const SizedBox(height: 16),
+                  SizedBox(height: AppSpacing.md),
 
                   // 비밀번호 입력
                   TextField(
@@ -420,10 +422,10 @@ class _SignupPageState extends State<SignupPage> {
                   
                   // 비밀번호 강도 표시
                   if (_passwordController.text.isNotEmpty) ...[
-                    const SizedBox(height: 8),
+                    SizedBox(height: AppSpacing.sm),
                     Row(
                       children: [
-                        const SizedBox(width: 12),
+                        SizedBox(width: AppSpacing.sm),
                         Expanded(
                           child: LinearProgressIndicator(
                             value: ValidationUtils.getPasswordStrength(_passwordController.text) / 4,
@@ -434,21 +436,20 @@ class _SignupPageState extends State<SignupPage> {
                             minHeight: 4,
                           ),
                         ),
-                        const SizedBox(width: 12),
+                        SizedBox(width: AppSpacing.sm),
                         Text(
                           ValidationUtils.getPasswordStrengthText(ValidationUtils.getPasswordStrength(_passwordController.text)),
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: _getPasswordStrengthColor(ValidationUtils.getPasswordStrength(_passwordController.text)),
-                            fontWeight: FontWeight.w600,
+                          style: AppTypography.withColor(
+                            AppTypography.caption.copyWith(fontWeight: FontWeight.w600),
+                            _getPasswordStrengthColor(ValidationUtils.getPasswordStrength(_passwordController.text)),
                           ),
                         ),
-                        const SizedBox(width: 12),
+                        SizedBox(width: AppSpacing.sm),
                       ],
                     ),
                   ],
                   
-                  const SizedBox(height: 16),
+                  SizedBox(height: AppSpacing.md),
                   
                   // 비밀번호 확인 입력
                   TextField(
@@ -492,18 +493,18 @@ class _SignupPageState extends State<SignupPage> {
                       filled: true,
                       fillColor: AirbnbColors.textSecondary.withValues(alpha: 0.05),
                       errorText: _passwordConfirmError,
-                      errorStyle: const TextStyle(fontSize: 12),
+                      errorStyle: AppTypography.caption,
                     ),
                   ),
                   
-                  const SizedBox(height: 24),
+                  SizedBox(height: AppSpacing.lg),
                   
                   // 약관 동의
                   Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
+                    padding: EdgeInsets.all(AppSpacing.md),
+                    decoration: CommonDesignSystem.smallCardDecoration(
                       color: AirbnbColors.surface,
-                      borderRadius: BorderRadius.circular(12),
+                    ).copyWith(
                       border: Border.all(color: AirbnbColors.border),
                     ),
                     child: Column(
@@ -511,7 +512,10 @@ class _SignupPageState extends State<SignupPage> {
                         CheckboxListTile(
                           value: _agreeToTerms,
                           onChanged: (value) => setState(() => _agreeToTerms = value ?? false),
-                          title: const Text('서비스 이용약관 동의 (필수)', style: TextStyle(fontSize: 14)),
+                          title: Text(
+                            '서비스 이용약관 동의 (필수)',
+                            style: AppTypography.bodySmall,
+                          ),
                           controlAffinity: ListTileControlAffinity.leading,
                           dense: true,
                           activeColor: AirbnbColors.primary,
@@ -519,7 +523,10 @@ class _SignupPageState extends State<SignupPage> {
                         CheckboxListTile(
                           value: _agreeToPrivacy,
                           onChanged: (value) => setState(() => _agreeToPrivacy = value ?? false),
-                          title: const Text('개인정보 처리방침 동의 (필수)', style: TextStyle(fontSize: 14)),
+                          title: Text(
+                            '개인정보 처리방침 동의 (필수)',
+                            style: AppTypography.bodySmall,
+                          ),
                           controlAffinity: ListTileControlAffinity.leading,
                           dense: true,
                           activeColor: AirbnbColors.primary,
@@ -527,7 +534,10 @@ class _SignupPageState extends State<SignupPage> {
                         CheckboxListTile(
                           value: _agreeToMarketing,
                           onChanged: (value) => setState(() => _agreeToMarketing = value ?? false),
-                          title: const Text('마케팅 정보 수신 동의 (선택)', style: TextStyle(fontSize: 14)),
+                          title: Text(
+                            '마케팅 정보 수신 동의 (선택)',
+                            style: AppTypography.bodySmall,
+                          ),
                           controlAffinity: ListTileControlAffinity.leading,
                           dense: true,
                           activeColor: AirbnbColors.primary,
@@ -539,7 +549,7 @@ class _SignupPageState extends State<SignupPage> {
               ),
             ),
 
-            const SizedBox(height: 32),
+            SizedBox(height: AppSpacing.xl),
 
             // 회원가입 버튼
             SizedBox(
@@ -559,33 +569,23 @@ class _SignupPageState extends State<SignupPage> {
                     : const Icon(Icons.person_add, size: 24),
                 label: Text(
                   _isLoading ? '가입 중...' : '회원가입',
-                  style: const TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: AppTypography.button,
                 ),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AirbnbColors.textPrimary, // 에어비엔비 스타일: 검은색 배경
-                  foregroundColor: AirbnbColors.textWhite,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  elevation: 4,
-                ),
+                style: CommonDesignSystem.primaryButtonStyle(),
               ),
             ),
 
-            const SizedBox(height: 16),
+            SizedBox(height: AppSpacing.md),
 
             // 로그인으로 이동
             Center(
               child: TextButton(
                 onPressed: () => Navigator.pop(context),
-                child: const Text(
+                child: Text(
                   '이미 계정이 있으신가요? 로그인',
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: AirbnbColors.primary,
+                  style: AppTypography.withColor(
+                    AppTypography.bodySmall,
+                    AirbnbColors.primary,
                   ),
                 ),
               ),

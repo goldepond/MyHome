@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:property/constants/app_constants.dart';
 import 'package:property/constants/typography.dart';
 import 'package:property/constants/spacing.dart';
+import 'package:property/widgets/common_design_system.dart';
 import 'package:property/api_request/firebase_service.dart';
 import 'forgot_password_page.dart';
 import 'main_page.dart';
@@ -167,7 +168,7 @@ class _LoginPageState extends State<LoginPage> {
       child: GestureDetector(
         onTap: () => FocusScope.of(context).unfocus(),
         child: Scaffold(
-      backgroundColor: Colors.transparent,
+      backgroundColor: AirbnbColors.background,
         resizeToAvoidBottomInset: true,
       appBar: AppBar(
         backgroundColor: AirbnbColors.background,
@@ -175,14 +176,15 @@ class _LoginPageState extends State<LoginPage> {
         elevation: 2,
         toolbarHeight: 70,
         shadowColor: AirbnbColors.textPrimary.withValues(alpha: 0.1),
-        surfaceTintColor: Colors.transparent,
+        surfaceTintColor: AirbnbColors.background.withValues(alpha: 0),
         automaticallyImplyLeading: false,
-        leading: IconButton(
+        leading: AccessibleWidget.iconButton(
+          icon: Icons.arrow_back,
           onPressed: () {
             Navigator.of(context).maybePop();
           },
-          icon: const Icon(Icons.arrow_back),
           tooltip: '뒤로가기',
+          semanticLabel: '뒤로가기',
         ),
         centerTitle: true,
         title: Text(
@@ -205,17 +207,8 @@ class _LoginPageState extends State<LoginPage> {
               child: Container(
                 constraints: const BoxConstraints(maxWidth: 480),
                 padding: EdgeInsets.all(AppSpacing.xxl),
-                decoration: BoxDecoration(
-                  color: AirbnbColors.background,
-                  borderRadius: BorderRadius.circular(20),
-                  boxShadow: [
-                    BoxShadow(
-                      color: AirbnbColors.textPrimary.withValues(alpha: 0.08),
-                      offset: const Offset(0, 8),
-                      blurRadius: 24,
-                      spreadRadius: 0,
-                    ),
-                  ],
+                decoration: CommonDesignSystem.cardDecoration(
+                  borderRadius: 20,
                 ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -229,7 +222,6 @@ class _LoginPageState extends State<LoginPage> {
                             '로그인',
                             style: AppTypography.withColor(
                               AppTypography.display.copyWith(
-                                fontSize: 40,
                                 fontWeight: FontWeight.w800,
                                 letterSpacing: -1.5,
                                 height: 1.1,
@@ -272,7 +264,7 @@ class _LoginPageState extends State<LoginPage> {
                           decoration: InputDecoration(
                             hintText: '이메일을 입력하세요',
                             hintStyle: AppTypography.withColor(
-                              AppTypography.bodySmall.copyWith(fontSize: 15),
+                              AppTypography.bodySmall,
                               AirbnbColors.textLight,
                             ),
                             prefixIcon: Icon(
@@ -320,7 +312,7 @@ class _LoginPageState extends State<LoginPage> {
                           decoration: InputDecoration(
                             hintText: '비밀번호를 입력하세요',
                             hintStyle: AppTypography.withColor(
-                              AppTypography.bodySmall.copyWith(fontSize: 15),
+                              AppTypography.bodySmall,
                               AirbnbColors.textLight,
                             ),
                             prefixIcon: Icon(
@@ -359,7 +351,7 @@ class _LoginPageState extends State<LoginPage> {
                         ),
                       ],
                     ),
-                    const SizedBox(height: 32),
+                    SizedBox(height: AppSpacing.xl),
                     
                     // 로그인 버튼
                     SizedBox(
@@ -367,15 +359,7 @@ class _LoginPageState extends State<LoginPage> {
                       height: 56,
                       child: ElevatedButton(
                         onPressed: _isLoading ? null : _login,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AirbnbColors.textPrimary, // 에어비엔비 스타일: 검은색 배경
-                          foregroundColor: AirbnbColors.textWhite,
-                          elevation: 0,
-                          shadowColor: Colors.transparent,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
+                        style: CommonDesignSystem.primaryButtonStyle(),
                         child: _isLoading
                             ? const SizedBox(
                                 height: 24,
@@ -385,17 +369,13 @@ class _LoginPageState extends State<LoginPage> {
                                   valueColor: AlwaysStoppedAnimation<Color>(AirbnbColors.background),
                                 ),
                               )
-                            : const Text(
+                            : Text(
                                 '로그인',
-                                style: TextStyle(
-                                  fontSize: 17,
-                                  fontWeight: FontWeight.bold,
-                                  letterSpacing: 0.5,
-                                ),
+                                style: AppTypography.button,
                               ),
                       ),
                     ),
-                    const SizedBox(height: 12),
+                    SizedBox(height: AppSpacing.sm),
                     Align(
                       alignment: Alignment.centerRight,
                       child: TextButton(
@@ -408,7 +388,7 @@ class _LoginPageState extends State<LoginPage> {
                           );
                         },
                         style: TextButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                          padding: EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: AppSpacing.xs),
                           minimumSize: Size.zero,
                           tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                         ),
@@ -457,7 +437,7 @@ class _LoginPageState extends State<LoginPage> {
                                 );
                             },
                             style: TextButton.styleFrom(
-                              padding: EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: 4),
+                              padding: EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: AppSpacing.xs),
                               minimumSize: Size.zero,
                               tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                             ),

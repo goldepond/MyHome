@@ -1,6 +1,10 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:property/constants/app_constants.dart';
+import 'package:property/constants/typography.dart';
+import 'package:property/constants/spacing.dart';
+import 'package:property/constants/responsive_constants.dart';
+import 'package:property/widgets/common_design_system.dart';
 import 'package:property/api_request/firebase_service.dart';
 import 'package:property/screens/main_page.dart';
 import 'package:property/screens/change_password_page.dart';
@@ -238,11 +242,10 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
 
   @override
   Widget build(BuildContext context) {
-    final screenWidth = MediaQuery.of(context).size.width;
-    final isMobile = screenWidth < 768;
-    final isTablet = screenWidth >= 768 && screenWidth < 1024;
-    final bannerHeight = isMobile ? 320.0 : (isTablet ? 360.0 : 400.0);
-    const double overlapHeight = 80;
+    final isMobile = ResponsiveHelper.isMobile(context);
+    final isTablet = ResponsiveHelper.isTablet(context);
+    final bannerHeight = isMobile ? AppSpacing.xxxl * 5 : (isTablet ? AppSpacing.xxxl * 5.625 : AppSpacing.xxxl * 6.25);
+    final double overlapHeight = AppSpacing.xxxl * 1.25;
 
     return Scaffold(
       backgroundColor: AirbnbColors.background,
@@ -272,24 +275,28 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
                     Text(
                       '내 정보',
                       textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontSize: isMobile ? 40 : (isTablet ? 52 : 64),
-                        fontWeight: FontWeight.w800,
-                        letterSpacing: -1.5,
-                        height: 1.1,
-                        color: AirbnbColors.textPrimary,
+                      style: AppTypography.withColor(
+                        AppTypography.display.copyWith(
+                          fontSize: isMobile ? AppTypography.display.fontSize! : (isTablet ? AppTypography.display.fontSize! * 1.3 : AppTypography.display.fontSize! * 1.6),
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: -1.5,
+                          height: 1.1,
+                        ),
+                        AirbnbColors.textPrimary,
                       ),
                     ),
-                    const SizedBox(height: 24),
+                    SizedBox(height: AppSpacing.lg),
                     // 큰 서브헤드
                     Text(
                       '내 계정 정보를 확인하고 관리하세요',
                       textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontSize: isMobile ? 18 : 22,
-                        fontWeight: FontWeight.w400,
-                        height: 1.6,
-                        color: AirbnbColors.textSecondary,
+                      style: AppTypography.withColor(
+                        AppTypography.bodyLarge.copyWith(
+                          fontSize: isMobile ? AppTypography.bodyLarge.fontSize! : AppTypography.h4.fontSize!,
+                          fontWeight: FontWeight.w400,
+                          height: 1.6,
+                        ),
+                        AirbnbColors.textSecondary,
                       ),
                     ),
                   ],
@@ -321,12 +328,11 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
                             const Text(
                               '내 정보',
                               style: TextStyle(
-                                fontSize: 20,
                                 fontWeight: FontWeight.bold,
                                 color: AirbnbColors.textPrimary,
                               ),
                             ),
-                            const SizedBox(height: 16),
+                            SizedBox(height: AppSpacing.md),
                             SizedBox(
                               width: double.infinity,
                               height: 50,
@@ -356,7 +362,7 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
                                 ),
                               ),
                             ),
-                            const SizedBox(height: 12),
+                            SizedBox(height: AppSpacing.md + AppSpacing.xs),
                             if (_isLoadingUserData)
                               const Center(
                                 child: Padding(
@@ -366,7 +372,7 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
                               )
                             else ...[
                               if (_userData?['email'] != null) ...[
-                                const SizedBox(height: 12),
+                                SizedBox(height: AppSpacing.md + AppSpacing.xs),
                                 _buildInfoRow(
                                   Icons.email_outlined, 
                                   '이메일', 
@@ -374,7 +380,7 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
                                 ),
                               ],
                               if (_userData?['phone'] != null && _userData!['phone'].toString().isNotEmpty) ...[
-                                const SizedBox(height: 12),
+                                SizedBox(height: AppSpacing.md + AppSpacing.xs),
                                 _buildEditableInfoRow(
                                   Icons.phone_outlined, 
                                   '전화번호', 
@@ -382,21 +388,21 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
                                   onEdit: () => _showEditPhoneDialog(),
                                 ),
                               ],
-                              const SizedBox(height: 12),
+                              SizedBox(height: AppSpacing.md + AppSpacing.xs),
                               _buildEditableInfoRow(
                                 Icons.person, 
                                 '이름', 
                                 _userData?['name'] ?? widget.userName,
                                 onEdit: () => _showEditNameDialog(),
                               ),
-                              const SizedBox(height: 12),
+                              SizedBox(height: AppSpacing.md + AppSpacing.xs),
                               _buildInfoRow(
                                 Icons.badge_outlined, 
                                 '역할', 
                                 _getRoleDisplayName(_userData?['role'] ?? 'user'),
                               ),
                             ],
-                            const SizedBox(height: 16),
+                            SizedBox(height: AppSpacing.md),
                           ],
                         ),
                       ),
@@ -418,19 +424,18 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
                               const Text(
                                 '계정 정보',
                                 style: TextStyle(
-                                  fontSize: 20,
                                   fontWeight: FontWeight.bold,
                                   color: AirbnbColors.textPrimary,
                                 ),
                               ),
-                              const SizedBox(height: 16),
+                              SizedBox(height: AppSpacing.md),
                               if (_userData?['createdAt'] != null) ...[
                                 _buildInfoRow(
                                   Icons.calendar_today_outlined,
                                   '가입일',
                                   _formatDate(_userData!['createdAt']),
                                 ),
-                                const SizedBox(height: 12),
+                                SizedBox(height: AppSpacing.md + AppSpacing.xs),
                               ],
                               if (_userData?['updatedAt'] != null && _userData!['updatedAt'] != _userData!['createdAt']) ...[
                                 _buildInfoRow(
@@ -462,7 +467,6 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
                               child: Text(
                                 '고객센터 / 문의하기',
                                 style: TextStyle(
-                                  fontSize: 18,
                                   fontWeight: FontWeight.bold,
                                   color: AirbnbColors.textPrimary,
                                 ),
@@ -499,7 +503,6 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
                               child: Text(
                                 '정책 및 도움말',
                                 style: TextStyle(
-                                  fontSize: 18,
                                   fontWeight: FontWeight.bold,
                                   color: AirbnbColors.textPrimary,
                                 ),
@@ -546,12 +549,11 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
                             const Text(
                               '계정 관리',
                               style: TextStyle(
-                                fontSize: 20,
                                 fontWeight: FontWeight.bold,
                                 color: AirbnbColors.textPrimary,
                               ),
                             ),
-                            const SizedBox(height: 16),
+                            SizedBox(height: AppSpacing.md),
                             SizedBox(
                               width: double.infinity,
                               height: 50,
@@ -575,7 +577,7 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
                                 ),
                               ),
                             ),
-                            const SizedBox(height: 12),
+                            SizedBox(height: AppSpacing.md + AppSpacing.xs),
                             SizedBox(
                               width: double.infinity,
                               height: 50,

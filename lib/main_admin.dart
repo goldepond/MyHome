@@ -7,6 +7,7 @@ import 'constants/app_constants.dart';
 import 'screens/admin/admin_dashboard.dart';
 import 'api_request/firebase_service.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'utils/logger.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -15,8 +16,12 @@ void main() async {
   if (!kIsWeb) {
     try {
       await dotenv.load(fileName: ".env");
-    } catch (e) {
+    } catch (e, stackTrace) {
       // .env 파일이 없어도 앱은 실행 가능
+      Logger.warning(
+        '.env 파일을 로드할 수 없습니다',
+        metadata: {'error': e.toString()},
+      );
     }
   }
 
@@ -26,9 +31,16 @@ void main() async {
       await Firebase.initializeApp(
         options: DefaultFirebaseOptions.currentPlatform,
       );
+      Logger.info('Firebase 초기화 성공 (관리자 앱)');
     }
-  } catch (_) {
-    // Firebase 초기화 실패는 무시 (이미 초기화된 경우 등)
+  } catch (e, stackTrace) {
+    // Firebase 초기화 실패는 로깅
+    Logger.error(
+      'Firebase 초기화 실패 (관리자 앱)',
+      error: e,
+      stackTrace: stackTrace,
+      context: 'firebase_initialization_admin',
+    );
   }
 
   runApp(const AdminApp());
@@ -110,8 +122,12 @@ class _AdminAuthGateState extends State<AdminAuthGate> {
       // 임시: 관리자도 일단 익명 로그인 등을 사용한다고 가정
       // 실제 운영 시에는 이메일/비밀번호 로그인 폼으로 대체 권장
       await FirebaseService().signInAnonymously();
-    } catch (e) {
-      // 익명 로그인 실패는 무시 (관리자는 다른 방법으로 로그인 가능)
+    } catch (e, stackTrace) {
+      // 익명 로그인 실패는 로깅
+      Logger.warning(
+        '익명 로그인 실패 (관리자 앱)',
+        metadata: {'error': e.toString()},
+      );
     } finally {
       if (mounted) {
         setState(() {

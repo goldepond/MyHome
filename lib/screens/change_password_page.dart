@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:property/constants/app_constants.dart';
+import 'package:property/constants/typography.dart';
+import 'package:property/constants/spacing.dart';
+import 'package:property/widgets/common_design_system.dart';
 import 'package:property/api_request/firebase_service.dart';
 import 'package:property/utils/validation_utils.dart';
 
@@ -112,9 +115,9 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
         backgroundColor: AirbnbColors.background,
         foregroundColor: AirbnbColors.primary,
         elevation: 2,
-        title: const Text(
+        title: Text(
           '비밀번호 변경',
-          style: TextStyle(fontWeight: FontWeight.bold),
+          style: AppTypography.h3.copyWith(fontWeight: FontWeight.bold),
         ),
         centerTitle: true,
       ),
@@ -135,18 +138,8 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Container(
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: AirbnbColors.background,
-                borderRadius: BorderRadius.circular(16),
-                boxShadow: [
-                  BoxShadow(
-                    color: AirbnbColors.textPrimary.withValues(alpha: 0.06),
-                    blurRadius: 12,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
-              ),
+              padding: EdgeInsets.all(AppSpacing.lg + AppSpacing.xs),
+              decoration: CommonDesignSystem.cardDecoration(),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -179,7 +172,7 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
                       fillColor: AirbnbColors.textSecondary.withValues(alpha: 0.05),
                     ),
                   ),
-                  const SizedBox(height: 16),
+                  SizedBox(height: AppSpacing.md),
                   const Text(
                     '새 비밀번호',
                     style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
@@ -221,7 +214,7 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
                       minHeight: 4,
                     ),
                   ],
-                  const SizedBox(height: 16),
+                  SizedBox(height: AppSpacing.md),
                   const Text(
                     '새 비밀번호 확인',
                     style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
@@ -251,7 +244,7 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
                       fillColor: AirbnbColors.textSecondary.withValues(alpha: 0.05),
                     ),
                   ),
-                  const SizedBox(height: 20),
+                  SizedBox(height: AppSpacing.lg + AppSpacing.xs),
                   SizedBox(
                     width: double.infinity,
                     height: 52,

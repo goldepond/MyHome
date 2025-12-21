@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:math';
 import 'package:http/http.dart' as http;
 import 'package:property/constants/app_constants.dart';
+import 'package:property/utils/logger.dart';
 
 class BrokerSearchResult {
   final List<Broker> brokers;
@@ -701,8 +702,12 @@ class BrokerService {
             brokerLon = double.parse(coordinates[0].toString());
             brokerLat = double.parse(coordinates[1].toString());
             distance = _calculateHaversineDistance(baseLat, baseLon, brokerLat, brokerLon);
-          } catch (_) {
+          } catch (e, stackTrace) {
             // 좌표 파싱 실패 시 거리 계산 스킵
+            Logger.warning(
+              '좌표 파싱 실패',
+              metadata: {'coordinates': coordinates.toString(), 'error': e.toString()},
+            );
           }
         }
 

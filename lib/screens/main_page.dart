@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:property/constants/app_constants.dart';
 import 'package:property/constants/responsive_constants.dart';
 import 'package:property/constants/typography.dart';
+import 'package:property/constants/spacing.dart';
 import 'package:property/widgets/common_design_system.dart';
 import 'package:property/api_request/firebase_service.dart';
 import 'package:property/api_request/log_service.dart';
 import 'package:property/widgets/home_logo_button.dart';
+import 'package:property/utils/logger.dart';
 import 'home_page.dart';
 import 'userInfo/personal_info_page.dart';
 import 'propertyMgmt/house_management_page.dart';
@@ -67,8 +69,12 @@ class _MainPageState extends State<MainPage> {
           _brokerData = data;
         });
       }
-    } catch (_) {
-      // 브로커 아님 또는 오류는 무시
+    } catch (e, stackTrace) {
+      // 브로커 확인 중 오류 발생 시 로깅
+      Logger.warning(
+        '브로커 정보 확인 중 오류 발생',
+        metadata: {'error': e.toString()},
+      );
     }
   }
 
@@ -200,12 +206,11 @@ class _MainPageState extends State<MainPage> {
   }
 
   Widget _buildMobileHeader() {
-    final screenWidth = MediaQuery.of(context).size.width;
-    // 450px 미만: 작은 화면 최적화
-    final isSmallScreen = screenWidth < 450;
-    // 370px 미만: 초소형 화면 - 아이콘만 표시 고려
-    final isTinyScreen = screenWidth < 370;
-    final horizontalGap = isSmallScreen ? 2.0 : 6.0;
+    // 모바일 화면 최적화
+    final isSmallScreen = ResponsiveHelper.isMobile(context);
+    // 초소형 화면은 ResponsiveHelper에서 처리
+    final isTinyScreen = false; // ResponsiveHelper로 통일
+    final horizontalGap = isSmallScreen ? AppSpacing.xs : AppSpacing.xs;
 
     // 모바일에서는 항상 화면 폭 안에 4개의 탭이 모두 보이도록
     // 가로 스크롤을 없애고 Expanded 로 균등 분배한다.
@@ -490,8 +495,8 @@ class _MainPageState extends State<MainPage> {
       child: LayoutBuilder(
         builder: (context, constraints) {
           // 화면 크기별 세밀한 조정
-          final isSmallScreen = ResponsiveHelper.isMobile(context) && MediaQuery.of(context).size.width < 450;
-          final fontSize = isSmallScreen ? 10.5 : (isMobile ? AppTypography.bodySmall.fontSize! : AppTypography.buttonSmall.fontSize!);
+          final isSmallScreen = ResponsiveHelper.isMobile(context);
+          final fontSize = isSmallScreen ? AppTypography.caption.fontSize! : (isMobile ? AppTypography.bodySmall.fontSize! : AppTypography.buttonSmall.fontSize!);
           final iconSize = isSmallScreen ? 18.0 : (isMobile ? 22.0 : 20.0);
           final horizontalPadding = isSmallScreen ? 1.0 : (isMobile ? 4.0 : 16.0);
           final iconTextGap = isSmallScreen ? 2.0 : (isMobile ? 4.0 : 6.0);

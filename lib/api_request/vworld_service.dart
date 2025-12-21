@@ -2,6 +2,7 @@ import 'dart:collection';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:property/constants/app_constants.dart';
+import 'package:property/utils/logger.dart';
 
 /// VWorld API 서비스
 /// Geocoder API: 주소 → 좌표 변환
@@ -59,8 +60,12 @@ class VWorldService {
         if (parcelResult != null && _isReliableGeocode(parcelResult, candidate)) {
           return parcelResult;
         }
-      } catch (_) {
-        // 무시하고 다음 변형 주소 시도
+      } catch (e, stackTrace) {
+        // 다음 변형 주소 시도 (경고만 로깅)
+        Logger.warning(
+          'Geocoder 변형 주소 시도 실패',
+          metadata: {'candidate': candidate, 'error': e.toString()},
+        );
       }
     }
 

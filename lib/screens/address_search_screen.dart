@@ -3,6 +3,7 @@ import 'dart:async';
 
 import 'package:property/constants/app_constants.dart';
 import 'package:property/api_request/address_service.dart';
+import 'package:property/utils/logger.dart';
 
 
 class AddressSearchScreen extends StatefulWidget {
@@ -83,8 +84,14 @@ class _AddressSearchScreenState extends State<AddressSearchScreen> {
                    !typeName.startsWith('minified:')) {
           errorMsg = '주소 검색 중 오류가 발생했습니다.';
         }
-      } catch (_) {
+      } catch (e, stackTrace) {
         // 예외 처리 중 오류 발생 시 기본 메시지 사용
+        Logger.error(
+          '주소 검색 에러 처리 중 오류 발생',
+          error: e,
+          stackTrace: stackTrace,
+          context: 'address_search_error_handling',
+        );
       }
       
       setState(() {

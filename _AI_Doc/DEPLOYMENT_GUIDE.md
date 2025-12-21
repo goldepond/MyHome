@@ -87,7 +87,50 @@ Windows용 원클릭 배포 스크립트
 - https://github.com/goldepond/TESTHOME/actions 에서 에러 로그 확인
 - Flutter 빌드 에러인 경우 로컬에서 `flutter build web` 테스트
 
-### 3. Firebase 연동 안됨
+### 3. GitHub Actions 권한 오류
+**문제 상황:**
+```
+remote: Permission to goldepond/MyHome.git denied to github-actions[bot].
+fatal: unable to access 'https://github.com/goldepond/MyHome.git/': The requested URL returned error: 403
+```
+
+**해결 방법:**
+
+#### A. Actions 권한 설정
+1. GitHub 저장소로 이동: https://github.com/goldepond/TESTHOME
+2. **Settings** (설정) 클릭
+3. 왼쪽 메뉴에서 **Actions** → **General** 클릭
+4. **Workflow permissions** 섹션에서:
+   - ✅ **Read and write permissions** 선택
+   - ✅ **Allow GitHub Actions to create and approve pull requests** 체크
+5. 맨 아래로 스크롤하여 **Save** 클릭
+
+#### B. 환경(Environment) 확인
+1. **Settings** → **Environments** 클릭
+2. `github-pages` 환경이 있는지 확인
+   - 없으면 자동 생성되므로 별도 설정 불필요
+3. 있다면 클릭하여:
+   - **Deployment branches**에서 **All branches** 선택
+
+#### C. 워크플로우 파일 확인
+현재 워크플로우 파일들은 이미 올바른 권한을 가지고 있습니다:
+- ✅ `contents: read` - 코드 읽기
+- ✅ `pages: write` - Pages 쓰기
+- ✅ `id-token: write` - 인증 토큰
+
+#### D. 오래된 워크플로우 확인
+에러 메시지에서 `peaceiris/actions-gh-pages@v3`가 보이면:
+1. https://github.com/goldepond/TESTHOME/actions 에서 실패한 워크플로우 확인
+2. `.github/workflows/` 폴더에서 오래된 워크플로우 파일 삭제
+3. 현재는 `actions/deploy-pages@v4` 사용 중
+
+**권한 확인 체크리스트:**
+- [ ] Settings → Actions → General → Workflow permissions = "Read and write"
+- [ ] Settings → Pages → Source = "GitHub Actions" 또는 "gh-pages 브랜치"
+- [ ] Settings → Environments → github-pages 환경 존재
+- [ ] 워크플로우 파일에 올바른 permissions 설정됨
+
+### 4. Firebase 연동 안됨
 **원인**: 웹용 Firebase 설정 필요
 
 **해결**:

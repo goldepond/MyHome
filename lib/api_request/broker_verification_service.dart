@@ -98,7 +98,7 @@ class BrokerVerificationService {
           final features = resultData['featureCollection']['features'] as List?;
           
           if (features != null && features.isNotEmpty) {
-            for (var feature in features) {
+            for (final Map<String, dynamic> feature in features) {
               final props = feature['properties'];
               // 필드명은 V-World 버전에 따라 다를 수 있음 (brkr_nm, bsnm_cmpnm 등)
               // brkr_nm: 중개업자명(대표자)

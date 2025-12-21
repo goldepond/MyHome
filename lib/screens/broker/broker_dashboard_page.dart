@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:property/constants/app_constants.dart';
+import 'package:property/constants/typography.dart';
+import 'package:property/constants/spacing.dart';
+import 'package:property/constants/responsive_constants.dart';
+import 'package:property/widgets/common_design_system.dart';
 import 'package:property/api_request/firebase_service.dart';
 import 'package:property/models/quote_request.dart';
 import 'package:property/constants/status_constants.dart';
@@ -139,8 +143,8 @@ class _BrokerDashboardPageState extends State<BrokerDashboardPage> with SingleTi
     return Scaffold(
       backgroundColor: AirbnbColors.surface,
       appBar: AppBar(
-        title: const HomeLogoButton(
-          fontSize: 18,
+        title: HomeLogoButton(
+          fontSize: AppTypography.h4.fontSize!,
           color: AirbnbColors.primary,
         ),
         backgroundColor: AirbnbColors.background,
@@ -175,13 +179,12 @@ class _BrokerDashboardPageState extends State<BrokerDashboardPage> with SingleTi
                 );
               }
             },
-            icon: const Icon(Icons.home_outlined, size: 18, color: AirbnbColors.primary),
-            label: const Text(
+            icon: Icon(Icons.home_outlined, size: 18, color: AirbnbColors.primary),
+            label: Text(
               '일반 화면',
-              style: TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
-                color: AirbnbColors.primary,
+              style: AppTypography.withColor(
+                AppTypography.bodySmall.copyWith(fontWeight: FontWeight.w600),
+                AirbnbColors.primary,
               ),
             ),
           ),
@@ -233,12 +236,11 @@ class _BrokerDashboardPageState extends State<BrokerDashboardPage> with SingleTi
               // 헤더 (일반 화면 히어로 배너와 동일 그라데이션 사용)
               Builder(
                 builder: (context) {
-                  final screenWidth = MediaQuery.of(context).size.width;
-                  final isWeb = screenWidth > 800;
-                  final maxWidth = isWeb ? 1400.0 : screenWidth;
-                  final horizontalPadding = isWeb ? 24.0 : 16.0;
-                  final isMobile = screenWidth < 768;
-                  final isTablet = screenWidth >= 768 && screenWidth < 1024;
+                  final maxWidth = ResponsiveHelper.getMaxWidth(context);
+                  final isWeb = ResponsiveHelper.isWeb(context);
+                  final horizontalPadding = isWeb ? AppSpacing.lg : AppSpacing.md;
+                  final isMobile = ResponsiveHelper.isMobile(context);
+                  final isTablet = ResponsiveHelper.isTablet(context);
                   
                   return Container(
                     padding: EdgeInsets.symmetric(
@@ -258,23 +260,27 @@ class _BrokerDashboardPageState extends State<BrokerDashboardPage> with SingleTi
                             Text(
                               '상담 관리 대시보드',
                               textAlign: TextAlign.center,
-                              style: TextStyle(
-                                fontSize: isMobile ? 40 : (isTablet ? 52 : 64),
-                                fontWeight: FontWeight.w800,
-                                letterSpacing: -1.5,
-                                height: 1.1,
-                                color: AirbnbColors.textPrimary,
+                              style: AppTypography.withColor(
+                                AppTypography.display.copyWith(
+                                  fontSize: isMobile ? AppTypography.display.fontSize! : (isTablet ? AppTypography.display.fontSize! * 1.3 : AppTypography.display.fontSize! * 1.6),
+                                  fontWeight: FontWeight.w800,
+                                  letterSpacing: -1.5,
+                                  height: 1.1,
+                                ),
+                                AirbnbColors.textPrimary,
                               ),
                             ),
-                            const SizedBox(height: 24),
+                            SizedBox(height: AppSpacing.lg),
                             Text(
                               widget.brokerName,
                               textAlign: TextAlign.center,
-                              style: TextStyle(
-                                fontSize: isMobile ? 18 : 22,
-                                fontWeight: FontWeight.w400,
-                                height: 1.6,
-                                color: AirbnbColors.textSecondary,
+                              style: AppTypography.withColor(
+                                AppTypography.bodyLarge.copyWith(
+                                  fontSize: isMobile ? AppTypography.bodyLarge.fontSize! : AppTypography.h4.fontSize!,
+                                  fontWeight: FontWeight.w400,
+                                  height: 1.6,
+                                ),
+                                AirbnbColors.textSecondary,
                               ),
                             ),
                           ],
@@ -347,19 +353,19 @@ class _BrokerDashboardPageState extends State<BrokerDashboardPage> with SingleTi
             children: [
               Text(
                 label,
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
-                  color: isSelected ? color : AirbnbColors.textPrimary,
+                style: AppTypography.withColor(
+                  AppTypography.bodySmall.copyWith(
+                    fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
+                  ),
+                  isSelected ? color : AirbnbColors.textPrimary,
                 ),
               ),
-              const SizedBox(height: 6),
+              SizedBox(height: AppSpacing.xs + AppSpacing.xs / 2),
               Text(
                 value,
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.w800,
-                  color: color,
+                style: AppTypography.withColor(
+                  AppTypography.h2.copyWith(fontWeight: FontWeight.w800),
+                  color,
                 ),
               ),
             ],
@@ -384,18 +390,19 @@ class _BrokerDashboardPageState extends State<BrokerDashboardPage> with SingleTi
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(Icons.error_outline, size: 64, color: AirbnbColors.error.withValues(alpha: 0.3)),
-            const SizedBox(height: 16),
+            SizedBox(height: AppSpacing.md),
             Text(
               _error!,
-              style: TextStyle(
-                fontSize: 16,
-                color: AirbnbColors.textSecondary,
+              style: AppTypography.withColor(
+                AppTypography.body,
+                AirbnbColors.textSecondary,
               ),
             ),
-            const SizedBox(height: 24),
+            SizedBox(height: AppSpacing.lg),
             ElevatedButton(
               onPressed: _loadQuotes,
-              child: const Text('다시 시도'),
+              style: CommonDesignSystem.primaryButtonStyle(),
+              child: Text('다시 시도', style: AppTypography.button),
             ),
           ],
         ),
@@ -412,24 +419,23 @@ class _BrokerDashboardPageState extends State<BrokerDashboardPage> with SingleTi
               size: 80,
               color: AirbnbColors.border,
             ),
-            const SizedBox(height: 24),
+            SizedBox(height: AppSpacing.lg),
             Text(
               _selectedStatus == 'all'
                   ? '아직 받은 상담 요청이 없어요'
                   : '조건에 맞는 상담이 없어요',
-              style: TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: AirbnbColors.textSecondary,
+              style: AppTypography.withColor(
+                AppTypography.body.copyWith(fontWeight: FontWeight.bold),
+                AirbnbColors.textSecondary,
               ),
             ),
-            const SizedBox(height: 8),
+            SizedBox(height: AppSpacing.sm),
             Text(
               '소유자/임대인분들로부터 상담 요청이 들어오면\n여기에 표시됩니다',
               textAlign: TextAlign.center,
-              style: TextStyle(
-                fontSize: 14,
-                color: AirbnbColors.textSecondary,
+              style: AppTypography.withColor(
+                AppTypography.bodySmall,
+                AirbnbColors.textSecondary,
               ),
             ),
           ],
@@ -501,49 +507,47 @@ class _BrokerDashboardPageState extends State<BrokerDashboardPage> with SingleTi
                       size: 20,
                     ),
                   ),
-                  const SizedBox(width: 12),
+                  SizedBox(width: AppSpacing.sm + AppSpacing.xs),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
                           quote.userName,
-                          style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: AirbnbColors.textPrimary,
+                          style: AppTypography.withColor(
+                            AppTypography.body.copyWith(fontWeight: FontWeight.bold),
+                            AirbnbColors.textPrimary,
                           ),
                         ),
-                        const SizedBox(height: 4),
+                        SizedBox(height: AppSpacing.xs),
                         Text(
                           dateFormat.format(quote.requestDate),
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: AirbnbColors.textSecondary,
+                          style: AppTypography.withColor(
+                            AppTypography.caption,
+                            AirbnbColors.textSecondary,
                           ),
                         ),
                       ],
                     ),
                   ),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    padding: EdgeInsets.symmetric(horizontal: AppSpacing.sm + AppSpacing.xs, vertical: AppSpacing.xs + AppSpacing.xs / 2),
                     decoration: BoxDecoration(
                       color: hasAnswer ? AirbnbColors.success : AirbnbColors.warning,
                       borderRadius: BorderRadius.circular(20),
                     ),
                     child: Text(
                       hasAnswer ? '답변완료' : '대기중',
-                      style: const TextStyle(
-                        color: AirbnbColors.background,
-                        fontSize: 12,
-                        fontWeight: FontWeight.bold,
+                      style: AppTypography.withColor(
+                        AppTypography.caption.copyWith(fontWeight: FontWeight.bold),
+                        AirbnbColors.background,
                       ),
                     ),
                   ),
                 ],
               ),
 
-              const SizedBox(height: 16),
+              SizedBox(height: AppSpacing.md),
 
               // 매물 정보
               Container(
@@ -558,46 +562,45 @@ class _BrokerDashboardPageState extends State<BrokerDashboardPage> with SingleTi
                     Row(
                       children: [
                         Icon(Icons.location_on, size: 16, color: AirbnbColors.textSecondary),
-                        const SizedBox(width: 8),
+                        SizedBox(width: AppSpacing.sm),
                         Expanded(
                           child: Text(
                             quote.propertyAddress ?? '-',
-                            style: const TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w600,
-                              color: AirbnbColors.textPrimary,
+                            style: AppTypography.withColor(
+                              AppTypography.body.copyWith(fontWeight: FontWeight.w600),
+                              AirbnbColors.textPrimary,
                             ),
                           ),
                         ),
                       ],
                     ),
                     if (quote.propertyArea != null) ...[
-                      const SizedBox(height: 8),
+                      SizedBox(height: AppSpacing.sm),
                       Row(
                         children: [
                           Icon(Icons.square_foot, size: 16, color: AirbnbColors.textSecondary),
-                          const SizedBox(width: 8),
+                          SizedBox(width: AppSpacing.sm),
                           Text(
                             '${quote.propertyArea}㎡',
-                            style: TextStyle(
-                              fontSize: 13,
-                              color: AirbnbColors.textSecondary,
+                            style: AppTypography.withColor(
+                              AppTypography.bodySmall,
+                              AirbnbColors.textSecondary,
                             ),
                           ),
                         ],
                       ),
                     ],
                     if (quote.desiredPrice != null) ...[
-                      const SizedBox(height: 8),
+                      SizedBox(height: AppSpacing.sm),
                       Row(
                         children: [
                           Icon(Icons.attach_money, size: 16, color: AirbnbColors.textSecondary),
-                          const SizedBox(width: 8),
+                          SizedBox(width: AppSpacing.sm),
                           Text(
                             '희망가: ${quote.desiredPrice}',
-                            style: TextStyle(
-                              fontSize: 13,
-                              color: AirbnbColors.textSecondary,
+                            style: AppTypography.withColor(
+                              AppTypography.bodySmall,
+                              AirbnbColors.textSecondary,
                             ),
                           ),
                         ],
@@ -607,7 +610,7 @@ class _BrokerDashboardPageState extends State<BrokerDashboardPage> with SingleTi
                 ),
               ),
 
-              const SizedBox(height: 12),
+              SizedBox(height: AppSpacing.md + AppSpacing.xs),
 
               // 액션
               Row(
@@ -665,16 +668,13 @@ class _BrokerDashboardPageState extends State<BrokerDashboardPage> with SingleTi
                           borderRadius: BorderRadius.circular(20),
                         ),
                       ),
-                      icon: const Icon(Icons.block, size: 16),
-                      label: const Text(
+                      icon: Icon(Icons.block, size: 16),
+                      label: Text(
                         '보류하기',
-                        style: TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600,
-                        ),
+                        style: AppTypography.bodySmall.copyWith(fontWeight: FontWeight.w600),
                       ),
                     ),
-                    const SizedBox(width: 12),
+                    SizedBox(width: AppSpacing.sm + AppSpacing.xs),
                   ],
                   ElevatedButton.icon(
                     onPressed: () {
@@ -694,10 +694,7 @@ class _BrokerDashboardPageState extends State<BrokerDashboardPage> with SingleTi
                     ),
                     label: Text(
                       hasAnswer ? '답변 수정' : '답변하기',
-                      style: const TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
-                      ),
+                      style: AppTypography.bodySmall.copyWith(fontWeight: FontWeight.w600),
                     ),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AirbnbColors.textPrimary, // 에어비엔비 스타일: 검은색 배경

@@ -3,6 +3,10 @@ import 'package:intl/intl.dart';
 import 'package:property/api_request/broker_service.dart';
 import 'package:property/api_request/firebase_service.dart';
 import 'package:property/constants/app_constants.dart';
+import 'package:property/constants/typography.dart';
+import 'package:property/constants/spacing.dart';
+import 'package:property/constants/responsive_constants.dart';
+import 'package:property/widgets/common_design_system.dart';
 import 'package:property/models/broker_review.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -64,11 +68,11 @@ class BrokerDetailPage extends StatelessWidget {
                   recommendCount: recommendCount,
                   notRecommendCount: notRecommendCount,
                 ),
-                const SizedBox(height: 16),
+                SizedBox(height: AppSpacing.md),
                 _buildInfoCard(),
-                const SizedBox(height: 16),
+                SizedBox(height: AppSpacing.md),
                 _buildActionsRow(context),
-                const SizedBox(height: 16),
+                SizedBox(height: AppSpacing.md),
                 if (_canWriteReview)
                   SizedBox(
                     width: double.infinity,
@@ -83,16 +87,13 @@ class BrokerDetailPage extends StatelessWidget {
                         ),
                       ),
                       icon: const Icon(Icons.rate_review_outlined, size: 18),
-                      label: const Text(
+                      label: Text(
                         '이 중개사에 후기 남기기 / 수정하기',
-                        style: TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600,
-                        ),
+                        style: AppTypography.body.copyWith(fontWeight: FontWeight.w600),
                       ),
                     ),
                   ),
-                const SizedBox(height: 24),
+                SizedBox(height: AppSpacing.lg),
                 _buildReviewSection(reviews),
                   ],
                 ),
@@ -129,42 +130,40 @@ class BrokerDetailPage extends StatelessWidget {
         children: [
           Text(
             broker.name,
-            style: const TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-              color: AirbnbColors.background,
+            style: AppTypography.withColor(
+              AppTypography.h4.copyWith(fontWeight: FontWeight.bold),
+              AirbnbColors.background,
             ),
           ),
           if (broker.ownerName != null && broker.ownerName!.isNotEmpty) ...[
-            const SizedBox(height: 4),
+            SizedBox(height: AppSpacing.xs),
             Text(
               '중개업자명: ${broker.ownerName}',
-              style: TextStyle(
-                fontSize: 13,
-                color: AirbnbColors.background.withValues(alpha: 0.9),
+              style: AppTypography.withColor(
+                AppTypography.bodySmall,
+                AirbnbColors.background.withValues(alpha: 0.9),
               ),
             ),
           ],
-          const SizedBox(height: 8),
+          SizedBox(height: AppSpacing.sm),
           Row(
             children: [
               Icon(Icons.badge, color: AirbnbColors.background.withValues(alpha: 0.9), size: 16),
               const SizedBox(width: 6),
               Text(
                 '등록번호: ${broker.registrationNumber}',
-                style: TextStyle(
-                  fontSize: 12,
-                  color: AirbnbColors.background.withValues(alpha: 0.9),
+                style: AppTypography.withColor(
+                  AppTypography.bodySmall,
+                  AirbnbColors.background.withValues(alpha: 0.9),
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 8),
+          SizedBox(height: AppSpacing.sm),
           if (reviewCount > 0) ...[
             Text(
               '추천 $recommendCount · 비추천 $notRecommendCount',
               style: TextStyle(
-                fontSize: 12,
                 color: AirbnbColors.background.withValues(alpha: 0.9),
                 fontWeight: FontWeight.w600,
               ),
@@ -172,9 +171,9 @@ class BrokerDetailPage extends StatelessWidget {
           ] else ...[
             Text(
               '아직 등록된 후기가 없습니다',
-              style: TextStyle(
-                fontSize: 12,
-                color: AirbnbColors.background.withValues(alpha: 0.9),
+              style: AppTypography.withColor(
+                AppTypography.bodySmall,
+                AirbnbColors.background.withValues(alpha: 0.9),
               ),
             ),
           ],
@@ -204,7 +203,7 @@ class BrokerDetailPage extends StatelessWidget {
           // 전화번호
           if (broker.phoneNumber != null && broker.phoneNumber!.isNotEmpty && broker.phoneNumber != '-') ...[
             _infoRow(Icons.phone, '전화번호', broker.phoneNumber!),
-            const SizedBox(height: 12),
+            SizedBox(height: AppSpacing.md + AppSpacing.xs),
           ],
           // 주소 표시: 도로명주소 우선, 없으면 지번주소
           if (broker.roadAddress.isNotEmpty || broker.jibunAddress.isNotEmpty) ...[
@@ -213,12 +212,12 @@ class BrokerDetailPage extends StatelessWidget {
               '주소',
               broker.roadAddress.isNotEmpty ? broker.roadAddress : broker.jibunAddress,
             ),
-            const SizedBox(height: 12),
+            SizedBox(height: AppSpacing.md + AppSpacing.xs),
           ],
           // 영업상태
           if (broker.businessStatus != null && broker.businessStatus!.isNotEmpty) ...[
             _infoRow(Icons.store, '영업상태', broker.businessStatus!),
-            const SizedBox(height: 12),
+            SizedBox(height: AppSpacing.md + AppSpacing.xs),
           ],
           // 등록번호와 고용인원 (한 줄에)
           Row(
@@ -242,7 +241,7 @@ class BrokerDetailPage extends StatelessWidget {
           ),
           // 소개란 (있는 경우만 표시)
           if (broker.introduction != null && broker.introduction!.isNotEmpty) ...[
-            const SizedBox(height: 12),
+            SizedBox(height: AppSpacing.md + AppSpacing.xs),
             Container(
               padding: const EdgeInsets.all(14),
               decoration: BoxDecoration(
@@ -262,20 +261,18 @@ class BrokerDetailPage extends StatelessWidget {
                       Text(
                         '중개사 소개',
                         style: TextStyle(
-                          fontSize: 13,
                           fontWeight: FontWeight.bold,
                           color: AirbnbColors.textSecondary,
                         ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 8),
+                  SizedBox(height: AppSpacing.sm),
                   Text(
                     broker.introduction!,
-                    style: TextStyle(
-                      fontSize: 13,
-                      color: AirbnbColors.textPrimary,
-                      height: 1.5,
+                    style: AppTypography.withColor(
+                      AppTypography.bodySmall.copyWith(height: 1.5),
+                      AirbnbColors.textPrimary,
                     ),
                   ),
                 ],
@@ -285,7 +282,7 @@ class BrokerDetailPage extends StatelessWidget {
           // 행정처분 정보 (있는 경우만 표시)
           if ((broker.penaltyStartDate != null && broker.penaltyStartDate!.isNotEmpty) ||
               (broker.penaltyEndDate != null && broker.penaltyEndDate!.isNotEmpty)) ...[
-            const SizedBox(height: 12),
+            SizedBox(height: AppSpacing.md + AppSpacing.xs),
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
@@ -305,21 +302,20 @@ class BrokerDetailPage extends StatelessWidget {
                       const SizedBox(width: 6),
                       Text(
                         '행정처분 이력',
-                        style: TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w700,
-                          color: AirbnbColors.warning.withValues(alpha: 0.7),
+                        style: AppTypography.withColor(
+                          AppTypography.bodySmall.copyWith(fontWeight: FontWeight.w700),
+                          AirbnbColors.warning.withValues(alpha: 0.7),
                         ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 8),
+                  SizedBox(height: AppSpacing.sm),
                   if (broker.penaltyStartDate != null &&
                       broker.penaltyStartDate!.isNotEmpty)
                     _smallInfoRow('처분 시작일', broker.penaltyStartDate!),
                   if (broker.penaltyEndDate != null &&
                       broker.penaltyEndDate!.isNotEmpty) ...[
-                    const SizedBox(height: 4),
+                    SizedBox(height: AppSpacing.xs),
                     _smallInfoRow('처분 종료일', broker.penaltyEndDate!),
                   ],
                 ],
@@ -329,7 +325,7 @@ class BrokerDetailPage extends StatelessWidget {
           // 글로벌공인중개사무소 정보 (있는 경우만 표시)
           if ((broker.globalBrokerLanguage != null && broker.globalBrokerLanguage!.isNotEmpty) ||
               (broker.globalBrokerAppnYear != null && broker.globalBrokerAppnYear!.isNotEmpty)) ...[
-            const SizedBox(height: 12),
+            SizedBox(height: AppSpacing.md + AppSpacing.xs),
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
@@ -348,27 +344,26 @@ class BrokerDetailPage extends StatelessWidget {
                       const SizedBox(width: 6),
                       Text(
                         '글로벌공인중개사무소',
-                        style: TextStyle(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w700,
-                          color: AirbnbColors.primary.withValues(alpha: 0.7),
+                        style: AppTypography.withColor(
+                          AppTypography.bodySmall.copyWith(fontWeight: FontWeight.w700),
+                          AirbnbColors.primary.withValues(alpha: 0.7),
                         ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 8),
+                  SizedBox(height: AppSpacing.sm),
                   if (broker.globalBrokerLanguage != null && broker.globalBrokerLanguage!.isNotEmpty)
                     _smallInfoRow('사용언어', broker.globalBrokerLanguage!),
                   if (broker.globalBrokerAppnYear != null && broker.globalBrokerAppnYear!.isNotEmpty) ...[
-                    const SizedBox(height: 4),
+                    SizedBox(height: AppSpacing.xs),
                     _smallInfoRow('지정연도', broker.globalBrokerAppnYear!),
                   ],
                   if (broker.globalBrokerAppnNo != null && broker.globalBrokerAppnNo!.isNotEmpty) ...[
-                    const SizedBox(height: 4),
+                    SizedBox(height: AppSpacing.xs),
                     _smallInfoRow('지정번호', broker.globalBrokerAppnNo!),
                   ],
                   if (broker.globalBrokerAppnDe != null && broker.globalBrokerAppnDe!.isNotEmpty) ...[
-                    const SizedBox(height: 4),
+                    SizedBox(height: AppSpacing.xs),
                     _smallInfoRow('지정일', broker.globalBrokerAppnDe!),
                   ],
                 ],
@@ -392,15 +387,17 @@ class BrokerDetailPage extends StatelessWidget {
             children: [
               Text(
                 label,
-                style: TextStyle(fontSize: 12, color: AirbnbColors.textSecondary, fontWeight: FontWeight.w600),
+                style: AppTypography.withColor(
+                  AppTypography.caption.copyWith(fontWeight: FontWeight.w600),
+                  AirbnbColors.textSecondary,
+                ),
               ),
-              const SizedBox(height: 2),
+              SizedBox(height: AppSpacing.xs / 2),
               Text(
                 value,
-                style: const TextStyle(
-                  fontSize: 13.5,
-                  color: AirbnbColors.textPrimary,
-                  fontWeight: FontWeight.w500,
+                style: AppTypography.withColor(
+                  AppTypography.bodySmall.copyWith(fontWeight: FontWeight.w500),
+                  AirbnbColors.textPrimary,
                 ),
               ),
             ],
@@ -418,7 +415,6 @@ class BrokerDetailPage extends StatelessWidget {
           child: Text(
             label,
             style: TextStyle(
-              fontSize: 11,
               color: AirbnbColors.textSecondary,
               fontWeight: FontWeight.w600,
             ),
@@ -427,9 +423,9 @@ class BrokerDetailPage extends StatelessWidget {
         Expanded(
           child: Text(
             value,
-            style: const TextStyle(
-              fontSize: 12,
-              color: AirbnbColors.textPrimary,
+            style: AppTypography.withColor(
+              AppTypography.body,
+              AirbnbColors.textPrimary,
             ),
           ),
         ),
@@ -465,9 +461,12 @@ class BrokerDetailPage extends StatelessWidget {
   /// 후기 리스트
   Widget _buildReviewSection(List<BrokerReview> reviews) {
     if (reviews.isEmpty) {
-      return const Text(
+      return         Text(
         '아직 등록된 후기가 없습니다.\n내집관리 > 견적 이력에서 상담이 끝난 중개사에게 후기를 남겨보세요.',
-        style: TextStyle(fontSize: 13, color: AirbnbColors.textSecondary),
+        style: AppTypography.withColor(
+          AppTypography.bodySmall,
+          AirbnbColors.textSecondary,
+        ),
       );
     }
 
@@ -476,15 +475,15 @@ class BrokerDetailPage extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
+        Text(
           '후기',
-          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+          style: AppTypography.body.copyWith(fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 8),
         ...reviews.map((r) {
           return Container(
-            margin: const EdgeInsets.only(bottom: 8),
-            padding: const EdgeInsets.all(10),
+            margin: EdgeInsets.only(bottom: AppSpacing.sm),
+            padding: EdgeInsets.all(AppSpacing.md - AppSpacing.xs),
             decoration: BoxDecoration(
               color: AirbnbColors.surface,
               borderRadius: BorderRadius.circular(8),
@@ -503,7 +502,6 @@ class BrokerDetailPage extends StatelessWidget {
                     Text(
                       r.recommend ? '추천' : '비추천',
                       style: TextStyle(
-                        fontSize: 12,
                         fontWeight: FontWeight.w600,
                         color: r.recommend ? AirbnbColors.success.withValues(alpha: 0.7) : AirbnbColors.error.withValues(alpha: 0.7),
                       ),
@@ -511,21 +509,27 @@ class BrokerDetailPage extends StatelessWidget {
                     const Spacer(),
                     Text(
                       dateFormat.format(r.createdAt),
-                      style: TextStyle(fontSize: 11, color: AirbnbColors.textSecondary),
+                      style: AppTypography.withColor(
+                    AppTypography.caption,
+                    AirbnbColors.textSecondary,
+                  ),
                     ),
                   ],
                 ),
                 if (r.comment != null && r.comment!.trim().isNotEmpty) ...[
-                  const SizedBox(height: 4),
+                  SizedBox(height: AppSpacing.xs),
                   Text(
                     r.comment!,
-                    style: const TextStyle(fontSize: 13, height: 1.3),
+                    style: AppTypography.bodySmall.copyWith(height: 1.3),
                   ),
                 ],
-                const SizedBox(height: 2),
+                SizedBox(height: AppSpacing.xs / 2),
                 Text(
                   r.userName,
-                  style: TextStyle(fontSize: 11, color: AirbnbColors.textSecondary),
+                  style: AppTypography.withColor(
+                    AppTypography.caption,
+                    AirbnbColors.textSecondary,
+                  ),
                 ),
               ],
             ),
@@ -614,15 +618,12 @@ class BrokerDetailPage extends StatelessWidget {
                 children: [
                   Text(
                     '${broker.name} 후기',
-                    style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
+                    style: AppTypography.body.copyWith(fontWeight: FontWeight.bold),
                   ),
-                  const SizedBox(height: 8),
+                  SizedBox(height: AppSpacing.sm),
                   Row(
                     children: [
-                      const Text('추천 여부', style: TextStyle(fontSize: 14)),
+                      Text('추천 여부', style: AppTypography.bodySmall),
                       const SizedBox(width: 8),
                       ChoiceChip(
                         label: const Text('추천'),
@@ -645,7 +646,7 @@ class BrokerDetailPage extends StatelessWidget {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 12),
+                  SizedBox(height: AppSpacing.md + AppSpacing.xs),
                   TextField(
                     controller: commentController,
                     maxLines: 4,
@@ -654,7 +655,7 @@ class BrokerDetailPage extends StatelessWidget {
                       border: OutlineInputBorder(),
                     ),
                   ),
-                  const SizedBox(height: 12),
+                  SizedBox(height: AppSpacing.md + AppSpacing.xs),
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
@@ -711,7 +712,6 @@ class BrokerDetailPage extends StatelessWidget {
                       child: Text(
                         existingReview == null ? '후기 저장' : '후기 수정하기',
                         style: const TextStyle(
-                          fontSize: 15,
                           fontWeight: FontWeight.w600,
                         ),
                       ),

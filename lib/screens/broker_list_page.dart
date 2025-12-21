@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/services.dart';
 
@@ -22,6 +22,7 @@ import 'package:property/screens/common/submit_success_page.dart';
 import 'package:property/utils/analytics_service.dart';
 import 'package:property/utils/analytics_events.dart';
 import 'package:property/utils/transaction_type_helper.dart';
+import 'package:property/utils/logger.dart';
 
 /// 부동산 상담을 위한 공인중개사 찾기 페이지
 class BrokerListPage extends StatefulWidget {
@@ -178,7 +179,7 @@ class _BrokerListPageState extends State<BrokerListPage> {
               ),
             ],
           ),
-          const SizedBox(height: AppSpacing.lg),
+          SizedBox(height: AppSpacing.lg),
           // 액션 버튼 영역
           _buildBulkActionButtons(maxWidth),
           if (!_isLoggedIn) ...[
@@ -380,7 +381,7 @@ class _BrokerListPageState extends State<BrokerListPage> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Container(height: 12, width: 120, color: Colors.grey.withValues(alpha: 0.2)),
-                    const SizedBox(height: 8),
+                    SizedBox(height: AppSpacing.sm),
                     Container(height: 10, width: 80, color: Colors.grey.withValues(alpha: 0.15)),
                   ],
                 ),
@@ -404,7 +405,7 @@ class _BrokerListPageState extends State<BrokerListPage> {
           children: [
             Icon(Icons.lock_outline, color: Colors.orange, size: 28),
             SizedBox(width: 12),
-            Text('로그인 필요', style: TextStyle(fontSize: 20)),
+            Text('로그인 필요', style: AppTypography.h4),
           ],
         ),
         content: const Text(
@@ -414,7 +415,7 @@ class _BrokerListPageState extends State<BrokerListPage> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext, false),
-            child: const Text('취소', style: TextStyle(fontSize: 15)),
+            child: Text('취소', style: AppTypography.bodySmall),
           ),
           ElevatedButton.icon(
             onPressed: () => Navigator.pop(dialogContext, true),
@@ -539,8 +540,12 @@ class _BrokerListPageState extends State<BrokerListPage> {
               );
             }
           }
-        } catch (_) {
+        } catch (e, stackTrace) {
           // 테스트 중개사 주입 실패는 전체 플로우에 영향 주지 않음
+          Logger.warning(
+            '테스트 중개사 주입 실패',
+            metadata: {'error': e.toString()},
+          );
         }
       }
       // ================================================================
@@ -1096,7 +1101,7 @@ class _BrokerListPageState extends State<BrokerListPage> {
                                 ],
                               ),
                               
-                              const SizedBox(height: AppSpacing.md),
+                              SizedBox(height: AppSpacing.md),
                               
                               // 검색창
                               TextField(
@@ -1414,7 +1419,7 @@ class _BrokerListPageState extends State<BrokerListPage> {
 
                       // 로딩 / 에러 / 결과 표시 (리스트 제외)
                       if (isLoading)
-                        SizedBox(height: 320, child: _buildLoadingSkeleton())
+                        SizedBox(height: AppSpacing.xxxl * 5, child: _buildLoadingSkeleton())
                       else if (error != null)
                         RetryView(
                           message: error!,
@@ -1442,8 +1447,8 @@ class _BrokerListPageState extends State<BrokerListPage> {
           if (!isLoading && error == null && brokers.isNotEmpty && filteredBrokers.isNotEmpty)
             SliverPadding(
               padding: EdgeInsets.symmetric(
-                horizontal: MediaQuery.of(context).size.width > maxWidth 
-                    ? (MediaQuery.of(context).size.width - maxWidth) / 2 + AppSpacing.lg
+                horizontal: ResponsiveHelper.getMaxWidth(context) < double.infinity && ResponsiveHelper.getMaxWidth(context) < MediaQuery.of(context).size.width
+                    ? (MediaQuery.of(context).size.width - ResponsiveHelper.getMaxWidth(context)) / 2 + AppSpacing.lg
                     : AppSpacing.lg,
                 vertical: 0,
               ),
@@ -1625,7 +1630,7 @@ class _BrokerListPageState extends State<BrokerListPage> {
                           side: const BorderSide(color: AirbnbColors.textWhite, width: 2),
                         ),
                       ),
-                      const SizedBox(width: AppSpacing.md),
+                      SizedBox(width: AppSpacing.md),
                     ],
                     Expanded(
                       child: Text(
@@ -1642,7 +1647,7 @@ class _BrokerListPageState extends State<BrokerListPage> {
                     ),
                   ],
                 ),
-                const SizedBox(height: AppSpacing.md),
+                SizedBox(height: AppSpacing.md),
                 // 두 번째 줄: 핵심 배지들 (거리, 전화번호, 영업상태)
                 Wrap(
                   spacing: AppSpacing.sm,
@@ -1783,17 +1788,15 @@ class _BrokerListPageState extends State<BrokerListPage> {
                               Text(
                                 '행정처분 이력',
                                 style: TextStyle(
-                                  fontSize: 12,
                                   fontWeight: FontWeight.bold,
                                   color: AirbnbColors.warning,
                                 ),
                               ),
                               if (broker.penaltyStartDate != null && broker.penaltyStartDate!.isNotEmpty) ...[
-                                const SizedBox(height: 4),
+                                SizedBox(height: AppSpacing.xs),
                                 Text(
                                   '시작: ${broker.penaltyStartDate!}',
                                   style: TextStyle(
-                                    fontSize: 11,
                                     color: AirbnbColors.textSecondary,
                                   ),
                                 ),
@@ -1803,7 +1806,6 @@ class _BrokerListPageState extends State<BrokerListPage> {
                                 Text(
                                   '종료: ${broker.penaltyEndDate!}',
                                   style: TextStyle(
-                                    fontSize: 11,
                                     color: AirbnbColors.textSecondary,
                                   ),
                                 ),
@@ -1838,20 +1840,18 @@ class _BrokerListPageState extends State<BrokerListPage> {
                             Text(
                               '중개사 소개',
                               style: TextStyle(
-                                fontSize: 13,
                                 fontWeight: FontWeight.bold,
                                 color: AirbnbColors.textSecondary,
                               ),
                             ),
                           ],
                         ),
-                        const SizedBox(height: 8),
+                        SizedBox(height: AppSpacing.sm),
                         Text(
                           broker.introduction!.length > 80
                               ? '${broker.introduction!.substring(0, 80)}...'
                               : broker.introduction!,
                           style: TextStyle(
-                            fontSize: 13,
                             color: AirbnbColors.textSecondary,
                             height: 1.5,
                           ),
@@ -1898,9 +1898,9 @@ class _BrokerListPageState extends State<BrokerListPage> {
                             elevation: hasPhone ? 2 : 0,
                           ),
                           icon: Icon(Icons.phone, size: 18),
-                          label: const Text(
+                          label: Text(
                             '전화문의',
-                            style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+                            style: AppTypography.bodySmall.copyWith(fontWeight: FontWeight.w600),
                           ),
                         ),
                       ),
@@ -1936,7 +1936,7 @@ class _BrokerListPageState extends State<BrokerListPage> {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 8),
+                        SizedBox(height: AppSpacing.sm),
                   Row(
                     children: [
                       // 길찾기
@@ -2068,11 +2068,10 @@ class _BrokerListPageState extends State<BrokerListPage> {
               ),
             ],
           ),
-          const SizedBox(height: 6),
+          SizedBox(height: AppSpacing.xs + AppSpacing.xs / 2),
           Text(
             value,
             style: TextStyle(
-              fontSize: 14,
               fontWeight: FontWeight.bold,
               color: color,
             ),
@@ -2135,7 +2134,7 @@ class _BrokerListPageState extends State<BrokerListPage> {
         mainAxisSize: MainAxisSize.min,
         children: [
           Icon(icon, size: 14, color: AirbnbColors.textSecondary),
-          const SizedBox(width: AppSpacing.xs),
+          SizedBox(width: AppSpacing.xs),
           Text(
             '$label: ',
             style: AppTypography.withColor(
@@ -2283,7 +2282,7 @@ class _BrokerListPageState extends State<BrokerListPage> {
           children: [
             Icon(Icons.map, color: AirbnbColors.primary, size: 28),
             SizedBox(width: 12),
-            Text('길찾기', style: TextStyle(fontSize: 20)),
+            Text('길찾기', style: AppTypography.h4),
           ],
         ),
         content: Column(
@@ -2293,21 +2292,19 @@ class _BrokerListPageState extends State<BrokerListPage> {
             Text(
               '목적지',
               style: TextStyle(
-                fontSize: 12,
                 color: Colors.grey[600],
                 fontWeight: FontWeight.w600,
               ),
             ),
-            const SizedBox(height: 4),
+            SizedBox(height: AppSpacing.xs),
             Text(
               address,
               style: const TextStyle(
-                fontSize: 14,
                 fontWeight: FontWeight.bold,
                 color: AirbnbColors.primary,
               ),
             ),
-            const SizedBox(height: AppSpacing.lg),
+            SizedBox(height: AppSpacing.lg),
             const Text(
               '지도 앱을 선택하세요',
               style: TextStyle(
@@ -2315,7 +2312,7 @@ class _BrokerListPageState extends State<BrokerListPage> {
                 fontWeight: FontWeight.w600,
               ),
             ),
-            const SizedBox(height: AppSpacing.md),
+            SizedBox(height: AppSpacing.md),
             
             // 카카오맵
             _buildMapButton(
@@ -2328,7 +2325,7 @@ class _BrokerListPageState extends State<BrokerListPage> {
                 _launchKakaoMap(address);
               },
             ),
-            const SizedBox(height: 8),
+                        SizedBox(height: AppSpacing.sm),
             
             // 네이버 지도
             _buildMapButton(
@@ -2341,7 +2338,7 @@ class _BrokerListPageState extends State<BrokerListPage> {
                 _launchNaverMap(address);
               },
             ),
-            const SizedBox(height: 8),
+                        SizedBox(height: AppSpacing.sm),
             
             // 구글 지도
             _buildMapButton(
@@ -2359,7 +2356,7 @@ class _BrokerListPageState extends State<BrokerListPage> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('취소', style: TextStyle(fontSize: 15)),
+            child: Text('취소', style: AppTypography.bodySmall),
           ),
         ],
       ),
@@ -2484,7 +2481,7 @@ class _BrokerListPageState extends State<BrokerListPage> {
             children: [
               Icon(Icons.error_outline, color: Colors.orange, size: 28),
               SizedBox(width: 12),
-              Text('전화번호 없음', style: TextStyle(fontSize: 20)),
+              Text('전화번호 없음', style: AppTypography.h4),
             ],
           ),
           content: Text(
@@ -2518,7 +2515,7 @@ class _BrokerListPageState extends State<BrokerListPage> {
               child: const Icon(Icons.phone, color: AirbnbColors.success, size: 24),
             ),
             const SizedBox(width: 12),
-            const Text('전화 문의', style: TextStyle(fontSize: 20)),
+            Text('전화 문의', style: AppTypography.h4),
           ],
         ),
           content: Column(
@@ -2529,7 +2526,7 @@ class _BrokerListPageState extends State<BrokerListPage> {
               broker.name,
               style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
             ),
-            const SizedBox(height: 8),
+                        SizedBox(height: AppSpacing.sm),
             Container(
                           padding: const EdgeInsets.all(AppSpacing.sm),
               decoration: BoxDecoration(
@@ -2554,7 +2551,7 @@ class _BrokerListPageState extends State<BrokerListPage> {
                 ],
               ),
             ),
-            const SizedBox(height: 12),
+            SizedBox(height: AppSpacing.md + AppSpacing.xs),
             Text(
               '전화를 걸어 직접 문의하시겠습니까?',
               style: TextStyle(fontSize: 14, color: AirbnbColors.textSecondary),
@@ -2564,7 +2561,7 @@ class _BrokerListPageState extends State<BrokerListPage> {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-            child: const Text('취소', style: TextStyle(fontSize: 15)),
+            child: Text('취소', style: AppTypography.bodySmall),
             ),
           ElevatedButton.icon(
               onPressed: () async {
@@ -2639,7 +2636,7 @@ class _BrokerListPageState extends State<BrokerListPage> {
           children: [
             Icon(Icons.lock_outline, color: Colors.orange, size: 28),
             SizedBox(width: 12),
-            Text('로그인 필요', style: TextStyle(fontSize: 20)),
+            Text('로그인 필요', style: AppTypography.h4),
           ],
         ),
         content: const Column(
@@ -2650,11 +2647,10 @@ class _BrokerListPageState extends State<BrokerListPage> {
               '비대면 문의는 로그인 후 이용 가능합니다.',
               style: TextStyle(fontSize: 15, height: 1.5),
             ),
-            SizedBox(height: 12),
+            SizedBox(height: AppSpacing.md + AppSpacing.xs),
             Text(
               '우측 상단의 로그인 버튼을 눌러주세요.',
               style: TextStyle(
-                fontSize: 14,
                 color: Colors.grey,
               ),
             ),
@@ -2663,7 +2659,7 @@ class _BrokerListPageState extends State<BrokerListPage> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(dialogContext, false),
-            child: const Text('취소', style: TextStyle(fontSize: 15)),
+            child: Text('취소', style: AppTypography.bodySmall),
           ),
           ElevatedButton.icon(
             onPressed: () => Navigator.pop(dialogContext, true),
@@ -3081,9 +3077,7 @@ class _QuoteRequestFormPageState extends State<_QuoteRequestFormPage> {
   
   @override
   Widget build(BuildContext context) {
-    final screenWidth = MediaQuery.of(context).size.width;
-    final isWeb = kIsWeb;
-    final maxContentWidth = isWeb ? 800.0 : screenWidth;
+    final maxContentWidth = ResponsiveHelper.getMaxWidth(context);
     
     return GestureDetector(
       onTap: () => FocusScope.of(context).unfocus(),
@@ -3104,7 +3098,7 @@ class _QuoteRequestFormPageState extends State<_QuoteRequestFormPage> {
                 constraints: BoxConstraints(maxWidth: maxContentWidth),
                 child: ListView(
                   physics: const ClampingScrollPhysics(),
-                  padding: EdgeInsets.all(isWeb ? 40.0 : 20.0),
+                  padding: EdgeInsets.all(kIsWeb ? 40.0 : 20.0),
                   children: [
             // 제목
             Text(
@@ -3114,20 +3108,19 @@ class _QuoteRequestFormPageState extends State<_QuoteRequestFormPage> {
                 AirbnbColors.textPrimary,
               ),
             ),
-            const SizedBox(height: 8),
+                        SizedBox(height: AppSpacing.sm),
             Text(
               '공인중개사에게 정확한 정보를 전달하여 최적의 제안을 받으세요',
               style: TextStyle(
-                fontSize: 14,
                 color: Colors.grey[600],
               ),
             ),
             
-            const SizedBox(height: AppSpacing.xl),
+            SizedBox(height: AppSpacing.xl),
             
             // ========== 1️⃣ 매물 정보 (자동 입력) ==========
             _buildSectionTitle('매물 정보', '자동 입력됨', Colors.blue),
-            const SizedBox(height: 12),
+            SizedBox(height: AppSpacing.md + AppSpacing.xs),
             _buildCard([
               _buildInfoRow('주소', propertyAddress),
               if (propertyArea != '정보 없음') ...[
@@ -3136,11 +3129,11 @@ class _QuoteRequestFormPageState extends State<_QuoteRequestFormPage> {
               ],
             ]),
             
-            const SizedBox(height: AppSpacing.xl),
+            SizedBox(height: AppSpacing.xl),
             
             // ========== 2️⃣ 매물 유형 (필수 입력) ==========
             _buildSectionTitle('매물 유형', '필수 입력', AirbnbColors.success),
-            const SizedBox(height: 12),
+            SizedBox(height: AppSpacing.md + AppSpacing.xs),
             _buildCard([
               DropdownButtonFormField<String>(
                 initialValue: propertyType,
@@ -3186,7 +3179,7 @@ class _QuoteRequestFormPageState extends State<_QuoteRequestFormPage> {
             
             // ========== 2️⃣ 거래 유형 (필수 입력) ==========
             _buildSectionTitle('거래 유형', '필수 입력', AirbnbColors.success),
-            const SizedBox(height: 12),
+            SizedBox(height: AppSpacing.md + AppSpacing.xs),
             _buildCard([
               SegmentedButton<String>(
                 segments: const [
@@ -3247,7 +3240,7 @@ class _QuoteRequestFormPageState extends State<_QuoteRequestFormPage> {
                               size: 20,
                             ),
                           ),
-                          const SizedBox(width: AppSpacing.md),
+                          SizedBox(width: AppSpacing.md),
                           Expanded(
                             child: Row(
                               children: [
@@ -3263,7 +3256,6 @@ class _QuoteRequestFormPageState extends State<_QuoteRequestFormPage> {
                                 Text(
                                   '선택 입력',
                                   style: TextStyle(
-                                    fontSize: 12,
                                     color: AirbnbColors.textSecondary,
                                     fontWeight: FontWeight.normal,
                                   ),
@@ -3340,7 +3332,7 @@ class _QuoteRequestFormPageState extends State<_QuoteRequestFormPage> {
             
             // ========== 3️⃣ 추가 요청사항 (선택) ==========
             _buildSectionTitle('궁금한 점이 있으신가요?', '선택사항', AirbnbColors.primary),
-            const SizedBox(height: 12),
+            SizedBox(height: AppSpacing.md + AppSpacing.xs),
             _buildCard([
               Row(
                 children: [
@@ -3365,21 +3357,20 @@ class _QuoteRequestFormPageState extends State<_QuoteRequestFormPage> {
                   Text(
                     hasTenant ? '있음' : '없음',
                     style: TextStyle(
-                      fontSize: 14,
                       color: AirbnbColors.textSecondary,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
                 ],
               ),
-              const SizedBox(height: AppSpacing.md),
+              SizedBox(height: AppSpacing.md),
               _buildTextField(
                 label: '희망 거래가',
                 controller: _desiredPriceController,
                 hint: '예: 11억 / 협의 가능',
                 keyboardType: TextInputType.text,
               ),
-              const SizedBox(height: AppSpacing.md),
+              SizedBox(height: AppSpacing.md),
               _buildTextField(
                 label: '기타 요청사항 (300자 이내)',
                 controller: _specialNotesController,
@@ -3425,14 +3416,14 @@ class _QuoteRequestFormPageState extends State<_QuoteRequestFormPage> {
                             AirbnbColors.textSecondary,
                           ),
                         ),
-                            SizedBox(height: 6),
+                            SizedBox(height: AppSpacing.xs + AppSpacing.xs / 2),
                       ],
                     ),
                   ),
                 ],
               ),
             ]),
-            const SizedBox(height: AppSpacing.md),
+            SizedBox(height: AppSpacing.md),
                 Align(
                   alignment: Alignment.centerLeft,
                   child: Wrap(
@@ -3479,7 +3470,7 @@ class _QuoteRequestFormPageState extends State<_QuoteRequestFormPage> {
               ),
             ),
             
-            const SizedBox(height: AppSpacing.lg),
+            SizedBox(height: AppSpacing.lg),
             
             // 웹 전용 푸터 여백 (영상 촬영용)
             if (kIsWeb) const SizedBox(height: 600),
@@ -3532,11 +3523,10 @@ class _QuoteRequestFormPageState extends State<_QuoteRequestFormPage> {
                     color: color,
                   ),
                 ),
-                const SizedBox(height: 4),
+                SizedBox(height: AppSpacing.xs),
                 Text(
                   subtitle,
                   style: TextStyle(
-                    fontSize: 13,
                     color: AirbnbColors.textSecondary,
                     fontWeight: FontWeight.w500,
                   ),
@@ -3591,7 +3581,7 @@ class _QuoteRequestFormPageState extends State<_QuoteRequestFormPage> {
             color: Color(0xFF2C3E50),
           ),
         ),
-        const SizedBox(height: 8),
+                        SizedBox(height: AppSpacing.sm),
         TextFormField(
           controller: controller,
           keyboardType: keyboardType,
@@ -3633,7 +3623,6 @@ class _QuoteRequestFormPageState extends State<_QuoteRequestFormPage> {
             child: Text(
               label,
               style: TextStyle(
-                fontSize: 14,
                 color: Colors.grey[700],
                 fontWeight: FontWeight.w600,
               ),
@@ -3713,11 +3702,10 @@ class _QuoteRequestFormPageState extends State<_QuoteRequestFormPage> {
                       color: value ? const Color(0xFF1A1A1A) : AirbnbColors.primary,
                     ),
                   ),
-                  const SizedBox(height: 4),
+                  SizedBox(height: AppSpacing.xs),
                   Text(
                     description,
                     style: TextStyle(
-                      fontSize: 13,
                       fontWeight: value ? FontWeight.w600 : FontWeight.normal,
                       color: value ? const Color(0xFF2C3E50) : Colors.grey[700],
                       height: 1.4,
@@ -3876,9 +3864,7 @@ class _MultipleQuoteRequestDialogState extends State<_MultipleQuoteRequestDialog
 
   @override
   Widget build(BuildContext context) {
-    final screenWidth = MediaQuery.of(context).size.width;
-    final isWeb = kIsWeb;
-    final maxContentWidth = isWeb ? 800.0 : screenWidth;
+    final maxContentWidth = ResponsiveHelper.getMaxWidth(context);
     
     return Scaffold(
       backgroundColor: const Color(0xFFE8EAF0),
@@ -3900,7 +3886,7 @@ class _MultipleQuoteRequestDialogState extends State<_MultipleQuoteRequestDialog
           child: Container(
             constraints: BoxConstraints(maxWidth: maxContentWidth),
             child: ListView(
-              padding: EdgeInsets.all(isWeb ? 40.0 : 20.0),
+              padding: EdgeInsets.all(kIsWeb ? 40.0 : 20.0),
               children: [
             // 제목
             Text(
@@ -3912,22 +3898,21 @@ class _MultipleQuoteRequestDialogState extends State<_MultipleQuoteRequestDialog
                 AirbnbColors.textPrimary,
               ),
             ),
-            const SizedBox(height: 8),
+                        SizedBox(height: AppSpacing.sm),
             Text(
               widget.brokerCount == 1
                   ? '공인중개사에게 정확한 정보를 전달하여 최적의 제안을 받으세요'
                   : '선택한 공인중개사에게 일괄 전송됩니다',
               style: TextStyle(
-                fontSize: 14,
                 color: Colors.grey[600],
               ),
             ),
             
-            const SizedBox(height: AppSpacing.xl),
+            SizedBox(height: AppSpacing.xl),
             
             // ========== 1️⃣ 매물 정보 (자동 입력) ==========
             _buildSectionTitle('매물 정보', '자동 입력됨', Colors.blue),
-            const SizedBox(height: AppSpacing.md),
+            SizedBox(height: AppSpacing.md),
             _buildCard([
               _buildInfoRow('주소', widget.address),
               if (widget.propertyArea != null && widget.propertyArea != '정보 없음') ...[
@@ -3940,7 +3925,7 @@ class _MultipleQuoteRequestDialogState extends State<_MultipleQuoteRequestDialog
             
             // ========== 2️⃣ 매물 유형 (필수 입력) ==========
             _buildSectionTitle('매물 유형', '필수 입력', AirbnbColors.success),
-            const SizedBox(height: AppSpacing.md),
+            SizedBox(height: AppSpacing.md),
             _buildCard([
               DropdownButtonFormField<String>(
                 initialValue: propertyType,
@@ -3986,7 +3971,7 @@ class _MultipleQuoteRequestDialogState extends State<_MultipleQuoteRequestDialog
             
             // ========== 2️⃣ 거래 유형 (필수 입력) ==========
             _buildSectionTitle('거래 유형', '필수 입력', AirbnbColors.success),
-            const SizedBox(height: 12),
+            SizedBox(height: AppSpacing.md + AppSpacing.xs),
             _buildCard([
               SegmentedButton<String>(
                 segments: const [
@@ -4047,7 +4032,7 @@ class _MultipleQuoteRequestDialogState extends State<_MultipleQuoteRequestDialog
                               size: 20,
                             ),
                           ),
-                          const SizedBox(width: AppSpacing.md),
+                          SizedBox(width: AppSpacing.md),
                           Expanded(
                             child: Row(
                               children: [
@@ -4063,7 +4048,6 @@ class _MultipleQuoteRequestDialogState extends State<_MultipleQuoteRequestDialog
                                 Text(
                                   '선택 입력',
                                   style: TextStyle(
-                                    fontSize: 12,
                                     color: AirbnbColors.textSecondary,
                                     fontWeight: FontWeight.normal,
                                   ),
@@ -4140,7 +4124,7 @@ class _MultipleQuoteRequestDialogState extends State<_MultipleQuoteRequestDialog
             
             // ========== 3️⃣ 추가 요청사항 (선택) ==========
             _buildSectionTitle('궁금한 점이 있으신가요?', '선택사항', AirbnbColors.primary),
-            const SizedBox(height: 12),
+            SizedBox(height: AppSpacing.md + AppSpacing.xs),
             _buildCard([
               Row(
                 children: [
@@ -4165,21 +4149,20 @@ class _MultipleQuoteRequestDialogState extends State<_MultipleQuoteRequestDialog
                   Text(
                     hasTenant ? '있음' : '없음',
                     style: TextStyle(
-                      fontSize: 14,
                       color: AirbnbColors.textSecondary,
                       fontWeight: FontWeight.w600,
                     ),
                   ),
                 ],
               ),
-              const SizedBox(height: AppSpacing.md),
+              SizedBox(height: AppSpacing.md),
               _buildTextField(
                 label: '희망 거래가',
                 controller: _desiredPriceController,
                 hint: '예: 11억 / 협의 가능',
                 keyboardType: TextInputType.text,
               ),
-              const SizedBox(height: AppSpacing.md),
+              SizedBox(height: AppSpacing.md),
               _buildTextField(
                 label: '기타 요청사항 (300자 이내)',
                 controller: _specialNotesController,
@@ -4232,7 +4215,7 @@ class _MultipleQuoteRequestDialogState extends State<_MultipleQuoteRequestDialog
                 ],
               ),
             ]),
-            const SizedBox(height: AppSpacing.md),
+            SizedBox(height: AppSpacing.md),
             Align(
               alignment: Alignment.centerLeft,
               child: Wrap(
@@ -4311,7 +4294,7 @@ class _MultipleQuoteRequestDialogState extends State<_MultipleQuoteRequestDialog
               ),
             ),
             
-            const SizedBox(height: AppSpacing.lg),
+            SizedBox(height: AppSpacing.lg),
             
             // 웹 전용 푸터 여백 (영상 촬영용)
             if (kIsWeb) const SizedBox(height: 600),
@@ -4365,7 +4348,6 @@ class _MultipleQuoteRequestDialogState extends State<_MultipleQuoteRequestDialog
                 Text(
                   subtitle,
                   style: TextStyle(
-                    fontSize: 13,
                     color: AirbnbColors.textSecondary,
                     fontWeight: FontWeight.w500,
                   ),
@@ -4411,7 +4393,6 @@ class _MultipleQuoteRequestDialogState extends State<_MultipleQuoteRequestDialog
             child: Text(
               label,
               style: TextStyle(
-                fontSize: 14,
                 color: Colors.grey[700],
                 fontWeight: FontWeight.w600,
               ),
@@ -4451,7 +4432,7 @@ class _MultipleQuoteRequestDialogState extends State<_MultipleQuoteRequestDialog
             color: Color(0xFF2C3E50),
           ),
         ),
-        const SizedBox(height: 8),
+                        SizedBox(height: AppSpacing.sm),
         TextFormField(
           controller: controller,
           keyboardType: keyboardType,
@@ -4542,11 +4523,10 @@ class _MultipleQuoteRequestDialogState extends State<_MultipleQuoteRequestDialog
                       color: value ? const Color(0xFF1A1A1A) : AirbnbColors.primary,
                     ),
                   ),
-                  const SizedBox(height: 4),
+                  SizedBox(height: AppSpacing.xs),
                   Text(
                     description,
                     style: TextStyle(
-                      fontSize: 13,
                       fontWeight: value ? FontWeight.w600 : FontWeight.normal,
                       color: value ? const Color(0xFF2C3E50) : Colors.grey[700],
                       height: 1.4,
@@ -4738,7 +4718,6 @@ class _ActionCardState extends State<_ActionCard> {
                                   style: AppTypography.withColor(
                                     AppTypography.caption.copyWith(
                                       fontWeight: FontWeight.w700,
-                                      fontSize: 11,
                                     ),
                                     isDisabled
                                         ? (widget.requiresLogin 

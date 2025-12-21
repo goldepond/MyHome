@@ -3,12 +3,17 @@ import 'dart:convert';
 import 'package:geolocator/geolocator.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:property/constants/app_constants.dart';
+import 'package:property/constants/typography.dart';
+import 'package:property/constants/spacing.dart';
+import 'package:property/constants/responsive_constants.dart';
+import 'package:property/widgets/common_design_system.dart';
 import 'package:property/models/property.dart';
 import 'package:property/api_request/firebase_service.dart';
 import 'package:property/constants/status_constants.dart';
 import 'electronic_checklist_screen.dart';
 import 'package:property/widgets/maintenance_fee_card.dart';
 import 'package:property/models/maintenance_fee.dart';
+import 'package:property/utils/logger.dart';
 
 class HouseDetailPage extends StatefulWidget {
   final Property property;
@@ -46,7 +51,12 @@ class _HouseDetailPageState extends State<HouseDetailPage> {
           return int.tryParse(map['total_amount'].toString().replaceAll(',', ''));
         }
       }
-    } catch (_) {}
+    } catch (e, stackTrace) {
+      Logger.warning(
+        '등기부등본 데이터 파싱 중 오류 발생',
+        metadata: {'error': e.toString()},
+      );
+    }
     return null;
   }
 
@@ -295,19 +305,18 @@ class _HouseDetailPageState extends State<HouseDetailPage> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
-            children: const [
-              Icon(
+            children: [
+              const Icon(
                 Icons.location_on,
                 color: AirbnbColors.primary,
                 size: 20,
               ),
-              SizedBox(width: 8),
+              const SizedBox(width: 8),
               Text(
                 '위치 정보',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: AirbnbColors.primary,
+                style: AppTypography.withColor(
+                  AppTypography.body.copyWith(fontWeight: FontWeight.bold),
+                  AirbnbColors.primary,
                 ),
               ),
             ],
@@ -332,7 +341,7 @@ class _HouseDetailPageState extends State<HouseDetailPage> {
               Icons.my_location,
               AirbnbColors.success,
             ),
-            const SizedBox(height: 12),
+            SizedBox(height: AppSpacing.md + AppSpacing.xs),
             
             // 매물 위치 정보
             _buildLocationRow(
@@ -341,7 +350,7 @@ class _HouseDetailPageState extends State<HouseDetailPage> {
               Icons.home,
               AirbnbColors.warning,
             ),
-            const SizedBox(height: 12),
+            SizedBox(height: AppSpacing.md + AppSpacing.xs),
             
             // 거리 정보
             if (_distance != null) ...[
@@ -359,7 +368,7 @@ class _HouseDetailPageState extends State<HouseDetailPage> {
                 AirbnbColors.textSecondary,
               ),
             ],
-            const SizedBox(height: 12),
+            SizedBox(height: AppSpacing.md + AppSpacing.xs),
             
             // 대중교통 정보
             _buildTransportationInfo(),
@@ -387,17 +396,16 @@ class _HouseDetailPageState extends State<HouseDetailPage> {
               Text(
                 label,
                 style: TextStyle(
-                  fontSize: 12,
                   fontWeight: FontWeight.bold,
                   color: color,
                 ),
               ),
-              const SizedBox(height: 2),
+              SizedBox(height: AppSpacing.xs / 2),
               Text(
                 value,
-                style: const TextStyle(
-                  fontSize: 14,
-                  color: AirbnbColors.textPrimary,
+                style: AppTypography.withColor(
+                  AppTypography.bodySmall,
+                  AirbnbColors.textPrimary,
                 ),
               ),
             ],
@@ -440,7 +448,6 @@ class _HouseDetailPageState extends State<HouseDetailPage> {
               Text(
                 '대중교통 정보',
                 style: TextStyle(
-                  fontSize: 12,
                   fontWeight: FontWeight.bold,
                   color: AirbnbColors.primary,
                 ),
@@ -476,9 +483,12 @@ class _HouseDetailPageState extends State<HouseDetailPage> {
             ),
           ),
           const SizedBox(width: 4),
-          const Text(
+          Text(
             '출발',
-            style: TextStyle(fontSize: 10, color: AirbnbColors.success),
+            style: AppTypography.withColor(
+              AppTypography.caption,
+              AirbnbColors.success,
+            ),
           ),
           
           // 버스 노선
@@ -576,14 +586,13 @@ class _HouseDetailPageState extends State<HouseDetailPage> {
               Text(
                 '예상 시간: $time',
                 style: TextStyle(
-                  fontSize: 11,
                   color: color,
                   fontWeight: FontWeight.bold,
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 4),
+          SizedBox(height: AppSpacing.xs),
           Row(
             children: [
               Icon(
@@ -595,16 +604,15 @@ class _HouseDetailPageState extends State<HouseDetailPage> {
               Expanded(
                 child: Text(
                   route,
-                  style: const TextStyle(
-                    fontSize: 10,
-                    color: AirbnbColors.textPrimary,
-                    fontWeight: FontWeight.w500,
+                  style: AppTypography.withColor(
+                    AppTypography.caption.copyWith(fontWeight: FontWeight.w500),
+                    AirbnbColors.textPrimary,
                   ),
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 2),
+          SizedBox(height: AppSpacing.xs / 2),
           Row(
             children: [
               Icon(
@@ -646,7 +654,7 @@ class _HouseDetailPageState extends State<HouseDetailPage> {
       builder: (context) => AlertDialog(
         title: Text(title),
         content: SingleChildScrollView(
-          child: SelectableText(prettyJson, style: const TextStyle(fontSize: 13)),
+          child: SelectableText(prettyJson, style: AppTypography.bodySmall),
         ),
         actions: [
           TextButton(
@@ -719,7 +727,6 @@ class _HouseDetailPageState extends State<HouseDetailPage> {
                             '내 매물',
                             style: TextStyle(
                               color: AirbnbColors.background,
-                              fontSize: 12,
                               fontWeight: FontWeight.bold,
                             ),
                           ),
@@ -742,10 +749,9 @@ class _HouseDetailPageState extends State<HouseDetailPage> {
                 Expanded(
                   child: Text(
                     widget.property.address,
-                    style: const TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                      color: AirbnbColors.primary,
+                    style: AppTypography.withColor(
+                      AppTypography.h2.copyWith(fontWeight: FontWeight.bold),
+                      AirbnbColors.primary,
                     ),
                   ),
                 ),
@@ -771,7 +777,6 @@ class _HouseDetailPageState extends State<HouseDetailPage> {
                           Text(
                             '총 가격: ${_formatCurrency(totalAmount)}',
                             style: const TextStyle(
-                              fontSize: 18,
                               fontWeight: FontWeight.bold,
                               color: AirbnbColors.primary,
                             ),
@@ -803,10 +808,11 @@ class _HouseDetailPageState extends State<HouseDetailPage> {
                         const SizedBox(width: 8),
                         Text(
                           '등록자: ${widget.property.mainContractor}',
-                          style: TextStyle(
-                            fontSize: 16,
-                            color: AirbnbColors.primary,
-                            fontWeight: isMyProperty ? FontWeight.bold : FontWeight.normal,
+                          style: AppTypography.withColor(
+                            AppTypography.body.copyWith(
+                              fontWeight: isMyProperty ? FontWeight.bold : FontWeight.normal,
+                            ),
+                            AirbnbColors.primary,
                           ),
                         ),
                       ],
@@ -909,14 +915,11 @@ class _HouseDetailPageState extends State<HouseDetailPage> {
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(12),
                           ),
-                          textStyle: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                          ),
+                          textStyle: AppTypography.body.copyWith(fontWeight: FontWeight.bold),
                         ),
                       ),
                     ),
-                    const SizedBox(height: 12),
+                    SizedBox(height: AppSpacing.md + AppSpacing.xs),
                   ],
                   
                   // 내 매물일 때 표시할 정보
@@ -937,19 +940,17 @@ class _HouseDetailPageState extends State<HouseDetailPage> {
                             size: 24,
                           ),
                           const SizedBox(height: 8),
-                          const Text(
+                          Text(
                             '내가 등록한 매물입니다',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              color: AirbnbColors.primary,
+                            style: AppTypography.withColor(
+                              AppTypography.body.copyWith(fontWeight: FontWeight.bold),
+                              AirbnbColors.primary,
                             ),
                           ),
-                          const SizedBox(height: 4),
+                          SizedBox(height: AppSpacing.xs),
                           Text(
                             '이 매물은 내가 등록한 매물입니다',
                             style: TextStyle(
-                              fontSize: 12,
                               color: AirbnbColors.primary.withValues(alpha:0.7),
                             ),
                             textAlign: TextAlign.center,
@@ -959,12 +960,12 @@ class _HouseDetailPageState extends State<HouseDetailPage> {
                     ),
                   ],
                   
-                  const SizedBox(height: 24),
+                    SizedBox(height: AppSpacing.lg),
                   
                   // 상세 정보 섹션들
                   _buildDetailedPropertyInfo(isMyProperty),
                   
-                  const SizedBox(height: 24),
+                    SizedBox(height: AppSpacing.lg),
                   
                   // 상세 정보 버튼들
                   Row(
@@ -1071,17 +1072,16 @@ class _HouseDetailPageState extends State<HouseDetailPage> {
             width: 80,
             child: Text(
               '$label:',
-              style: const TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.bold,
-                color: AirbnbColors.primaryHover,
+              style: AppTypography.withColor(
+                AppTypography.bodySmall.copyWith(fontWeight: FontWeight.bold),
+                AirbnbColors.primaryHover,
               ),
             ),
           ),
           Expanded(
             child: Text(
               value,
-              style: const TextStyle(fontSize: 14),
+              style: AppTypography.bodySmall,
             ),
           ),
         ],
@@ -1124,19 +1124,18 @@ class _HouseDetailPageState extends State<HouseDetailPage> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
-            children: const [
-              Icon(
+            children: [
+              const Icon(
                 Icons.account_balance_wallet,
                 color: AirbnbColors.primary,
                 size: 20,
               ),
-              SizedBox(width: 8),
+              const SizedBox(width: 8),
               Text(
                 '계약 조건 및 예상 금액',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: AirbnbColors.textPrimary,
+                style: AppTypography.withColor(
+                  AppTypography.body.copyWith(fontWeight: FontWeight.bold),
+                  AirbnbColors.textPrimary,
                 ),
               ),
             ],
@@ -1247,7 +1246,6 @@ class _HouseDetailPageState extends State<HouseDetailPage> {
                   child: Text(
                     '실제 금액은 계약 시 협의에 따라 달라질 수 있습니다.',
                     style: TextStyle(
-                      fontSize: 12,
                       color: AirbnbColors.warning.withValues(alpha: 0.7),
                     ),
                   ),
@@ -1307,12 +1305,11 @@ class _HouseDetailPageState extends State<HouseDetailPage> {
                 size: 20,
               ),
               const SizedBox(width: 8),
-              const Text(
+              Text(
                 '관리비 투명성',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: AirbnbColors.textPrimary,
+                style: AppTypography.withColor(
+                  AppTypography.body.copyWith(fontWeight: FontWeight.bold),
+                  AirbnbColors.textPrimary,
                 ),
               ),
               const Spacer(),
@@ -1423,7 +1420,6 @@ class _HouseDetailPageState extends State<HouseDetailPage> {
                       child: Text(
                         item,
                         style: TextStyle(
-                          fontSize: 11,
                           color: AirbnbColors.success.withValues(alpha: 0.7),
                           fontWeight: FontWeight.w500,
                         ),
@@ -1480,7 +1476,6 @@ class _HouseDetailPageState extends State<HouseDetailPage> {
                       child: Text(
                         item,
                         style: TextStyle(
-                          fontSize: 11,
                           color: AirbnbColors.warning.withValues(alpha: 0.7),
                           fontWeight: FontWeight.w500,
                         ),
@@ -1513,7 +1508,6 @@ class _HouseDetailPageState extends State<HouseDetailPage> {
                   child: Text(
                     '관리비는 매월 1일 기준으로 부과되며, 실제 사용량에 따라 변동될 수 있습니다.',
                     style: TextStyle(
-                      fontSize: 12,
                       color: AirbnbColors.primary.withValues(alpha: 0.7),
                     ),
                   ),

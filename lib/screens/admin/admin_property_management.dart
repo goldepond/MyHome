@@ -66,7 +66,7 @@ class _AdminPropertyManagementState extends State<AdminPropertyManagement> {
   }
 
   List<Property> get _filteredProperties {
-    var filtered = _properties;
+    List<Property> filtered = _properties;
     
     // 거래 유형 필터
     if (_filterType != 'all') {

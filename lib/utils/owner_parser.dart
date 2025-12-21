@@ -7,14 +7,14 @@ void _extractOwnerNamesFromList(
   List<Map<String, dynamic>> registrationList,
   List<String> ownerNames,
 ) {
-  for (var item in registrationList) {
+  for (final Map<String, dynamic> item in registrationList) {
     if (item['resType'] == '갑구') {
       final contentsList = safeMapList(item['resContentsList']);
       if (contentsList.isNotEmpty) {
-        for (var content in contentsList) {
+        for (final Map<String, dynamic> content in contentsList) {
           final detailList = safeMapList(content['resDetailList']);
           if (detailList.isNotEmpty) {
-            for (var detail in detailList) {
+            for (final Map<String, dynamic> detail in detailList) {
               final resContents = detail['resContents']?.toString() ?? '';
               if (resContents.contains('소유자')) {
                 if (resContents.startsWith('소유자+')) {

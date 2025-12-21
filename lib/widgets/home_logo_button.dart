@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import '../constants/app_constants.dart';
 
 /// 홈으로 이동하는 MyHome 로고 버튼
-class HomeLogoButton extends StatelessWidget {
+class HomeLogoButton extends StatefulWidget {
   final Color? color;
   final double? fontSize;
   final double? logoHeight;
@@ -15,15 +15,53 @@ class HomeLogoButton extends StatelessWidget {
   });
 
   @override
+  State<HomeLogoButton> createState() => _HomeLogoButtonState();
+}
+
+class _HomeLogoButtonState extends State<HomeLogoButton> with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _scaleAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 150),
+    );
+    _scaleAnimation = Tween<double>(begin: 1.0, end: 0.95).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
+    );
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: () {
-        // 홈으로 이동 (기존 스택 유지, 루트로 복귀)
-        Navigator.popUntil(context, (route) => route.isFirst);
-      },
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-        child: _buildLogo(logoHeight ?? fontSize! * 2.5),
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: () {
+          // 클릭 시 스케일 애니메이션
+          _controller.forward().then((_) {
+            _controller.reverse();
+          });
+          
+          // 홈으로 이동 (기존 스택 유지, 루트로 복귀)
+          Navigator.popUntil(context, (route) => route.isFirst);
+        },
+        borderRadius: BorderRadius.circular(8),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+          child: ScaleTransition(
+            scale: _scaleAnimation,
+            child: _buildLogo(widget.logoHeight ?? widget.fontSize! * 2.5),
+          ),
+        ),
       ),
     );
   }
@@ -51,7 +89,7 @@ class HomeLogoButton extends StatelessWidget {
                 // 로고 파일이 없으면 기본 아이콘 사용
                 return Icon(
                   Icons.home,
-                  color: color ?? AirbnbColors.background,
+                  color: widget.color ?? AirbnbColors.background,
                   size: height,
                 );
               },
@@ -114,7 +152,7 @@ class LogoImage extends StatelessWidget {
 }
 
 /// 로고와 텍스트를 함께 표시하는 위젯 (로고 이미지에 텍스트가 포함되어 있으면 텍스트 없이 표시)
-class LogoWithText extends StatelessWidget {
+class LogoWithText extends StatefulWidget {
   final double? fontSize;
   final double? logoHeight;
   final Color? textColor;
@@ -131,13 +169,39 @@ class LogoWithText extends StatelessWidget {
   });
 
   @override
+  State<LogoWithText> createState() => _LogoWithTextState();
+}
+
+class _LogoWithTextState extends State<LogoWithText> with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _scaleAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 150),
+    );
+    _scaleAnimation = Tween<double>(begin: 1.0, end: 0.95).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
+    );
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final logoWidget = LogoImage(
-      height: logoHeight ?? fontSize! * 2.5,
-      color: textColor,
+      height: widget.logoHeight ?? widget.fontSize! * 2.5,
+      color: widget.textColor,
     );
 
-    final widget = showText
+    final contentWidget = widget.showText
         ? Row(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -146,9 +210,9 @@ class LogoWithText extends StatelessWidget {
               Text(
                 'MyHome',
                 style: TextStyle(
-                  fontSize: fontSize,
+                  fontSize: widget.fontSize,
                   fontWeight: FontWeight.bold,
-                  color: textColor ?? AirbnbColors.primary,
+                  color: widget.textColor ?? AirbnbColors.primary,
                   letterSpacing: 0.5,
                 ),
               ),
@@ -156,17 +220,30 @@ class LogoWithText extends StatelessWidget {
           )
         : logoWidget;
 
-    if (onTap != null) {
-      return GestureDetector(
-        onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-          child: widget,
+    if (widget.onTap != null) {
+      return Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: () {
+            // 클릭 시 스케일 애니메이션
+            _controller.forward().then((_) {
+              _controller.reverse();
+            });
+            widget.onTap!();
+          },
+          borderRadius: BorderRadius.circular(8),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            child: ScaleTransition(
+              scale: _scaleAnimation,
+              child: contentWidget,
+            ),
+          ),
         ),
       );
     }
 
-    return widget;
+    return contentWidget;
   }
 }
 
