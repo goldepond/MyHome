@@ -2,12 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'firebase_options.dart';
-import 'constants/app_constants.dart';
-import 'screens/admin/admin_dashboard.dart';
-import 'api_request/firebase_service.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'utils/logger.dart';
+import 'package:property/firebase_options.dart';
+import 'package:property/constants/app_constants.dart';
+import 'package:property/screens/admin/admin_dashboard.dart';
+import 'package:property/api_request/firebase_service.dart';
+import 'package:property/utils/logger.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();

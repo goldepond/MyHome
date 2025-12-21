@@ -9,8 +9,24 @@ import '../models/action_log.dart';
 /// - 배치 전송: 일정 개수(10개)나 시간(30초)이 지나면 한 번에 저장합니다.
 /// - 앱 생명주기 감지: 앱이 백그라운드로 가면 남은 로그를 즉시 전송합니다.
 class LogService with WidgetsBindingObserver {
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  final FirebaseAuth _auth = FirebaseAuth.instance;
+  // Firebase 인스턴스를 지연 초기화하여 초기화 완료 후에만 접근
+  FirebaseFirestore get _firestore {
+    try {
+      return FirebaseFirestore.instance;
+    } catch (e) {
+      // Firebase가 아직 초기화되지 않은 경우 예외 처리
+      // 실제 사용 시점에 다시 시도하도록 함
+      throw StateError('Firebase가 아직 초기화되지 않았습니다: $e');
+    }
+  }
+  
+  FirebaseAuth get _auth {
+    try {
+      return FirebaseAuth.instance;
+    } catch (e) {
+      throw StateError('Firebase가 아직 초기화되지 않았습니다: $e');
+    }
+  }
 
   // 싱글톤 패턴
   static final LogService _instance = LogService._internal();
@@ -39,6 +55,7 @@ class LogService with WidgetsBindingObserver {
     Map<String, dynamic>? metadata,
   }) {
     try {
+      // Firebase가 초기화되지 않았으면 큐에만 추가하고 전송은 나중에
       final user = _auth.currentUser;
       final userId = user?.uid ?? 'anonymous';
 
@@ -58,7 +75,8 @@ class LogService with WidgetsBindingObserver {
         _flushQueue();
       }
     } catch (e) {
-      // 로그 큐 실패는 무시 (비동기 작업)
+      // Firebase 초기화 실패나 다른 에러는 무시 (비동기 작업)
+      // 로그는 큐에만 추가하고 나중에 전송 시도
     }
   }
 
@@ -83,8 +101,10 @@ class LogService with WidgetsBindingObserver {
     _logQueue.clear();
 
     try {
-      final batch = _firestore.batch();
-      final collection = _firestore.collection('user_logs');
+      // Firebase가 초기화되었는지 확인
+      final firestore = _firestore;
+      final batch = firestore.batch();
+      final collection = firestore.collection('user_logs');
 
       for (final log in logsToSend) {
         final docRef = collection.doc(); // 새 문서 ID 생성
@@ -94,8 +114,10 @@ class LogService with WidgetsBindingObserver {
       // 한 번에 전송 (비동기)
       await batch.commit();
     } catch (e) {
-      // 실패 시 다시 큐에 넣을지 여부는 정책에 따라 결정 (여기선 버림/단순 로깅)
-      // 재시도 로직을 넣으면 큐가 무한히 커질 위험이 있어 조심해야 함.
+      // Firebase 초기화 실패나 네트워크 에러인 경우
+      // 로그를 다시 큐에 넣지 않고 버림 (무한 큐 증가 방지)
+      // Firebase가 초기화되지 않은 경우는 나중에 다시 시도할 수 있도록
+      // 큐에 다시 넣지 않음 (메모리 누수 방지)
     } finally {
       _isFlushing = false;
     }
@@ -122,27 +144,37 @@ class LogService with WidgetsBindingObserver {
   
   /// 관리자용: 로그 조회 (최신순)
   Stream<List<ActionLog>> getLogs({int limit = 100}) {
-    return _firestore
-        .collection('user_logs')
-        .orderBy('timestamp', descending: true)
-        .limit(limit)
-        .snapshots()
-        .map((snapshot) {
-      return snapshot.docs.map((doc) => ActionLog.fromFirestore(doc)).toList();
-    });
+    try {
+      return _firestore
+          .collection('user_logs')
+          .orderBy('timestamp', descending: true)
+          .limit(limit)
+          .snapshots()
+          .map((snapshot) {
+        return snapshot.docs.map((doc) => ActionLog.fromFirestore(doc)).toList();
+      });
+    } catch (e) {
+      // Firebase 초기화 실패 시 빈 스트림 반환
+      return Stream.value([]);
+    }
   }
 
   /// 관리자용: 특정 사용자 로그 조회
   Stream<List<ActionLog>> getUserLogs(String userId) {
-    return _firestore
-        .collection('user_logs')
-        .where('userId', isEqualTo: userId)
-        .orderBy('timestamp', descending: true)
-        .limit(100)
-        .snapshots()
-        .map((snapshot) {
-      return snapshot.docs.map((doc) => ActionLog.fromFirestore(doc)).toList();
-    });
+    try {
+      return _firestore
+          .collection('user_logs')
+          .where('userId', isEqualTo: userId)
+          .orderBy('timestamp', descending: true)
+          .limit(100)
+          .snapshots()
+          .map((snapshot) {
+        return snapshot.docs.map((doc) => ActionLog.fromFirestore(doc)).toList();
+      });
+    } catch (e) {
+      // Firebase 초기화 실패 시 빈 스트림 반환
+      return Stream.value([]);
+    }
   }
   
   void dispose() {

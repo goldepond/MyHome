@@ -124,13 +124,17 @@
   <!-- Firebase SDK - 비동기 로딩으로 초기 렌더링 차단 방지 -->
   <script>
     // Firebase SDK를 동적으로 로드하여 초기 렌더링 차단 방지
+    // 최신 버전으로 업데이트하여 Flutter 패키지와 호환성 개선
     (function() {
       var firebaseScripts = [
-        'https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js',
-        'https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js',
-        'https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js',
-        'https://www.gstatic.com/firebasejs/10.8.0/firebase-storage-compat.js'
+        'https://www.gstatic.com/firebasejs/10.13.2/firebase-app-compat.js',
+        'https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore-compat.js',
+        'https://www.gstatic.com/firebasejs/10.13.2/firebase-auth-compat.js',
+        'https://www.gstatic.com/firebasejs/10.13.2/firebase-storage-compat.js'
       ];
+      
+      // Firebase SDK 로드 완료 플래그
+      window.firebaseSDKLoaded = false;
       
       // 첫 번째 스크립트를 먼저 로드
       var firstScript = document.createElement('script');
@@ -138,15 +142,39 @@
       firstScript.async = true;
       firstScript.defer = true;
       
+      var loadedCount = 0;
+      var totalScripts = firebaseScripts.length;
+      
+      // 스크립트 로드 완료 체크
+      function checkAllLoaded() {
+        loadedCount++;
+        if (loadedCount === totalScripts) {
+          window.firebaseSDKLoaded = true;
+          // 커스텀 이벤트 발생하여 Flutter에서 감지 가능하도록
+          window.dispatchEvent(new Event('firebaseSDKReady'));
+        }
+      }
+      
       // 첫 번째 스크립트 로드 후 나머지 순차 로드
       firstScript.onload = function() {
+        checkAllLoaded();
         firebaseScripts.slice(1).forEach(function(src) {
           var script = document.createElement('script');
           script.src = src;
           script.async = true;
           script.defer = true;
+          script.onload = checkAllLoaded;
+          script.onerror = function() {
+            console.error('Firebase SDK 로드 실패: ' + src);
+            checkAllLoaded(); // 에러가 나도 카운트는 증가시켜서 무한 대기 방지
+          };
           document.head.appendChild(script);
         });
+      };
+      
+      firstScript.onerror = function() {
+        console.error('Firebase App SDK 로드 실패');
+        checkAllLoaded();
       };
       
       document.head.appendChild(firstScript);

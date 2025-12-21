@@ -2,18 +2,18 @@ import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'dart:ui' show PlatformDispatcher;
 import 'package:firebase_core/firebase_core.dart';
-import 'firebase_options.dart';
-import 'constants/app_constants.dart';
-import 'screens/main_page.dart';
-import 'screens/broker/broker_dashboard_page.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'api_request/firebase_service.dart';
-import 'screens/inquiry/broker_inquiry_response_page.dart';
-import 'widgets/retry_view.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'utils/app_analytics_observer.dart';
-import 'utils/admin_page_loader_actual.dart';
-import 'utils/logger.dart';
+import 'package:property/firebase_options.dart';
+import 'package:property/constants/app_constants.dart';
+import 'package:property/screens/main_page.dart';
+import 'package:property/screens/broker/broker_dashboard_page.dart';
+import 'package:property/api_request/firebase_service.dart';
+import 'package:property/screens/inquiry/broker_inquiry_response_page.dart';
+import 'package:property/widgets/retry_view.dart';
+import 'package:property/utils/app_analytics_observer.dart';
+import 'package:property/utils/admin_page_loader_actual.dart';
+import 'package:property/utils/logger.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -63,10 +63,16 @@ void main() async {
 /// Firebase를 백그라운드에서 초기화하여 앱 시작 속도 향상
 Future<void> _initializeFirebaseInBackground() async {
   try {
-    // 웹에서는 Firebase SDK가 로드될 때까지 대기 (최대 5초)
+    // 웹에서는 Firebase SDK가 완전히 로드될 때까지 대기
     if (kIsWeb) {
-      var attempts = 0;
-      while (attempts < 50) {
+      // 초기 대기 시간 (SDK 로드 시간 확보)
+      await Future.delayed(const Duration(milliseconds: 500));
+      
+      // Firebase 초기화 시도 (최대 10초)
+      var initAttempts = 0;
+      var lastError;
+      
+      while (initAttempts < 100) {
         try {
           // Firebase 초기화 시도
           if (Firebase.apps.isEmpty) {
@@ -80,18 +86,50 @@ Future<void> _initializeFirebaseInBackground() async {
             return;
           }
         } catch (e) {
-          // SDK가 아직 로드되지 않았거나 초기화 실패
-          // 100ms 후 재시도
-          await Future.delayed(const Duration(milliseconds: 100));
-          attempts++;
+          lastError = e;
+          
+          // 타입 변환 에러인 경우 더 긴 대기 시간 적용
+          final errorString = e.toString();
+          if (errorString.contains('subtype') || 
+              errorString.contains('minified') ||
+              errorString.contains('JavaScriptObject')) {
+            // SDK가 아직 완전히 로드되지 않은 경우로 판단
+            // 더 긴 대기 시간 적용
+            await Future.delayed(const Duration(milliseconds: 200));
+            if (initAttempts % 10 == 0) {
+              Logger.warning(
+                'Firebase SDK 로드 대기 중...',
+                metadata: {'attempt': initAttempts},
+              );
+            }
+          } else {
+            // 다른 에러인 경우 짧은 대기 후 재시도
+            await Future.delayed(const Duration(milliseconds: 100));
+          }
+          
+          initAttempts++;
+          
+          // 최대 시도 횟수에 도달하기 전에 조기 종료하지 않음
         }
       }
+      
       // 최대 시도 횟수 초과 시 마지막으로 한 번 더 시도
       if (Firebase.apps.isEmpty) {
-        await Firebase.initializeApp(
-          options: DefaultFirebaseOptions.currentPlatform,
-        );
-        Logger.info('Firebase 초기화 성공 (지연 로딩)');
+        try {
+          await Future.delayed(const Duration(milliseconds: 500));
+          await Firebase.initializeApp(
+            options: DefaultFirebaseOptions.currentPlatform,
+          );
+          Logger.info('Firebase 초기화 성공 (지연 로딩)');
+        } catch (e) {
+          // 최종 시도 실패 시 마지막 에러 또는 현재 에러 사용
+          final errorToLog = lastError ?? e;
+          Logger.error(
+            'Firebase 초기화 최종 실패',
+            error: errorToLog,
+            context: 'firebase_initialization_final',
+          );
+        }
       }
     } else {
       // 모바일/데스크톱에서는 즉시 초기화

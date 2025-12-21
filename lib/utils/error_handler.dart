@@ -36,14 +36,22 @@ class ErrorHandler {
         return defaultMessage ?? ErrorMessages.unknown;
       }
 
-      // Firebase Auth 예외 처리
-      if (error is FirebaseAuthException) {
-        return _getFirebaseAuthMessage(error);
+      // Firebase Auth 예외 처리 (타입 체크를 더 안전하게)
+      try {
+        if (error is FirebaseAuthException) {
+          return _getFirebaseAuthMessage(error);
+        }
+      } catch (e) {
+        // 타입 변환 에러 무시하고 다음 체크로 진행
       }
 
-      // Firestore 예외 처리
-      if (error is FirebaseException) {
-        return _getFirebaseMessage(error);
+      // Firestore 예외 처리 (타입 체크를 더 안전하게)
+      try {
+        if (error is FirebaseException) {
+          return _getFirebaseMessage(error);
+        }
+      } catch (e) {
+        // 타입 변환 에러 무시하고 다음 체크로 진행
       }
 
       // HTTP 관련 예외 처리
@@ -177,17 +185,26 @@ class ErrorHandler {
 
   /// 에러 타입 분류
   static ErrorType classifyError(dynamic error) {
-    if (error is FirebaseAuthException) {
-      return ErrorType.auth;
+    // 타입 체크를 안전하게 처리
+    try {
+      if (error is FirebaseAuthException) {
+        return ErrorType.auth;
+      }
+    } catch (e) {
+      // 타입 변환 에러 무시
     }
     
-    if (error is FirebaseException) {
-      if (error.code == 'permission-denied') {
-        return ErrorType.permission;
+    try {
+      if (error is FirebaseException) {
+        if (error.code == 'permission-denied') {
+          return ErrorType.permission;
+        }
+        if (error.code == 'not-found') {
+          return ErrorType.notFound;
+        }
       }
-      if (error.code == 'not-found') {
-        return ErrorType.notFound;
-      }
+    } catch (e) {
+      // 타입 변환 에러 무시
     }
 
     if (error is http.ClientException || error.toString().contains('SocketException')) {
