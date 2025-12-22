@@ -14,6 +14,8 @@ import 'package:property/widgets/retry_view.dart';
 import 'package:property/utils/app_analytics_observer.dart';
 import 'package:property/utils/admin_page_loader_actual.dart';
 import 'package:property/utils/logger.dart';
+// 웹에서만 사용하는 import
+import 'dart:html' as html show window;
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -55,6 +57,14 @@ void main() async {
   
   // 앱을 먼저 실행하여 초기 렌더링 지연 방지
   runApp(const MyApp());
+  
+  // 웹에서 Flutter 첫 프레임 렌더링 완료 후 로딩 화면 제거 신호 전송
+  if (kIsWeb) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      // 첫 프레임 렌더링 완료 후 JavaScript에 신호 전송
+      html.window.dispatchEvent(html.CustomEvent('flutterAppReady'));
+    });
+  }
   
   // 백그라운드에서 Firebase 초기화 (웹에서는 지연 로딩)
   _initializeFirebaseInBackground();
