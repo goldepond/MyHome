@@ -15,7 +15,7 @@ import 'package:property/utils/app_analytics_observer.dart';
 import 'package:property/utils/admin_page_loader_actual.dart';
 import 'package:property/utils/logger.dart';
 // 웹에서만 사용하는 import
-import 'dart:html' as html show window;
+import 'dart:html' as html;
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -62,7 +62,7 @@ void main() async {
   if (kIsWeb) {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       // 첫 프레임 렌더링 완료 후 JavaScript에 신호 전송
-      html.window.dispatchEvent(html.CustomEvent('flutterAppReady'));
+      html.window.dispatchEvent(html.Event('flutterAppReady'));
     });
   }
   
