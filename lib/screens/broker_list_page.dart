@@ -163,8 +163,6 @@ class _BrokerListPageState extends State<BrokerListPage> {
                         AppTypography.h4,
                         AirbnbColors.textPrimary,
                       ),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
                     ),
                     SizedBox(height: AppSpacing.xs),
                     Text(
@@ -346,75 +344,6 @@ class _BrokerListPageState extends State<BrokerListPage> {
         );
       },
     );
-  }
-  /// 로그인 보장: 비로그인 시 로그인 유도 후 현재 페이지를 재오픈
-  Future<bool> _ensureLoggedInOrRedirect() async {
-    if (_isLoggedIn) return true;
-
-    final shouldLogin = await showDialog<bool>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Row(
-          children: [
-            Icon(Icons.lock_outline, color: Colors.orange, size: 28),
-            SizedBox(width: 12),
-            Text('로그인 필요', style: AppTypography.h4),
-          ],
-        ),
-        content: const Text(
-          '해당 기능은 로그인 후 이용 가능합니다.\n지금 로그인하시겠습니까?',
-          style: TextStyle(fontSize: 15, height: 1.5),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext, false),
-            child: Text('취소', style: AppTypography.bodySmall),
-          ),
-          ElevatedButton.icon(
-            onPressed: () => Navigator.pop(dialogContext, true),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AirbnbColors.textPrimary, // 에어비엔비 스타일: 검은색 배경
-              foregroundColor: AirbnbColors.textWhite,
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-            ),
-            icon: const Icon(Icons.login, size: 18),
-            label: const Text('로그인하러 가기', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600)),
-          ),
-        ],
-      ),
-    );
-
-    if (shouldLogin == true && mounted) {
-      final result = await Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => const LoginPage()),
-      );
-      if (result is Map &&
-          ((result['userName'] is String && (result['userName'] as String).isNotEmpty) ||
-           (result['userId'] is String && (result['userId'] as String).isNotEmpty))) {
-        final String userName = (result['userName'] is String && (result['userName'] as String).isNotEmpty)
-            ? result['userName']
-            : result['userId'];
-        Navigator.pop(context);
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => BrokerListPage(
-              address: widget.address,
-              latitude: widget.latitude,
-              longitude: widget.longitude,
-              userName: userName,
-              userId: result['userId'] as String?,
-              propertyArea: widget.propertyArea,
-              transactionType: widget.transactionType,
-            ),
-          ),
-        );
-      }
-      return false;
-    }
-    return false;
   }
 
 
@@ -2840,12 +2769,13 @@ class _BrokerListPageState extends State<BrokerListPage> {
       userPhone = contactInfo['phone'];
       
       // 계정 생성/로그인 처리
-      final createdUserId = await _createOrLoginAccount(userEmail!, userPhone!);
+      if (userEmail == null || userPhone == null) return;
+      final createdUserId = await _createOrLoginAccount(userEmail, userPhone);
       if (createdUserId != null) {
         effectiveUserId = createdUserId;
         // 사용자 이름도 업데이트
         final userData = await _firebaseService.getUser(createdUserId);
-        effectiveUserName = userData?['name'] ?? userEmail!.split('@')[0];
+        effectiveUserName = userData?['name'] ?? userEmail.split('@')[0];
       } else {
         // 계정 생성 실패 - 게스트 모드로 진행
         ScaffoldMessenger.of(context).showSnackBar(
@@ -2899,7 +2829,7 @@ class _BrokerListPageState extends State<BrokerListPage> {
           id: '',
           userId: effectiveUserId,
           userName: effectiveUserName,
-          userEmail: userEmail!,
+          userEmail: userEmail ?? '',
           userPhone: userPhone,
           brokerName: broker.name,
           brokerRegistrationNumber: broker.registrationNumber,
@@ -2993,12 +2923,13 @@ class _BrokerListPageState extends State<BrokerListPage> {
       userPhone = contactInfo['phone'];
       
       // 계정 생성/로그인 처리
-      final createdUserId = await _createOrLoginAccount(userEmail!, userPhone!);
+      if (userEmail == null || userPhone == null) return;
+      final createdUserId = await _createOrLoginAccount(userEmail, userPhone);
       if (createdUserId != null) {
         effectiveUserId = createdUserId;
         // 사용자 이름도 업데이트
         final userData = await _firebaseService.getUser(createdUserId);
-        effectiveUserName = userData?['name'] ?? userEmail!.split('@')[0];
+        effectiveUserName = userData?['name'] ?? userEmail.split('@')[0];
       } else {
         // 계정 생성 실패 - 게스트 모드로 진행
         ScaffoldMessenger.of(context).showSnackBar(
@@ -3052,7 +2983,7 @@ class _BrokerListPageState extends State<BrokerListPage> {
           id: '',
           userId: effectiveUserId,
           userName: effectiveUserName,
-          userEmail: userEmail!,
+          userEmail: userEmail ?? '',
           userPhone: userPhone,
           brokerName: broker.name,
           brokerRegistrationNumber: broker.registrationNumber,

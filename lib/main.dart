@@ -10,7 +10,6 @@ import 'package:property/screens/main_page.dart';
 import 'package:property/screens/broker/broker_dashboard_page.dart';
 import 'package:property/api_request/firebase_service.dart';
 import 'package:property/screens/inquiry/broker_inquiry_response_page.dart';
-import 'package:property/widgets/retry_view.dart';
 import 'package:property/utils/app_analytics_observer.dart';
 import 'package:property/utils/admin_page_loader_actual.dart';
 import 'package:property/utils/logger.dart';
@@ -19,6 +18,10 @@ import 'dart:html' as html;
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  
+  // 이미지 캐시 최적화 (메모리 사용량 제한)
+  PaintingBinding.instance.imageCache.maximumSize = 100;
+  PaintingBinding.instance.imageCache.maximumSizeBytes = 50 * 1024 * 1024; // 50MB
   
   // 전역 에러 핸들러 설정
   FlutterError.onError = (FlutterErrorDetails details) {
@@ -70,19 +73,19 @@ void main() async {
   _initializeFirebaseInBackground();
 }
 
-/// Firebase를 백그라운드에서 초기화하여 앱 시작 속도 향상
+  /// Firebase를 백그라운드에서 초기화하여 앱 시작 속도 향상
 Future<void> _initializeFirebaseInBackground() async {
   try {
     // 웹에서는 Firebase SDK가 완전히 로드될 때까지 대기
     if (kIsWeb) {
-      // 초기 대기 시간 (SDK 로드 시간 확보)
-      await Future.delayed(const Duration(milliseconds: 500));
+      // 초기 대기 시간 단축 (SDK 로드 시간 확보)
+      await Future.delayed(const Duration(milliseconds: 300));
       
-      // Firebase 초기화 시도 (최대 10초)
+      // Firebase 초기화 시도 (최대 3초로 단축)
       var initAttempts = 0;
       var lastError;
       
-      while (initAttempts < 100) {
+      while (initAttempts < 30) {
         try {
           // Firebase 초기화 시도
           if (Firebase.apps.isEmpty) {
@@ -105,28 +108,20 @@ Future<void> _initializeFirebaseInBackground() async {
               errorString.contains('JavaScriptObject')) {
             // SDK가 아직 완전히 로드되지 않은 경우로 판단
             // 더 긴 대기 시간 적용
-            await Future.delayed(const Duration(milliseconds: 200));
-            if (initAttempts % 10 == 0) {
-              Logger.warning(
-                'Firebase SDK 로드 대기 중...',
-                metadata: {'attempt': initAttempts},
-              );
-            }
+            await Future.delayed(const Duration(milliseconds: 100));
           } else {
             // 다른 에러인 경우 짧은 대기 후 재시도
-            await Future.delayed(const Duration(milliseconds: 100));
+            await Future.delayed(const Duration(milliseconds: 50));
           }
           
           initAttempts++;
-          
-          // 최대 시도 횟수에 도달하기 전에 조기 종료하지 않음
         }
       }
       
       // 최대 시도 횟수 초과 시 마지막으로 한 번 더 시도
       if (Firebase.apps.isEmpty) {
         try {
-          await Future.delayed(const Duration(milliseconds: 500));
+          await Future.delayed(const Duration(milliseconds: 300));
           await Firebase.initializeApp(
             options: DefaultFirebaseOptions.currentPlatform,
           );
@@ -301,20 +296,29 @@ class _AuthGate extends StatefulWidget {
 
 class _AuthGateState extends State<_AuthGate> {
   Map<String, dynamic>? _cachedUserData;
-  bool _isInitializingAnonymous = false;
   bool _firebaseReady = false;
+  bool _showLoading = true;
   
   @override
   void initState() {
     super.initState();
-    _checkFirebaseAndInitialize();
+    // 즉시 UI를 표시하고, Firebase는 백그라운드에서 초기화
+    _initializeFirebaseAsync();
+    // 최대 2초 후에는 로딩 화면 제거 (Firebase 준비 여부와 무관)
+    Future.delayed(const Duration(seconds: 2), () {
+      if (mounted) {
+        setState(() {
+          _showLoading = false;
+        });
+      }
+    });
   }
   
-  /// Firebase가 준비될 때까지 대기한 후 초기화
-  Future<void> _checkFirebaseAndInitialize() async {
-    // Firebase가 준비될 때까지 대기 (최대 5초)
+  /// Firebase를 백그라운드에서 비동기로 초기화
+  Future<void> _initializeFirebaseAsync() async {
+    // Firebase가 준비될 때까지 대기 (최대 3초)
     var attempts = 0;
-    while (Firebase.apps.isEmpty && attempts < 50) {
+    while (Firebase.apps.isEmpty && attempts < 30) {
       await Future.delayed(const Duration(milliseconds: 100));
       attempts++;
     }
@@ -323,13 +327,14 @@ class _AuthGateState extends State<_AuthGate> {
       setState(() {
         _firebaseReady = true;
       });
+      // Firebase가 준비되면 익명 로그인 시도 (백그라운드)
       _initializeAnonymousUser();
     }
   }
   
   Future<void> _initializeAnonymousUser() async {
     // Firebase가 준비되지 않았으면 대기
-    if (!_firebaseReady || Firebase.apps.isEmpty) {
+    if (Firebase.apps.isEmpty) {
       return;
     }
     
@@ -337,10 +342,6 @@ class _AuthGateState extends State<_AuthGate> {
     if (FirebaseAuth.instance.currentUser != null) {
       return;
     }
-    
-    setState(() {
-      _isInitializingAnonymous = true;
-    });
     
     try {
       await FirebaseService().signInAnonymously();
@@ -350,22 +351,21 @@ class _AuthGateState extends State<_AuthGate> {
         '익명 로그인 실패',
         metadata: {'error': e.toString()},
       );
-    } finally {
-      if (mounted) {
-        setState(() {
-          _isInitializingAnonymous = false;
-        });
-      }
     }
   }
   
   @override
   Widget build(BuildContext context) {
-    // Firebase가 준비되지 않았으면 로딩 화면 표시
-    if (!_firebaseReady) {
+    // 최대 2초까지만 로딩 화면 표시, 그 이후에는 Firebase 준비 여부와 무관하게 UI 표시
+    if (_showLoading && !_firebaseReady) {
       return const Scaffold(
         body: Center(child: CircularProgressIndicator()),
       );
+    }
+    
+    // Firebase가 준비되지 않았어도 기본 UI 표시
+    if (!_firebaseReady) {
+      return const MainPage(userId: '', userName: '');
     }
     
     return StreamBuilder<User?>(
@@ -373,10 +373,9 @@ class _AuthGateState extends State<_AuthGate> {
       builder: (context, snapshot) {
         final user = snapshot.data;
         
-        if ((snapshot.connectionState == ConnectionState.waiting || _isInitializingAnonymous) && user == null) {
-          return const Scaffold(
-            body: Center(child: CircularProgressIndicator()),
-          );
+        // Firebase 준비 중이거나 익명 로그인 중이어도 기본 UI 표시
+        if (snapshot.connectionState == ConnectionState.waiting && user == null) {
+          return const MainPage(userId: '', userName: '');
         }
         
         if (user == null) {
@@ -408,6 +407,7 @@ class _AuthGateState extends State<_AuthGate> {
         }
 
         // Firestore / brokers 컬렉션에서 사용자 유형 및 표시 이름 로드
+        // 로딩 중에도 기본 UI를 먼저 표시하여 사용자 경험 개선
         return FutureBuilder<Map<String, dynamic>?>(
           key: ValueKey(user.uid),
           future: () async {
@@ -448,24 +448,32 @@ class _AuthGateState extends State<_AuthGate> {
             };
           }(),
           builder: (context, userSnap) {
+            // 에러 발생 시 기본 UI 표시 (재시도 옵션 제공)
             if (userSnap.hasError) {
-              return Scaffold(
-                body: RetryView(
-                  message: '사용자 정보를 불러오지 못했습니다.\n네트워크 상태를 확인한 뒤 다시 시도해주세요.',
-                  onRetry: () {
-                    // 단순 재빌드로 Future 재호출
-                    (context as Element).markNeedsBuild();
-                  },
-                ),
+              // 에러가 발생해도 기본 UI는 표시
+              return MainPage(
+                userId: user.uid,
+                userName: user.email?.split('@').first ?? '사용자',
               );
             }
+            
+            // 로딩 중에도 기본 UI를 먼저 표시
             if (userSnap.connectionState == ConnectionState.waiting) {
-              return const Scaffold(
-                body: Center(child: CircularProgressIndicator()),
+              return MainPage(
+                userId: user.uid,
+                userName: user.email?.split('@').first ?? '사용자',
               );
             }
 
-            final profile = userSnap.data!;
+            final profile = userSnap.data;
+
+            // 프로필이 없으면 기본 UI 표시
+            if (profile == null) {
+              return MainPage(
+                userId: user.uid,
+                userName: user.email?.split('@').first ?? '사용자',
+              );
+            }
 
             // 캐시 업데이트 (브로커 / 일반 사용자 공통)
             _cachedUserData = profile;

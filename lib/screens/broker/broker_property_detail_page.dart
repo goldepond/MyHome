@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:property/constants/app_constants.dart';
 import 'package:property/models/property.dart';
 import 'package:property/screens/broker/property_edit_form_page.dart';
+import 'package:property/widgets/optimized_image.dart';
 import 'package:intl/intl.dart';
 
 /// 공인중개사가 등록한 매물 상세보기 페이지
@@ -256,46 +257,10 @@ class BrokerPropertyDetailPage extends StatelessWidget {
   }
 
   Widget _buildImageGallery(List<String> imageUrls) {
-    return Container(
+    return OptimizedImageGallery(
+      imageUrls: imageUrls,
       height: 300,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(12),
-        color: AirbnbColors.borderLight,
-      ),
-      child: PageView.builder(
-        itemCount: imageUrls.length,
-        itemBuilder: (context, index) {
-          return ClipRRect(
-            borderRadius: BorderRadius.circular(12),
-            child: Image.network(
-              imageUrls[index],
-              fit: BoxFit.cover,
-              errorBuilder: (context, error, stackTrace) {
-                return Container(
-                  color: AirbnbColors.border,
-                  child: const Center(
-                    child: Icon(Icons.error_outline, size: 48, color: AirbnbColors.textSecondary),
-                  ),
-                );
-              },
-              loadingBuilder: (context, child, loadingProgress) {
-                if (loadingProgress == null) return child;
-                return Container(
-                  color: AirbnbColors.borderLight,
-                  child: Center(
-                    child: CircularProgressIndicator(
-                      value: loadingProgress.expectedTotalBytes != null
-                          ? loadingProgress.cumulativeBytesLoaded /
-                              loadingProgress.expectedTotalBytes!
-                          : null,
-                    ),
-                  ),
-                );
-              },
-            ),
-          );
-        },
-      ),
+      borderRadius: BorderRadius.circular(12),
     );
   }
 

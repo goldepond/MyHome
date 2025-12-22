@@ -4,7 +4,6 @@ import 'package:property/constants/typography.dart';
 import 'package:property/constants/spacing.dart';
 import 'package:property/widgets/common_design_system.dart';
 import 'package:property/api_request/firebase_service.dart';
-import 'package:property/utils/validation_utils.dart';
 
 class ChangePasswordPage extends StatefulWidget {
   const ChangePasswordPage({super.key});
@@ -254,12 +253,6 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
     );
   }
 
-  Color _strengthColor(int strength) {
-    if (strength <= 1) return AirbnbColors.error;
-    if (strength == 2) return AirbnbColors.warning;
-    if (strength == 3) return AirbnbColors.primary;
-    return AirbnbColors.success;
-  }
 }
 
 

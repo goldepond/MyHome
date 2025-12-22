@@ -10,6 +10,7 @@ import 'package:property/api_request/storage_service.dart';
 import 'package:property/api_request/apt_info_service.dart';
 import 'package:property/api_request/vworld_service.dart';
 import 'package:property/api_request/address_service.dart';
+import 'package:property/widgets/optimized_image.dart';
 
 /// 매물 수정 폼 페이지
 /// 공인중개사가 등록한 매물을 수정하는 페이지
@@ -925,18 +926,10 @@ class _PropertyEditFormPageState extends State<PropertyEditFormPage> {
               return Stack(
                 fit: StackFit.expand,
                 children: [
-                  ClipRRect(
+                  OptimizedNetworkImage(
+                    imageUrl: _existingImageUrls[index],
+                    fit: BoxFit.cover,
                     borderRadius: BorderRadius.circular(8),
-                    child: Image.network(
-                      _existingImageUrls[index],
-                      fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) {
-                        return Container(
-                          color: AirbnbColors.border,
-                          child: const Icon(Icons.error),
-                        );
-                      },
-                    ),
                   ),
                   Positioned(
                     top: 4,

@@ -1015,12 +1015,23 @@ class _QuoteRequestFormPageState extends State<QuoteRequestFormPage> {
       return;
     }
     
+    // userEmail이 null이면 오류
+    if (userEmail == null || userEmail.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('이메일 정보를 가져올 수 없습니다.'),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+    
     // 견적문의 객체 생성
                 final quoteRequest = QuoteRequest(
       id: '',
                   userId: effectiveUserId,
                   userName: effectiveUserName,
-      userEmail: userEmail!,
+      userEmail: userEmail,
       userPhone: userPhone,
       brokerName: widget.broker.name,
       brokerRegistrationNumber: widget.broker.registrationNumber,
