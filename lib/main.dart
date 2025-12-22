@@ -78,14 +78,15 @@ Future<void> _initializeFirebaseInBackground() async {
   try {
     // 웹에서는 Firebase SDK가 완전히 로드될 때까지 대기
     if (kIsWeb) {
-      // 초기 대기 시간 단축 (SDK 로드 시간 확보)
-      await Future.delayed(const Duration(milliseconds: 300));
+      // 초기 대기 시간 제거 (즉시 시도하여 최초 접속 성능 개선)
+      // await Future.delayed(const Duration(milliseconds: 300)); // 제거
       
-      // Firebase 초기화 시도 (최대 3초로 단축)
+      // Firebase 초기화 시도 (최대 1초로 단축)
       var initAttempts = 0;
       var lastError;
       
-      while (initAttempts < 30) {
+      // 재시도 횟수 대폭 감소: 30 -> 10 (최대 1초)
+      while (initAttempts < 10) {
         try {
           // Firebase 초기화 시도
           if (Firebase.apps.isEmpty) {
@@ -101,27 +102,26 @@ Future<void> _initializeFirebaseInBackground() async {
         } catch (e) {
           lastError = e;
           
-          // 타입 변환 에러인 경우 더 긴 대기 시간 적용
+          // 타입 변환 에러인 경우 대기 시간 단축
           final errorString = e.toString();
           if (errorString.contains('subtype') || 
               errorString.contains('minified') ||
               errorString.contains('JavaScriptObject')) {
             // SDK가 아직 완전히 로드되지 않은 경우로 판단
-            // 더 긴 대기 시간 적용
-            await Future.delayed(const Duration(milliseconds: 100));
+            await Future.delayed(const Duration(milliseconds: 50)); // 100 -> 50
           } else {
-            // 다른 에러인 경우 짧은 대기 후 재시도
-            await Future.delayed(const Duration(milliseconds: 50));
+            // 다른 에러인 경우 더 짧은 대기 후 재시도
+            await Future.delayed(const Duration(milliseconds: 20)); // 50 -> 20
           }
           
           initAttempts++;
         }
       }
       
-      // 최대 시도 횟수 초과 시 마지막으로 한 번 더 시도
+      // 최대 시도 횟수 초과 시 최종 시도 (대기 시간 단축)
       if (Firebase.apps.isEmpty) {
         try {
-          await Future.delayed(const Duration(milliseconds: 300));
+          await Future.delayed(const Duration(milliseconds: 100)); // 300 -> 100
           await Firebase.initializeApp(
             options: DefaultFirebaseOptions.currentPlatform,
           );
@@ -134,6 +134,7 @@ Future<void> _initializeFirebaseInBackground() async {
             error: errorToLog,
             context: 'firebase_initialization_final',
           );
+          // 실패해도 앱은 계속 실행
         }
       }
     } else {
@@ -304,8 +305,8 @@ class _AuthGateState extends State<_AuthGate> {
     super.initState();
     // 즉시 UI를 표시하고, Firebase는 백그라운드에서 초기화
     _initializeFirebaseAsync();
-    // 최대 2초 후에는 로딩 화면 제거 (Firebase 준비 여부와 무관)
-    Future.delayed(const Duration(seconds: 2), () {
+    // 최대 0.5초 후에는 로딩 화면 제거 (최초 접속 성능 개선)
+    Future.delayed(const Duration(milliseconds: 500), () {
       if (mounted) {
         setState(() {
           _showLoading = false;
@@ -316,9 +317,9 @@ class _AuthGateState extends State<_AuthGate> {
   
   /// Firebase를 백그라운드에서 비동기로 초기화
   Future<void> _initializeFirebaseAsync() async {
-    // Firebase가 준비될 때까지 대기 (최대 3초)
+    // Firebase가 준비될 때까지 대기 (최대 1초로 단축)
     var attempts = 0;
-    while (Firebase.apps.isEmpty && attempts < 30) {
+    while (Firebase.apps.isEmpty && attempts < 10) { // 30 -> 10
       await Future.delayed(const Duration(milliseconds: 100));
       attempts++;
     }

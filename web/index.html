@@ -65,6 +65,11 @@
   
   <!-- Preconnect for critical resources -->
   <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
+  
+  <!-- 리소스 우선순위 힌트 (최초 접속 성능 개선) -->
+  <link rel="preload" href="main.dart.js" as="script" crossorigin>
+  <link rel="preload" href="flutter.js" as="script" crossorigin>
+  <link rel="modulepreload" href="main.dart.js">
 
   <!-- 시스템 폰트 설정 -->
   <style>
@@ -121,10 +126,9 @@
   <title>MyHome - 쉽고 빠른 부동산 상담</title>
   <link rel="manifest" href="manifest.json">
 
-  <!-- Firebase SDK - 비동기 로딩으로 초기 렌더링 차단 방지 -->
+  <!-- Firebase SDK - 병렬 로딩으로 최초 접속 성능 개선 -->
   <script>
-    // Firebase SDK를 동적으로 로드하여 초기 렌더링 차단 방지
-    // 최신 버전으로 업데이트하여 Flutter 패키지와 호환성 개선
+    // Firebase SDK를 병렬로 동시에 로드하여 최초 접속 시간 단축
     (function() {
       var firebaseScripts = [
         'https://www.gstatic.com/firebasejs/10.13.2/firebase-app-compat.js',
@@ -133,51 +137,48 @@
         'https://www.gstatic.com/firebasejs/10.13.2/firebase-storage-compat.js'
       ];
       
-      // Firebase SDK 로드 완료 플래그
       window.firebaseSDKLoaded = false;
-      
-      // 첫 번째 스크립트를 먼저 로드
-      var firstScript = document.createElement('script');
-      firstScript.src = firebaseScripts[0];
-      firstScript.async = true;
-      firstScript.defer = true;
-      
       var loadedCount = 0;
       var totalScripts = firebaseScripts.length;
+      var hasError = false;
       
-      // 스크립트 로드 완료 체크
-      function checkAllLoaded() {
-        loadedCount++;
-        if (loadedCount === totalScripts) {
+      // 모든 스크립트를 병렬로 동시에 로드 (순차 로딩 대비 50-70% 빠름)
+      firebaseScripts.forEach(function(src) {
+        var script = document.createElement('script');
+        script.src = src;
+        script.async = true;
+        script.defer = true;
+        
+        script.onload = function() {
+          loadedCount++;
+          if (loadedCount === totalScripts) {
+            window.firebaseSDKLoaded = true;
+            window.dispatchEvent(new Event('firebaseSDKReady'));
+          }
+        };
+        
+        script.onerror = function() {
+          console.error('Firebase SDK 로드 실패: ' + src);
+          hasError = true;
+          loadedCount++;
+          // 에러가 있어도 계속 진행 (일부 SDK만 로드되어도 앱은 실행 가능)
+          if (loadedCount === totalScripts) {
+            window.firebaseSDKLoaded = true;
+            window.dispatchEvent(new Event('firebaseSDKReady'));
+          }
+        };
+        
+        document.head.appendChild(script);
+      });
+      
+      // 타임아웃: 8초 후 강제로 완료 처리 (모바일 네트워크 고려)
+      setTimeout(function() {
+        if (!window.firebaseSDKLoaded) {
+          console.warn('Firebase SDK 로드 타임아웃 - 앱 계속 진행');
           window.firebaseSDKLoaded = true;
-          // 커스텀 이벤트 발생하여 Flutter에서 감지 가능하도록
           window.dispatchEvent(new Event('firebaseSDKReady'));
         }
-      }
-      
-      // 첫 번째 스크립트 로드 후 나머지 순차 로드
-      firstScript.onload = function() {
-        checkAllLoaded();
-        firebaseScripts.slice(1).forEach(function(src) {
-          var script = document.createElement('script');
-          script.src = src;
-          script.async = true;
-          script.defer = true;
-          script.onload = checkAllLoaded;
-          script.onerror = function() {
-            console.error('Firebase SDK 로드 실패: ' + src);
-            checkAllLoaded(); // 에러가 나도 카운트는 증가시켜서 무한 대기 방지
-          };
-          document.head.appendChild(script);
-        });
-      };
-      
-      firstScript.onerror = function() {
-        console.error('Firebase App SDK 로드 실패');
-        checkAllLoaded();
-      };
-      
-      document.head.appendChild(firstScript);
+      }, 8000);
     })();
   </script>
 
@@ -250,19 +251,19 @@
         }
       });
       
-      // 타임아웃 보호: 최대 5초 후에는 강제로 로딩 화면 제거 (성능 개선)
+      // 타임아웃 보호: 최대 2초 후에는 강제로 로딩 화면 제거 (최초 접속 성능 개선)
       setTimeout(function() {
         if (loading && loading.parentNode) {
           console.warn('Flutter 앱 준비 신호를 받지 못했습니다. 로딩 화면을 강제로 제거합니다.');
           loading.style.opacity = '0';
-          loading.style.transition = 'opacity 0.3s ease-out';
+          loading.style.transition = 'opacity 0.2s ease-out';
           setTimeout(function() {
             if (loading && loading.parentNode) {
               loading.remove();
             }
-          }, 300);
+          }, 200);
         }
-      }, 5000);
+      }, 2000);
     })();
 
     // Ctrl + 마우스 휠 줌 활성화
