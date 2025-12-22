@@ -1015,7 +1015,8 @@ class _QuoteRequestFormPageState extends State<QuoteRequestFormPage> {
       return;
     }
     
-    // userEmail이 null이면 오류
+    // userEmail이 비어있으면 오류 (이 시점에서 userEmail은 null이 될 수 없음)
+    // 게스트 모드에서는 이미 빈 문자열 체크를 했고, 정식 로그인에서는 _getUserEmail()이 non-nullable을 반환
     if (userEmail == null || userEmail.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(

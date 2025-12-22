@@ -35,27 +35,32 @@ class MainPage extends StatefulWidget {
 class _MainPageState extends State<MainPage> {
   final FirebaseService _firebaseService = FirebaseService();
   final LogService _logService = LogService();
-  bool _isLoading = true;
   int _currentIndex = 0; // 현재 선택된 탭 인덱스
 
   bool _isBroker = false;
   Map<String, dynamic>? _brokerData;
 
-  // 탭별 페이지들
-  late final List<Widget> _pages;
+  // AppBar 캐싱을 위한 변수
+  PreferredSizeWidget? _cachedAppBar;
+  bool? _lastIsMobile;
+  bool? _lastIsBroker;
+  bool? _lastHasUserId;
+
+  // 로드된 페이지 캐시 (상태 유지)
+  final Map<int, Widget> _pageCache = {};
 
   @override
   void initState() {
     super.initState();
-    _loadUserData();
-    _initializePages();
-    _checkBrokerRole();
     final initialIndex = widget.initialTabIndex;
-    if (initialIndex >= 0 && initialIndex < _pages.length) {
+    if (initialIndex >= 0 && initialIndex < 4) {
       _currentIndex = initialIndex;
     } else {
       _currentIndex = 0;
     }
+    // 사용자 정보는 백그라운드에서 로드 (UI 블로킹 없음)
+    _loadUserData();
+    _checkBrokerRole();
   }
 
   Future<void> _checkBrokerRole() async {
@@ -78,71 +83,105 @@ class _MainPageState extends State<MainPage> {
     }
   }
 
-  void _initializePages() {
-    // 메인 탭 구성
-    // 0: 집 내놓기 (매도/임대)
-    // 1: 집 구하기 (구매/임차)
-    // 2: 내집관리
-    // 3: 내 정보
-    _pages = [
-      HomePage(userId: widget.userId, userName: widget.userName), // 집 내놓기
-      HouseMarketPage(
-        userName: widget.userName,
-      ), // 집 구하기
-      HouseManagementPage(
-        userId: widget.userId,
-        userName: widget.userName,
-      ), // 내집관리
-      PersonalInfoPage(
-        userId: widget.userId,
-        userName: widget.userName,
-      ), // 내 정보
-    ];
+  /// 지연 로딩: 탭을 선택할 때만 페이지 생성
+  /// 메모리 사용량을 크게 줄이고 초기 로딩 시간 단축
+  Widget _getPage(int index) {
+    // 캐시에 있으면 재사용
+    if (_pageCache.containsKey(index)) {
+      return _pageCache[index]!;
+    }
+
+    // 페이지 생성 및 캐싱
+    Widget page;
+    switch (index) {
+      case 0:
+        page = HomePage(
+          key: ValueKey('home_${widget.userId}_${widget.userName}'),
+          userId: widget.userId,
+          userName: widget.userName,
+        );
+        break;
+      case 1:
+        page = HouseMarketPage(
+          key: ValueKey('market_${widget.userName}'),
+          userName: widget.userName,
+        );
+        break;
+      case 2:
+        page = HouseManagementPage(
+          key: ValueKey('management_${widget.userId}_${widget.userName}'),
+          userId: widget.userId,
+          userName: widget.userName,
+        );
+        break;
+      case 3:
+        page = PersonalInfoPage(
+          key: ValueKey('info_${widget.userId}_${widget.userName}'),
+          userId: widget.userId,
+          userName: widget.userName,
+        );
+        break;
+      default:
+        page = HomePage(
+          key: ValueKey('home_${widget.userId}_${widget.userName}'),
+          userId: widget.userId,
+          userName: widget.userName,
+        );
+    }
+
+    _pageCache[index] = page;
+    return page;
   }
 
+  /// 사용자 정보를 백그라운드에서 비동기로 로드
+  /// UI를 블로킹하지 않고 즉시 표시
   Future<void> _loadUserData() async {
+    // userId가 없으면 로드할 필요 없음
+    if (widget.userId.isEmpty) {
+      return;
+    }
+    
     try {
-      // 사용자 정보 로드
+      // 백그라운드에서 사용자 정보 로드 (에러는 무시)
       await _firebaseService.getUser(widget.userId);
-
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
-      }
     } catch (e) {
-      if (mounted) {
-        setState(() {
-          _isLoading = false;
-        });
-      }
+      // 사용자 정보 로드 실패는 무시하고 계속 진행
+      // UI는 이미 표시되었으므로 문제없음
+      Logger.warning(
+        '사용자 정보 로드 실패',
+        metadata: {'error': e.toString()},
+      );
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    if (_isLoading) {
-      return Scaffold(
-        backgroundColor: AirbnbColors.background,
-        body: const Center(
-          child: CircularProgressIndicator(
-            valueColor: AlwaysStoppedAnimation<Color>(AirbnbColors.primary),
-          ),
-        ),
-      );
-    }
-
+    // UI를 즉시 표시 (사용자 정보 로드는 백그라운드에서 처리)
     return Scaffold(
       backgroundColor: AirbnbColors.background,
       appBar: _buildTopNavigationBar(),
-      body: IndexedStack(index: _currentIndex, children: _pages),
+      // 지연 로딩: 현재 탭만 렌더링 (메모리 최적화)
+      body: _getPage(_currentIndex),
     );
   }
 
   PreferredSizeWidget _buildTopNavigationBar() {
     final isMobile = ResponsiveHelper.isMobile(context);
+    final hasUserId = widget.userId.isNotEmpty;
+    
+    // AppBar 캐싱: 조건이 같으면 재사용
+    if (_cachedAppBar != null &&
+        _lastIsMobile == isMobile &&
+        _lastIsBroker == _isBroker &&
+        _lastHasUserId == hasUserId) {
+      return _cachedAppBar!;
+    }
 
-    return AppBar(
+    _lastIsMobile = isMobile;
+    _lastIsBroker = _isBroker;
+    _lastHasUserId = hasUserId;
+
+    _cachedAppBar = AppBar(
       backgroundColor: AirbnbColors.background,
       foregroundColor: AirbnbColors.textPrimary,
       elevation: 0,
@@ -203,19 +242,19 @@ class _MainPageState extends State<MainPage> {
           ),
       ],
     );
+    
+    return _cachedAppBar!;
   }
 
   Widget _buildMobileHeader() {
     // 모바일 화면 최적화
-    final isSmallScreen = ResponsiveHelper.isMobile(context);
-    // 초소형 화면은 ResponsiveHelper에서 처리
-    final isTinyScreen = false; // ResponsiveHelper로 통일
-    final horizontalGap = isSmallScreen ? AppSpacing.xs : AppSpacing.xs;
+    // ResponsiveHelper는 이미 _buildTopNavigationBar에서 호출됨
+    final horizontalGap = AppSpacing.xs;
 
     // 모바일에서는 항상 화면 폭 안에 4개의 탭이 모두 보이도록
     // 가로 스크롤을 없애고 Expanded 로 균등 분배한다.
     return Padding(
-      padding: EdgeInsets.symmetric(horizontal: isSmallScreen ? 1 : 4),
+      padding: const EdgeInsets.symmetric(horizontal: 4),
       child: Row(
         children: [
           Expanded(
@@ -224,7 +263,7 @@ class _MainPageState extends State<MainPage> {
               0,
               Icons.add_home_rounded,
               isMobile: true,
-              showLabelOnly: !isTinyScreen,
+              showLabelOnly: true,
             ),
           ),
           SizedBox(width: horizontalGap),
@@ -234,7 +273,7 @@ class _MainPageState extends State<MainPage> {
               1,
               Icons.search_rounded,
               isMobile: true,
-              showLabelOnly: !isTinyScreen,
+              showLabelOnly: true,
             ),
           ),
           SizedBox(width: horizontalGap),
@@ -244,7 +283,7 @@ class _MainPageState extends State<MainPage> {
               2,
               Icons.home_work_rounded,
               isMobile: true,
-              showLabelOnly: !isTinyScreen,
+              showLabelOnly: true,
             ),
           ),
           SizedBox(width: horizontalGap),
@@ -254,7 +293,7 @@ class _MainPageState extends State<MainPage> {
               3,
               Icons.person_rounded,
               isMobile: true,
-              showLabelOnly: !isTinyScreen,
+              showLabelOnly: true,
             ),
           ),
         ],
@@ -492,11 +531,15 @@ class _MainPageState extends State<MainPage> {
         _logService.logScreenView(tabName, screenClass: 'MainPageTab');
       },
       borderRadius: BorderRadius.circular(8),
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          // 화면 크기별 세밀한 조정
-          final isSmallScreen = ResponsiveHelper.isMobile(context);
-          final fontSize = isSmallScreen ? AppTypography.caption.fontSize! : (isMobile ? AppTypography.bodySmall.fontSize! : AppTypography.buttonSmall.fontSize!);
+      child: Builder(
+        builder: (context) {
+          // MediaQuery를 한 번만 호출하여 최적화
+          final screenWidth = MediaQuery.of(context).size.width;
+          final isSmallScreen = screenWidth < 600;
+          
+          final fontSize = isSmallScreen 
+              ? AppTypography.caption.fontSize! 
+              : (isMobile ? AppTypography.bodySmall.fontSize! : AppTypography.buttonSmall.fontSize!);
           final iconSize = isSmallScreen ? 18.0 : (isMobile ? 22.0 : 20.0);
           final horizontalPadding = isSmallScreen ? 1.0 : (isMobile ? 4.0 : 16.0);
           final iconTextGap = isSmallScreen ? 2.0 : (isMobile ? 4.0 : 6.0);
@@ -548,5 +591,12 @@ class _MainPageState extends State<MainPage> {
         },
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    // 페이지 캐시 정리
+    _pageCache.clear();
+    super.dispose();
   }
 }
