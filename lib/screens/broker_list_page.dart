@@ -223,9 +223,9 @@ class _BrokerListPageState extends State<BrokerListPage> {
     }
 
     final top10Card = buildActionCard(
-      title: '상위 10곳 요청',
+      title: '상위 10곳에 문의',
       description: canBulkTop10
-          ? '정렬 기준 Top10 중개사에게\n원클릭으로 견적을 보냅니다'
+          ? '정렬 기준 Top10 중개사에게\n원클릭으로 문의를 보냅니다'
           : '먼저 주소 주변 중개사를\n불러온 뒤 사용 가능합니다',
       icon: Icons.flash_on_rounded,
       enabled: canBulkTop10,
@@ -236,8 +236,8 @@ class _BrokerListPageState extends State<BrokerListPage> {
     );
 
     final manualCard = buildActionCard(
-      title: _isSelectionMode ? '선택 모드 종료' : '다중 선택 요청',
-      description: '원하는 중개사를 체크하고\n한 번에 요청서를 전송하세요',
+      title: _isSelectionMode ? '선택 모드 종료' : '선택한 곳에 문의',
+      description: '원하는 중개사를 체크하고\n한 번에 문의를 전송하세요',
       icon: Icons.playlist_add_check_rounded,
       enabled: canManual,
       badge: _isSelectionMode ? '선택 중' : '맞춤 요청',
@@ -826,7 +826,7 @@ class _BrokerListPageState extends State<BrokerListPage> {
                     ),
                     const SizedBox(width: AppSpacing.sm),
                     Text(
-                      '곳에 일괄 견적 요청하기',
+                      '곳에 일괄 문의하기',
                       style: AppTypography.withColor(
                         AppTypography.h3,
                         AirbnbColors.textWhite,
@@ -876,28 +876,26 @@ class _BrokerListPageState extends State<BrokerListPage> {
                           : result['userId'];
                       final String userId = (result['userId'] is String) ? result['userId'] as String : '';
                       
-                      if (!mounted) return;
-                      Navigator.pop(context);
-                      
-                      if (!mounted) return;
-                      final navigator = Navigator.of(context);
-                      navigator.push(
-                        MaterialPageRoute(
-                          builder: (context) => BrokerListPage(
-                            address: widget.address,
-                            latitude: widget.latitude,
-                            longitude: widget.longitude,
-                            userName: userName,
-                            userId: userId.isNotEmpty ? userId : null,
-                            propertyArea: widget.propertyArea,
-                            transactionType: widget.transactionType,
+                      if (mounted) {
+                        Navigator.pop(context);
+                      }
+                      if (mounted) {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (context) => BrokerListPage(
+                              address: widget.address,
+                              latitude: widget.latitude,
+                              longitude: widget.longitude,
+                              userName: userName,
+                              userId: userId.isNotEmpty ? userId : null,
+                              propertyArea: widget.propertyArea,
+                              transactionType: widget.transactionType,
+                            ),
                           ),
-                        ),
-                      );
-                    } else {
-                      if (!mounted) return;
-                      final scaffoldMessenger = ScaffoldMessenger.of(context);
-                      scaffoldMessenger.showSnackBar(
+                        );
+                      }
+                    } else if (mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(
                           content: Text('로그인에 실패했습니다. 이메일/전화번호를 확인해주세요.'),
                           backgroundColor: AirbnbColors.error,
@@ -1791,16 +1789,10 @@ class _BrokerListPageState extends State<BrokerListPage> {
                         ),
                       ),
                       const SizedBox(width: AppSpacing.sm),
-                      // 비대면문의
+                      // 문의하기
                       Expanded(
                         child: ElevatedButton.icon(
-                          onPressed: () {
-                            if (widget.userName.isEmpty) {
-                              _showLoginRequiredDialog(broker);
-                              return;
-                            }
-                            _requestQuote(broker);
-                          },
+                          onPressed: () => _requestQuote(broker),
                           style: ElevatedButton.styleFrom(
                             backgroundColor: AirbnbColors.textPrimary, // 에어비엔비 스타일: 검은색 배경
                             foregroundColor: AirbnbColors.textWhite,
@@ -1812,7 +1804,7 @@ class _BrokerListPageState extends State<BrokerListPage> {
                           ),
                           icon: const Icon(Icons.chat_bubble, size: 18),
                           label: Text(
-                            '비대면문의',
+                            '문의하기',
                             style: AppTypography.withColor(
                               AppTypography.bodySmall.copyWith(fontWeight: FontWeight.w600),
                               AirbnbColors.textWhite,
@@ -2509,110 +2501,6 @@ class _BrokerListPageState extends State<BrokerListPage> {
     );
   }
 
-  /// 로그인 필요 다이얼로그
-  void _showLoginRequiredDialog(Broker broker) async {
-    final shouldLogin = await showDialog<bool>(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Row(
-          children: [
-            Icon(Icons.lock_outline, color: Colors.orange, size: 28),
-            SizedBox(width: 12),
-            Text('로그인 필요', style: AppTypography.h4),
-          ],
-        ),
-        content: const Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              '비대면 문의는 로그인 후 이용 가능합니다.',
-              style: TextStyle(fontSize: 15, height: 1.5),
-            ),
-            SizedBox(height: AppSpacing.md + AppSpacing.xs),
-            Text(
-              '우측 상단의 로그인 버튼을 눌러주세요.',
-              style: TextStyle(
-                color: Colors.grey,
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext, false),
-            child: const Text('취소', style: AppTypography.bodySmall),
-          ),
-          ElevatedButton.icon(
-            onPressed: () => Navigator.pop(dialogContext, true),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AirbnbColors.textPrimary, // 에어비엔비 스타일: 검은색 배경
-              foregroundColor: AirbnbColors.textWhite,
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-            ),
-            icon: const Icon(Icons.login, size: 18),
-            label: const Text('로그인하러 가기', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600)),
-          ),
-        ],
-      ),
-    );
-    
-    // 로그인하러 가기를 선택한 경우
-    if (shouldLogin == true && mounted) {
-      final result = await Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => const LoginPage()),
-      );
-      
-      // 사용자가 뒤로가기로 취소한 경우 (result가 null)
-      if (result == null) {
-        // 취소한 경우는 아무 메시지도 표시하지 않음
-        return;
-      }
-      
-      // 로그인 성공 시 - 공인중개사 페이지를 새로운 userName으로 다시 열기
-      if (mounted && result is Map &&
-          ((result['userName'] is String && (result['userName'] as String).isNotEmpty) ||
-           (result['userId'] is String && (result['userId'] as String).isNotEmpty))) {
-        // ✅ 안전하게 사용자명 계산
-        final String userName = (result['userName'] is String && (result['userName'] as String).isNotEmpty)
-            ? result['userName']
-            : result['userId'];
-        
-        
-        // 현재 페이지를 닫고
-        Navigator.pop(context);
-
-        // 새로운 userName으로 공인중개사 페이지 다시 열기
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => BrokerListPage(
-              address: widget.address,
-              latitude: widget.latitude,
-              longitude: widget.longitude,
-              userName: userName, // 로그인된 사용자
-              userId: result['userId'] as String?, // userId도 전달
-              propertyArea: widget.propertyArea,
-              transactionType: widget.transactionType,
-            ),
-          ),
-        );
-      } else {
-        // 로그인 실패 (result가 있지만 유효한 데이터가 없는 경우)
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('로그인에 실패했습니다. 이메일/비밀번호를 확인해주세요.'),
-              backgroundColor: Colors.red,
-            ),
-          );
-        }
-      }
-    }
-  }
-
   /// 게스트 모드 연락처 입력 다이얼로그
   Future<Map<String, String>?> _showGuestContactDialog() async {
     return await showDialog<Map<String, String>>(
@@ -2716,17 +2604,61 @@ class _BrokerListPageState extends State<BrokerListPage> {
     }
   }
 
-  /// 비대면 견적 문의 (부동산 상담 요청서)
-  void _requestQuote(Broker broker) {
+  /// 개별 공인중개사에게 문의 (부동산 상담 요청서)
+  Future<void> _requestQuote(Broker broker) async {
     // 🔥 로그인 체크 제거 - 게스트 모드도 가능
-    // 게스트 모드일 때는 상담 요청 폼에서 이메일/전화번호 입력받음
+    // 🔥 게스트 모드일 때 연락처 입력 및 계정 생성
+    final isGuestMode = widget.userId == null || widget.userId!.isEmpty;
+    String? userEmail;
+    String? userPhone;
+    String effectiveUserId = widget.userId ?? widget.userName;
+    String effectiveUserName = widget.userName;
+    
+    if (isGuestMode) {
+      final contactInfo = await _showGuestContactDialog();
+      if (contactInfo == null) return; // 취소됨
+      
+      userEmail = contactInfo['email'];
+      userPhone = contactInfo['phone'];
+      
+      // 계정 생성/로그인 처리
+      if (userEmail == null || userPhone == null) return;
+      final createdUserId = await _createOrLoginAccount(userEmail, userPhone);
+      if (createdUserId != null) {
+        effectiveUserId = createdUserId;
+        // 사용자 이름도 업데이트
+        final userData = await _firebaseService.getUser(createdUserId);
+        effectiveUserName = userData?['name'] ?? userEmail.split('@')[0];
+      } else {
+        // 계정 생성 실패 - 문의 중단 (데이터 불일치 방지)
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('계정 생성에 실패했습니다. 잠시 후 다시 시도해주세요.'),
+            backgroundColor: Colors.red,
+            duration: Duration(seconds: 3),
+          ),
+        );
+        return; // 문의 중단
+      }
+    } else {
+      // 정식 로그인 사용자
+      userEmail = await _getUserEmail();
+      final userData = await _firebaseService.getUser(widget.userId!);
+      userPhone = userData?['phone'] as String?;
+    }
+    
+    if (!mounted) return;
+    
     Navigator.push(
       context,
       MaterialPageRoute(
         builder: (context) => _QuoteRequestFormPage(
           broker: broker,
-          userName: widget.userName,
-          userId: widget.userId ?? '',
+          userName: effectiveUserName,
+          userId: effectiveUserId,
+          userEmail: userEmail,
+          userPhone: userPhone,
           propertyAddress: widget.address, // 조회한 주소 전달
           propertyArea: widget.propertyArea, // 토지 면적 전달
           transactionType: widget.transactionType, // 거래 유형 전달
@@ -2743,7 +2675,7 @@ class _BrokerListPageState extends State<BrokerListPage> {
     if (filteredBrokers.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('견적을 요청할 공인중개사가 없습니다.'),
+          content: Text('문의할 공인중개사가 없습니다.'),
           backgroundColor: Colors.orange,
         ),
       );
@@ -2777,15 +2709,16 @@ class _BrokerListPageState extends State<BrokerListPage> {
         final userData = await _firebaseService.getUser(createdUserId);
         effectiveUserName = userData?['name'] ?? userEmail.split('@')[0];
       } else {
-        // 계정 생성 실패 - 게스트 모드로 진행
+        // 계정 생성 실패 - 문의 중단 (데이터 불일치 방지)
         if (!mounted) return;
-        final scaffoldMessenger = ScaffoldMessenger.of(context);
-        scaffoldMessenger.showSnackBar(
+        ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('계정 생성에 실패했습니다. 게스트 모드로 진행합니다.'),
-            backgroundColor: Colors.orange,
+            content: Text('계정 생성에 실패했습니다. 잠시 후 다시 시도해주세요.'),
+            backgroundColor: Colors.red,
+            duration: Duration(seconds: 3),
           ),
         );
+        return; // 문의 중단
       }
     } else {
       // 정식 로그인 사용자
@@ -2841,6 +2774,7 @@ class _BrokerListPageState extends State<BrokerListPage> {
           message: '부동산 상담 요청서',
           status: 'pending',
           requestDate: DateTime.now(),
+          transactionType: result['transactionType'] as String?,
           propertyType: result['propertyType'],
           propertyAddress: widget.address,
           propertyArea: result['propertyArea'],
@@ -2884,7 +2818,7 @@ class _BrokerListPageState extends State<BrokerListPage> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            '상위 ${top10Brokers.length}개 공인중개사에게 견적 요청 완료 (성공: $successCount곳${failCount > 0 ? " / 실패: $failCount곳" : ""})',
+            '상위 ${top10Brokers.length}개 공인중개사에게 문의 완료 (성공: $successCount곳${failCount > 0 ? " / 실패: $failCount곳" : ""})',
           ),
           backgroundColor: failCount > 0 ? Colors.orange : AirbnbColors.success,
           duration: const Duration(seconds: 3),
@@ -2904,7 +2838,7 @@ class _BrokerListPageState extends State<BrokerListPage> {
     if (selectedBrokers.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('견적을 요청할 공인중개사를 선택해주세요.'),
+          content: Text('문의할 공인중개사를 선택해주세요.'),
           backgroundColor: Colors.orange,
         ),
       );
@@ -2934,14 +2868,16 @@ class _BrokerListPageState extends State<BrokerListPage> {
         final userData = await _firebaseService.getUser(createdUserId);
         effectiveUserName = userData?['name'] ?? userEmail.split('@')[0];
       } else {
-        // 계정 생성 실패 - 게스트 모드로 진행
+        // 계정 생성 실패 - 문의 중단 (데이터 불일치 방지)
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('계정 생성에 실패했습니다. 게스트 모드로 진행합니다.'),
-            backgroundColor: Colors.orange,
+            content: Text('계정 생성에 실패했습니다. 잠시 후 다시 시도해주세요.'),
+            backgroundColor: Colors.red,
+            duration: Duration(seconds: 3),
           ),
         );
+        return; // 문의 중단
       }
     } else {
       // 정식 로그인 사용자
@@ -2960,6 +2896,7 @@ class _BrokerListPageState extends State<BrokerListPage> {
           brokerCount: selectedBrokers.length,
           address: widget.address,
           propertyArea: widget.propertyArea,
+          transactionType: widget.transactionType,
         ),
       ),
     );
@@ -3006,6 +2943,11 @@ class _BrokerListPageState extends State<BrokerListPage> {
           desiredPrice: result['desiredPrice'] as String?,
           targetPeriod: null,
           specialNotes: result['specialNotes'] as String?,
+          // 확인할 견적 정보 (선택되지 않은 항목은 null)
+          commissionRate: result['requestCommissionRate'] == true ? '' : null,
+          recommendedPrice: result['requestRecommendedPrice'] == true ? '' : null,
+          promotionMethod: result['requestPromotionMethod'] == true ? '' : null,
+          recentCases: result['requestRecentCases'] == true ? '' : null,
         );
         
         
@@ -3045,11 +2987,11 @@ class _BrokerListPageState extends State<BrokerListPage> {
       Navigator.of(context).push(
         MaterialPageRoute(
           builder: (_) => SubmitSuccessPage(
-            title: '견적 요청이 전송되었습니다',
-          description: '선택한 공인중개사에게 요청을 보냈습니다.\n답변이 도착하면 현황에서 확인할 수 있어요.\n'
+            title: '문의가 전송되었습니다',
+          description: '선택한 공인중개사에게 문의를 보냈습니다.\n답변이 도착하면 현황에서 확인할 수 있어요.\n'
               '성공: $successCount곳${failCount > 0 ? " / 실패: $failCount곳" : ""}',
-            userName: widget.userName,
-            userId: widget.userId,
+            userName: effectiveUserName,
+            userId: effectiveUserId,
           ),
         ),
       );
@@ -3062,6 +3004,8 @@ class _QuoteRequestFormPage extends StatefulWidget {
   final Broker broker;
   final String userName;
   final String userId;
+  final String? userEmail; // 게스트 모드에서 전달받은 이메일
+  final String? userPhone; // 게스트 모드에서 전달받은 전화번호
   final String propertyAddress;
   final String? propertyArea;
   final String? transactionType; // 거래 유형 (매매/전세/월세)
@@ -3070,6 +3014,8 @@ class _QuoteRequestFormPage extends StatefulWidget {
     required this.broker,
     required this.userName,
     required this.userId,
+    this.userEmail,
+    this.userPhone,
     required this.propertyAddress,
     this.propertyArea,
     this.transactionType,
@@ -3113,13 +3059,18 @@ class _QuoteRequestFormPageState extends State<_QuoteRequestFormPage> {
 
   /// 사용자 이메일 가져오기
   Future<String> _getUserEmail() async {
-    // 1. Firebase Auth에서 현재 사용자 이메일 가져오기
+    // 1. 게스트 모드에서 전달받은 이메일이 있으면 사용
+    if (widget.userEmail != null && widget.userEmail!.isNotEmpty) {
+      return widget.userEmail!;
+    }
+    
+    // 2. Firebase Auth에서 현재 사용자 이메일 가져오기
     final currentUser = _firebaseService.currentUser;
     if (currentUser?.email != null && currentUser!.email!.isNotEmpty) {
       return currentUser.email!;
     }
 
-    // 2. userId가 있으면 Firestore에서 사용자 정보 조회
+    // 3. userId가 있으면 Firestore에서 사용자 정보 조회
     if (widget.userId.isNotEmpty) {
       final userData = await _firebaseService.getUser(widget.userId);
       if (userData != null && userData['email'] != null) {
@@ -3130,8 +3081,29 @@ class _QuoteRequestFormPageState extends State<_QuoteRequestFormPage> {
       }
     }
 
-    // 3. 기본값: userName 기반 이메일 (fallback)
+    // 4. 기본값: userName 기반 이메일 (fallback)
     return '${widget.userName}@example.com';
+  }
+  
+  /// 사용자 전화번호 가져오기
+  Future<String?> _getUserPhone() async {
+    // 1. 게스트 모드에서 전달받은 전화번호가 있으면 사용
+    if (widget.userPhone != null && widget.userPhone!.isNotEmpty) {
+      return widget.userPhone!;
+    }
+    
+    // 2. userId가 있으면 Firestore에서 사용자 정보 조회
+    if (widget.userId.isNotEmpty) {
+      final userData = await _firebaseService.getUser(widget.userId);
+      if (userData != null && userData['phone'] != null) {
+        final phone = userData['phone'] as String;
+        if (phone.isNotEmpty) {
+          return phone;
+        }
+      }
+    }
+    
+    return null;
   }
   
   @override
@@ -3527,7 +3499,7 @@ class _QuoteRequestFormPageState extends State<_QuoteRequestFormPage> {
                 ),
                 icon: const Icon(Icons.send, size: 24),
                 label: const Text(
-                  '견적 요청하기',
+                  '문의하기',
                   style: TextStyle(
                     fontSize: 18,
                     fontWeight: FontWeight.bold,
@@ -3803,12 +3775,18 @@ class _QuoteRequestFormPageState extends State<_QuoteRequestFormPage> {
     }
     
     // 견적문의 객체 생성
-    final userEmail = await _getUserEmail();
+    // 게스트 모드에서 전달받은 이메일/전화번호 우선 사용
+    final userEmail = widget.userEmail ?? await _getUserEmail();
+    final userPhone = widget.userPhone ?? await _getUserPhone();
+    // 게스트 모드에서 생성된 userId 사용 (widget.userId는 게스트 모드에서 생성된 effectiveUserId)
+    final effectiveUserId = widget.userId.isNotEmpty ? widget.userId : widget.userName;
+    final effectiveUserName = widget.userName;
                 final quoteRequest = QuoteRequest(
       id: '',
-                  userId: widget.userId.isNotEmpty ? widget.userId : widget.userName, // userId가 없으면 userName 사용
-                  userName: widget.userName,
+                  userId: effectiveUserId,
+                  userName: effectiveUserName,
       userEmail: userEmail,
+      userPhone: userPhone,
       brokerName: widget.broker.name,
       brokerRegistrationNumber: widget.broker.registrationNumber,
       brokerRoadAddress: widget.broker.roadAddress,
@@ -3847,17 +3825,17 @@ class _QuoteRequestFormPageState extends State<_QuoteRequestFormPage> {
           'address': propertyAddress,
           'mode': 'single',
         },
-        userId: widget.userId.isNotEmpty ? widget.userId : widget.userName,
-        userName: widget.userName,
+        userId: effectiveUserId,
+        userName: effectiveUserName,
         stage: FunnelStage.quoteRequest,
       );
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(
           builder: (_) => SubmitSuccessPage(
-            title: '제안 요청이 전송되었습니다',
-            description: '${widget.broker.name}에게 요청을 보냈습니다.\n답변이 도착하면 현황에서 확인할 수 있어요.',
-            userName: widget.userName,
-            userId: widget.userId.isNotEmpty ? widget.userId : null,
+            title: '문의가 전송되었습니다',
+            description: '${widget.broker.name}에게 문의를 보냈습니다.\n답변이 도착하면 현황에서 확인할 수 있어요.',
+            userName: effectiveUserName,
+            userId: effectiveUserId.isNotEmpty && effectiveUserId != widget.userName ? effectiveUserId : null,
           ),
         ),
       );
@@ -3870,13 +3848,13 @@ class _QuoteRequestFormPageState extends State<_QuoteRequestFormPage> {
           'address': propertyAddress,
           'mode': 'single',
         },
-        userId: widget.userId.isNotEmpty ? widget.userId : widget.userName,
-        userName: widget.userName,
+        userId: effectiveUserId,
+        userName: effectiveUserName,
         stage: FunnelStage.quoteRequest,
       );
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('제안 요청 전송에 실패했습니다.'),
+          content: Text('문의 전송에 실패했습니다.'),
           backgroundColor: Colors.red,
         ),
       );

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:property/constants/app_constants.dart';
 import 'package:property/screens/login_page.dart';
 import 'package:property/screens/main_page.dart';
+import 'package:property/api_request/firebase_service.dart';
 
 class SubmitSuccessPage extends StatelessWidget {
   final String title;
@@ -19,11 +20,33 @@ class SubmitSuccessPage extends StatelessWidget {
 
   Future<void> _handleHistoryTap(BuildContext context) async {
     if (userId != null && userId!.isNotEmpty) {
-      Navigator.of(context).pushReplacement(
+      // Firebase Auth 상태 확인 (게스트 모드에서 생성된 계정인 경우)
+      final firebaseService = FirebaseService();
+      final currentUser = firebaseService.currentUser;
+      
+      // Firebase Auth에 로그인되어 있고 userId가 일치하면 바로 이동
+      // _createOrLoginAccount가 Firebase Auth에 로그인하므로 일반적으로 일치함
+      if (currentUser != null && currentUser.uid == userId) {
+        // main.dart의 인증 상태와 동기화되도록 모든 라우트 제거 후 MainPage로 이동
+        Navigator.of(context).pushAndRemoveUntil(
+          MaterialPageRoute(
+            builder: (_) =>
+                MainPage(userId: userId!, userName: userName, initialTabIndex: 2),
+          ),
+          (route) => false,
+        );
+        return;
+      }
+      
+      // Firebase Auth에 로그인되지 않았거나 userId가 일치하지 않으면
+      // main.dart의 인증 상태와 동기화되도록 모든 라우트 제거 후 MainPage로 이동
+      // main.dart의 authStateChanges()가 자동으로 감지하여 올바른 사용자 정보로 재빌드
+      Navigator.of(context).pushAndRemoveUntil(
         MaterialPageRoute(
           builder: (_) =>
               MainPage(userId: userId!, userName: userName, initialTabIndex: 2),
         ),
+        (route) => false,
       );
       return;
     }

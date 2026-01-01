@@ -20,9 +20,10 @@
 
 ### 2. 게스트 모드 지원
 - 로그인하지 않은 사용자도 모든 핵심 기능 사용 가능
-  - ✅ AI 추천 (상위 10개 일괄 요청)
-  - ✅ 다중 선택 요청
-  - ✅ 비대면 문의 (개별 견적 요청)
+  - ✅ 상위 10곳에 문의 (AI 추천 일괄 문의)
+  - ✅ 선택한 곳에 문의 (다중 선택 문의)
+  - ✅ 문의하기 (개별 문의)
+- 용어 통일: 모든 문의 기능을 "문의"로 통일
 
 ### 3. 자동 계정 생성
 - 상담 요청 시 이메일 + 전화번호 입력
@@ -179,8 +180,9 @@ Future<Map<String, String>?> _showGuestContactDialog() async {
 - 루프 전에 계정 생성/로그인 처리 완료
 
 ### 2. 에러 처리
-- 계정 생성 실패 시 사용자에게 명확한 안내
-- 상담 요청 자체는 가능하도록 (게스트 모드로 저장)
+- 계정 생성 실패 시 문의 중단 (데이터 불일치 방지)
+- 사용자에게 명확한 안내: "계정 생성에 실패했습니다. 잠시 후 다시 시도해주세요."
+- 계정 생성 성공 시에만 문의 진행
 
 ### 3. 기존 게스트 모드 시스템과의 호환
 - 기존 게스트 모드 로직은 유지
@@ -194,26 +196,28 @@ Future<Map<String, String>?> _showGuestContactDialog() async {
 
 ## ✅ 구현 체크리스트
 
-### 우선순위 1 (필수)
-- [ ] `broker_list_page.dart`: `_buildBulkActionButtons()` UI 수정
-- [ ] `broker_list_page.dart`: `_requestQuoteToTop10()` 로그인 체크 제거 및 게스트 모드 처리
-- [ ] `broker_list_page.dart`: `_requestQuoteToMultiple()` 로그인 체크 제거 및 게스트 모드 처리
-- [ ] `broker_list_page.dart`: `_requestQuote()` 로그인 체크 제거
-- [ ] `broker_list_page.dart`: `_showGuestContactDialog()` 추가
-- [ ] `broker_list_page.dart`: `_createOrLoginAccount()` 추가
+### 우선순위 1 (필수) ✅
+- [x] `broker_list_page.dart`: `_buildBulkActionButtons()` UI 수정
+- [x] `broker_list_page.dart`: `_requestQuoteToTop10()` 로그인 체크 제거 및 게스트 모드 처리
+- [x] `broker_list_page.dart`: `_requestQuoteToMultiple()` 로그인 체크 제거 및 게스트 모드 처리
+- [x] `broker_list_page.dart`: `_requestQuote()` 로그인 체크 제거 및 게스트 모드 처리
+- [x] `broker_list_page.dart`: `_showGuestContactDialog()` 추가
+- [x] `broker_list_page.dart`: `_createOrLoginAccount()` 추가
 
-### 우선순위 2 (필수)
-- [ ] `quote_request_form_page.dart`: 게스트 모드 연락처 입력 필드 추가
-- [ ] `quote_request_form_page.dart`: `_submitRequest()` 계정 자동 생성 로직 추가
+### 우선순위 2 (필수) ✅
+- [x] `quote_request_form_page.dart`: 게스트 모드 연락처 입력 필드 추가
+- [x] `quote_request_form_page.dart`: `_submitRequest()` 계정 자동 생성 로직 추가
 
-### 우선순위 3 (UI 개선)
-- [ ] `house_management_page.dart`: `_buildEmptyCard()` 게스트 모드 안내 메시지 수정
+### 우선순위 3 (UI 개선) ✅
+- [x] `house_management_page.dart`: `_buildEmptyCard()` 게스트 모드 안내 메시지 수정
 
-### 우선순위 4 (버그 수정 및 추가 개선)
-- [ ] `broker_list_page.dart`: `_showGuestContactDialog()` TextEditingController dispose 타이밍 수정
-- [ ] `broker_list_page.dart`: 안내 문구 개선 ("공인중개사의 상담 응답을 받을 연락처를 적어주세요...")
-- [ ] `broker_list_page.dart`: "로그인하고 상위 10곳 빠른 요청" 문구 제거
-- [ ] `quote_request_form_page.dart`: 안내 문구 개선 ("공인중개사의 상담 응답을 받을 연락처를 적어주세요...")
+### 우선순위 4 (버그 수정 및 추가 개선) ✅
+- [x] `broker_list_page.dart`: `_showGuestContactDialog()` TextEditingController dispose 타이밍 수정
+- [x] `broker_list_page.dart`: 안내 문구 개선 ("공인중개사의 상담 응답을 받을 연락처를 적어주세요...")
+- [x] `broker_list_page.dart`: 용어 통일 ("문의"로 통일)
+- [x] `quote_request_form_page.dart`: 안내 문구 개선
+- [x] 계정 생성 실패 시 문의 중단 처리 개선
+- [x] `SubmitSuccessPage`에서 게스트 모드 계정 처리 개선
 
 ---
 
@@ -233,5 +237,26 @@ Future<Map<String, String>?> _showGuestContactDialog() async {
 
 **작성일**: 2025-01-XX  
 **마지막 업데이트**: 2025-01-XX  
-**상태**: 구현 준비 완료
+**상태**: ✅ 구현 완료
+
+## 📝 최근 업데이트 (2025-01-XX)
+
+### 용어 통일
+- 모든 문의 기능을 "문의"로 통일
+  - "상위 10곳 요청" → "상위 10곳에 문의"
+  - "다중 선택 요청" → "선택한 곳에 문의"
+  - "비대면문의" → "문의하기"
+
+### 비대면 문의 게스트 모드 지원
+- `_requestQuote()` 함수에 게스트 모드 처리 추가
+- 연락처 입력 다이얼로그 및 자동 계정 생성 로직 통합
+
+### 계정 생성 실패 처리 개선
+- 계정 생성 실패 시 문의 중단 (데이터 불일치 방지)
+- 사용자에게 명확한 에러 메시지 표시
+
+### SubmitSuccessPage 개선
+- 게스트 모드에서 생성된 계정 처리 개선
+- Firebase Auth 상태 확인 로직 추가
+- main.dart의 인증 상태와 동기화
 
