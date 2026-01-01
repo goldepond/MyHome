@@ -69,13 +69,11 @@ void postMessageToMap(Map<String, dynamic> message) {
   
   for (var element in iframeList) {
     final srcdoc = element.srcdoc;
-    if (srcdoc != null) {
-      if (srcdoc.isA<JSString>()) {
-        final srcdocStr = (srcdoc as JSString).toDart;
-        if (srcdocStr.isNotEmpty) {
-          targetIframe = element;
-          break;
-        }
+    if (srcdoc.isA<JSString>()) {
+      final srcdocStr = (srcdoc as JSString).toDart;
+      if (srcdocStr.isNotEmpty) {
+        targetIframe = element;
+        break;
       }
     }
   }

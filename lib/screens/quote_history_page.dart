@@ -508,27 +508,23 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
                             await _firebaseService.saveBrokerReview(review);
 
                         if (!mounted) return;
-
                         Navigator.pop(context);
-
-                        if (savedId != null) {
-                          if (!mounted) return;
-                          final scaffoldMessenger = ScaffoldMessenger.of(context);
-                          scaffoldMessenger.showSnackBar(
-                            const SnackBar(
-                              content: Text('후기가 저장되었습니다.'),
-                              backgroundColor: AirbnbColors.success,
-                            ),
-                          );
-                        } else {
-                          if (!mounted) return;
-                          final scaffoldMessenger = ScaffoldMessenger.of(context);
-                          scaffoldMessenger.showSnackBar(
-                            const SnackBar(
-                              content: Text('후기 저장에 실패했습니다.'),
-                              backgroundColor: AirbnbColors.error,
-                            ),
-                          );
+                        if (mounted) {
+                          if (savedId != null) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('후기가 저장되었습니다.'),
+                                backgroundColor: AirbnbColors.success,
+                              ),
+                            );
+                          } else {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('후기 저장에 실패했습니다.'),
+                                backgroundColor: AirbnbColors.error,
+                              ),
+                            );
+                          }
                         }
                       },
                       style: ElevatedButton.styleFrom(

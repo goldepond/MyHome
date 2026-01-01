@@ -77,7 +77,7 @@ class _AddressSearchTabsState extends State<AddressSearchTabs>
         gpsHeight = renderBox.size.height;
         
         // 무한 높이로 인식된 경우 처리 (IntrinsicHeight가 제대로 측정하지 못한 경우)
-        if (gpsHeight != null && gpsHeight! > 10000) {
+        if (gpsHeight > 10000) {
           gpsHeight = null;
         }
       }
@@ -91,7 +91,7 @@ class _AddressSearchTabsState extends State<AddressSearchTabs>
         addressHeight = renderBox.size.height;
         
         // 무한 높이로 인식된 경우 처리
-        if (addressHeight != null && addressHeight! > 10000) {
+        if (addressHeight > 10000) {
           addressHeight = null;
         }
       }
@@ -104,17 +104,17 @@ class _AddressSearchTabsState extends State<AddressSearchTabs>
       bool isGpsTab = false;
       
       if (gpsHeight != null && addressHeight != null) {
-        if (gpsHeight! > addressHeight!) {
-          maxHeight = gpsHeight!;
+        if (gpsHeight > addressHeight) {
+          maxHeight = gpsHeight;
           isGpsTab = true;
         } else {
-          maxHeight = addressHeight!;
+          maxHeight = addressHeight;
         }
       } else if (gpsHeight != null) {
-        maxHeight = gpsHeight!;
+        maxHeight = gpsHeight;
         isGpsTab = true;
       } else if (addressHeight != null) {
-        maxHeight = addressHeight!;
+        maxHeight = addressHeight;
       }
       
       // GPS 탭은 더 많은 여유 공간 필요 (80px - 측정 오차 및 동적 콘텐츠 대응)

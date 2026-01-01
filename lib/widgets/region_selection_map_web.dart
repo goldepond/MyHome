@@ -39,12 +39,10 @@ web.HTMLIFrameElement? findMapIframe() {
   
   for (var element in iframeList) {
     final srcdoc = element.srcdoc;
-    if (srcdoc != null) {
-      if (srcdoc.isA<JSString>()) {
-        final srcdocStr = (srcdoc as JSString).toDart;
-        if (srcdocStr.isNotEmpty) {
-          return element;
-        }
+    if (srcdoc.isA<JSString>()) {
+      final srcdocStr = (srcdoc as JSString).toDart;
+      if (srcdocStr.isNotEmpty) {
+        return element;
       }
     }
   }

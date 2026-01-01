@@ -2870,6 +2870,123 @@ class ApiConstants {
 
 ---
 
+## 상세주소 입력 및 단지정보 조회 기능
+
+### 개요
+
+상세주소 입력란을 통해 사용자가 동/호수 등의 상세 정보를 입력하면, 해당 정보를 기반으로 아파트 단지 정보를 자동으로 조회하는 기능입니다.
+
+**현재 상태**: ⚠️ **비활성화됨** (`_isDetailAddressEnabled = false`)
+
+### 기능 설명
+
+#### 1. 상세주소 입력란
+
+- **위치**: `lib/screens/home_page.dart` - `DetailAddressInput` 위젯
+- **용도**: 사용자가 동/호수 등 상세주소 입력 (예: "211동 1506호")
+- **플래그**: `_isDetailAddressEnabled`로 제어
+
+#### 2. 단지정보 자동 조회
+
+상세주소 입력 시 자동으로 실행되는 플로우:
+
+```
+상세주소 입력
+    ↓
+selectedFullAddress = '도로명주소 + 상세주소' 생성
+    ↓
+_loadAptInfoFromAddress() 호출
+    ↓
+AptInfoService.extractKaptCodeFromAddressAsync()
+    → 주소에서 단지코드(kaptCode) 추출
+    ↓
+AptInfoService.getAptBasisInfo(kaptCode)
+    → 단지정보 API 호출
+    ↓
+_aptInfoNotifier.value에 결과 저장
+    ↓
+UI에 단지정보 표시 (_buildAptInfoSection)
+```
+
+#### 3. 관련 컴포넌트
+
+**상태 변수:**
+- `selectedDetailAddress`: 입력된 상세주소
+- `selectedFullAddress`: 도로명주소 + 상세주소 조합
+- `parsedDetail`: 파싱된 상세주소 정보 (동/호수 등)
+- `_detailController`: 상세주소 입력란 컨트롤러
+- `_aptInfoNotifier`: 단지정보 (ValueNotifier)
+- `kaptCode`: 단지코드
+
+**함수:**
+- `_loadAptInfoFromAddress()`: 주소에서 단지코드 추출 및 단지정보 조회
+- `AddressUtils.parseDetailAddress()`: 상세주소 파싱
+
+**위젯:**
+- `DetailAddressInput`: 상세주소 입력 위젯 (home_page.dart 내부 정의)
+- `_buildAptInfoSection()`: 단지정보 표시 섹션
+
+### 활성화/비활성화 방법
+
+**파일**: `lib/screens/home_page.dart`
+
+```dart
+class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin {
+  // 상세주소 입력란 비활성화 플래그
+  // true로 변경하면 상세주소 입력란과 단지정보 조회 기능이 활성화됩니다.
+  static const bool _isDetailAddressEnabled = false; // ← 이 값을 true로 변경
+```
+
+**활성화 시:**
+- 상세주소 입력란 UI 표시
+- 상세주소 입력 시 단지정보 자동 조회
+- 단지정보 표시 섹션 표시
+
+**비활성화 시:**
+- 상세주소 입력란 UI 숨김
+- 단지정보 조회 기능 비활성화
+- 단지정보 표시 섹션 숨김
+- 공인중개사 검색은 정상 동작 (상세주소 불필요)
+
+### 공인중개사 검색과의 관계
+
+**중요**: 상세주소 입력란은 **공인중개사 검색에 필수적이지 않습니다**.
+
+공인중개사 검색은 다음 정보만 필요합니다:
+- `latitude` (위도)
+- `longitude` (경도)
+- `radiusMeters` (검색 반경)
+
+상세주소는 다음 용도로만 사용됩니다:
+- 아파트 단지 정보 조회 (단지코드 추출)
+- 부동산 등록 기능 (별도 기능)
+
+### API 연동
+
+**단지코드 추출:**
+- `AptInfoService.extractKaptCodeFromAddressAsync()`
+  - 도로명코드/법정동코드 우선 사용
+  - 단지명 검색 fallback
+
+**단지정보 조회:**
+- `AptInfoService.getAptBasisInfo(kaptCode)`
+  - 단지코드를 기반으로 단지정보 API 호출
+
+### 주의사항
+
+1. **캐싱**: 단지코드 추출 결과는 캐시되어 중복 요청 방지
+2. **에러 처리**: 단지정보 조회 실패 시에도 공인중개사 검색은 정상 동작
+3. **비동기 처리**: 단지정보 조회는 비동기로 처리되어 UI 블로킹 방지
+4. **조건부 표시**: 단지정보는 `aptInfo`, `kaptCode`, `selectedDetailAddress`가 모두 있을 때만 표시
+
+### 참고 파일
+
+- `lib/screens/home_page.dart`: 상세주소 입력란 및 단지정보 표시
+- `lib/api_request/apt_info_service.dart`: 단지정보 API 서비스
+- `lib/utils/address_utils.dart`: 주소 파싱 유틸리티
+
+---
+
 ## 문의
 
 구현 관련 문의사항이 있으면 개발팀에 문의하세요.

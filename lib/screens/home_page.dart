@@ -4,7 +4,6 @@ import 'dart:convert';
 import 'package:property/constants/app_constants.dart';
 import 'package:property/constants/typography.dart';
 import 'package:property/constants/spacing.dart';
-import 'package:property/api_request/address_service.dart';
 import 'package:property/api_request/firebase_service.dart'; // FirebaseService import
 import 'package:property/api_request/vworld_service.dart'; // VWorld API 서비스 추가
 import 'package:property/utils/address_utils.dart';
@@ -30,7 +29,14 @@ class HomePage extends StatefulWidget {
   State<HomePage> createState() => _HomePageState();
 }
 
-class _HomePageState extends State<HomePage> {
+class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin {
+  @override
+  bool get wantKeepAlive => true; // 상태 유지로 성능 향상
+
+  // 상세주소 입력란 비활성화 플래그
+  // true로 변경하면 상세주소 입력란과 단지정보 조회 기능이 활성화됩니다.
+  static const bool _isDetailAddressEnabled = false;
+
   final FirebaseService _firebaseService = FirebaseService();
 
   final TextEditingController _detailController = TextEditingController();
@@ -55,20 +61,26 @@ class _HomePageState extends State<HomePage> {
   Map<String, String> parsedAddress1st = {};
   Map<String, String> parsedDetail = {};
   
-  // VWorld API 데이터
-  Map<String, dynamic>? vworldCoordinates; // 좌표 정보
+  // VWorld API 데이터 - ValueNotifier로 최적화
+  final ValueNotifier<Map<String, dynamic>?> _vworldCoordinatesNotifier = ValueNotifier<Map<String, dynamic>?>(null);
+  final ValueNotifier<bool> _isVWorldLoadingNotifier = ValueNotifier<bool>(false);
   String? vworldError;                     // VWorld API 에러 메시지
-  bool isVWorldLoading = false;            // VWorld API 로딩 상태
   
-  // 단지코드 관련 정보
-  Map<String, dynamic>? aptInfo;           // 아파트 단지 정보
+  // 단지코드 관련 정보 - ValueNotifier로 최적화
+  final ValueNotifier<Map<String, dynamic>?> _aptInfoNotifier = ValueNotifier<Map<String, dynamic>?>(null);
+  final ValueNotifier<bool> _isLoadingAptInfoNotifier = ValueNotifier<bool>(false);
   String? kaptCode;                        // 단지코드
-  bool isLoadingAptInfo = false;            // 단지코드 조회 중
   String? kaptCodeStatusMessage;            // 단지코드 조회 상태 메시지
   String? _currentAptInfoRequestKey;
   
   // 선택된 반경 (미터 단위, GPS/주소 입력 탭에서 설정)
   double? selectedRadiusMeters;
+
+  // Getter로 기존 코드 호환성 유지
+  Map<String, dynamic>? get vworldCoordinates => _vworldCoordinatesNotifier.value;
+  bool get isVWorldLoading => _isVWorldLoadingNotifier.value;
+  Map<String, dynamic>? get aptInfo => _aptInfoNotifier.value;
+  bool get isLoadingAptInfo => _isLoadingAptInfoNotifier.value;
 
   @override
   void initState() {
@@ -462,13 +474,11 @@ class _HomePageState extends State<HomePage> {
 
   // (제거됨) 내 부동산에 추가 기능
 
-  // VWorld API 데이터 로드 (백그라운드)
+  // VWorld API 데이터 로드 (백그라운드) - ValueNotifier로 최적화
   Future<void> _loadVWorldData(String address, {Map<String, String>? fullAddrAPIData}) async {
-    setState(() {
-      isVWorldLoading = true;
-      vworldError = null;
-      vworldCoordinates = null;
-    });
+    _isVWorldLoadingNotifier.value = true;
+    vworldError = null;
+    _vworldCoordinatesNotifier.value = null;
     
     try {
       final result = await VWorldService.getLandInfoFromAddress(
@@ -478,28 +488,22 @@ class _HomePageState extends State<HomePage> {
       
       if (mounted) {
         if (result != null) {
-          setState(() {
-            vworldCoordinates = result['coordinates'];
-            isVWorldLoading = false;
-          });
+          _vworldCoordinatesNotifier.value = result['coordinates'];
+          _isVWorldLoadingNotifier.value = false;
         } else {
-          setState(() {
-            isVWorldLoading = false;
-            vworldError = '선택한 주소에서 정확한 좌표를 찾지 못했습니다. 주소를 다시 확인해주세요.';
-          });
+          _isVWorldLoadingNotifier.value = false;
+          vworldError = '선택한 주소에서 정확한 좌표를 찾지 못했습니다. 주소를 다시 확인해주세요.';
         }
       }
     } catch (e) {
       if (mounted) {
-        setState(() {
-          isVWorldLoading = false;
-          vworldError = 'VWorld API 오류: ${e.toString().substring(0, e.toString().length > 100 ? 100 : e.toString().length)}';
-        });
+        _isVWorldLoadingNotifier.value = false;
+        vworldError = 'VWorld API 오류: ${e.toString().substring(0, e.toString().length > 100 ? 100 : e.toString().length)}';
       }
     }
   }
 
-  /// 주소에서 단지코드 정보 자동 조회
+  /// 주소에서 단지코드 정보 자동 조회 - ValueNotifier로 최적화
   Future<void> _loadAptInfoFromAddress(String address, {Map<String, String>? fullAddrAPIData}) async {
     if (address.isEmpty) {
       return;
@@ -508,17 +512,15 @@ class _HomePageState extends State<HomePage> {
     final requestKey = _buildAptInfoRequestKey(address, fullAddrAPIData);
     if (_currentAptInfoRequestKey != null &&
         _currentAptInfoRequestKey == requestKey &&
-        isLoadingAptInfo) {
+        _isLoadingAptInfoNotifier.value) {
       return;
     }
     _currentAptInfoRequestKey = requestKey;
 
-    setState(() {
-      isLoadingAptInfo = true;
-      aptInfo = null;
-      kaptCode = null;
-      kaptCodeStatusMessage = null;
-    });
+    _isLoadingAptInfoNotifier.value = true;
+    _aptInfoNotifier.value = null;
+    kaptCode = null;
+    kaptCodeStatusMessage = null;
     
     try {
       // 주소에서 단지코드를 비동기로 추출 시도 (도로명코드/법정동코드 우선, 단지명 검색 fallback)
@@ -537,38 +539,28 @@ class _HomePageState extends State<HomePage> {
         if (aptInfoResult != null) {
           final extractedKaptCodeFromResult = aptInfoResult['kaptCode']?.toString();
 
-          setState(() {
-            aptInfo = aptInfoResult;
-            kaptCode = extractedKaptCodeFromResult;
-            kaptCodeStatusMessage = null;
-          });
+          _aptInfoNotifier.value = aptInfoResult;
+          kaptCode = extractedKaptCodeFromResult;
+          kaptCodeStatusMessage = null;
         } else {
-          setState(() {
-            aptInfo = null;
-            kaptCode = null;
-            kaptCodeStatusMessage = '단지정보 API 응답이 비어 있습니다. 잠시 후 다시 시도해주세요.';
-          });
+          _aptInfoNotifier.value = null;
+          kaptCode = null;
+          kaptCodeStatusMessage = '단지정보 API 응답이 비어 있습니다. 잠시 후 다시 시도해주세요.';
         }
       } else {
-        setState(() {
-          aptInfo = null;
-          kaptCode = null;
-          kaptCodeStatusMessage = extractionResult.message;
-        });
+        _aptInfoNotifier.value = null;
+        kaptCode = null;
+        kaptCodeStatusMessage = extractionResult.message;
       }
     } catch (e) {
       if (mounted) {
-        setState(() {
-          aptInfo = null;
-          kaptCode = null;
-          kaptCodeStatusMessage = '단지 정보를 불러오는 중 오류가 발생했습니다. 다시 시도해주세요.';
-        });
+        _aptInfoNotifier.value = null;
+        kaptCode = null;
+        kaptCodeStatusMessage = '단지 정보를 불러오는 중 오류가 발생했습니다. 다시 시도해주세요.';
       }
     } finally {
       if (mounted) {
-        setState(() {
-          isLoadingAptInfo = false;
-        });
+        _isLoadingAptInfoNotifier.value = false;
       }
       if (_currentAptInfoRequestKey == requestKey) {
         _currentAptInfoRequestKey = null;
@@ -694,11 +686,16 @@ class _HomePageState extends State<HomePage> {
   @override
   void dispose() {
     _detailController.dispose();
+    _vworldCoordinatesNotifier.dispose();
+    _isVWorldLoadingNotifier.dispose();
+    _aptInfoNotifier.dispose();
+    _isLoadingAptInfoNotifier.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    super.build(context); // AutomaticKeepAliveClientMixin 필수 호출
     final isLoggedIn = widget.userName.isNotEmpty;
     
     return PopScope(
@@ -711,38 +708,59 @@ class _HomePageState extends State<HomePage> {
       },
       child: GestureDetector(
         onTap: () => FocusScope.of(context).unfocus(),
-        child: LoadingOverlay(
-      isLoading: isRegisterLoading || isSaving || isVWorldLoading,
-      message: isRegisterLoading
-          ? '등기부등본 조회 중...'
-          : isSaving
-              ? '저장 중...'
-              : '위치 정보 조회 중...',
-      child: Scaffold(
-        backgroundColor: AirbnbColors.background,
-          resizeToAvoidBottomInset: true,
-        body: SafeArea(
-          child: LayoutBuilder(
-            builder: (context, constraints) {
-              // 화면 높이에 따라 레이아웃 조정
-              final screenHeight = constraints.maxHeight;
-              final isSmallScreen = screenHeight < 600;
-              
-              return SingleChildScrollView(
-                physics: const AlwaysScrollableScrollPhysics(),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    // 상단 타이틀 섹션
-                    const HeroBanner(
-                      showSearchBar: false,
-                    ),
-                    const SizedBox(height: AppSpacing.lg), // 24px - 주요 섹션 전환
-                    
-                    // 주소 검색 탭 (가변 높이)
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
-                      child: AddressSearchTabs(
+        child: ValueListenableBuilder<bool>(
+          valueListenable: _isVWorldLoadingNotifier,
+          builder: (context, isVWorldLoading, _) {
+            return LoadingOverlay(
+              isLoading: isRegisterLoading || isSaving || isVWorldLoading,
+              message: _getLoadingMessage(),
+              child: Scaffold(
+                backgroundColor: AirbnbColors.background,
+                resizeToAvoidBottomInset: true,
+                body: SafeArea(
+                  child: _buildBody(isLoggedIn),
+                ),
+              ),
+            );
+          },
+        ),
+      ),
+    );
+  }
+
+  // 로딩 메시지 가져오기 (메서드 분리로 최적화)
+  String _getLoadingMessage() {
+    if (isRegisterLoading) return '등기부등본 조회 중...';
+    if (isSaving) return '저장 중...';
+    return '위치 정보 조회 중...';
+  }
+
+  // Body 빌드 메서드 분리 (성능 최적화)
+  Widget _buildBody(bool isLoggedIn) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const HeroBanner(showSearchBar: false),
+              const SizedBox(height: AppSpacing.lg),
+              _buildAddressSearchSection(),
+              const SizedBox(height: AppSpacing.xl),
+              _buildContentSection(isLoggedIn),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  // 주소 검색 섹션 빌드 (메서드 분리)
+  Widget _buildAddressSearchSection() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+      child: AddressSearchTabs(
                     onAddressSelected: (result) async {
                       final cleanAddress = result.address;
 
@@ -769,9 +787,11 @@ class _HomePageState extends State<HomePage> {
                         selectedDetailAddress = '';
                         selectedFullAddress = cleanAddress;
                         selectedRadiusMeters = result.radiusMeters; // 선택된 반경 저장
-                        _detailController.clear();
+                        if (_isDetailAddressEnabled) {
+                          _detailController.clear();
+                          parsedDetail = {};
+                        }
                         parsedAddress1st = AddressUtils.parseAddress1st(cleanAddress);
-                        parsedDetail = {};
                         // 상태 초기화 후, 상세주소 입력 시에만 단지 정보 조회
                         hasAttemptedSearch = true;
                         registerResult = null;
@@ -779,20 +799,18 @@ class _HomePageState extends State<HomePage> {
                         ownerMismatchError = null;
                         kaptCodeStatusMessage = null;
                         // 단지 정보 초기화 (상세주소 입력 시에만 조회)
-                        aptInfo = null;
+                        _aptInfoNotifier.value = null;
                         kaptCode = null;
                       });
 
                       // 좌표가 이미 있는 경우 (GPS 기반 검색)
                       if (result.latitude != null && result.longitude != null) {
-                        setState(() {
-                          vworldCoordinates = {
-                            'x': result.longitude.toString(),
-                            'y': result.latitude.toString(),
-                          };
-                          vworldError = null;
-                          isVWorldLoading = false;
-                        });
+                        _vworldCoordinatesNotifier.value = {
+                          'x': result.longitude.toString(),
+                          'y': result.latitude.toString(),
+                        };
+                        vworldError = null;
+                        _isVWorldLoadingNotifier.value = false;
                       } else {
                         // 좌표가 없는 경우 (주소 입력 검색) - 좌표 조회
                         await _loadVWorldData(
@@ -803,15 +821,16 @@ class _HomePageState extends State<HomePage> {
                         );
                       }
                         },
-                      ),
-                    ),
-                    const SizedBox(height: AppSpacing.xl),
-                    
-                    // 선택된 주소 및 기타 콘텐츠
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
+      ),
+    );
+  }
+
+  // 콘텐츠 섹션 빌드 (메서드 분리)
+  Widget _buildContentSection(bool isLoggedIn) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      mainAxisSize: MainAxisSize.min,
+      children: [
               if (selectedRoadAddress.isNotEmpty && !selectedRoadAddress.startsWith('API 오류') && !selectedRoadAddress.startsWith('검색 결과 없음')) ...[
                 // 선택된 주소 표시 - 에어비앤비 스타일 강화
                 Center(
@@ -880,102 +899,51 @@ class _HomePageState extends State<HomePage> {
                   ),
                 ),
                 
-                // 상세주소 입력 (선택사항)
-                Center(
-                  child: Container(
-                    constraints: const BoxConstraints(maxWidth: 900), // 600 -> 900으로 변경
-                    padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.xs), // 24px, 4px
-                    child: DetailAddressInput(
-                      controller: _detailController,
-                      onChanged: (val) {
-                        setState(() {
-                          selectedDetailAddress = val;
-                          parsedDetail = AddressUtils.parseDetailAddress(val);
-                          // 상세주소가 있으면 추가, 없으면 도로명주소만
-                          if (val.trim().isNotEmpty) {
-                            selectedFullAddress = '$selectedRoadAddress ${val.trim()}';
-                            // 상세주소 입력 시 단지 정보 조회
-                            _loadAptInfoFromAddress(selectedFullAddress, fullAddrAPIData: selectedFullAddrAPIData);
-                          } else {
-                            selectedFullAddress = selectedRoadAddress;
-                            // 상세주소가 비어있으면 단지 정보 초기화
-                            aptInfo = null;
-                            kaptCode = null;
-                          }
-                        });
-                      },
+                // 상세주소 입력 (선택사항) - 플래그로 제어
+                if (_isDetailAddressEnabled) ...[
+                  Center(
+                    child: Container(
+                      constraints: const BoxConstraints(maxWidth: 900), // 600 -> 900으로 변경
+                      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.xs), // 24px, 4px
+                      child: DetailAddressInput(
+                        controller: _detailController,
+                        onChanged: (val) {
+                          setState(() {
+                            selectedDetailAddress = val;
+                            parsedDetail = AddressUtils.parseDetailAddress(val);
+                            // 상세주소가 있으면 추가, 없으면 도로명주소만
+                            if (val.trim().isNotEmpty) {
+                              selectedFullAddress = '$selectedRoadAddress ${val.trim()}';
+                              // 상세주소 입력 시 단지 정보 조회
+                              _loadAptInfoFromAddress(selectedFullAddress, fullAddrAPIData: selectedFullAddrAPIData);
+                            } else {
+                              selectedFullAddress = selectedRoadAddress;
+                              // 상세주소가 비어있으면 단지 정보 초기화
+                              _aptInfoNotifier.value = null;
+                              kaptCode = null;
+                            }
+                          });
+                        },
+                      ),
                     ),
                   ),
-                ),
-                
-                const SizedBox(height: AppSpacing.md), // 16px
-                
-                // 공동주택 단지 정보 (주소 선택 후 자동으로 표시)
-                if (hasAttemptedSearch)
-                  Builder(
-                    builder: (context) {
-                      // 최대 너비 설정 (모바일: 전체 너비, 큰 화면: 900px)
-                      const double maxContentWidth = 900;
-                      
-                      // 로딩 중일 때
-                      if (isLoadingAptInfo) {
-                        return Center(
-                          child: Container(
-                            constraints: const BoxConstraints(maxWidth: maxContentWidth),
-                            margin: const EdgeInsets.only(top: AppSpacing.lg), // 24px
-                            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg), // 24px
-                            child: Container(
-                              padding: const EdgeInsets.all(AppSpacing.lg), // 24px
-                              decoration: BoxDecoration(
-                                color: AirbnbColors.background,
-                                borderRadius: BorderRadius.circular(16),
-                                border: Border.all(color: AirbnbColors.border),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: AirbnbColors.textPrimary.withValues(alpha: 0.05),
-                                    blurRadius: 10,
-                                    offset: const Offset(0, 2),
-                                  ),
-                                ],
-                              ),
-                              child: Row(
-                                children: [
-                                  const SizedBox(
-                                    width: 24,
-                                    height: 24,
-                                    child: CircularProgressIndicator(strokeWidth: 2),
-                                  ),
-                                  const SizedBox(width: AppSpacing.md), // 16px
-                                  Text(
-                                    '공동주택 단지 정보 조회 중...',
-                                    style: AppTypography.withColor(
-                                      AppTypography.body.copyWith(fontWeight: FontWeight.w500),
-                                      AirbnbColors.textSecondary,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
+                  
+                  const SizedBox(height: AppSpacing.md), // 16px
+                  
+                  // 공동주택 단지 정보 (주소 선택 후 자동으로 표시)
+                  if (hasAttemptedSearch)
+                    ValueListenableBuilder<bool>(
+                      valueListenable: _isLoadingAptInfoNotifier,
+                      builder: (context, isLoadingAptInfo, _) {
+                        return ValueListenableBuilder<Map<String, dynamic>?>(
+                          valueListenable: _aptInfoNotifier,
+                          builder: (context, aptInfo, _) {
+                            return _buildAptInfoSection(isLoadingAptInfo, aptInfo);
+                          },
                         );
-                      }
-                      
-                      // 단지 정보 표시 조건: aptInfo와 kaptCode가 모두 있고, 상세주소가 입력된 경우
-                      if (aptInfo != null && kaptCode != null && selectedDetailAddress.trim().isNotEmpty) {
-                        return Center(
-                          child: Container(
-                            constraints: const BoxConstraints(maxWidth: maxContentWidth),
-                            margin: const EdgeInsets.only(top: 24),
-                            padding: const EdgeInsets.symmetric(horizontal: 24),
-                            child: _buildAptInfoCard(),
-                          ),
-                        );
-                      }
-
-                      // 단지 정보가 없으면 조용히 종료 (공동주택이 아닐 수도 있으므로 경고 미노출)
-                      return const SizedBox.shrink();
-                    },
-                  ),
+                      },
+                    ),
+                ],
               ],
               
               // 등기부등본 조회 오류 표시
@@ -1041,49 +1009,54 @@ class _HomePageState extends State<HomePage> {
               if (hasAttemptedSearch &&
                   selectedFullAddress.isNotEmpty &&
                   !(isLoggedIn && registerResult != null))
-                Center(
-                  child: Container(
-                    constraints: const BoxConstraints(maxWidth: 900), // 600 -> 900으로 변경
-                    padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.md), // 24px, 16px
-                    child: ConstrainedBox(
-                      constraints: const BoxConstraints(maxWidth: 280),
-                        child: SizedBox(
-                        width: double.infinity,
-                        height: 56,
-                        child: Semantics(
-                          label: isVWorldLoading ? '위치 확인 중' : '부동산 상담 찾기',
-                          button: true,
-                          enabled: selectedFullAddress.isNotEmpty && !isVWorldLoading,
-                          child: ElevatedButton.icon(
-                            onPressed: (selectedFullAddress.isEmpty || isVWorldLoading)
-                                ? null
-                                : () async => _goToBrokerSearch(),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: AirbnbColors.textPrimary, // 에어비엔비 스타일: 검은색 배경
-                              foregroundColor: AirbnbColors.background,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
+                ValueListenableBuilder<bool>(
+                  valueListenable: _isVWorldLoadingNotifier,
+                  builder: (context, isVWorldLoading, _) {
+                    return Center(
+                      child: Container(
+                        constraints: const BoxConstraints(maxWidth: 900),
+                        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.md),
+                        child: ConstrainedBox(
+                          constraints: const BoxConstraints(maxWidth: 280),
+                          child: SizedBox(
+                            width: double.infinity,
+                            height: 56,
+                            child: Semantics(
+                              label: isVWorldLoading ? '위치 확인 중' : '부동산 상담 찾기',
+                              button: true,
+                              enabled: selectedFullAddress.isNotEmpty && !isVWorldLoading,
+                              child: ElevatedButton.icon(
+                                onPressed: (selectedFullAddress.isEmpty || isVWorldLoading)
+                                    ? null
+                                    : () async => _goToBrokerSearch(),
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: AirbnbColors.textPrimary,
+                                  foregroundColor: AirbnbColors.background,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  elevation: 2,
+                                  shadowColor: AirbnbColors.primary.withValues(alpha: 0.5),
+                                  textStyle: AppTypography.bodyLarge.copyWith(fontWeight: FontWeight.bold),
+                                ),
+                                icon: isVWorldLoading
+                                    ? const SizedBox(
+                                        width: 20,
+                                        height: 20,
+                                        child: CircularProgressIndicator(
+                                          strokeWidth: 2,
+                                          valueColor: AlwaysStoppedAnimation<Color>(AirbnbColors.background),
+                                        ),
+                                      )
+                                    : const Icon(Icons.business, size: 24),
+                                label: Text(isVWorldLoading ? '위치 확인 중...' : '부동산 상담 찾기'),
                               ),
-                              elevation: 2,
-                              shadowColor: AirbnbColors.primary.withValues(alpha: 0.5),
-                              textStyle: AppTypography.bodyLarge.copyWith(fontWeight: FontWeight.bold),
                             ),
-                            icon: isVWorldLoading
-                                ? const SizedBox(
-                                    width: 20,
-                                    height: 20,
-                                    child: CircularProgressIndicator(
-                                      strokeWidth: 2,
-                                      valueColor: AlwaysStoppedAnimation<Color>(AirbnbColors.background),
-                                    ),
-                                  )
-                                : const Icon(Icons.business, size: 24),
-                            label: Text(isVWorldLoading ? '위치 확인 중...' : '부동산 상담 찾기'),
                           ),
                         ),
                       ),
-                    ),
-                  ),
+                    );
+                  },
                 ),
 
               if (hasAttemptedSearch &&
@@ -1095,18 +1068,8 @@ class _HomePageState extends State<HomePage> {
               
               // 웹 전용 푸터 여백 (영상 촬영용)
               if (kIsWeb) const SizedBox(height: AppSpacing.xxxl * 9.375), // 특수 케이스 유지 (600px)
-                    ],
-                  ),
-                ],
-              ),
+              ],
             );
-            },
-          ),
-        ),
-      ),
-      ),
-      ),
-    );
   }
   
   // 정보 카드 위젯
@@ -1257,38 +1220,43 @@ class _HomePageState extends State<HomePage> {
               ),
               const SizedBox(height: AppSpacing.lg), // 24px
               if (selectedFullAddress.isNotEmpty)
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
-                  child: SizedBox(
-                    width: double.infinity,
-                    height: 56,
-                    child: ElevatedButton.icon(
-                      onPressed: (selectedFullAddress.isEmpty || isVWorldLoading)
-                          ? null
-                          : () async => _goToBrokerSearch(),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AirbnbColors.textPrimary, // 에어비엔비 스타일: 검은색 배경
-                        foregroundColor: AirbnbColors.background,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
+                ValueListenableBuilder<bool>(
+                  valueListenable: _isVWorldLoadingNotifier,
+                  builder: (context, isVWorldLoading, _) {
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+                      child: SizedBox(
+                        width: double.infinity,
+                        height: 56,
+                        child: ElevatedButton.icon(
+                          onPressed: (selectedFullAddress.isEmpty || isVWorldLoading)
+                              ? null
+                              : () async => _goToBrokerSearch(),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AirbnbColors.textPrimary,
+                            foregroundColor: AirbnbColors.background,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            elevation: 2,
+                            shadowColor: AirbnbColors.primary.withValues(alpha: 0.5),
+                            textStyle: AppTypography.bodyLarge.copyWith(fontWeight: FontWeight.bold),
+                          ),
+                          icon: isVWorldLoading
+                              ? const SizedBox(
+                                  width: 20,
+                                  height: 20,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    valueColor: AlwaysStoppedAnimation<Color>(AirbnbColors.background),
+                                  ),
+                                )
+                              : const Icon(Icons.business, size: 24),
+                          label: Text(isVWorldLoading ? '위치 확인 중...' : '공인중개사 찾기'),
                         ),
-                        elevation: 2,
-                        shadowColor: AirbnbColors.primary.withValues(alpha: 0.5),
-                        textStyle: AppTypography.bodyLarge.copyWith(fontWeight: FontWeight.bold),
                       ),
-                      icon: isVWorldLoading
-                          ? const SizedBox(
-                              width: 20,
-                              height: 20,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                valueColor: AlwaysStoppedAnimation<Color>(AirbnbColors.background),
-                              ),
-                            )
-                          : const Icon(Icons.business, size: 24),
-                      label: Text(isVWorldLoading ? '위치 확인 중...' : '공인중개사 찾기'),
-                    ),
-                  ),
+                    );
+                  },
                 ),
               if (selectedFullAddress.isNotEmpty)
                 const SizedBox(height: AppSpacing.xxl), // 48px (56px → 48px로 조정)
@@ -1390,9 +1358,73 @@ class _HomePageState extends State<HomePage> {
     );
   }
   
+  // 단지 정보 섹션 빌드 (메서드 분리)
+  Widget _buildAptInfoSection(bool isLoadingAptInfo, Map<String, dynamic>? aptInfo) {
+    const double maxContentWidth = 900;
+    
+    // 로딩 중일 때
+    if (isLoadingAptInfo) {
+      return Center(
+        child: Container(
+          constraints: const BoxConstraints(maxWidth: maxContentWidth),
+          margin: const EdgeInsets.only(top: AppSpacing.lg),
+          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+          child: Container(
+            padding: const EdgeInsets.all(AppSpacing.lg),
+            decoration: BoxDecoration(
+              color: AirbnbColors.background,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: AirbnbColors.border),
+              boxShadow: [
+                BoxShadow(
+                  color: AirbnbColors.textPrimary.withValues(alpha: 0.05),
+                  blurRadius: 10,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: Row(
+              children: [
+                const SizedBox(
+                  width: 24,
+                  height: 24,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                ),
+                const SizedBox(width: AppSpacing.md),
+                Text(
+                  '공동주택 단지 정보 조회 중...',
+                  style: AppTypography.withColor(
+                    AppTypography.body.copyWith(fontWeight: FontWeight.w500),
+                    AirbnbColors.textSecondary,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+    
+    // 단지 정보 표시 조건: aptInfo와 kaptCode가 모두 있고, 상세주소가 입력된 경우
+    if (aptInfo != null && kaptCode != null && selectedDetailAddress.trim().isNotEmpty) {
+      return Center(
+        child: Container(
+          constraints: const BoxConstraints(maxWidth: maxContentWidth),
+          margin: const EdgeInsets.only(top: 24),
+          padding: const EdgeInsets.symmetric(horizontal: 24),
+          child: _buildAptInfoCard(aptInfo),
+        ),
+      );
+    }
+
+    // 단지 정보가 없으면 조용히 종료 (공동주택이 아닐 수도 있으므로 경고 미노출)
+    return const SizedBox.shrink();
+  }
+
   /// 단지 정보 카드 위젯
-  Widget _buildAptInfoCard() {
-    if (aptInfo == null) {
+  Widget _buildAptInfoCard([Map<String, dynamic>? aptInfoData]) {
+    final aptInfoToUse = aptInfoData ?? aptInfo;
+    if (aptInfoToUse == null) {
       return const SizedBox.shrink();
     }
     
@@ -1407,23 +1439,23 @@ class _HomePageState extends State<HomePage> {
           content: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              if (aptInfo!['kaptCode'] != null && aptInfo!['kaptCode'].toString().isNotEmpty)
-                _buildDetailRow('단지코드', aptInfo!['kaptCode'].toString()),
-              if (aptInfo!['kaptName'] != null && aptInfo!['kaptName'].toString().isNotEmpty)
-                _buildDetailRow('단지명', aptInfo!['kaptName'].toString()),
-              if (aptInfo!['codeStr'] != null && aptInfo!['codeStr'].toString().isNotEmpty)
-                _buildDetailRow('건물구조', aptInfo!['codeStr'].toString()),
+              if (aptInfoToUse['kaptCode'] != null && aptInfoToUse['kaptCode'].toString().isNotEmpty)
+                _buildDetailRow('단지코드', aptInfoToUse['kaptCode'].toString()),
+              if (aptInfoToUse['kaptName'] != null && aptInfoToUse['kaptName'].toString().isNotEmpty)
+                _buildDetailRow('단지명', aptInfoToUse['kaptName'].toString()),
+              if (aptInfoToUse['codeStr'] != null && aptInfoToUse['codeStr'].toString().isNotEmpty)
+                _buildDetailRow('건물구조', aptInfoToUse['codeStr'].toString()),
             ],
           ),
         ),
         
         // 나머지 단지 정보 카드들 (기본정보와 일반관리 사이에 배치)
-        _buildAptInfoCardBetweenBasicAndManagement(),
+        _buildAptInfoCardBetweenBasicAndManagement(aptInfoToUse),
         
         // 일반 관리
-        if ((aptInfo!['codeMgr'] != null && aptInfo!['codeMgr'].toString().isNotEmpty) ||
-            (aptInfo!['kaptMgrCnt'] != null && aptInfo!['kaptMgrCnt'].toString().isNotEmpty) ||
-            (aptInfo!['kaptCcompany'] != null && aptInfo!['kaptCcompany'].toString().isNotEmpty))
+        if ((aptInfoToUse['codeMgr'] != null && aptInfoToUse['codeMgr'].toString().isNotEmpty) ||
+            (aptInfoToUse['kaptMgrCnt'] != null && aptInfoToUse['kaptMgrCnt'].toString().isNotEmpty) ||
+            (aptInfoToUse['kaptCcompany'] != null && aptInfoToUse['kaptCcompany'].toString().isNotEmpty))
           _buildRegisterCard(
             icon: Icons.manage_accounts,
             title: '일반 관리',
@@ -1431,12 +1463,12 @@ class _HomePageState extends State<HomePage> {
             content: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                if (aptInfo!['codeMgr'] != null && aptInfo!['codeMgr'].toString().isNotEmpty)
-                  _buildDetailRow('관리방식', aptInfo!['codeMgr'].toString()),
-                if (aptInfo!['kaptMgrCnt'] != null && aptInfo!['kaptMgrCnt'].toString().isNotEmpty)
-                  _buildDetailRow('관리사무소 수', '${aptInfo!['kaptMgrCnt']}개'),
-                if (aptInfo!['kaptCcompany'] != null && aptInfo!['kaptCcompany'].toString().isNotEmpty)
-                  _buildDetailRow('관리업체', aptInfo!['kaptCcompany'].toString()),
+                if (aptInfoToUse['codeMgr'] != null && aptInfoToUse['codeMgr'].toString().isNotEmpty)
+                  _buildDetailRow('관리방식', aptInfoToUse['codeMgr'].toString()),
+                if (aptInfoToUse['kaptMgrCnt'] != null && aptInfoToUse['kaptMgrCnt'].toString().isNotEmpty)
+                  _buildDetailRow('관리사무소 수', '${aptInfoToUse['kaptMgrCnt']}개'),
+                if (aptInfoToUse['kaptCcompany'] != null && aptInfoToUse['kaptCcompany'].toString().isNotEmpty)
+                  _buildDetailRow('관리업체', aptInfoToUse['kaptCcompany'].toString()),
               ],
             ),
           ),
@@ -1445,8 +1477,9 @@ class _HomePageState extends State<HomePage> {
   }
 
   /// 기본정보와 일반관리 사이에 표시할 단지 정보 카드 (기본정보와 일반관리 제외)
-  Widget _buildAptInfoCardBetweenBasicAndManagement() {
-    if (aptInfo == null) {
+  Widget _buildAptInfoCardBetweenBasicAndManagement([Map<String, dynamic>? aptInfoData]) {
+    final aptInfoToUse = aptInfoData ?? aptInfo;
+    if (aptInfoToUse == null) {
       return const SizedBox.shrink();
     }
 
@@ -1454,9 +1487,9 @@ class _HomePageState extends State<HomePage> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         // 경비 관리
-        if ((aptInfo!['codeSec'] != null && aptInfo!['codeSec'].toString().isNotEmpty) ||
-            (aptInfo!['kaptdScnt'] != null && aptInfo!['kaptdScnt'].toString().isNotEmpty) ||
-            (aptInfo!['kaptdSecCom'] != null && aptInfo!['kaptdSecCom'].toString().isNotEmpty))
+        if ((aptInfoToUse['codeSec'] != null && aptInfoToUse['codeSec'].toString().isNotEmpty) ||
+            (aptInfoToUse['kaptdScnt'] != null && aptInfoToUse['kaptdScnt'].toString().isNotEmpty) ||
+            (aptInfoToUse['kaptdSecCom'] != null && aptInfoToUse['kaptdSecCom'].toString().isNotEmpty))
           _buildRegisterCard(
             icon: Icons.security,
             title: '경비 관리',
@@ -1464,20 +1497,20 @@ class _HomePageState extends State<HomePage> {
             content: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                if (aptInfo!['codeSec'] != null && aptInfo!['codeSec'].toString().isNotEmpty)
-                  _buildDetailRow('경비관리방식', aptInfo!['codeSec'].toString()),
-                if (aptInfo!['kaptdScnt'] != null && aptInfo!['kaptdScnt'].toString().isNotEmpty)
-                  _buildDetailRow('경비인력 수', '${aptInfo!['kaptdScnt']}명'),
-                if (aptInfo!['kaptdSecCom'] != null && aptInfo!['kaptdSecCom'].toString().isNotEmpty)
-                  _buildDetailRow('경비업체', aptInfo!['kaptdSecCom'].toString()),
+                if (aptInfoToUse['codeSec'] != null && aptInfoToUse['codeSec'].toString().isNotEmpty)
+                  _buildDetailRow('경비관리방식', aptInfoToUse['codeSec'].toString()),
+                if (aptInfoToUse['kaptdScnt'] != null && aptInfoToUse['kaptdScnt'].toString().isNotEmpty)
+                  _buildDetailRow('경비인력 수', '${aptInfoToUse['kaptdScnt']}명'),
+                if (aptInfoToUse['kaptdSecCom'] != null && aptInfoToUse['kaptdSecCom'].toString().isNotEmpty)
+                  _buildDetailRow('경비업체', aptInfoToUse['kaptdSecCom'].toString()),
               ],
             ),
           ),
         
         // 청소 관리
-        if ((aptInfo!['codeClean'] != null && aptInfo!['codeClean'].toString().isNotEmpty) ||
-            (aptInfo!['kaptdClcnt'] != null && aptInfo!['kaptdClcnt'].toString().isNotEmpty) ||
-            (aptInfo!['codeGarbage'] != null && aptInfo!['codeGarbage'].toString().isNotEmpty))
+        if ((aptInfoToUse['codeClean'] != null && aptInfoToUse['codeClean'].toString().isNotEmpty) ||
+            (aptInfoToUse['kaptdClcnt'] != null && aptInfoToUse['kaptdClcnt'].toString().isNotEmpty) ||
+            (aptInfoToUse['codeGarbage'] != null && aptInfoToUse['codeGarbage'].toString().isNotEmpty))
           _buildRegisterCard(
             icon: Icons.cleaning_services,
             title: '청소 관리',
@@ -1485,20 +1518,20 @@ class _HomePageState extends State<HomePage> {
             content: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                if (aptInfo!['codeClean'] != null && aptInfo!['codeClean'].toString().isNotEmpty)
-                  _buildDetailRow('청소관리방식', aptInfo!['codeClean'].toString()),
-                if (aptInfo!['kaptdClcnt'] != null && aptInfo!['kaptdClcnt'].toString().isNotEmpty)
-                  _buildDetailRow('청소인력 수', '${aptInfo!['kaptdClcnt']}명'),
-                if (aptInfo!['codeGarbage'] != null && aptInfo!['codeGarbage'].toString().isNotEmpty)
-                  _buildDetailRow('음식물처리방법', aptInfo!['codeGarbage'].toString()),
+                if (aptInfoToUse['codeClean'] != null && aptInfoToUse['codeClean'].toString().isNotEmpty)
+                  _buildDetailRow('청소관리방식', aptInfoToUse['codeClean'].toString()),
+                if (aptInfoToUse['kaptdClcnt'] != null && aptInfoToUse['kaptdClcnt'].toString().isNotEmpty)
+                  _buildDetailRow('청소인력 수', '${aptInfoToUse['kaptdClcnt']}명'),
+                if (aptInfoToUse['codeGarbage'] != null && aptInfoToUse['codeGarbage'].toString().isNotEmpty)
+                  _buildDetailRow('음식물처리방법', aptInfoToUse['codeGarbage'].toString()),
               ],
             ),
           ),
         
         // 소독 관리
-        if ((aptInfo!['codeDisinf'] != null && aptInfo!['codeDisinf'].toString().isNotEmpty) ||
-            (aptInfo!['kaptdDcnt'] != null && aptInfo!['kaptdDcnt'].toString().isNotEmpty) ||
-            (aptInfo!['disposalType'] != null && aptInfo!['disposalType'].toString().isNotEmpty))
+        if ((aptInfoToUse['codeDisinf'] != null && aptInfoToUse['codeDisinf'].toString().isNotEmpty) ||
+            (aptInfoToUse['kaptdDcnt'] != null && aptInfoToUse['kaptdDcnt'].toString().isNotEmpty) ||
+            (aptInfoToUse['disposalType'] != null && aptInfoToUse['disposalType'].toString().isNotEmpty))
           _buildRegisterCard(
             icon: Icons.medical_services,
             title: '소독 관리',
@@ -1506,22 +1539,22 @@ class _HomePageState extends State<HomePage> {
             content: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                if (aptInfo!['codeDisinf'] != null && aptInfo!['codeDisinf'].toString().isNotEmpty)
-                  _buildDetailRow('소독관리방식', aptInfo!['codeDisinf'].toString()),
-                if (aptInfo!['kaptdDcnt'] != null && aptInfo!['kaptdDcnt'].toString().isNotEmpty)
-                  _buildDetailRow('소독인력 수', '${aptInfo!['kaptdDcnt']}명'),
-                if (aptInfo!['disposalType'] != null && aptInfo!['disposalType'].toString().isNotEmpty)
-                  _buildDetailRow('소독방법', aptInfo!['disposalType'].toString()),
+                if (aptInfoToUse['codeDisinf'] != null && aptInfoToUse['codeDisinf'].toString().isNotEmpty)
+                  _buildDetailRow('소독관리방식', aptInfoToUse['codeDisinf'].toString()),
+                if (aptInfoToUse['kaptdDcnt'] != null && aptInfoToUse['kaptdDcnt'].toString().isNotEmpty)
+                  _buildDetailRow('소독인력 수', '${aptInfoToUse['kaptdDcnt']}명'),
+                if (aptInfoToUse['disposalType'] != null && aptInfoToUse['disposalType'].toString().isNotEmpty)
+                  _buildDetailRow('소독방법', aptInfoToUse['disposalType'].toString()),
               ],
             ),
           ),
         
         // 건물/시설 정보
-        if ((aptInfo!['codeEcon'] != null && aptInfo!['codeEcon'].toString().isNotEmpty) ||
-            (aptInfo!['codeEmgr'] != null && aptInfo!['codeEmgr'].toString().isNotEmpty) ||
-            (aptInfo!['kaptdEcapa'] != null && aptInfo!['kaptdEcapa'].toString().isNotEmpty) ||
-            (aptInfo!['codeFalarm'] != null && aptInfo!['codeFalarm'].toString().isNotEmpty) ||
-            (aptInfo!['codeWsupply'] != null && aptInfo!['codeWsupply'].toString().isNotEmpty))
+        if ((aptInfoToUse['codeEcon'] != null && aptInfoToUse['codeEcon'].toString().isNotEmpty) ||
+            (aptInfoToUse['codeEmgr'] != null && aptInfoToUse['codeEmgr'].toString().isNotEmpty) ||
+            (aptInfoToUse['kaptdEcapa'] != null && aptInfoToUse['kaptdEcapa'].toString().isNotEmpty) ||
+            (aptInfoToUse['codeFalarm'] != null && aptInfoToUse['codeFalarm'].toString().isNotEmpty) ||
+            (aptInfoToUse['codeWsupply'] != null && aptInfoToUse['codeWsupply'].toString().isNotEmpty))
           _buildRegisterCard(
             icon: Icons.home,
             title: '건물/시설',
@@ -1529,25 +1562,25 @@ class _HomePageState extends State<HomePage> {
             content: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                if (aptInfo!['kaptdEcapa'] != null && aptInfo!['kaptdEcapa'].toString().isNotEmpty)
-                  _buildDetailRow('수전용량', aptInfo!['kaptdEcapa'].toString()),
-                if (aptInfo!['codeEcon'] != null && aptInfo!['codeEcon'].toString().isNotEmpty)
-                  _buildDetailRow('세대전기계약방식', aptInfo!['codeEcon'].toString()),
-                if (aptInfo!['codeEmgr'] != null && aptInfo!['codeEmgr'].toString().isNotEmpty)
-                  _buildDetailRow('전기안전관리자법정선임여부', aptInfo!['codeEmgr'].toString()),
-                if (aptInfo!['codeFalarm'] != null && aptInfo!['codeFalarm'].toString().isNotEmpty)
-                  _buildDetailRow('화재수신반방식', aptInfo!['codeFalarm'].toString()),
-                if (aptInfo!['codeWsupply'] != null && aptInfo!['codeWsupply'].toString().isNotEmpty)
-                  _buildDetailRow('급수방식', aptInfo!['codeWsupply'].toString()),
+                if (aptInfoToUse['kaptdEcapa'] != null && aptInfoToUse['kaptdEcapa'].toString().isNotEmpty)
+                  _buildDetailRow('수전용량', aptInfoToUse['kaptdEcapa'].toString()),
+                if (aptInfoToUse['codeEcon'] != null && aptInfoToUse['codeEcon'].toString().isNotEmpty)
+                  _buildDetailRow('세대전기계약방식', aptInfoToUse['codeEcon'].toString()),
+                if (aptInfoToUse['codeEmgr'] != null && aptInfoToUse['codeEmgr'].toString().isNotEmpty)
+                  _buildDetailRow('전기안전관리자법정선임여부', aptInfoToUse['codeEmgr'].toString()),
+                if (aptInfoToUse['codeFalarm'] != null && aptInfoToUse['codeFalarm'].toString().isNotEmpty)
+                  _buildDetailRow('화재수신반방식', aptInfoToUse['codeFalarm'].toString()),
+                if (aptInfoToUse['codeWsupply'] != null && aptInfoToUse['codeWsupply'].toString().isNotEmpty)
+                  _buildDetailRow('급수방식', aptInfoToUse['codeWsupply'].toString()),
               ],
             ),
           ),
         
         // 승강기/주차 정보
-        if ((aptInfo!['codeElev'] != null && aptInfo!['codeElev'].toString().isNotEmpty) ||
-            (aptInfo!['kaptdEcnt'] != null && aptInfo!['kaptdEcnt'].toString().isNotEmpty) ||
-            (aptInfo!['kaptdPcnt'] != null && aptInfo!['kaptdPcnt'].toString().isNotEmpty) ||
-            (aptInfo!['kaptdPcntu'] != null && aptInfo!['kaptdPcntu'].toString().isNotEmpty))
+        if ((aptInfoToUse['codeElev'] != null && aptInfoToUse['codeElev'].toString().isNotEmpty) ||
+            (aptInfoToUse['kaptdEcnt'] != null && aptInfoToUse['kaptdEcnt'].toString().isNotEmpty) ||
+            (aptInfoToUse['kaptdPcnt'] != null && aptInfoToUse['kaptdPcnt'].toString().isNotEmpty) ||
+            (aptInfoToUse['kaptdPcntu'] != null && aptInfoToUse['kaptdPcntu'].toString().isNotEmpty))
           _buildRegisterCard(
             icon: Icons.elevator,
             title: '승강기/주차',
@@ -1555,21 +1588,21 @@ class _HomePageState extends State<HomePage> {
             content: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                if (aptInfo!['codeElev'] != null && aptInfo!['codeElev'].toString().isNotEmpty)
-                  _buildDetailRow('승강기관리형태', aptInfo!['codeElev'].toString()),
-                if (aptInfo!['kaptdEcnt'] != null && aptInfo!['kaptdEcnt'].toString().isNotEmpty)
-                  _buildDetailRow('승강기대수', '${aptInfo!['kaptdEcnt']}대'),
-                if (aptInfo!['kaptdPcnt'] != null && aptInfo!['kaptdPcnt'].toString().isNotEmpty)
-                  _buildDetailRow('주차대수(지상)', '${aptInfo!['kaptdPcnt']}대'),
-                if (aptInfo!['kaptdPcntu'] != null && aptInfo!['kaptdPcntu'].toString().isNotEmpty)
-                  _buildDetailRow('주차대수(지하)', '${aptInfo!['kaptdPcntu']}대'),
+                if (aptInfoToUse['codeElev'] != null && aptInfoToUse['codeElev'].toString().isNotEmpty)
+                  _buildDetailRow('승강기관리형태', aptInfoToUse['codeElev'].toString()),
+                if (aptInfoToUse['kaptdEcnt'] != null && aptInfoToUse['kaptdEcnt'].toString().isNotEmpty)
+                  _buildDetailRow('승강기대수', '${aptInfoToUse['kaptdEcnt']}대'),
+                if (aptInfoToUse['kaptdPcnt'] != null && aptInfoToUse['kaptdPcnt'].toString().isNotEmpty)
+                  _buildDetailRow('주차대수(지상)', '${aptInfoToUse['kaptdPcnt']}대'),
+                if (aptInfoToUse['kaptdPcntu'] != null && aptInfoToUse['kaptdPcntu'].toString().isNotEmpty)
+                  _buildDetailRow('주차대수(지하)', '${aptInfoToUse['kaptdPcntu']}대'),
               ],
             ),
           ),
         
         // 통신/보안시설
-        if ((aptInfo!['codeNet'] != null && aptInfo!['codeNet'].toString().isNotEmpty) ||
-            (aptInfo!['kaptdCccnt'] != null && aptInfo!['kaptdCccnt'].toString().isNotEmpty))
+        if ((aptInfoToUse['codeNet'] != null && aptInfoToUse['codeNet'].toString().isNotEmpty) ||
+            (aptInfoToUse['kaptdCccnt'] != null && aptInfoToUse['kaptdCccnt'].toString().isNotEmpty))
           _buildRegisterCard(
             icon: Icons.camera_alt,
             title: '통신/보안시설',
@@ -1577,17 +1610,17 @@ class _HomePageState extends State<HomePage> {
             content: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                if (aptInfo!['codeNet'] != null && aptInfo!['codeNet'].toString().isNotEmpty)
-                  _buildDetailRow('주차관제/홈네트워크', aptInfo!['codeNet'].toString()),
-                if (aptInfo!['kaptdCccnt'] != null && aptInfo!['kaptdCccnt'].toString().isNotEmpty)
-                  _buildDetailRow('CCTV대수', '${aptInfo!['kaptdCccnt']}대'),
+                if (aptInfoToUse['codeNet'] != null && aptInfoToUse['codeNet'].toString().isNotEmpty)
+                  _buildDetailRow('주차관제/홈네트워크', aptInfoToUse['codeNet'].toString()),
+                if (aptInfoToUse['kaptdCccnt'] != null && aptInfoToUse['kaptdCccnt'].toString().isNotEmpty)
+                  _buildDetailRow('CCTV대수', '${aptInfoToUse['kaptdCccnt']}대'),
               ],
             ),
           ),
         
         // 편의/복리시설
-        if ((aptInfo!['welfareFacility'] != null && aptInfo!['welfareFacility'].toString().isNotEmpty) ||
-            (aptInfo!['convenientFacility'] != null && aptInfo!['convenientFacility'].toString().isNotEmpty))
+        if ((aptInfoToUse['welfareFacility'] != null && aptInfoToUse['welfareFacility'].toString().isNotEmpty) ||
+            (aptInfoToUse['convenientFacility'] != null && aptInfoToUse['convenientFacility'].toString().isNotEmpty))
           _buildRegisterCard(
             icon: Icons.local_convenience_store,
             title: '편의/복리시설',
@@ -1595,19 +1628,19 @@ class _HomePageState extends State<HomePage> {
             content: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                if (aptInfo!['welfareFacility'] != null && aptInfo!['welfareFacility'].toString().isNotEmpty)
-                  _buildDetailRow('부대/복리시설', aptInfo!['welfareFacility'].toString()),
-                if (aptInfo!['convenientFacility'] != null && aptInfo!['convenientFacility'].toString().isNotEmpty)
-                  _buildDetailRow('편의시설', aptInfo!['convenientFacility'].toString()),
+                if (aptInfoToUse['welfareFacility'] != null && aptInfoToUse['welfareFacility'].toString().isNotEmpty)
+                  _buildDetailRow('부대/복리시설', aptInfoToUse['welfareFacility'].toString()),
+                if (aptInfoToUse['convenientFacility'] != null && aptInfoToUse['convenientFacility'].toString().isNotEmpty)
+                  _buildDetailRow('편의시설', aptInfoToUse['convenientFacility'].toString()),
               ],
             ),
           ),
         
         // 교통 정보
-        if ((aptInfo!['kaptdWtimebus'] != null && aptInfo!['kaptdWtimebus'].toString().isNotEmpty) ||
-            (aptInfo!['subwayLine'] != null && aptInfo!['subwayLine'].toString().isNotEmpty) ||
-            (aptInfo!['subwayStation'] != null && aptInfo!['subwayStation'].toString().isNotEmpty) ||
-            (aptInfo!['kaptdWtimesub'] != null && aptInfo!['kaptdWtimesub'].toString().isNotEmpty))
+        if ((aptInfoToUse['kaptdWtimebus'] != null && aptInfoToUse['kaptdWtimebus'].toString().isNotEmpty) ||
+            (aptInfoToUse['subwayLine'] != null && aptInfoToUse['subwayLine'].toString().isNotEmpty) ||
+            (aptInfoToUse['subwayStation'] != null && aptInfoToUse['subwayStation'].toString().isNotEmpty) ||
+            (aptInfoToUse['kaptdWtimesub'] != null && aptInfoToUse['kaptdWtimesub'].toString().isNotEmpty))
           _buildRegisterCard(
             icon: Icons.train,
             title: '교통 정보',
@@ -1615,20 +1648,20 @@ class _HomePageState extends State<HomePage> {
             content: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                if (aptInfo!['kaptdWtimebus'] != null && aptInfo!['kaptdWtimebus'].toString().isNotEmpty)
-                  _buildDetailRow('버스정류장 거리', aptInfo!['kaptdWtimebus'].toString()),
-                if (aptInfo!['subwayLine'] != null && aptInfo!['subwayLine'].toString().isNotEmpty)
-                  _buildDetailRow('지하철호선', aptInfo!['subwayLine'].toString()),
-                if (aptInfo!['subwayStation'] != null && aptInfo!['subwayStation'].toString().isNotEmpty)
-                  _buildDetailRow('지하철역명', aptInfo!['subwayStation'].toString()),
-                if (aptInfo!['kaptdWtimesub'] != null && aptInfo!['kaptdWtimesub'].toString().isNotEmpty)
-                  _buildDetailRow('지하철역 거리', aptInfo!['kaptdWtimesub'].toString()),
+                if (aptInfoToUse['kaptdWtimebus'] != null && aptInfoToUse['kaptdWtimebus'].toString().isNotEmpty)
+                  _buildDetailRow('버스정류장 거리', aptInfoToUse['kaptdWtimebus'].toString()),
+                if (aptInfoToUse['subwayLine'] != null && aptInfoToUse['subwayLine'].toString().isNotEmpty)
+                  _buildDetailRow('지하철호선', aptInfoToUse['subwayLine'].toString()),
+                if (aptInfoToUse['subwayStation'] != null && aptInfoToUse['subwayStation'].toString().isNotEmpty)
+                  _buildDetailRow('지하철역명', aptInfoToUse['subwayStation'].toString()),
+                if (aptInfoToUse['kaptdWtimesub'] != null && aptInfoToUse['kaptdWtimesub'].toString().isNotEmpty)
+                  _buildDetailRow('지하철역 거리', aptInfoToUse['kaptdWtimesub'].toString()),
               ],
             ),
           ),
         
         // 교육시설
-        if (aptInfo!['educationFacility'] != null && aptInfo!['educationFacility'].toString().isNotEmpty)
+        if (aptInfoToUse['educationFacility'] != null && aptInfoToUse['educationFacility'].toString().isNotEmpty)
           _buildRegisterCard(
             icon: Icons.school,
             title: '교육시설',
@@ -1636,14 +1669,14 @@ class _HomePageState extends State<HomePage> {
             content: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                _buildDetailRow('교육시설', aptInfo!['educationFacility'].toString()),
+                _buildDetailRow('교육시설', aptInfoToUse['educationFacility'].toString()),
               ],
             ),
           ),
         
         // 전기차 충전기
-        if ((aptInfo!['groundElChargerCnt'] != null && aptInfo!['groundElChargerCnt'].toString().isNotEmpty) ||
-            (aptInfo!['undergroundElChargerCnt'] != null && aptInfo!['undergroundElChargerCnt'].toString().isNotEmpty))
+        if ((aptInfoToUse['groundElChargerCnt'] != null && aptInfoToUse['groundElChargerCnt'].toString().isNotEmpty) ||
+            (aptInfoToUse['undergroundElChargerCnt'] != null && aptInfoToUse['undergroundElChargerCnt'].toString().isNotEmpty))
           _buildRegisterCard(
             icon: Icons.ev_station,
             title: '전기차 충전기',
@@ -1651,10 +1684,10 @@ class _HomePageState extends State<HomePage> {
             content: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                if (aptInfo!['groundElChargerCnt'] != null && aptInfo!['groundElChargerCnt'].toString().isNotEmpty)
-                  _buildDetailRow('지상 전기차 충전기', '${aptInfo!['groundElChargerCnt']}대'),
-                if (aptInfo!['undergroundElChargerCnt'] != null && aptInfo!['undergroundElChargerCnt'].toString().isNotEmpty)
-                  _buildDetailRow('지하 전기차 충전기', '${aptInfo!['undergroundElChargerCnt']}대'),
+                if (aptInfoToUse['groundElChargerCnt'] != null && aptInfoToUse['groundElChargerCnt'].toString().isNotEmpty)
+                  _buildDetailRow('지상 전기차 충전기', '${aptInfoToUse['groundElChargerCnt']}대'),
+                if (aptInfoToUse['undergroundElChargerCnt'] != null && aptInfoToUse['undergroundElChargerCnt'].toString().isNotEmpty)
+                  _buildDetailRow('지하 전기차 충전기', '${aptInfoToUse['undergroundElChargerCnt']}대'),
               ],
             ),
           ),

@@ -469,21 +469,20 @@ class _BrokerQuoteDetailPageState extends State<BrokerQuoteDetailPage> {
                                   setState(() {
                                     _isSubmitting = false;
                                   });
-                                  if (!mounted) return;
-                                  final scaffoldMessenger = ScaffoldMessenger.of(context);
-                                  scaffoldMessenger.showSnackBar(
-                                    SnackBar(
-                                      content: Text(
-                                        success
-                                            ? '이번 건은 진행하지 않도록 표시했어요.'
-                                            : '처리 중 문제가 발생했어요. 잠시 후 다시 시도해주세요.',
+                                  if (mounted) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text(
+                                          success
+                                              ? '이번 건은 진행하지 않도록 표시했어요.'
+                                              : '처리 중 문제가 발생했어요. 잠시 후 다시 시도해주세요.',
+                                        ),
+                                        backgroundColor:
+                                            success ? AirbnbColors.primary : AirbnbColors.error,
                                       ),
-                                      backgroundColor:
-                                          success ? AirbnbColors.primary : AirbnbColors.error,
-                                    ),
-                                  );
-                                  if (success) {
-                                    if (!mounted) return;
+                                    );
+                                  }
+                                  if (success && mounted) {
                                     Navigator.pop(context);
                                   }
                                 }

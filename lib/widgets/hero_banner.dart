@@ -88,7 +88,7 @@ class _HeroBannerState extends State<HeroBanner> {
             
             // 큰 서브헤드
             Text(
-              '주소 한 번 입력으로\n 여러 중개사의 제안을 한곳에서 확인하세요.',
+              '한 번의 선택으로\n 여러 중개사의 제안을 한곳에서 확인하세요.',
               textAlign: TextAlign.center,
               style: AppTypography.withColor(
                 AppTypography.bodyLarge.copyWith(

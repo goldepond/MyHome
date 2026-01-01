@@ -602,14 +602,14 @@ class _HouseMarketPageState extends State<HouseMarketPage> {
                                       relatedId: property.firestoreId,
                                     );
                                   } catch (e) {
-                                    if (!mounted) return;
-                                    final scaffoldMessenger = ScaffoldMessenger.of(context);
-                                    scaffoldMessenger.showSnackBar(
-                                      SnackBar(
-                                        content: Text('전화 걸기 실패: $e'),
-                                        backgroundColor: AirbnbColors.error,
-                                      ),
-                                    );
+                                    if (mounted) {
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        SnackBar(
+                                          content: Text('전화 걸기 실패: $e'),
+                                          backgroundColor: AirbnbColors.error,
+                                        ),
+                                      );
+                                    }
                                   }
                                 },
                                 child: Container(

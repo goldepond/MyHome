@@ -635,27 +635,23 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
                             await _firebaseService.saveBrokerReview(review);
 
                         if (!mounted) return;
-
                         Navigator.pop(context);
-
-                        if (savedId != null) {
-                          if (!mounted) return;
-                          final scaffoldMessenger = ScaffoldMessenger.of(context);
-                          scaffoldMessenger.showSnackBar(
-                            const SnackBar(
-                              content: Text('후기가 저장되었습니다.'),
-                              backgroundColor: AirbnbColors.success,
-                            ),
-                          );
-                        } else {
-                          if (!mounted) return;
-                          final scaffoldMessenger = ScaffoldMessenger.of(context);
-                          scaffoldMessenger.showSnackBar(
-                            const SnackBar(
-                              content: Text('후기 저장에 실패했습니다.'),
-                              backgroundColor: AirbnbColors.error,
-                            ),
-                          );
+                        if (mounted) {
+                          if (savedId != null) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('후기가 저장되었습니다.'),
+                                backgroundColor: AirbnbColors.success,
+                              ),
+                            );
+                          } else {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('후기 저장에 실패했습니다.'),
+                                backgroundColor: AirbnbColors.error,
+                              ),
+                            );
+                          }
                         }
                       },
                       style: ElevatedButton.styleFrom(
@@ -681,15 +677,16 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
     );
   }
 
-  Future<void> _navigateToLoginAndRefresh() async {
-    final result = await Navigator.of(context).push<Map<String, dynamic>>(
-      MaterialPageRoute(builder: (_) => const LoginPage()),
-    );
-    if (!mounted) return;
-    if (result != null) {
-      Navigator.of(context).pushNamedAndRemoveUntil('/', (route) => false);
-    }
-  }
+  // 사용되지 않는 메서드 (주석 처리된 _buildGuestBanner에서만 사용됨)
+  // Future<void> _navigateToLoginAndRefresh() async {
+  //   final result = await Navigator.of(context).push<Map<String, dynamic>>(
+  //     MaterialPageRoute(builder: (_) => const LoginPage()),
+  //   );
+  //   if (!mounted) return;
+  //   if (result != null) {
+  //     Navigator.of(context).pushNamedAndRemoveUntil('/', (route) => false);
+  //   }
+  // }
 
   /// '답변 대기' 상태인 견적문의 전체 삭제
   Future<void> _deleteWaitingQuotes() async {

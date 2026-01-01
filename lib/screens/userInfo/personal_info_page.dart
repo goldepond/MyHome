@@ -136,11 +136,8 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
 
     if (firstConfirm != true) return;
     if (!mounted) return;
-    final currentContext = context;
-
-    // 두 번째 확인 다이얼로그 (최종 확인)
     final finalConfirm = await showDialog<bool>(
-      context: currentContext,
+      context: context,
       builder: (context) => AlertDialog(
         title: const Text(
           '⚠️ 최종 확인',

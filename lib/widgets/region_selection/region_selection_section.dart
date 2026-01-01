@@ -381,81 +381,85 @@ class _RegionSelectionSectionState extends State<RegionSelectionSection> {
             ),
           ),
           
-          // 콘텐츠 영역 (스크롤 없음 - 외부에서 높이 조정)
-          Padding(
-            padding: const EdgeInsets.all(AppSpacing.lg),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                // 지도 (고정 높이, 작은 화면에서도 적절)
-                RegionSelectionMap(
-                  height: 300,
-                  fixedRadiusMeters: _fixedRadiusMeters, // 실제 원의 반경 (고정)
-                  displayRadiusMeters: _displayRadiusMeters, // 표시할 반경 (슬라이더 값)
-                  onLocationChanged: (location) => _updateLocation(location.$1, location.$2),
-                ),
-                
-                const SizedBox(height: AppSpacing.md),
-                
-                // 내 위치로 돌아가기 버튼
-                SizedBox(
-                  width: double.infinity,
-                  child: OutlinedButton.icon(
-                    onPressed: _onReturnToMyLocation,
-                    icon: const Icon(
-                      Icons.my_location,
-                      size: 20,
-                      color: AirbnbColors.primary,
+          // 콘텐츠 영역 (스크롤 가능하도록 수정)
+          Flexible(
+            child: SingleChildScrollView(
+              child: Padding(
+                padding: const EdgeInsets.all(AppSpacing.lg),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // 지도 (고정 높이, 작은 화면에서도 적절)
+                    RegionSelectionMap(
+                      height: 300,
+                      fixedRadiusMeters: _fixedRadiusMeters, // 실제 원의 반경 (고정)
+                      displayRadiusMeters: _displayRadiusMeters, // 표시할 반경 (슬라이더 값)
+                      onLocationChanged: (location) => _updateLocation(location.$1, location.$2),
                     ),
-                    label: Text(
-                      '내 위치로 돌아가기',
-                      style: AppTypography.body.copyWith(
-                        fontWeight: FontWeight.w600,
-                        color: AirbnbColors.primary,
+                    
+                    const SizedBox(height: AppSpacing.md),
+                    
+                    // 내 위치로 돌아가기 버튼
+                    SizedBox(
+                      width: double.infinity,
+                      child: OutlinedButton.icon(
+                        onPressed: _onReturnToMyLocation,
+                        icon: const Icon(
+                          Icons.my_location,
+                          size: 20,
+                          color: AirbnbColors.primary,
+                        ),
+                        label: Text(
+                          '내 위치로 돌아가기',
+                          style: AppTypography.body.copyWith(
+                            fontWeight: FontWeight.w600,
+                            color: AirbnbColors.primary,
+                          ),
+                        ),
+                        style: OutlinedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: AppSpacing.lg,
+                            vertical: AppSpacing.md,
+                          ),
+                          side: const BorderSide(
+                            color: AirbnbColors.primary,
+                            width: 1.5,
+                          ),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
                       ),
                     ),
-                    style: OutlinedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: AppSpacing.lg,
-                        vertical: AppSpacing.md,
-                      ),
-                      side: const BorderSide(
-                        color: AirbnbColors.primary,
-                        width: 1.5,
-                      ),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
+                    
+                    const SizedBox(height: AppSpacing.md),
+                    
+                    // 주소 표시
+                    AddressDisplayWidget(
+                      address: _currentAddress,
+                      isLoading: _isLoadingAddress,
+                      error: _addressError,
                     ),
-                  ),
+                    
+                    const SizedBox(height: AppSpacing.md),
+                    
+                    // 거리 슬라이더
+                    DistanceSliderWidget(
+                      distanceMeters: _displayRadiusMeters,
+                      onDistanceChanged: _onDistanceChanged,
+                    ),
+                    
+                    const SizedBox(height: AppSpacing.lg),
+                    
+                    // 완료 버튼
+                    CompleteButtonWidget(
+                      hasAddress: _currentAddress != null && _currentAddress!.isNotEmpty,
+                      onComplete: _onComplete,
+                    ),
+                  ],
                 ),
-                
-                const SizedBox(height: AppSpacing.md),
-                
-                // 주소 표시
-                AddressDisplayWidget(
-                  address: _currentAddress,
-                  isLoading: _isLoadingAddress,
-                  error: _addressError,
-                ),
-                
-                const SizedBox(height: AppSpacing.md),
-                
-                // 거리 슬라이더
-                DistanceSliderWidget(
-                  distanceMeters: _displayRadiusMeters,
-                  onDistanceChanged: _onDistanceChanged,
-                ),
-                
-                const SizedBox(height: AppSpacing.lg),
-                
-                // 완료 버튼
-                CompleteButtonWidget(
-                  hasAddress: _currentAddress != null && _currentAddress!.isNotEmpty,
-                  onComplete: _onComplete,
-                ),
-              ],
+              ),
             ),
           ),
         ],

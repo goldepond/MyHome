@@ -363,31 +363,19 @@ class _RegionSelectionMapState extends State<RegionSelectionMap> {
       }
     }
     
-    console.log('[지도 초기화] JavaScript 실행 시작');
-    console.log('[지도 초기화] 초기 위치 - 위도: ' + targetLat + ', 경도: ' + targetLng);
-    console.log('[지도 초기화] 반경 정보 - 고정 반경: ' + fixedRadiusMeters + 'm, 표시 반경: ' + displayRadiusMeters + 'm');
-    
     var retryCount = 0;
     var maxRetries = 50;
     var mapInitialized = false;
     var vmap = null;
     
     function initializeMap() {
-      console.log('[지도 초기화] initializeMap 호출 - retryCount: ' + retryCount + ', mapInitialized: ' + mapInitialized);
-      
       if (mapInitialized && vmap !== null) {
-        console.log('[지도 초기화] 이미 초기화됨, 종료');
         return;
       }
       
       try {
-        console.log('[지도 초기화] VWorld API 스크립트 확인 중...');
-        console.log('[지도 초기화] typeof vw: ' + typeof vw);
-        console.log('[지도 초기화] typeof vw.ol3: ' + (typeof vw !== 'undefined' ? typeof vw.ol3 : 'undefined'));
-        
         if (typeof vw === 'undefined' || typeof vw.ol3 === 'undefined') {
           retryCount++;
-          console.log('[지도 초기화] VWorld API 스크립트 로드 대기 중... (재시도: ' + retryCount + '/' + maxRetries + ')');
           if (retryCount < maxRetries) {
             setTimeout(initializeMap, 100);
             return;
@@ -402,15 +390,11 @@ class _RegionSelectionMapState extends State<RegionSelectionMap> {
           }
         }
         
-        console.log('[지도 초기화] VWorld API 스크립트 로드 완료');
-        
         // 초기 줌 레벨 계산 (표시 반경에 맞게)
         var initialZoom = calculateZoomForRadius(displayRadiusMeters);
-        console.log('[지도 초기화] 초기 줌 레벨 계산: ' + initialZoom);
         
         var initPosition = null;
         try {
-          console.log('[지도 초기화] CameraPosition 생성 시도...');
           if (typeof vw.ol3.CameraPosition !== 'undefined') {
             var cameraParams = {
               longitude: targetLng,
@@ -418,9 +402,7 @@ class _RegionSelectionMapState extends State<RegionSelectionMap> {
               zoom: initialZoom
             };
             initPosition = new vw.ol3.CameraPosition(cameraParams);
-            console.log('[지도 초기화] CameraPosition 생성 성공');
           } else {
-            console.log('[지도 초기화] CameraPosition 없음, 객체 리터럴 사용');
             initPosition = {
               longitude: targetLng,
               latitude: targetLat,
@@ -428,7 +410,6 @@ class _RegionSelectionMapState extends State<RegionSelectionMap> {
             };
           }
         } catch (e) {
-          console.warn('[지도 초기화] CameraPosition 생성 실패, 객체 리터럴 사용:', e);
           initPosition = {
             longitude: targetLng,
             latitude: targetLat,
@@ -436,7 +417,6 @@ class _RegionSelectionMapState extends State<RegionSelectionMap> {
           };
         }
         
-        console.log('[지도 초기화] MapOptions 설정 중...');
         var baseMapOptions = {
           basemapType: vw.ol3.BasemapType.GRAPHIC,
           controlDensity: vw.ol3.DensityType.EMPTY,
@@ -446,20 +426,14 @@ class _RegionSelectionMapState extends State<RegionSelectionMap> {
         
         if (initPosition) {
           baseMapOptions.initPosition = initPosition;
-          console.log('[지도 초기화] initPosition 설정됨');
         }
         
         vw.ol3.MapOptions = baseMapOptions;
-        console.log('[지도 초기화] MapOptions 설정 완료');
         
-        console.log('[지도 초기화] 지도 생성 시도...');
         try {
           vmap = new vw.ol3.Map("vmap", vw.ol3.MapOptions);
-          console.log('[지도 초기화] 지도 생성 성공 (첫 번째 시도)');
         } catch (firstError) {
-          console.warn('[지도 초기화] 지도 생성 실패 (첫 번째 시도):', firstError);
           try {
-            console.log('[지도 초기화] 지도 생성 재시도 (initPosition 제외)...');
             var retryOptions = {
               basemapType: vw.ol3.BasemapType.GRAPHIC,
               controlDensity: vw.ol3.DensityType.EMPTY,
@@ -467,7 +441,6 @@ class _RegionSelectionMapState extends State<RegionSelectionMap> {
               controlsAutoArrange: true
             };
             vmap = new vw.ol3.Map("vmap", retryOptions);
-            console.log('[지도 초기화] 지도 생성 성공 (재시도)');
           } catch (secondError) {
             console.error('[지도 초기화] 지도 생성 실패 (재시도):', secondError);
             throw secondError;
@@ -475,77 +448,55 @@ class _RegionSelectionMapState extends State<RegionSelectionMap> {
         }
         
         if (vmap) {
-          console.log('[지도 초기화] 지도 객체 생성 완료, 후속 작업 시작...');
           setTimeout(function() {
-            console.log('[지도 초기화] 후속 작업 시작 (2초 후)...');
             try {
               if (vmap && typeof vmap.getView === 'function') {
-                console.log('[지도 초기화] getView() 호출 중...');
                 var view = vmap.getView();
-                console.log('[지도 초기화] view 객체:', view);
                 if (view) {
-                  console.log('[지도 초기화] view 객체 확인됨');
                   var center = [targetLng, targetLat];
-                  console.log('[지도 초기화] 중심 좌표 (EPSG:4326):', center);
                   
                   // 중심 좌표 변환 (EPSG:4326 → EPSG:3857)
                   var finalCenter = null;
                   if (typeof ol !== 'undefined' && ol.proj && ol.proj.fromLonLat) {
-                    console.log('[지도 초기화] 좌표 변환 시도 (EPSG:4326 → EPSG:3857)...');
                     try {
                       finalCenter = ol.proj.fromLonLat(center);
-                      console.log('[지도 초기화] 좌표 변환 성공:', finalCenter);
                     } catch (e) {
-                      console.warn('[지도 초기화] 좌표 변환 실패, 원본 좌표 사용:', e);
                       finalCenter = center;
                     }
                   } else {
-                    console.warn('[지도 초기화] ol.proj 없음, 원본 좌표 사용');
                     finalCenter = center;
                   }
                   
                   // 중심 설정
                   if (view.setCenter && finalCenter) {
-                    console.log('[지도 초기화] setCenter() 호출 중...');
                     view.setCenter(finalCenter);
-                    console.log('[지도 초기화] setCenter() 완료');
-                  } else {
-                    console.warn('[지도 초기화] setCenter() 호출 불가 - view.setCenter:', typeof view.setCenter, ', finalCenter:', finalCenter);
                   }
                   
                   // 현재 줌 레벨 확인
                   var currentZoom = null;
                   if (typeof view.getZoom === 'function') {
                     currentZoom = view.getZoom();
-                    console.log('[지도 초기화] 현재 줌 레벨:', currentZoom);
                   }
                   
                   // 목표 줌 레벨 계산
                   var targetZoom = calculateZoomForRadius(displayRadiusMeters);
-                  console.log('[지도 초기화] 목표 줌 레벨:', targetZoom);
                   
                   // ✅ fit() 방식으로 표시 반경에 맞게 지도 조정
                   // 실제 원의 크기는 fixedRadiusMeters로 고정되어 있음
-                  console.log('[지도 초기화] adjustMapToRadius() 호출 중...');
                   var adjusted = adjustMapToRadius(vmap, view, targetLng, targetLat, displayRadiusMeters);
-                  console.log('[지도 초기화] adjustMapToRadius() 결과:', adjusted);
                   
                   // fit()이 실패했거나 사용할 수 없으면 줌 레벨만 설정
                   if (!adjusted && view.setZoom) {
                     var zoom = calculateZoomForRadius(displayRadiusMeters);
-                    console.log('[지도 초기화] setZoom() 직접 호출:', zoom);
                     view.setZoom(zoom);
                   } else if (adjusted) {
                     // fit() 사용 시 줌 레벨 확인
                     setTimeout(function() {
-                      console.log('[지도 초기화] 줌 레벨 확인 (200ms 후)...');
                       if (typeof view.getZoom === 'function') {
                         var newZoom = view.getZoom();
-                        console.log('[지도 초기화] 새로운 줌 레벨:', newZoom);
                         
                         // fit()이 효과가 없으면 직접 설정
                         if (currentZoom !== null && Math.abs(newZoom - targetZoom) > 0.5) {
-                          console.log('[지도 초기화] 줌 레벨 차이 큼, 직접 설정');
                           if (view.setZoom) {
                             view.setZoom(targetZoom);
                           }
@@ -557,20 +508,16 @@ class _RegionSelectionMapState extends State<RegionSelectionMap> {
                   // 지도 이동 이벤트 리스너 추가 (moveend)
                   vmap.on('moveend', function() {
                     try {
-                      console.log('[지도 이동] moveend 이벤트 발생');
                       if (view && view.getCenter) {
                         var center3857 = view.getCenter();
-                        console.log('[지도 이동] 중심 좌표 (EPSG:3857):', center3857);
                         if (center3857 && Array.isArray(center3857) && center3857.length >= 2) {
                           // EPSG:3857 → EPSG:4326 변환
                           if (typeof ol !== 'undefined' && ol.proj && ol.proj.toLonLat) {
                             try {
                               var center4326 = ol.proj.toLonLat(center3857);
-                              console.log('[지도 이동] 변환된 좌표 (EPSG:4326):', center4326);
                               if (center4326 && Array.isArray(center4326) && center4326.length >= 2) {
                                 var lon = center4326[0];
                                 var lat = center4326[1];
-                                console.log('[지도 이동] 최종 좌표: lat=' + lat + ', lon=' + lon);
                                 
                                 // 부모 창에 메시지 전달
                                 if (window.parent && window.parent !== window) {
@@ -579,25 +526,14 @@ class _RegionSelectionMapState extends State<RegionSelectionMap> {
                                     latitude: lat,
                                     longitude: lon
                                   };
-                                  console.log('[지도 이동] 메시지 전송:', message);
                                   window.parent.postMessage(message, '*');
-                                } else {
-                                  console.warn('[지도 이동] window.parent 없음');
                                 }
-                              } else {
-                                console.warn('[지도 이동] 좌표 변환 결과가 유효하지 않음:', center4326);
                               }
                             } catch (e) {
                               console.error('[지도 이동] 좌표 변환 실패:', e);
                             }
-                          } else {
-                            console.warn('[지도 이동] ol.proj.toLonLat 없음');
                           }
-                        } else {
-                          console.warn('[지도 이동] 중심 좌표가 유효하지 않음:', center3857);
                         }
-                      } else {
-                        console.warn('[지도 이동] view 또는 getCenter 없음');
                       }
                     } catch (e) {
                       console.error('[지도 이동] 에러:', e);
@@ -605,7 +541,6 @@ class _RegionSelectionMapState extends State<RegionSelectionMap> {
                   });
                   
                   // 마커 추가
-                  console.log('[지도 초기화] 마커 추가 시도...');
                   try {
                     var markerLayer = new vw.ol3.layer.Marker(vmap);
                     var markerOptions = {
@@ -617,9 +552,8 @@ class _RegionSelectionMapState extends State<RegionSelectionMap> {
                       iconUrl: 'https://map.vworld.kr/images/marker/marker_red.png'
                     };
                     markerLayer.addMarker(markerOptions);
-                    console.log('[지도 초기화] 마커 추가 성공');
                   } catch (markerError) {
-                    console.warn('[지도 초기화] 마커 추가 실패:', markerError);
+                    // 마커 추가 실패는 무시
                   }
                   
                   // 초기 위치를 부모 창에 전달 (지도가 완전히 로드된 후)
@@ -757,15 +691,11 @@ class _RegionSelectionMapState extends State<RegionSelectionMap> {
       }
     });
     
-    console.log('[지도 초기화] DOM 상태 확인:', document.readyState);
     if (document.readyState === 'loading') {
-      console.log('[지도 초기화] DOM 로딩 중, DOMContentLoaded 이벤트 대기...');
       document.addEventListener('DOMContentLoaded', function() {
-        console.log('[지도 초기화] DOMContentLoaded 이벤트 발생, initializeMap 호출 예약 (500ms 후)...');
         setTimeout(initializeMap, 500);
       });
     } else {
-      console.log('[지도 초기화] DOM 로드 완료, initializeMap 호출 예약 (500ms 후)...');
       setTimeout(initializeMap, 500);
     }
   </script>

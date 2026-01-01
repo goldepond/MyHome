@@ -164,7 +164,7 @@ class _AddressMapState extends State<AddressMapWidget> {
             setTimeout(initializeMap, 100);
             return;
           } else {
-            console.error('🗺️ [지도 HTML] vw 라이브러리 로드 시간 초과');
+            console.error('[지도 HTML] vw 라이브러리 로드 시간 초과');
             var loadingEl = document.getElementById('loading');
             if (loadingEl) {
               loadingEl.textContent = '지도 로드 시간 초과';
@@ -224,7 +224,7 @@ class _AddressMapState extends State<AddressMapWidget> {
             };
             vmap = new vw.ol3.Map("vmap", retryOptions);
           } catch (secondError) {
-            console.error('🗺️ [지도 HTML] 지도 객체 생성 실패 (두 번째 시도): ' + secondError);
+            console.error('[지도 HTML] 지도 객체 생성 실패 (두 번째 시도): ' + secondError);
             var loadingEl = document.getElementById('loading');
             if (loadingEl) {
               loadingEl.textContent = '지도 생성 실패';
@@ -243,7 +243,7 @@ class _AddressMapState extends State<AddressMapWidget> {
         try {
           window.parent.postMessage({ type: 'MAP_LOADED', mapId: mapId }, '*');
         } catch (e) {
-          console.error('🗺️ [지도 HTML] MAP_LOADED 메시지 전송 실패: ' + e);
+          console.error('[지도 HTML] MAP_LOADED 메시지 전송 실패: ' + e);
         }
         
         // 지도가 완전히 로드될 때까지 대기 후 초기 위치로 이동 및 마커 추가
@@ -288,12 +288,12 @@ class _AddressMapState extends State<AddressMapWidget> {
                     markerLayer.addMarker(markerOptions);
                   }
                 } catch (markerError) {
-                  console.warn('🗺️ [지도 HTML] 마커 추가 오류:', markerError);
+                  // 마커 추가 실패는 무시
                 }
               }
             }
           } catch (moveError) {
-            console.error('🗺️ [지도 HTML] 초기 위치 이동 오류: ' + moveError);
+            // 초기 위치 이동 실패는 무시
           }
         }, 2000);
       } catch (error) {
@@ -336,7 +336,7 @@ class _AddressMapState extends State<AddressMapWidget> {
                 try {
                   view.setCenter(finalCenter);
                 } catch (e) {
-                  console.error('🗺️ [지도 HTML] setCenter 호출 오류: ' + e);
+                  // setCenter 호출 실패는 무시
                 }
               }
               
@@ -345,7 +345,7 @@ class _AddressMapState extends State<AddressMapWidget> {
                 try {
                   view.setZoom(15);
                 } catch (e) {
-                  console.error('🗺️ [지도 HTML] setZoom 호출 오류: ' + e);
+                  // setZoom 호출 실패는 무시
                 }
               }
               
@@ -382,13 +382,13 @@ class _AddressMapState extends State<AddressMapWidget> {
                   markerLayer.addMarker(markerOptions);
                 }
               } catch (markerError) {
-                console.warn('🗺️ [지도 HTML] 마커 업데이트 오류:', markerError);
+                // 마커 업데이트 실패는 무시
               }
             }
           }
         }
       } catch (e) {
-        console.error('🗺️ [지도 HTML] 메시지 처리 오류: ' + e);
+        console.error('[지도 HTML] 메시지 처리 오류: ' + e);
       }
     });
     
@@ -442,16 +442,14 @@ class _AddressMapState extends State<AddressMapWidget> {
     // (지도 선택 기능과 구분하기 위해)
     for (var element in iframeList) {
       final srcdoc = element.srcdoc;
-      if (srcdoc != null) {
-        if (srcdoc.isA<JSString>()) {
-          final srcdocStr = (srcdoc as JSString).toDart;
-          if (srcdocStr.isNotEmpty) {
-            if (srcdocStr.contains('address_map_') && 
-                !srcdocStr.contains('region_map_')) {
-              targetIframe = element;
-              _iframeElement = element; // 찾은 iframe 저장 (다음번에는 저장된 것 사용)
-              break;
-            }
+      if (srcdoc.isA<JSString>()) {
+        final srcdocStr = (srcdoc as JSString).toDart;
+        if (srcdocStr.isNotEmpty) {
+          if (srcdocStr.contains('address_map_') && 
+              !srcdocStr.contains('region_map_')) {
+            targetIframe = element;
+            _iframeElement = element; // 찾은 iframe 저장 (다음번에는 저장된 것 사용)
+            break;
           }
         }
       }
