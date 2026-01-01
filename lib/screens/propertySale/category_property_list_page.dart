@@ -148,7 +148,7 @@ class _CategoryPropertyListPageState extends State<CategoryPropertyListPage> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(
+              const Icon(
                 Icons.error_outline,
                 size: 64,
                 color: AirbnbColors.textLight,
@@ -156,7 +156,7 @@ class _CategoryPropertyListPageState extends State<CategoryPropertyListPage> {
               const SizedBox(height: 16),
               Text(
                 _errorMessage,
-                style: TextStyle(
+                style: const TextStyle(
                   fontSize: 16,
                   color: AirbnbColors.textSecondary,
                 ),
@@ -185,7 +185,7 @@ class _CategoryPropertyListPageState extends State<CategoryPropertyListPage> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(
+              const Icon(
                 Icons.home_outlined,
                 size: 64,
                 color: AirbnbColors.textLight,
@@ -193,14 +193,14 @@ class _CategoryPropertyListPageState extends State<CategoryPropertyListPage> {
               const SizedBox(height: 16),
               Text(
                 '${widget.categoryTitle} 매물이 없습니다',
-                style: TextStyle(
+                style: const TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
                   color: AirbnbColors.textSecondary,
                 ),
               ),
               const SizedBox(height: 8),
-              Text(
+              const Text(
                 '다른 카테고리를 확인해보세요',
                 style: TextStyle(
                   fontSize: 14,
@@ -312,7 +312,7 @@ class _CategoryPropertyListPageState extends State<CategoryPropertyListPage> {
                         ),
                         child: Text(
                           property.buildingType!,
-                          style: TextStyle(
+                          style: const TextStyle(
                             fontSize: 12,
                             color: AirbnbColors.textSecondary,
                             fontWeight: FontWeight.w500,
@@ -343,7 +343,7 @@ class _CategoryPropertyListPageState extends State<CategoryPropertyListPage> {
                 // 계약자 정보
                 Row(
                   children: [
-                    Icon(
+                    const Icon(
                       Icons.person_outline,
                       size: 16,
                       color: AirbnbColors.textSecondary,
@@ -351,7 +351,7 @@ class _CategoryPropertyListPageState extends State<CategoryPropertyListPage> {
                     const SizedBox(width: 4),
                     Text(
                       property.mainContractor,
-                      style: TextStyle(
+                      style: const TextStyle(
                         fontSize: 14,
                         color: AirbnbColors.textSecondary,
                       ),
@@ -359,7 +359,7 @@ class _CategoryPropertyListPageState extends State<CategoryPropertyListPage> {
                     const Spacer(),
                     Text(
                       _formatDate(property.createdAt),
-                      style: TextStyle(
+                      style: const TextStyle(
                         fontSize: 12,
                         color: AirbnbColors.textSecondary,
                       ),

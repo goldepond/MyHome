@@ -14,7 +14,8 @@ import 'package:property/utils/app_analytics_observer.dart';
 import 'package:property/utils/admin_page_loader_actual.dart';
 import 'package:property/utils/logger.dart';
 // 웹에서만 사용하는 import
-import 'dart:html' as html;
+// 웹 전용 import (조건부)
+import 'main_stub.dart' if (dart.library.html) 'main_web.dart' as web;
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -65,7 +66,7 @@ void main() async {
   if (kIsWeb) {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       // 첫 프레임 렌더링 완료 후 JavaScript에 신호 전송
-      html.window.dispatchEvent(html.Event('flutterAppReady'));
+      web.dispatchFlutterAppReady();
     });
   }
   
@@ -83,7 +84,7 @@ Future<void> _initializeFirebaseInBackground() async {
       
       // Firebase 초기화 시도 (최대 1초로 단축)
       var initAttempts = 0;
-      var lastError;
+      Object? lastError;
       
       // 재시도 횟수 대폭 감소: 30 -> 10 (최대 1초)
       while (initAttempts < 10) {
@@ -176,7 +177,6 @@ class MyApp extends StatelessWidget {
           primary: AirbnbColors.primary,
           secondary: AirbnbColors.success,
           surface: AirbnbColors.surface,
-          background: AirbnbColors.background,
         ),
         appBarTheme: AppBarTheme(
           backgroundColor: AirbnbColors.background,
@@ -212,10 +212,10 @@ class MyApp extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           ),
         ),
-        floatingActionButtonTheme: FloatingActionButtonThemeData(
+        floatingActionButtonTheme: const FloatingActionButtonThemeData(
           backgroundColor: AirbnbColors.textPrimary, // 에어비엔비 스타일: 검은색 배경
           foregroundColor: AirbnbColors.textWhite,
-          elevation: 3,
+          elevation: 3.0,
         ),
         cardTheme: CardThemeData(
           elevation: 0,

@@ -25,7 +25,7 @@ class UserTypeSelectionPage extends StatelessWidget {
       ),
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: EdgeInsets.all(AppSpacing.lg),
+          padding: const EdgeInsets.all(AppSpacing.lg),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -43,7 +43,7 @@ class UserTypeSelectionPage extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 12),
-              Center(
+              const Center(
                 child: Text(
                   '가입하실 계정 유형을 선택해주세요',
                   style: TextStyle(
@@ -71,7 +71,7 @@ class UserTypeSelectionPage extends StatelessWidget {
                 },
               ),
               
-              SizedBox(height: AppSpacing.lg),
+              const SizedBox(height: AppSpacing.lg),
               
               // 공인중개사 카드
               _UserTypeCard(
@@ -166,7 +166,7 @@ class _UserTypeCard extends StatelessWidget {
                 color: color,
               ),
             ),
-            SizedBox(width: AppSpacing.lg),
+            const SizedBox(width: AppSpacing.lg),
             
             // 텍스트
             Expanded(
@@ -180,7 +180,7 @@ class _UserTypeCard extends StatelessWidget {
                       color,
                     ),
                   ),
-                  SizedBox(height: AppSpacing.sm),
+                  const SizedBox(height: AppSpacing.sm),
                   Text(
                     description,
                     style: AppTypography.withColor(

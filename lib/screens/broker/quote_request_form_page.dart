@@ -111,7 +111,7 @@ class _QuoteRequestFormPageState extends State<QuoteRequestFormPage> {
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
-    final isWeb = kIsWeb;
+    const isWeb = kIsWeb;
     final maxContentWidth = isWeb ? 800.0 : screenWidth;
     
     return GestureDetector(
@@ -133,7 +133,7 @@ class _QuoteRequestFormPageState extends State<QuoteRequestFormPage> {
                 constraints: BoxConstraints(maxWidth: maxContentWidth),
                 child: ListView(
                   physics: const ClampingScrollPhysics(),
-                  padding: EdgeInsets.all(isWeb ? 40.0 : 20.0),
+                  padding: const EdgeInsets.all(isWeb ? 40.0 : 20.0),
                   children: [
             // 제목
             const Text(
@@ -281,7 +281,7 @@ class _QuoteRequestFormPageState extends State<QuoteRequestFormPage> {
                           Expanded(
                             child: Row(
                               children: [
-                                Text(
+                                const Text(
                                   '확인할 견적 정보',
                                   style: TextStyle(
                                     fontSize: 17,
@@ -304,7 +304,7 @@ class _QuoteRequestFormPageState extends State<QuoteRequestFormPage> {
                           AnimatedRotation(
                             turns: _isRequestInfoExpanded ? 0.5 : 0,
                             duration: const Duration(milliseconds: 200),
-                            child: Icon(
+                            child: const Icon(
                               Icons.keyboard_arrow_down,
                               color: AppColors.kPrimary,
                               size: 24,
@@ -501,10 +501,10 @@ class _QuoteRequestFormPageState extends State<QuoteRequestFormPage> {
                     activeColor: AppColors.kPrimary,
                   ),
                   const SizedBox(width: 8),
-                  Expanded(
+                  const Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
-                      children: const [
+                      children: [
                         Text(
                           '개인정보 제3자 제공 동의 (필수)',
                           style: TextStyle(
@@ -960,6 +960,7 @@ class _QuoteRequestFormPageState extends State<QuoteRequestFormPage> {
                     'reason': 'both_failed',
                   },
                 );
+                if (!mounted) return;
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
                     content: Text('계정 생성 및 로그인에 실패했습니다. 다시 시도해주세요.'),
@@ -979,6 +980,7 @@ class _QuoteRequestFormPageState extends State<QuoteRequestFormPage> {
                   'reason': 'both_failed',
                 },
               );
+              if (!mounted) return;
               ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(
                   content: Text('계정 생성 및 로그인에 실패했습니다. 다시 시도해주세요.'),
@@ -990,6 +992,7 @@ class _QuoteRequestFormPageState extends State<QuoteRequestFormPage> {
           }
         }
       } catch (e) {
+        if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('오류가 발생했습니다: ${e.toString()}'),
@@ -1005,6 +1008,8 @@ class _QuoteRequestFormPageState extends State<QuoteRequestFormPage> {
       userPhone = userData?['phone'] as String?;
     }
     
+    if (!mounted) return;
+    
     if (!_agreeToConsent) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -1017,7 +1022,7 @@ class _QuoteRequestFormPageState extends State<QuoteRequestFormPage> {
     
     // userEmail이 비어있으면 오류 (이 시점에서 userEmail은 null이 될 수 없음)
     // 게스트 모드에서는 이미 빈 문자열 체크를 했고, 정식 로그인에서는 _getUserEmail()이 non-nullable을 반환
-    if (userEmail == null || userEmail.isEmpty) {
+    if (userEmail.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('이메일 정보를 가져올 수 없습니다.'),

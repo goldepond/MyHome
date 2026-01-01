@@ -88,7 +88,7 @@ class _ChatRoomPageState extends State<ChatRoomPage> {
           if (isMe) ...[
             Text(
               timeFormat.format(message.timestamp),
-              style: TextStyle(fontSize: 10, color: AirbnbColors.textSecondary),
+              style: const TextStyle(fontSize: 10, color: AirbnbColors.textSecondary),
             ),
             const SizedBox(width: 4),
           ],
@@ -121,7 +121,7 @@ class _ChatRoomPageState extends State<ChatRoomPage> {
             const SizedBox(width: 4),
             Text(
               timeFormat.format(message.timestamp),
-              style: TextStyle(fontSize: 10, color: AirbnbColors.textSecondary),
+              style: const TextStyle(fontSize: 10, color: AirbnbColors.textSecondary),
             ),
           ],
         ],

@@ -61,7 +61,7 @@ class RequestInfoCard extends StatelessWidget {
                     const SizedBox(height: 4),
                     Text(
                       quote.userName,
-                      style: TextStyle(
+                      style: const TextStyle(
                         fontSize: 14,
                         color: AirbnbColors.textSecondary,
                       ),
@@ -71,7 +71,7 @@ class RequestInfoCard extends StatelessWidget {
               ),
               Text(
                 dateFormat.format(quote.requestDate),
-                style: TextStyle(
+                style: const TextStyle(
                   fontSize: 12,
                   color: AirbnbColors.textSecondary,
                 ),

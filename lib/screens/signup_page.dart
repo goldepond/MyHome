@@ -193,14 +193,13 @@ class _SignupPageState extends State<SignupPage> {
 
   @override
   Widget build(BuildContext context) {
-    return WillPopScope(
-      onWillPop: () async {
-        if (FocusScope.of(context).hasFocus) {
+    return PopScope(
+      canPop: true,
+      onPopInvokedWithResult: (didPop, result) async {
+        if (!didPop && FocusScope.of(context).hasFocus) {
           FocusScope.of(context).unfocus();
           await Future.delayed(const Duration(milliseconds: 100));
-          return false;
         }
-        return true;
       },
       child: GestureDetector(
         onTap: () => FocusScope.of(context).unfocus(),
@@ -219,7 +218,7 @@ class _SignupPageState extends State<SignupPage> {
         body: SafeArea(
           child: SingleChildScrollView(
             physics: const AlwaysScrollableScrollPhysics(),
-        padding: EdgeInsets.all(AppSpacing.lg),
+        padding: const EdgeInsets.all(AppSpacing.lg),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -235,7 +234,7 @@ class _SignupPageState extends State<SignupPage> {
                 AirbnbColors.textPrimary,
               ),
             ),
-            SizedBox(height: AppSpacing.lg),
+            const SizedBox(height: AppSpacing.lg),
             Text(
               '이메일과 비밀번호로 간단하게 가입하세요',
               style: AppTypography.withColor(
@@ -247,11 +246,11 @@ class _SignupPageState extends State<SignupPage> {
               ),
             ),
 
-            SizedBox(height: AppSpacing.xl),
+            const SizedBox(height: AppSpacing.xl),
 
             // 회원가입 폼
             Container(
-              padding: EdgeInsets.all(AppSpacing.lg),
+              padding: const EdgeInsets.all(AppSpacing.lg),
               decoration: CommonDesignSystem.cardDecoration(
                 color: AirbnbColors.surface,
               ),
@@ -265,7 +264,7 @@ class _SignupPageState extends State<SignupPage> {
                       AirbnbColors.textPrimary,
                     ),
                   ),
-                  SizedBox(height: AppSpacing.lg),
+                  const SizedBox(height: AppSpacing.lg),
                   
                   // 이메일 입력 (필수)
                   TextField(
@@ -317,7 +316,7 @@ class _SignupPageState extends State<SignupPage> {
                       ),
                     ),
                   ),
-                  SizedBox(height: AppSpacing.md),
+                  const SizedBox(height: AppSpacing.md),
                   
                   // 휴대폰 번호 입력 (선택)
                   TextField(
@@ -372,7 +371,7 @@ class _SignupPageState extends State<SignupPage> {
                       ),
                     ),
                   ),
-                  SizedBox(height: AppSpacing.md),
+                  const SizedBox(height: AppSpacing.md),
 
                   // 비밀번호 입력
                   TextField(
@@ -422,10 +421,10 @@ class _SignupPageState extends State<SignupPage> {
                   
                   // 비밀번호 강도 표시
                   if (_passwordController.text.isNotEmpty) ...[
-                    SizedBox(height: AppSpacing.sm),
+                    const SizedBox(height: AppSpacing.sm),
                     Row(
                       children: [
-                        SizedBox(width: AppSpacing.sm),
+                        const SizedBox(width: AppSpacing.sm),
                         Expanded(
                           child: LinearProgressIndicator(
                             value: ValidationUtils.getPasswordStrength(_passwordController.text) / 4,
@@ -436,7 +435,7 @@ class _SignupPageState extends State<SignupPage> {
                             minHeight: 4,
                           ),
                         ),
-                        SizedBox(width: AppSpacing.sm),
+                        const SizedBox(width: AppSpacing.sm),
                         Text(
                           ValidationUtils.getPasswordStrengthText(ValidationUtils.getPasswordStrength(_passwordController.text)),
                           style: AppTypography.withColor(
@@ -444,12 +443,12 @@ class _SignupPageState extends State<SignupPage> {
                             _getPasswordStrengthColor(ValidationUtils.getPasswordStrength(_passwordController.text)),
                           ),
                         ),
-                        SizedBox(width: AppSpacing.sm),
+                        const SizedBox(width: AppSpacing.sm),
                       ],
                     ),
                   ],
                   
-                  SizedBox(height: AppSpacing.md),
+                  const SizedBox(height: AppSpacing.md),
                   
                   // 비밀번호 확인 입력
                   TextField(
@@ -497,11 +496,11 @@ class _SignupPageState extends State<SignupPage> {
                     ),
                   ),
                   
-                  SizedBox(height: AppSpacing.lg),
+                  const SizedBox(height: AppSpacing.lg),
                   
                   // 약관 동의
                   Container(
-                    padding: EdgeInsets.all(AppSpacing.md),
+                    padding: const EdgeInsets.all(AppSpacing.md),
                     decoration: CommonDesignSystem.smallCardDecoration(
                       color: AirbnbColors.surface,
                     ).copyWith(
@@ -512,7 +511,7 @@ class _SignupPageState extends State<SignupPage> {
                         CheckboxListTile(
                           value: _agreeToTerms,
                           onChanged: (value) => setState(() => _agreeToTerms = value ?? false),
-                          title: Text(
+                          title: const Text(
                             '서비스 이용약관 동의 (필수)',
                             style: AppTypography.bodySmall,
                           ),
@@ -523,7 +522,7 @@ class _SignupPageState extends State<SignupPage> {
                         CheckboxListTile(
                           value: _agreeToPrivacy,
                           onChanged: (value) => setState(() => _agreeToPrivacy = value ?? false),
-                          title: Text(
+                          title: const Text(
                             '개인정보 처리방침 동의 (필수)',
                             style: AppTypography.bodySmall,
                           ),
@@ -534,7 +533,7 @@ class _SignupPageState extends State<SignupPage> {
                         CheckboxListTile(
                           value: _agreeToMarketing,
                           onChanged: (value) => setState(() => _agreeToMarketing = value ?? false),
-                          title: Text(
+                          title: const Text(
                             '마케팅 정보 수신 동의 (선택)',
                             style: AppTypography.bodySmall,
                           ),
@@ -549,7 +548,7 @@ class _SignupPageState extends State<SignupPage> {
               ),
             ),
 
-            SizedBox(height: AppSpacing.xl),
+            const SizedBox(height: AppSpacing.xl),
 
             // 회원가입 버튼
             SizedBox(
@@ -575,7 +574,7 @@ class _SignupPageState extends State<SignupPage> {
               ),
             ),
 
-            SizedBox(height: AppSpacing.md),
+            const SizedBox(height: AppSpacing.md),
 
             // 로그인으로 이동
             Center(

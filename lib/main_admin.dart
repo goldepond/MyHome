@@ -62,7 +62,6 @@ class AdminApp extends StatelessWidget {
           primary: AirbnbColors.primary,
           secondary: AirbnbColors.success,
           surface: AirbnbColors.surface,
-          background: AirbnbColors.background,
         ),
         appBarTheme: AppBarTheme(
           backgroundColor: AirbnbColors.background,

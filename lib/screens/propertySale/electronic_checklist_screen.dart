@@ -263,7 +263,7 @@ class _ElectronicChecklistScreenState extends State<ElectronicChecklistScreen> {
                       ),
                       Text(
                         item.description,
-                        style: TextStyle(
+                        style: const TextStyle(
                           fontSize: 14,
                           color: AirbnbColors.textSecondary,
                         ),
@@ -313,7 +313,7 @@ class _ElectronicChecklistScreenState extends State<ElectronicChecklistScreen> {
                           if (item.uploadedAt != null)
                             Text(
                               '업로드: ${item.uploadedAt!.toString().substring(0, 19)}',
-                              style: TextStyle(fontSize: 10, color: AirbnbColors.textSecondary),
+                              style: const TextStyle(fontSize: 10, color: AirbnbColors.textSecondary),
                             ),
                         ],
                       ),
@@ -335,8 +335,8 @@ class _ElectronicChecklistScreenState extends State<ElectronicChecklistScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Row(
-                      children: const [
+                    const Row(
+                      children: [
                         Icon(Icons.error_outline, color: AirbnbColors.error, size: 16),
                         SizedBox(width: 4),
                         Text(
@@ -468,7 +468,7 @@ class _ElectronicChecklistScreenState extends State<ElectronicChecklistScreen> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(
+                    const Text(
                       '진행률',
                       style: TextStyle(
                         fontSize: 16,
@@ -557,7 +557,7 @@ class _ElectronicChecklistScreenState extends State<ElectronicChecklistScreen> {
                   ],
                 ),
                 const SizedBox(height: 8),
-                Text(
+                const Text(
                   '모든 확인 내역은 시간·IP가 찍힌 PDF로 보관되어 분쟁 시 증거가 됩니다.',
                   style: TextStyle(
                     fontSize: 12,

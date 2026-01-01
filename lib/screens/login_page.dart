@@ -159,14 +159,13 @@ class _LoginPageState extends State<LoginPage> {
 
   @override
   Widget build(BuildContext context) {
-    return WillPopScope(
-      onWillPop: () async {
-        if (FocusScope.of(context).hasFocus) {
+    return PopScope(
+      canPop: true,
+      onPopInvokedWithResult: (didPop, result) async {
+        if (!didPop && FocusScope.of(context).hasFocus) {
           FocusScope.of(context).unfocus();
           await Future.delayed(const Duration(milliseconds: 100));
-          return false;
         }
-        return true;
       },
       child: GestureDetector(
         onTap: () => FocusScope.of(context).unfocus(),
@@ -205,11 +204,11 @@ class _LoginPageState extends State<LoginPage> {
         child: SafeArea(
           child: SingleChildScrollView(
             physics: const AlwaysScrollableScrollPhysics(),
-            padding: EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.xxl),
+            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.xxl),
             child: Center(
               child: Container(
                 constraints: const BoxConstraints(maxWidth: 480),
-                padding: EdgeInsets.all(AppSpacing.xxl),
+                padding: const EdgeInsets.all(AppSpacing.xxl),
                 decoration: CommonDesignSystem.cardDecoration(
                   borderRadius: 20,
                 ),
@@ -232,7 +231,7 @@ class _LoginPageState extends State<LoginPage> {
                               AirbnbColors.textPrimary,
                             ),
                           ),
-                          SizedBox(height: AppSpacing.lg),
+                          const SizedBox(height: AppSpacing.lg),
                           Text(
                             '계정에 로그인하여 서비스를 이용하세요',
                             style: AppTypography.withColor(
@@ -247,7 +246,7 @@ class _LoginPageState extends State<LoginPage> {
                         ],
                       ),
                     ),
-                    SizedBox(height: AppSpacing.xxl),
+                    const SizedBox(height: AppSpacing.xxl),
                     
                     // 아이디 입력
                     Column(
@@ -260,7 +259,7 @@ class _LoginPageState extends State<LoginPage> {
                             AirbnbColors.textSecondary,
                           ),
                         ),
-                        SizedBox(height: AppSpacing.sm),
+                        const SizedBox(height: AppSpacing.sm),
                         TextField(
                           controller: _idController,
                           style: AppTypography.body,
@@ -270,7 +269,7 @@ class _LoginPageState extends State<LoginPage> {
                               AppTypography.bodySmall,
                               AirbnbColors.textLight,
                             ),
-                            prefixIcon: Icon(
+                            prefixIcon: const Icon(
                               Icons.person_outline,
                               color: AirbnbColors.textSecondary,
                               size: 20,
@@ -289,12 +288,12 @@ class _LoginPageState extends State<LoginPage> {
                             ),
                             filled: true,
                             fillColor: AirbnbColors.surface,
-                            contentPadding: EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.md),
+                            contentPadding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.md),
                           ),
                         ),
                       ],
                     ),
-                    SizedBox(height: AppSpacing.lg),
+                    const SizedBox(height: AppSpacing.lg),
                     
                     // 비밀번호 입력 (전화번호)
                     Column(
@@ -307,7 +306,7 @@ class _LoginPageState extends State<LoginPage> {
                             AirbnbColors.textSecondary,
                           ),
                         ),
-                        SizedBox(height: AppSpacing.sm),
+                        const SizedBox(height: AppSpacing.sm),
                         TextField(
                           controller: _passwordController,
                           obscureText: _obscurePassword,
@@ -319,7 +318,7 @@ class _LoginPageState extends State<LoginPage> {
                               AppTypography.bodySmall,
                               AirbnbColors.textLight,
                             ),
-                            prefixIcon: Icon(
+                            prefixIcon: const Icon(
                               Icons.lock_outline,
                               color: AirbnbColors.textSecondary,
                               size: 20,
@@ -350,12 +349,12 @@ class _LoginPageState extends State<LoginPage> {
                             ),
                             filled: true,
                             fillColor: AirbnbColors.surface,
-                            contentPadding: EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.md),
+                            contentPadding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.md),
                           ),
                         ),
                       ],
                     ),
-                    SizedBox(height: AppSpacing.xl),
+                    const SizedBox(height: AppSpacing.xl),
                     
                     // 로그인 버튼
                     SizedBox(
@@ -373,13 +372,13 @@ class _LoginPageState extends State<LoginPage> {
                                   valueColor: AlwaysStoppedAnimation<Color>(AirbnbColors.background),
                                 ),
                               )
-                            : Text(
+                            : const Text(
                                 '로그인',
                                 style: AppTypography.button,
                               ),
                       ),
                     ),
-                    SizedBox(height: AppSpacing.sm),
+                    const SizedBox(height: AppSpacing.sm),
                     Align(
                       alignment: Alignment.centerRight,
                       child: TextButton(
@@ -392,7 +391,7 @@ class _LoginPageState extends State<LoginPage> {
                           );
                         },
                         style: TextButton.styleFrom(
-                          padding: EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: AppSpacing.xs),
+                          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: AppSpacing.xs),
                           minimumSize: Size.zero,
                           tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                         ),
@@ -408,11 +407,11 @@ class _LoginPageState extends State<LoginPage> {
                         ),
                       ),
                     ),
-                    SizedBox(height: AppSpacing.lg),
+                    const SizedBox(height: AppSpacing.lg),
                     
                     // 회원가입 안내 섹션
                     Container(
-                      padding: EdgeInsets.all(AppSpacing.lg),
+                      padding: const EdgeInsets.all(AppSpacing.lg),
                       decoration: BoxDecoration(
                         color: AirbnbColors.primary.withValues(alpha: 0.05),
                         borderRadius: BorderRadius.circular(12),
@@ -441,7 +440,7 @@ class _LoginPageState extends State<LoginPage> {
                                 );
                             },
                             style: TextButton.styleFrom(
-                              padding: EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: AppSpacing.xs),
+                              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: AppSpacing.xs),
                               minimumSize: Size.zero,
                               tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                             ),

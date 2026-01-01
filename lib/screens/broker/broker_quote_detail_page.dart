@@ -352,11 +352,11 @@ class _BrokerQuoteDetailPageState extends State<BrokerQuoteDetailPage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Row(
+                    const Row(
                       children: [
                         Icon(Icons.reply, color: AirbnbColors.primary, size: 24),
-                        const SizedBox(width: 12),
-                        const Text(
+                        SizedBox(width: 12),
+                        Text(
                           '상담 답변 작성',
                           style: TextStyle(
                             fontSize: 20,
@@ -367,7 +367,7 @@ class _BrokerQuoteDetailPageState extends State<BrokerQuoteDetailPage> {
                       ],
                     ),
                     const SizedBox(height: 8),
-                    Text(
+                    const Text(
                       '전하고 싶은 내용을 정리해 남겨주세요.',
                       style: TextStyle(
                         fontSize: 13,
@@ -469,7 +469,9 @@ class _BrokerQuoteDetailPageState extends State<BrokerQuoteDetailPage> {
                                   setState(() {
                                     _isSubmitting = false;
                                   });
-                                  ScaffoldMessenger.of(context).showSnackBar(
+                                  if (!mounted) return;
+                                  final scaffoldMessenger = ScaffoldMessenger.of(context);
+                                  scaffoldMessenger.showSnackBar(
                                     SnackBar(
                                       content: Text(
                                         success
@@ -481,6 +483,7 @@ class _BrokerQuoteDetailPageState extends State<BrokerQuoteDetailPage> {
                                     ),
                                   );
                                   if (success) {
+                                    if (!mounted) return;
                                     Navigator.pop(context);
                                   }
                                 }

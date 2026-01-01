@@ -170,7 +170,7 @@ class _BrokerInquiryResponsePageState extends State<BrokerInquiryResponsePage> {
             children: [
               Text(
                 label,
-                style: TextStyle(
+                style: const TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.w600,
                   color: AirbnbColors.textSecondary,
@@ -370,7 +370,7 @@ class _BrokerInquiryResponsePageState extends State<BrokerInquiryResponsePage> {
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
-    final isWeb = kIsWeb;
+    const isWeb = kIsWeb;
     final maxContentWidth = isWeb ? 900.0 : screenWidth;
     
     if (_isLoading) {
@@ -378,11 +378,11 @@ class _BrokerInquiryResponsePageState extends State<BrokerInquiryResponsePage> {
         body: Center(
           child: Container(
             constraints: BoxConstraints(maxWidth: maxContentWidth),
-            child: Padding(
-              padding: const EdgeInsets.all(24),
+            child: const Padding(
+              padding: EdgeInsets.all(24),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
-                children: const [
+                children: [
                   CircularProgressIndicator(),
                   SizedBox(height: 12),
                   Text('문의 정보를 불러오는 중...'),
@@ -443,7 +443,7 @@ class _BrokerInquiryResponsePageState extends State<BrokerInquiryResponsePage> {
                   
                   return SingleChildScrollView(
                     physics: const ClampingScrollPhysics(),
-                    padding: EdgeInsets.all(isWeb ? 40.0 : 20.0),
+                    padding: const EdgeInsets.all(isWeb ? 40.0 : 20.0),
                     child: ConstrainedBox(
                       constraints: BoxConstraints(
                         minHeight: actualHeight - 40,
@@ -462,8 +462,8 @@ class _BrokerInquiryResponsePageState extends State<BrokerInquiryResponsePage> {
                   width: 1.5,
                 ),
               ),
-              child: Row(
-                children: const [
+              child: const Row(
+                children: [
                   Icon(Icons.info_outline, color: AirbnbColors.primary, size: 24),
                   SizedBox(width: 12),
                   Expanded(
@@ -516,8 +516,8 @@ class _BrokerInquiryResponsePageState extends State<BrokerInquiryResponsePage> {
                           color: AirbnbColors.primary.withValues(alpha: 0.08),
                           borderRadius: BorderRadius.circular(16),
                         ),
-                        child: Row(
-                          children: const [
+                        child: const Row(
+                          children: [
                             Icon(Icons.flash_on, size: 14, color: AirbnbColors.primary),
                             SizedBox(width: 6),
                             Text(
@@ -579,7 +579,7 @@ class _BrokerInquiryResponsePageState extends State<BrokerInquiryResponsePage> {
                 children: [
                   Row(
                     children: [
-                      Icon(Icons.reply, color: AirbnbColors.primary, size: 24),
+                      const Icon(Icons.reply, color: AirbnbColors.primary, size: 24),
                       const SizedBox(width: 12),
                       Text(
                         _hasExistingAnswer ? '상담 답변 수정' : '상담 답변 작성',
@@ -592,7 +592,7 @@ class _BrokerInquiryResponsePageState extends State<BrokerInquiryResponsePage> {
                     ],
                   ),
                   const SizedBox(height: 8),
-                  Text(
+                  const Text(
                     '전하고 싶은 내용을 정리해 남겨주세요.',
                     style: TextStyle(
                       fontSize: 13,
@@ -610,7 +610,7 @@ class _BrokerInquiryResponsePageState extends State<BrokerInquiryResponsePage> {
                       ),
                       child: Row(
                         children: [
-                          Icon(Icons.edit, color: AirbnbColors.primary, size: 18),
+                          const Icon(Icons.edit, color: AirbnbColors.primary, size: 18),
                           const SizedBox(width: 8),
                           Expanded(
                             child: Text(
@@ -641,8 +641,8 @@ class _BrokerInquiryResponsePageState extends State<BrokerInquiryResponsePage> {
                           borderRadius: BorderRadius.circular(8),
                           border: Border.all(color: AirbnbColors.primary.withValues(alpha: 0.3)),
                         ),
-                        child: Row(
-                          children: const [
+                        child: const Row(
+                          children: [
                             Icon(Icons.info_outline, color: AirbnbColors.primary, size: 18),
                             SizedBox(width: 8),
                             Expanded(

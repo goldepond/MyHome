@@ -140,7 +140,7 @@ class _AddressSearchScreenState extends State<AddressSearchScreen> {
                       ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide(color: AirbnbColors.primary, width: 2),
+                        borderSide: const BorderSide(color: AirbnbColors.primary, width: 2),
                       ),
                     ),
                     onChanged: (value) {

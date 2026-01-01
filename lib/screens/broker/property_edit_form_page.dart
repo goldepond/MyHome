@@ -562,10 +562,10 @@ class _PropertyEditFormPageState extends State<PropertyEditFormPage> {
                         color: AirbnbColors.primary.withValues(alpha: 0.3),
                       ),
                     ),
-                    child: Row(
+                    child: const Row(
                       children: [
                         Icon(Icons.info_outline, color: AirbnbColors.primary, size: 20),
-                        const SizedBox(width: 12),
+                        SizedBox(width: 12),
                         Expanded(
                           child: Text(
                             '매물 정보를 수정한 후 저장하시면 변경사항이 반영됩니다.',
@@ -639,7 +639,7 @@ class _PropertyEditFormPageState extends State<PropertyEditFormPage> {
                   // 사진 첨부 섹션
                   _buildSectionTitle('매물 사진 *'),
                   const SizedBox(height: 8),
-                  Text(
+                  const Text(
                     '매물 사진을 최소 1장 이상 첨부해주세요.',
                     style: TextStyle(fontSize: 12, color: AirbnbColors.textSecondary),
                   ),
@@ -736,7 +736,7 @@ class _PropertyEditFormPageState extends State<PropertyEditFormPage> {
                       children: [
                         _buildSectionTitle('참조 정보 (수정 가능)'),
                         const SizedBox(height: 8),
-                        Text(
+                        const Text(
                           '아래 정보는 API로 불러온 참조 정보입니다. 필요시 수정해주세요.',
                           style: TextStyle(fontSize: 12, color: AirbnbColors.textSecondary),
                         ),
@@ -873,7 +873,7 @@ class _PropertyEditFormPageState extends State<PropertyEditFormPage> {
                   ? '업로드 중...'
                   : totalImages == 0
                       ? '사진 추가하기'
-                      : '사진 추가하기 (${totalImages}장)',
+                      : '사진 추가하기 ($totalImages장)',
             ),
             style: OutlinedButton.styleFrom(
               side: BorderSide(
@@ -903,7 +903,7 @@ class _PropertyEditFormPageState extends State<PropertyEditFormPage> {
         const SizedBox(height: 16),
         // 기존 사진 미리보기
         if (_existingImageUrls.isNotEmpty) ...[
-          Text(
+          const Text(
             '기존 사진',
             style: TextStyle(
               fontSize: 14,
@@ -958,7 +958,7 @@ class _PropertyEditFormPageState extends State<PropertyEditFormPage> {
         ],
         // 새로 추가한 사진 미리보기
         if (_newImages.isNotEmpty) ...[
-          Text(
+          const Text(
             '새로 추가한 사진',
             style: TextStyle(
               fontSize: 14,
@@ -1174,7 +1174,7 @@ class _PropertyEditFormPageState extends State<PropertyEditFormPage> {
                   ],
                 ),
                 const SizedBox(height: 8),
-                Text(
+                const Text(
                   '아파트 단지 정보는 위의 "아파트 단지 정보" 섹션에서 수정할 수 있습니다.',
                   style: TextStyle(
                     fontSize: 13,

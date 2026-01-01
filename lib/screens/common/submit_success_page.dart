@@ -50,6 +50,7 @@ class SubmitSuccessPage extends StatelessWidget {
           ? result['userName']
           : result['userId'];
 
+      if (!context.mounted) return;
       Navigator.of(context).pushAndRemoveUntil(
         MaterialPageRoute(
           builder: (_) => MainPage(
@@ -61,6 +62,7 @@ class SubmitSuccessPage extends StatelessWidget {
         (route) => false,
       );
     } else {
+      if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('로그인에 실패했습니다. 이메일/전화번호를 확인해주세요.'),
@@ -101,7 +103,7 @@ class SubmitSuccessPage extends StatelessWidget {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(Icons.check_circle, color: AirbnbColors.success, size: 72),
+                const Icon(Icons.check_circle, color: AirbnbColors.success, size: 72),
                 const SizedBox(height: 16),
                 Text(
                   title,
@@ -134,9 +136,9 @@ class SubmitSuccessPage extends StatelessWidget {
                         color: AirbnbColors.primary.withValues(alpha: 0.2),
                       ),
                     ),
-                    child: Row(
+                    child: const Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
-                      children: const [
+                      children: [
                         Icon(Icons.info_outline, color: AirbnbColors.primary, size: 22),
                         SizedBox(width: 12),
                         Expanded(

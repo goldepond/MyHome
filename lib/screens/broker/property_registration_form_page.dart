@@ -629,14 +629,13 @@ class _PropertyRegistrationFormPageState extends State<PropertyRegistrationFormP
           ),
         ],
       ),
-      body: WillPopScope(
-        onWillPop: () async {
-          if (FocusScope.of(context).hasFocus) {
+      body: PopScope(
+        canPop: true,
+        onPopInvokedWithResult: (didPop, result) async {
+          if (!didPop && FocusScope.of(context).hasFocus) {
             FocusScope.of(context).unfocus();
             await Future.delayed(const Duration(milliseconds: 100));
-            return false;
           }
-          return true;
         },
         child: GestureDetector(
           onTap: () => FocusScope.of(context).unfocus(),
@@ -662,10 +661,10 @@ class _PropertyRegistrationFormPageState extends State<PropertyRegistrationFormP
                         color: AirbnbColors.primary.withValues(alpha: 0.3),
                       ),
                     ),
-                    child: Row(
+                    child: const Row(
                       children: [
                         Icon(Icons.info_outline, color: AirbnbColors.primary, size: 20),
-                        const SizedBox(width: 12),
+                        SizedBox(width: 12),
                         Expanded(
                           child: Text(
                             '매물 정보를 입력한 후 등록하시면 집 구하기 목록에 노출됩니다.',
@@ -750,7 +749,7 @@ class _PropertyRegistrationFormPageState extends State<PropertyRegistrationFormP
                   // 사진 첨부 섹션 (선택)
                   _buildSectionTitle('매물 사진 (선택)'),
                   const SizedBox(height: 8),
-                  Text(
+                  const Text(
                     '매물 사진을 첨부해주시면 더 좋아요 (선택사항)',
                     style: TextStyle(fontSize: 12, color: AirbnbColors.textSecondary),
                   ),
@@ -761,7 +760,7 @@ class _PropertyRegistrationFormPageState extends State<PropertyRegistrationFormP
                   // 아파트 단지 정보 섹션
                   _buildSectionTitle('아파트 단지 정보'),
                   const SizedBox(height: 8),
-                  Text(
+                  const Text(
                     '아래 정보는 상담 요청에서 가져온 기본 정보예요. 필요하시면 수정해주세요.',
                     style: TextStyle(fontSize: 12, color: AirbnbColors.textSecondary),
                   ),
@@ -852,7 +851,7 @@ class _PropertyRegistrationFormPageState extends State<PropertyRegistrationFormP
                       children: [
                         _buildSectionTitle('참조 정보'),
                         const SizedBox(height: 8),
-                        Text(
+                        const Text(
                           '아래 정보는 자동으로 조회된 참조 정보입니다.',
                           style: TextStyle(fontSize: 12, color: AirbnbColors.textSecondary),
                         ),
@@ -994,7 +993,7 @@ class _PropertyRegistrationFormPageState extends State<PropertyRegistrationFormP
                       : '사진 추가하기 (${_selectedImages.length}장)',
             ),
             style: OutlinedButton.styleFrom(
-              side: BorderSide(
+              side: const BorderSide(
                 color: AirbnbColors.primary,
                 width: 2,
               ),

@@ -58,7 +58,7 @@ class _HeroBannerState extends State<HeroBanner> {
         vertical: isMobile ? AppSpacing.xxl : AppSpacing.xxxl, // 48px / 64px
         horizontal: isMobile ? AppSpacing.lg : AppSpacing.xxl, // 24px / 48px
       ),
-      decoration: BoxDecoration(
+      decoration: const BoxDecoration(
         color: AirbnbColors.background,
       ),
       child: ConstrainedBox(
@@ -84,7 +84,7 @@ class _HeroBannerState extends State<HeroBanner> {
               ),
             ),
             
-            SizedBox(height: AppSpacing.lg), // 24px
+            const SizedBox(height: AppSpacing.lg), // 24px
             
             // 큰 서브헤드
             Text(
@@ -100,11 +100,11 @@ class _HeroBannerState extends State<HeroBanner> {
               ),
             ),
             
-            SizedBox(height: AppSpacing.xxxl), // 64px - 넓은 여백
-            
             // 검색창 통합 (핵심 CTA)
-            if (widget.showSearchBar && widget.searchController != null)
+            if (widget.showSearchBar && widget.searchController != null) ...[
+              const SizedBox(height: AppSpacing.xxxl), // 64px - 넓은 여백
               _buildSearchBar(context, isMobile),
+            ],
           ],
         ),
       ),
@@ -149,7 +149,7 @@ class _HeroBannerState extends State<HeroBanner> {
               AppTypography.h4,
               AirbnbColors.textSecondary, // textLight → textSecondary (WCAG AA 대비 비율 개선)
             ),
-            prefixIcon: Icon(
+            prefixIcon: const Icon(
               Icons.search_rounded,
               color: AirbnbColors.primary,
               size: 24,

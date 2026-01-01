@@ -293,14 +293,13 @@ class _BrokerSignupPageState extends State<BrokerSignupPage> {
 
   @override
   Widget build(BuildContext context) {
-    return WillPopScope(
-      onWillPop: () async {
-        if (FocusScope.of(context).hasFocus) {
+    return PopScope(
+      canPop: true,
+      onPopInvokedWithResult: (didPop, result) async {
+        if (!didPop && FocusScope.of(context).hasFocus) {
           FocusScope.of(context).unfocus();
           await Future.delayed(const Duration(milliseconds: 100));
-          return false;
         }
-        return true;
       },
       child: GestureDetector(
         onTap: () => FocusScope.of(context).unfocus(),
@@ -335,7 +334,7 @@ class _BrokerSignupPageState extends State<BrokerSignupPage> {
                 ),
               ),
               const SizedBox(height: 8),
-              Text(
+              const Text(
                 '등록번호 검증은 선택사항입니다 (검증 없이도 가입 가능)',
                 style: TextStyle(
                   fontSize: 14,

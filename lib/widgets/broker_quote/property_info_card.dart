@@ -182,7 +182,7 @@ class PropertyInfoCard extends StatelessWidget {
                   const SizedBox(height: 8),
                   Text(
                     quote.specialNotes!,
-                    style: TextStyle(
+                    style: const TextStyle(
                       fontSize: 14,
                       color: AirbnbColors.textPrimary,
                       height: 1.5,
@@ -229,7 +229,7 @@ class PropertyInfoCard extends StatelessWidget {
               children: [
                 Text(
                   label,
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontSize: 12,
                     color: AirbnbColors.textSecondary,
                     fontWeight: FontWeight.w500,

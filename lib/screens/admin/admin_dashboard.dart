@@ -115,9 +115,9 @@ class _AdminDashboardState extends State<AdminDashboard> {
                       width: 1,
                     ),
                   ),
-                  child: Row(
+                  child: const Row(
                     mainAxisSize: MainAxisSize.min,
-                    children: const [
+                    children: [
                       Icon(
                         Icons.admin_panel_settings,
                         color: AirbnbColors.primary,
@@ -185,9 +185,9 @@ class _AdminDashboardState extends State<AdminDashboard> {
             width: 1.5,
           ),
         ),
-        child: Row(
+        child: const Row(
           mainAxisSize: MainAxisSize.min,
-          children: const [
+          children: [
             Icon(
               Icons.home,
               color: AirbnbColors.primary,
@@ -210,7 +210,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
 
   Widget _buildNavButton(String label, int index, IconData icon, {bool isMobile = false}) {
     final isSelected = _currentIndex == index;
-    final Color unselectedColor = AirbnbColors.textSecondary;
+    const Color unselectedColor = AirbnbColors.textSecondary;
 
     return InkWell(
       onTap: () {
@@ -428,7 +428,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
                   const SizedBox(height: 4),
                   Text(
                     description,
-                    style: TextStyle(
+                    style: const TextStyle(
                       fontSize: 14,
                       color: AirbnbColors.textSecondary,
                     ),
@@ -436,7 +436,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
                 ],
               ),
             ),
-            Icon(
+            const Icon(
               Icons.arrow_forward_ios,
               color: AirbnbColors.textLight,
               size: 16,

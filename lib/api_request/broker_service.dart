@@ -162,8 +162,8 @@ class BrokerService {
       }
     }
     
-    return BrokerSearchResult(
-      brokers: const [],
+    return const BrokerSearchResult(
+      brokers: [],
       radiusMetersUsed: maxRadius,
       wasExpanded: true,
     );

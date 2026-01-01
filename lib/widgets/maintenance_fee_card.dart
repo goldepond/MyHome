@@ -246,7 +246,7 @@ class MaintenanceFeeCard extends StatelessWidget {
                       const SizedBox(height: 4),
                       Text(
                         '면적당 ${maintenanceFee.amountPerArea.toStringAsFixed(0)}원/㎡',
-                        style: TextStyle(
+                        style: const TextStyle(
                           fontSize: 14,
                           color: AirbnbColors.textSecondary,
                         ),
@@ -414,7 +414,7 @@ class MaintenanceFeeCard extends StatelessWidget {
                 height: 200,
                 child: LineChart(
                   LineChartData(
-                    gridData: FlGridData(show: true),
+                    gridData: const FlGridData(show: true),
                     titlesData: FlTitlesData(
                       leftTitles: AxisTitles(
                         sideTitles: SideTitles(
@@ -445,8 +445,8 @@ class MaintenanceFeeCard extends StatelessWidget {
                           },
                         ),
                       ),
-                      topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                      rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                      topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                      rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
                     ),
                     borderData: FlBorderData(show: true),
                     lineBarsData: [
@@ -457,7 +457,7 @@ class MaintenanceFeeCard extends StatelessWidget {
                         isCurved: true,
                         color: AirbnbColors.primary,
                         barWidth: 3,
-                        dotData: FlDotData(show: true),
+                        dotData: const FlDotData(show: true),
                       ),
                     ],
                   ),

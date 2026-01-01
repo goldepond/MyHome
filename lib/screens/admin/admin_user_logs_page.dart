@@ -32,10 +32,10 @@ class _AdminUserLogsPageState extends State<AdminUserLogsPage> {
           Container(
             padding: const EdgeInsets.all(20),
             color: AirbnbColors.background,
-            child: Column(
+            child: const Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
+                Text(
                   '사용자 활동 로그',
                   style: TextStyle(
                     fontSize: 24,
@@ -43,7 +43,7 @@ class _AdminUserLogsPageState extends State<AdminUserLogsPage> {
                     color: AirbnbColors.primary,
                   ),
                 ),
-                const SizedBox(height: 8),
+                SizedBox(height: 8),
                 Text(
                   '앱 내 사용자들의 주요 활동 내역을 실시간으로 확인합니다.',
                   style: TextStyle(
@@ -130,7 +130,7 @@ class _AdminUserLogsPageState extends State<AdminUserLogsPage> {
           Text('User: ${log.userId}'),
           Text(
             dateFormat.format(log.timestamp),
-            style: TextStyle(color: AirbnbColors.textSecondary, fontSize: 12),
+            style: const TextStyle(color: AirbnbColors.textSecondary, fontSize: 12),
           ),
           if (log.metadata.isNotEmpty)
             Container(

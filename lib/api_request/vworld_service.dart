@@ -1,4 +1,3 @@
-import 'dart:collection';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:property/constants/app_constants.dart';
@@ -257,7 +256,7 @@ class VWorldService {
     String rawAddress,
     Map<String, String>? fullAddrData,
   ) {
-    final candidates = LinkedHashSet<String>();
+    final candidates = <String>{};
 
     String normalize(String value) =>
         value.replaceAll(RegExp(r'\s+'), ' ').trim();
@@ -323,6 +322,103 @@ class VWorldService {
       return tokens.sublist(1).join(' ');
     }
     return null;
+  }
+
+  /// 좌표를 주소로 변환 (Reverse Geocoder API)
+  /// 
+  /// [latitude] 위도
+  /// [longitude] 경도
+  /// 
+  /// 반환: 주소 문자열 (실패 시 null)
+  static Future<String?> reverseGeocode(
+    double latitude,
+    double longitude,
+  ) async {
+    try {
+      final uri = Uri.parse(VWorldApiConstants.geocoderBaseUrl).replace(queryParameters: {
+        'service': 'address',
+        'request': 'getAddress', // 좌표 → 주소
+        'version': '2.0',
+        'crs': VWorldApiConstants.srsName,
+        'point': '$longitude,$latitude', // 경도,위도 형식
+        'format': 'json',
+        'type': 'both', // 도로명주소와 지번주소 모두
+        'zipcode': 'true',
+        'simple': 'false',
+        'key': VWorldApiConstants.geocoderApiKey,
+      });
+
+      final proxyUri = Uri.parse(VWorldApiConstants.vworldProxyUrl).replace(queryParameters: {
+        'url': uri.toString(),
+      });
+
+      final response = await http.get(proxyUri).timeout(
+        const Duration(seconds: ApiConstants.requestTimeoutSeconds),
+        onTimeout: () => throw Exception('Reverse Geocoder API 타임아웃'),
+      );
+
+      if (response.statusCode != 200) {
+        return null;
+      }
+
+      final responseBody = utf8.decode(response.bodyBytes);
+      final data = json.decode(responseBody);
+
+      if (data['response']?['status'] != 'OK') {
+        return null;
+      }
+
+      final rawResult = data['response']?['result'];
+
+      // 배열 응답 처리
+      final resultMap = rawResult is List
+          ? (rawResult.isEmpty ? null : rawResult.first as Map<String, dynamic>?)
+          : rawResult as Map<String, dynamic>?;
+
+      if (resultMap == null) {
+        return null;
+      }
+
+      // 도로명주소 우선, 없으면 지번주소
+      final text = resultMap['text']?.toString().trim();
+
+      if (text != null && text.isNotEmpty) {
+        return text;
+      }
+
+      // 구조화된 주소에서 추출
+      final structure = resultMap['structure'];
+      if (structure != null && structure is Map) {
+        final level0 = structure['level0']?.toString().trim() ?? '';
+        final level1 = structure['level1']?.toString().trim() ?? '';
+        final level2 = structure['level2']?.toString().trim() ?? '';
+        final level4L = structure['level4L']?.toString().trim() ?? '';
+        final level5 = structure['level5']?.toString().trim() ?? '';
+
+        final parts = <String>[];
+        if (level0.isNotEmpty) parts.add(level0);
+        if (level1.isNotEmpty) parts.add(level1);
+        if (level2.isNotEmpty) parts.add(level2);
+        if (level4L.isNotEmpty) parts.add(level4L);
+        if (level5.isNotEmpty) parts.add(level5);
+
+        if (parts.isNotEmpty) {
+          return parts.join(' ');
+        }
+      }
+
+      return null;
+    } catch (e) {
+      Logger.warning(
+        'Reverse Geocoder API 오류',
+        metadata: {
+          'latitude': latitude,
+          'longitude': longitude,
+          'error': e.toString(),
+        },
+      );
+      return null;
+    }
   }
 }
 

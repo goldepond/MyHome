@@ -257,7 +257,7 @@ class _AdminPropertyManagementState extends State<AdminPropertyManagement> {
             const SizedBox(height: 16),
             Text(
               _error!,
-              style: TextStyle(
+              style: const TextStyle(
                 fontSize: 16,
                 color: AirbnbColors.textSecondary,
               ),
@@ -277,7 +277,7 @@ class _AdminPropertyManagementState extends State<AdminPropertyManagement> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
+            const Icon(
               Icons.home_outlined,
               size: 80,
               color: AirbnbColors.border,
@@ -287,7 +287,7 @@ class _AdminPropertyManagementState extends State<AdminPropertyManagement> {
               _searchKeyword.isEmpty && _filterType == 'all'
                   ? '등록된 부동산이 없습니다'
                   : '검색 결과가 없습니다',
-              style: TextStyle(
+              style: const TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
                 color: AirbnbColors.textSecondary,
@@ -370,7 +370,7 @@ class _AdminPropertyManagementState extends State<AdminPropertyManagement> {
                       const SizedBox(height: 4),
                       Text(
                         priceText,
-                        style: TextStyle(
+                        style: const TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w600,
                           color: AirbnbColors.primary,
@@ -438,7 +438,7 @@ class _AdminPropertyManagementState extends State<AdminPropertyManagement> {
           width: 80,
           child: Text(
             label,
-            style: TextStyle(
+            style: const TextStyle(
               fontSize: 13,
               color: AirbnbColors.textSecondary,
               fontWeight: FontWeight.w600,

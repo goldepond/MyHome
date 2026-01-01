@@ -95,13 +95,13 @@ lib/
 
 ### 핵심 문서
 - [설치 및 실행 가이드](SETUP.md) - 개발 환경 설정
-- [출시 준비 체크리스트](RELEASE_CHECKLIST.md) - 출시 전 필수 작업
-- [시스템 플로우 문서](SYSTEM_FLOW_COMPLETE.md) - 전체 시스템 흐름 이해
-- [기능 개요](FEATURE_OVERVIEW.md) - 전체 기능 상세 설명
+- [프로젝트 현황](PROJECT_SUMMARY.md) - 프로젝트 개요 및 준비도
+- [프로덕션 체크리스트](PRODUCTION_CHECKLIST.md) - 출시 전 필수 작업
+- [문서 목록](README_DOCS.md) - 전체 문서 구조 및 찾기 가이드
 
 ### 배포 문서
 - [GitHub Pages 배포 가이드](DEPLOYMENT_GUIDE.md) - 웹 배포 방법
-- [모바일 출시 준비](MOBILE_READINESS_CHECKLIST.md) - 앱스토어 출시 체크리스트
+- [관리자 페이지 분리 가이드](ADMIN_SEPARATION_GUIDE.md) - 관리자 페이지 배포
 
 ## 🛠️ 개발
 
@@ -170,4 +170,4 @@ flutter pub get
 
 **개발 환경**: Flutter 3.32.5 | Dart 3.0.0+ | Android API 33+
 
-**마지막 업데이트**: 2025년 11월 4일
+**마지막 업데이트**: 2025-01-27

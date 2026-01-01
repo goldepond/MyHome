@@ -63,7 +63,6 @@ class _AdminAuthGateState extends State<_AdminAuthGate> {
       // 임시: 관리자도 일단 익명 로그인 등을 사용한다고 가정
       // 실제 운영 시에는 이메일/비밀번호 로그인 폼으로 대체 권장
       await FirebaseService().signInAnonymously();
-    } catch (e) {
     } finally {
       if (mounted) {
         setState(() {

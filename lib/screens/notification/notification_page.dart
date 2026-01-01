@@ -70,17 +70,18 @@ class _NotificationPageState extends State<NotificationPage> {
               
               if (confirmed == true) {
                 await _firebaseService.markAllNotificationsAsRead(widget.userId);
-                if (mounted) {
-                  setState(() {
-                    _showReadNotifications = false; // 자동으로 읽은 알림 숨기기
-                  });
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('모든 알림을 읽음 처리했습니다'),
-                      duration: Duration(seconds: 2),
-                    ),
-                  );
-                }
+                if (!mounted) return;
+                setState(() {
+                  _showReadNotifications = false; // 자동으로 읽은 알림 숨기기
+                });
+                if (!mounted) return;
+                final scaffoldMessenger = ScaffoldMessenger.of(context);
+                scaffoldMessenger.showSnackBar(
+                  const SnackBar(
+                    content: Text('모든 알림을 읽음 처리했습니다'),
+                    duration: Duration(seconds: 2),
+                  ),
+                );
               }
             },
             child: const Text('모두 읽음'),
@@ -205,7 +206,7 @@ class _NotificationPageState extends State<NotificationPage> {
                         ),
                         Text(
                           dateFormat.format(notification.createdAt),
-                          style: TextStyle(
+                          style: const TextStyle(
                             fontSize: 12,
                             color: AirbnbColors.textSecondary,
                           ),
@@ -215,7 +216,7 @@ class _NotificationPageState extends State<NotificationPage> {
                     const SizedBox(height: 4),
                     Text(
                       notification.message,
-                      style: TextStyle(
+                      style: const TextStyle(
                         fontSize: 14,
                         color: AirbnbColors.textSecondary,
                         height: 1.4,

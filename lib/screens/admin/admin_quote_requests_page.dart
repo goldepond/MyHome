@@ -45,10 +45,10 @@ class _AdminQuoteRequestsPageState extends State<AdminQuoteRequestsPage> {
         stream: _firebaseService.getAllQuoteRequests(),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return Center(
+            return const Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
-                children: const [
+                children: [
                   CircularProgressIndicator(
                     valueColor: AlwaysStoppedAnimation<Color>(AirbnbColors.primary),
                   ),
@@ -70,7 +70,7 @@ class _AdminQuoteRequestsPageState extends State<AdminQuoteRequestsPage> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   const Icon(Icons.error_outline, size: 64, color: AirbnbColors.error),
-                  SizedBox(height: AppSpacing.md),
+                  const SizedBox(height: AppSpacing.md),
                   Text('오류: ${snapshot.error}'),
                 ],
               ),
@@ -292,10 +292,10 @@ class _AdminQuoteRequestsPageState extends State<AdminQuoteRequestsPage> {
               color: color,
             ),
           ),
-          SizedBox(height: AppSpacing.xs),
+          const SizedBox(height: AppSpacing.xs),
           Text(
             label,
-            style: TextStyle(
+            style: const TextStyle(
               color: AirbnbColors.textSecondary,
             ),
             textAlign: TextAlign.center,
@@ -330,7 +330,7 @@ class _AdminQuoteRequestsPageState extends State<AdminQuoteRequestsPage> {
               ),
             ),
             const SizedBox(height: 8),
-            Text(
+            const Text(
               '아직 견적문의가 접수되지 않았습니다.',
               style: TextStyle(
                 color: AirbnbColors.textSecondary,
@@ -365,7 +365,7 @@ class _AdminQuoteRequestsPageState extends State<AdminQuoteRequestsPage> {
             padding: const EdgeInsets.all(16),
                 decoration: const BoxDecoration(
                   color: AirbnbColors.background,
-              borderRadius: const BorderRadius.only(
+              borderRadius: BorderRadius.only(
                 topLeft: Radius.circular(16),
                 topRight: Radius.circular(16),
               ),
@@ -396,7 +396,7 @@ class _AdminQuoteRequestsPageState extends State<AdminQuoteRequestsPage> {
                           AirbnbColors.background,
                         ),
                       ),
-                      SizedBox(height: AppSpacing.xs),
+                      const SizedBox(height: AppSpacing.xs),
                       Text(
                         '문의일시: ${_formatDateTime(request.requestDate)}',
                         style: const TextStyle(
@@ -493,7 +493,7 @@ class _AdminQuoteRequestsPageState extends State<AdminQuoteRequestsPage> {
                     request.desiredPrice != null || 
                     request.targetPeriod != null || 
                     (request.specialNotes != null && request.specialNotes!.isNotEmpty)) ...[
-                  SizedBox(height: AppSpacing.md),
+                  const SizedBox(height: AppSpacing.md),
                   const Text(
                     '📝 특이사항',
                     style: TextStyle(
@@ -584,7 +584,7 @@ class _AdminQuoteRequestsPageState extends State<AdminQuoteRequestsPage> {
                           ),
                         if (request.specialNotes != null && request.specialNotes!.isNotEmpty) ...[
                           Padding(
-                            padding: EdgeInsets.only(bottom: AppSpacing.xs),
+                            padding: const EdgeInsets.only(bottom: AppSpacing.xs),
                             child: Text(
                               '특이사항:',
                               style: AppTypography.withColor(
@@ -611,7 +611,7 @@ class _AdminQuoteRequestsPageState extends State<AdminQuoteRequestsPage> {
                   const SizedBox(height: 24),
                   const Divider(height: 24),
                   Container(
-                    padding: EdgeInsets.all(AppSpacing.md),
+                    padding: const EdgeInsets.all(AppSpacing.md),
                     decoration: BoxDecoration(
                       color: AirbnbColors.primary.withValues(alpha: 0.08),
                       borderRadius: BorderRadius.circular(12),
@@ -695,7 +695,7 @@ class _AdminQuoteRequestsPageState extends State<AdminQuoteRequestsPage> {
                           ),
                         ),
                         icon: const Icon(Icons.attach_email, size: 18),
-                        label: Text('이메일 첨부', style: AppTypography.bodySmall),
+                        label: const Text('이메일 첨부', style: AppTypography.bodySmall),
                       ),
 
                     // 링크 복사 버튼 (항상 표시)
@@ -726,7 +726,7 @@ class _AdminQuoteRequestsPageState extends State<AdminQuoteRequestsPage> {
                           ),
                         ),
                         icon: const Icon(Icons.email, size: 18),
-                        label: Text('이메일 보내기', style: AppTypography.bodySmall),
+                        label: const Text('이메일 보내기', style: AppTypography.bodySmall),
                       ),
                     
                     // 상태 변경 버튼
@@ -742,7 +742,7 @@ class _AdminQuoteRequestsPageState extends State<AdminQuoteRequestsPage> {
                           ),
                         ),
                         icon: const Icon(Icons.phone, size: 18),
-                        label: Text('연락완료', style: AppTypography.bodySmall),
+                        label: const Text('연락완료', style: AppTypography.bodySmall),
                       ),
                     
                     if (request.status == 'contacted')
@@ -757,7 +757,7 @@ class _AdminQuoteRequestsPageState extends State<AdminQuoteRequestsPage> {
                           ),
                         ),
                         icon: const Icon(Icons.check_circle, size: 18),
-                        label: Text('완료처리', style: AppTypography.bodySmall),
+                        label: const Text('완료처리', style: AppTypography.bodySmall),
                       ),
                     
                     if (request.status != 'cancelled' && request.status != 'completed')
@@ -791,7 +791,7 @@ class _AdminQuoteRequestsPageState extends State<AdminQuoteRequestsPage> {
     final label = QuoteLifecycleStatus.label(lifecycle);
 
     return Container(
-      padding: EdgeInsets.symmetric(horizontal: AppSpacing.sm + AppSpacing.xs, vertical: AppSpacing.xs + AppSpacing.xs / 2),
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm + AppSpacing.xs, vertical: AppSpacing.xs + AppSpacing.xs / 2),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.2),
         borderRadius: BorderRadius.circular(20),
@@ -821,7 +821,7 @@ class _AdminQuoteRequestsPageState extends State<AdminQuoteRequestsPage> {
           width: 100,
           child: Text(
             label,
-            style: TextStyle(
+            style: const TextStyle(
               fontSize: 13,
               color: AirbnbColors.textSecondary,
               fontWeight: FontWeight.w600,
@@ -844,7 +844,7 @@ class _AdminQuoteRequestsPageState extends State<AdminQuoteRequestsPage> {
               if (suffix != null)
                 Text(
                   suffix,
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontSize: 11,
                     color: AirbnbColors.textSecondary,
                   ),
@@ -873,7 +873,7 @@ class _AdminQuoteRequestsPageState extends State<AdminQuoteRequestsPage> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
+            const Text(
               '공인중개사의 이메일 주소를 입력하세요:',
               style: TextStyle(fontSize: 14, color: AirbnbColors.textSecondary),
             ),

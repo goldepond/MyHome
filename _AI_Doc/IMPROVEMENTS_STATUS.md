@@ -1,6 +1,6 @@
 # 개선 사항 진행 상황 총정리
 
-> **최종 업데이트**: 2025-01-XX  
+> **최종 업데이트**: 2025-01-27  
 > **전체 완료도**: 90%
 
 ---
@@ -12,12 +12,16 @@
 #### 1. 레이아웃 및 간격 개선 ✅
 
 **완료 항목:**
-- ✅ HeroBanner 이후 섹션 간 간격: 16px → 32px (`AppSpacing.xl`)
+- ✅ 히어로 배너 검색창 제거: 중복 검색 기능 제거, 주소 검색 탭만 사용 (`showSearchBar: false`)
+- ✅ HeroBanner 이후 섹션 간 간격: 32px → 24px (`AppSpacing.xl` → `AppSpacing.lg`)로 조정
 - ✅ 선택된 주소 카드 간격: 8px → 16px (`AppSpacing.md`)
 - ✅ AppSpacing 시스템 전반적 적용
+- ✅ 주소 검색 탭 통합: `AddressSearchTabs` 위젯으로 GPS 기반 검색과 주소 입력 검색 통합
 
 **적용 파일:**
-- `lib/screens/home_page.dart` (872줄, 982줄)
+- `lib/screens/home_page.dart` (히어로 배너 검색창 제거, 주소 검색 탭 사용)
+- `lib/widgets/hero_banner.dart` (검색창 옵션 지원)
+- `lib/widgets/address_search/address_search_tabs.dart` (새로 생성)
 
 ---
 
@@ -205,6 +209,6 @@ print('WCAG AA: ${result.meetsAA ? "✅" : "❌"}');
 
 ---
 
-**최종 업데이트**: 2025-01-XX  
+**최종 업데이트**: 2025-01-27  
 **전체 완료도**: 90% ✅  
 **다음 단계**: 낮은 우선순위 항목 점진적 개선

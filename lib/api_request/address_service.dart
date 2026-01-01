@@ -97,7 +97,7 @@ class AddressService {
       http.Response response;
       try {
         response = await http.get(proxyUri).timeout(
-        Duration(seconds: ApiConstants.requestTimeoutSeconds),
+        const Duration(seconds: ApiConstants.requestTimeoutSeconds),
         onTimeout: () {
           throw TimeoutException('주소 검색 시간이 초과되었습니다.');
         },

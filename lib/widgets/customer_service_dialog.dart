@@ -158,7 +158,7 @@ class CustomerServiceDialog extends StatelessWidget {
                   const SizedBox(height: 4),
                   Text(
                     subtitle,
-                    style: TextStyle(
+                    style: const TextStyle(
                       fontSize: 13,
                       color: AirbnbColors.textSecondary,
                     ),
@@ -175,7 +175,7 @@ class CustomerServiceDialog extends StatelessWidget {
 
   /// 카카오톡 오픈채팅방 열기
   static Future<void> _launchKakaoOpenChat(BuildContext context) async {
-    final url = CustomerServiceUrls.kakaoOpenChatUrl;
+    const url = CustomerServiceUrls.kakaoOpenChatUrl;
     final uri = Uri.parse(url);
     
     try {
@@ -205,7 +205,7 @@ class CustomerServiceDialog extends StatelessWidget {
 
   /// 페이스북 열기
   static Future<void> _launchFacebook(BuildContext context) async {
-    final url = CustomerServiceUrls.facebookUrl;
+    const url = CustomerServiceUrls.facebookUrl;
     final uri = Uri.parse(url);
     
     try {
@@ -226,7 +226,7 @@ class CustomerServiceDialog extends StatelessWidget {
 
   /// 스레드 열기
   static Future<void> _launchThreads(BuildContext context) async {
-    final url = CustomerServiceUrls.threadsUrl;
+    const url = CustomerServiceUrls.threadsUrl;
     final uri = Uri.parse(url);
     
     try {
@@ -247,7 +247,7 @@ class CustomerServiceDialog extends StatelessWidget {
 
   /// 이메일 클라이언트 열기
   static Future<void> _launchEmail(BuildContext context) async {
-    final email = CustomerServiceUrls.supportEmail;
+    const email = CustomerServiceUrls.supportEmail;
     final subject = Uri.encodeComponent('[MyHome 문의]');
     final body = Uri.encodeComponent(
       '문의 내용을 작성해주세요.\n\n'
@@ -265,9 +265,9 @@ class CustomerServiceDialog extends StatelessWidget {
       } else {
         if (context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
+            const SnackBar(
               content: Text('이메일 앱을 열 수 없습니다.\n직접 $email 로 문의해주세요.'),
-              duration: const Duration(seconds: 3),
+              duration: Duration(seconds: 3),
             ),
           );
         }

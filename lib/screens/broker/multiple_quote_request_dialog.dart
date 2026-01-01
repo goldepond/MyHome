@@ -61,7 +61,7 @@ class _MultipleQuoteRequestDialogState extends State<MultipleQuoteRequestDialog>
   @override
   Widget build(BuildContext context) {
     final screenWidth = MediaQuery.of(context).size.width;
-    final isWeb = kIsWeb;
+    const isWeb = kIsWeb;
     final maxContentWidth = isWeb ? 800.0 : screenWidth;
     
     return Scaffold(
@@ -84,7 +84,7 @@ class _MultipleQuoteRequestDialogState extends State<MultipleQuoteRequestDialog>
           child: Container(
             constraints: BoxConstraints(maxWidth: maxContentWidth),
             child: ListView(
-              padding: EdgeInsets.all(isWeb ? 40.0 : 20.0),
+              padding: const EdgeInsets.all(isWeb ? 40.0 : 20.0),
               children: [
             // 제목
             Text(
@@ -236,7 +236,7 @@ class _MultipleQuoteRequestDialogState extends State<MultipleQuoteRequestDialog>
                           Expanded(
                             child: Row(
                               children: [
-                                Text(
+                                const Text(
                                   '확인할 견적 정보',
                                   style: TextStyle(
                                     fontSize: 17,
@@ -259,7 +259,7 @@ class _MultipleQuoteRequestDialogState extends State<MultipleQuoteRequestDialog>
                           AnimatedRotation(
                             turns: _isRequestInfoExpanded ? 0.5 : 0,
                             duration: const Duration(milliseconds: 200),
-                            child: Icon(
+                            child: const Icon(
                               Icons.keyboard_arrow_down,
                               color: AppColors.kPrimary,
                               size: 24,
@@ -391,10 +391,10 @@ class _MultipleQuoteRequestDialogState extends State<MultipleQuoteRequestDialog>
                     activeColor: AppColors.kPrimary,
                   ),
                   const SizedBox(width: 8),
-                  Expanded(
+                  const Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
-                      children: const [
+                      children: [
                         Text(
                           '개인정보 제3자 제공 동의 (필수)',
                           style: TextStyle(

@@ -216,7 +216,7 @@ class _AdminBrokerManagementState extends State<AdminBrokerManagement> {
             const SizedBox(height: 16),
             Text(
               _error!,
-              style: TextStyle(
+              style: const TextStyle(
                 fontSize: 16,
                 color: AirbnbColors.textSecondary,
               ),
@@ -236,7 +236,7 @@ class _AdminBrokerManagementState extends State<AdminBrokerManagement> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
+            const Icon(
               Icons.business_outlined,
               size: 80,
               color: AirbnbColors.border,
@@ -246,7 +246,7 @@ class _AdminBrokerManagementState extends State<AdminBrokerManagement> {
               _searchKeyword.isEmpty
                   ? '등록된 공인중개사가 없습니다'
                   : '검색 결과가 없습니다',
-              style: TextStyle(
+              style: const TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,
                 color: AirbnbColors.textSecondary,
@@ -321,7 +321,7 @@ class _AdminBrokerManagementState extends State<AdminBrokerManagement> {
                       const SizedBox(height: 4),
                       Text(
                         '중개업자명: $ownerName',
-                        style: TextStyle(
+                        style: const TextStyle(
                           fontSize: 14,
                           color: AirbnbColors.textSecondary,
                         ),
@@ -381,7 +381,7 @@ class _AdminBrokerManagementState extends State<AdminBrokerManagement> {
           width: 80,
           child: Text(
             label,
-            style: TextStyle(
+            style: const TextStyle(
               fontSize: 13,
               color: AirbnbColors.textSecondary,
               fontWeight: FontWeight.w600,

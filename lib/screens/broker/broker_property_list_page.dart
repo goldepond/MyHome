@@ -53,7 +53,7 @@ class _BrokerPropertyListPageState extends State<BrokerPropertyListPage> {
                 children: [
                   const Icon(Icons.error_outline, size: 64, color: AirbnbColors.error),
                   const SizedBox(height: 16),
-                  Text(
+                  const Text(
                     '매물 목록을 불러오는 중 오류가 발생했습니다.',
                     style: TextStyle(color: AirbnbColors.textSecondary),
                   ),
@@ -70,12 +70,12 @@ class _BrokerPropertyListPageState extends State<BrokerPropertyListPage> {
           final properties = snapshot.data ?? [];
 
           if (properties.isEmpty) {
-            return Center(
+            return const Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Icon(Icons.home_outlined, size: 64, color: AirbnbColors.textLight),
-                  const SizedBox(height: 16),
+                  SizedBox(height: 16),
                   Text(
                     '등록한 매물이 없습니다.',
                     style: TextStyle(
@@ -233,7 +233,7 @@ class _BrokerPropertyListPageState extends State<BrokerPropertyListPage> {
               const SizedBox(height: 8),
               Text(
                 '면적: ${property.area!.toStringAsFixed(2)}㎡',
-                style: TextStyle(
+                style: const TextStyle(
                   fontSize: 14,
                   color: AirbnbColors.textSecondary,
                 ),
@@ -261,7 +261,7 @@ class _BrokerPropertyListPageState extends State<BrokerPropertyListPage> {
                   ),
                   Text(
                     '등록일: ${dateFormat.format(property.createdAt)}',
-                    style: TextStyle(
+                    style: const TextStyle(
                       fontSize: 12,
                       color: AirbnbColors.textSecondary,
                     ),

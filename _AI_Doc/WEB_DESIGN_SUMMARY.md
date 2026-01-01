@@ -1,6 +1,6 @@
 # 웹 디자인 형식 및 기능 총정리
 
-> 작성일: 2025-01-XX  
+> 작성일: 2025-01-27  
 > 프로젝트: MyHome - Flutter Web Application
 
 ---

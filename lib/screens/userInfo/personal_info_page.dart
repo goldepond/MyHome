@@ -135,10 +135,12 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
     );
 
     if (firstConfirm != true) return;
+    if (!mounted) return;
+    final currentContext = context;
 
     // 두 번째 확인 다이얼로그 (최종 확인)
     final finalConfirm = await showDialog<bool>(
-      context: context,
+      context: currentContext,
       builder: (context) => AlertDialog(
         title: const Text(
           '⚠️ 최종 확인',
@@ -244,7 +246,7 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
     final isMobile = ResponsiveHelper.isMobile(context);
     final isTablet = ResponsiveHelper.isTablet(context);
     final bannerHeight = isMobile ? AppSpacing.xxxl * 5 : (isTablet ? AppSpacing.xxxl * 5.625 : AppSpacing.xxxl * 6.25);
-    final double overlapHeight = AppSpacing.xxxl * 1.25;
+    const double overlapHeight = AppSpacing.xxxl * 1.25;
 
     return Scaffold(
       backgroundColor: AirbnbColors.background,
@@ -261,7 +263,7 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
                 vertical: isMobile ? 48.0 : 64.0,
                 horizontal: isMobile ? 24.0 : 48.0,
               ),
-              decoration: BoxDecoration(
+              decoration: const BoxDecoration(
                 color: AirbnbColors.background,
               ),
               child: ConstrainedBox(
@@ -284,7 +286,7 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
                         AirbnbColors.textPrimary,
                       ),
                     ),
-                    SizedBox(height: AppSpacing.lg),
+                    const SizedBox(height: AppSpacing.lg),
                     // 큰 서브헤드
                     Text(
                       '내 계정 정보를 확인하고 관리하세요',
@@ -331,7 +333,7 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
                                 color: AirbnbColors.textPrimary,
                               ),
                             ),
-                            SizedBox(height: AppSpacing.md),
+                            const SizedBox(height: AppSpacing.md),
                             SizedBox(
                               width: double.infinity,
                               height: 50,
@@ -361,7 +363,7 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
                                 ),
                               ),
                             ),
-                            SizedBox(height: AppSpacing.md + AppSpacing.xs),
+                            const SizedBox(height: AppSpacing.md + AppSpacing.xs),
                             if (_isLoadingUserData)
                               const Center(
                                 child: Padding(
@@ -371,7 +373,7 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
                               )
                             else ...[
                               if (_userData?['email'] != null) ...[
-                                SizedBox(height: AppSpacing.md + AppSpacing.xs),
+                                const SizedBox(height: AppSpacing.md + AppSpacing.xs),
                                 _buildInfoRow(
                                   Icons.email_outlined, 
                                   '이메일', 
@@ -379,7 +381,7 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
                                 ),
                               ],
                               if (_userData?['phone'] != null && _userData!['phone'].toString().isNotEmpty) ...[
-                                SizedBox(height: AppSpacing.md + AppSpacing.xs),
+                                const SizedBox(height: AppSpacing.md + AppSpacing.xs),
                                 _buildEditableInfoRow(
                                   Icons.phone_outlined, 
                                   '전화번호', 
@@ -387,21 +389,21 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
                                   onEdit: () => _showEditPhoneDialog(),
                                 ),
                               ],
-                              SizedBox(height: AppSpacing.md + AppSpacing.xs),
+                              const SizedBox(height: AppSpacing.md + AppSpacing.xs),
                               _buildEditableInfoRow(
                                 Icons.person, 
                                 '이름', 
                                 _userData?['name'] ?? widget.userName,
                                 onEdit: () => _showEditNameDialog(),
                               ),
-                              SizedBox(height: AppSpacing.md + AppSpacing.xs),
+                              const SizedBox(height: AppSpacing.md + AppSpacing.xs),
                               _buildInfoRow(
                                 Icons.badge_outlined, 
                                 '역할', 
                                 _getRoleDisplayName(_userData?['role'] ?? 'user'),
                               ),
                             ],
-                            SizedBox(height: AppSpacing.md),
+                            const SizedBox(height: AppSpacing.md),
                           ],
                         ),
                       ),
@@ -427,14 +429,14 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
                                   color: AirbnbColors.textPrimary,
                                 ),
                               ),
-                              SizedBox(height: AppSpacing.md),
+                              const SizedBox(height: AppSpacing.md),
                               if (_userData?['createdAt'] != null) ...[
                                 _buildInfoRow(
                                   Icons.calendar_today_outlined,
                                   '가입일',
                                   _formatDate(_userData!['createdAt']),
                                 ),
-                                SizedBox(height: AppSpacing.md + AppSpacing.xs),
+                                const SizedBox(height: AppSpacing.md + AppSpacing.xs),
                               ],
                               if (_userData?['updatedAt'] != null && _userData!['updatedAt'] != _userData!['createdAt']) ...[
                                 _buildInfoRow(
@@ -552,7 +554,7 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
                                 color: AirbnbColors.textPrimary,
                               ),
                             ),
-                            SizedBox(height: AppSpacing.md),
+                            const SizedBox(height: AppSpacing.md),
                             SizedBox(
                               width: double.infinity,
                               height: 50,
@@ -576,7 +578,7 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
                                 ),
                               ),
                             ),
-                            SizedBox(height: AppSpacing.md + AppSpacing.xs),
+                            const SizedBox(height: AppSpacing.md + AppSpacing.xs),
                             SizedBox(
                               width: double.infinity,
                               height: 50,

@@ -162,10 +162,10 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
       context: context,
       builder: (context) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: Row(
+        title: const Row(
           children: [
             Icon(Icons.phone, color: AirbnbColors.primary, size: 28),
-            const SizedBox(width: 12),
+            SizedBox(width: 12),
             Text('재연락 방법', style: AppTypography.h3),
           ],
         ),
@@ -177,7 +177,7 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
               '이 공인중개사와 재연락하는 방법을 선택하세요:',
               style: AppTypography.body.copyWith(height: 1.5),
             ),
-            SizedBox(height: AppSpacing.md),
+            const SizedBox(height: AppSpacing.md),
             ListTile(
               leading: const Icon(Icons.phone, color: AirbnbColors.success),
               title: const Text('전화 걸기', style: TextStyle(fontWeight: FontWeight.w600)),
@@ -207,6 +207,7 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
       // 전화 걸기 (등록번호로 중개사 정보 조회 필요 - 간단히 처리)
       final phoneNumber = quote.brokerRegistrationNumber; // 실제로는 전화번호를 저장해야 함
       if (phoneNumber == null || phoneNumber.isEmpty) {
+        if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('전화번호 정보가 없습니다.'),
@@ -219,6 +220,7 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
       // 실제로는 QuoteRequest에 brokerPhoneNumber 필드가 있어야 함
       // 현재는 brokerRegistrationNumber만 있으므로, BrokerService로 조회 필요
       // 일단 간단히 안내만 표시
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('전화번호 정보는 공인중개사 목록에서 확인할 수 있습니다.'),
@@ -229,6 +231,7 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
     } else if (action == 'resend') {
       // 다시 견적 요청
       if (quote.propertyAddress == null || quote.propertyAddress!.isEmpty) {
+        if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('주소 정보가 없어 견적을 다시 요청할 수 없습니다.'),
@@ -238,6 +241,7 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
         return;
       }
 
+      if (!mounted) return;
       // 로딩 표시
       showDialog(
         context: context,
@@ -254,15 +258,14 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
         );
 
         if (coord == null) {
-          if (context.mounted) {
-            Navigator.pop(context); // 로딩 닫기
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('주소 정보를 찾을 수 없습니다.'),
-                backgroundColor: AirbnbColors.error,
-              ),
-            );
-          }
+          if (!mounted) return;
+          Navigator.pop(context); // 로딩 닫기
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('주소 정보를 찾을 수 없습니다.'),
+              backgroundColor: AirbnbColors.error,
+            ),
+          );
           return;
         }
 
@@ -270,47 +273,44 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
         final lon = double.tryParse('${coord['x']}');
 
         if (lat == null || lon == null) {
-          if (context.mounted) {
-            Navigator.pop(context); // 로딩 닫기
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('좌표 정보를 가져올 수 없습니다.'),
-                backgroundColor: AirbnbColors.error,
-              ),
-            );
-          }
-          return;
-        }
-
-        if (context.mounted) {
-          Navigator.pop(context); // 로딩 닫기
-
-          // BrokerListPage로 이동 (기존 주소 사용)
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => BrokerListPage(
-                address: quote.propertyAddress!,
-                latitude: lat,
-                longitude: lon,
-                userName: widget.userName,
-                userId: quote.userId.isNotEmpty ? quote.userId : null,
-                propertyArea: quote.propertyArea,
-                transactionType: quote.transactionType,
-              ),
-            ),
-          );
-        }
-      } catch (e) {
-        if (context.mounted) {
+          if (!mounted) return;
           Navigator.pop(context); // 로딩 닫기
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('오류가 발생했습니다: $e'),
+            const SnackBar(
+              content: Text('좌표 정보를 가져올 수 없습니다.'),
               backgroundColor: AirbnbColors.error,
             ),
           );
+          return;
         }
+
+        if (!mounted) return;
+        Navigator.pop(context); // 로딩 닫기
+
+        // BrokerListPage로 이동 (기존 주소 사용)
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => BrokerListPage(
+              address: quote.propertyAddress!,
+              latitude: lat,
+              longitude: lon,
+              userName: widget.userName,
+              userId: quote.userId.isNotEmpty ? quote.userId : null,
+              propertyArea: quote.propertyArea,
+              transactionType: quote.transactionType,
+            ),
+          ),
+        );
+      } catch (e) {
+        if (!mounted) return;
+        Navigator.pop(context); // 로딩 닫기
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('오류가 발생했습니다: $e'),
+            backgroundColor: AirbnbColors.error,
+          ),
+        );
       }
     }
   }
@@ -447,7 +447,7 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
                   const SizedBox(height: 8),
                   Row(
                     children: [
-                      Text('추천 여부', style: AppTypography.bodySmall),
+                      const Text('추천 여부', style: AppTypography.bodySmall),
                       const SizedBox(width: 8),
                       ChoiceChip(
                         label: const Text('추천'),
@@ -470,7 +470,7 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
                       ),
                     ],
                   ),
-                  SizedBox(height: AppSpacing.md + AppSpacing.xs),
+                  const SizedBox(height: AppSpacing.md + AppSpacing.xs),
                   TextField(
                     controller: commentController,
                     maxLines: 4,
@@ -479,7 +479,7 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
                       border: OutlineInputBorder(),
                     ),
                   ),
-                  SizedBox(height: AppSpacing.md + AppSpacing.xs),
+                  const SizedBox(height: AppSpacing.md + AppSpacing.xs),
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
@@ -512,14 +512,18 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
                         Navigator.pop(context);
 
                         if (savedId != null) {
-                          ScaffoldMessenger.of(this.context).showSnackBar(
+                          if (!mounted) return;
+                          final scaffoldMessenger = ScaffoldMessenger.of(context);
+                          scaffoldMessenger.showSnackBar(
                             const SnackBar(
                               content: Text('후기가 저장되었습니다.'),
                               backgroundColor: AirbnbColors.success,
                             ),
                           );
                         } else {
-                          ScaffoldMessenger.of(this.context).showSnackBar(
+                          if (!mounted) return;
+                          final scaffoldMessenger = ScaffoldMessenger.of(context);
+                          scaffoldMessenger.showSnackBar(
                             const SnackBar(
                               content: Text('후기 저장에 실패했습니다.'),
                               backgroundColor: AirbnbColors.error,
@@ -565,10 +569,10 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
       context: context,
       builder: (context) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: Row(
+        title: const Row(
           children: [
-            const Icon(Icons.warning, color: AirbnbColors.warning, size: 28),
-            const SizedBox(width: 12),
+            Icon(Icons.warning, color: AirbnbColors.warning, size: 28),
+            SizedBox(width: 12),
             Text('삭제 확인', style: AppTypography.h3),
           ],
         ),
@@ -579,7 +583,7 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: Text('취소', style: AppTypography.buttonSmall),
+            child: const Text('취소', style: AppTypography.buttonSmall),
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(context, true),
@@ -641,9 +645,9 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
               // 헤더
               Container(
                 padding: const EdgeInsets.all(20),
-                decoration: BoxDecoration(
+                decoration: const BoxDecoration(
                   color: AirbnbColors.primary,
-                  borderRadius: const BorderRadius.only(
+                  borderRadius: BorderRadius.only(
                     topLeft: Radius.circular(20),
                     topRight: Radius.circular(20),
                   ),
@@ -717,7 +721,7 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
                               _buildDetailRow('면적', '${quote.propertyArea} ㎡'),
                           ],
                         ),
-                        SizedBox(height: AppSpacing.lg + AppSpacing.xs),
+                        const SizedBox(height: AppSpacing.lg + AppSpacing.xs),
                       ],
                       
                       // 중개 제안
@@ -743,7 +747,7 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
                               _buildDetailRow('최근 유사 거래 사례', quote.recentCases!),
                           ],
                         ),
-                        SizedBox(height: AppSpacing.lg + AppSpacing.xs),
+                        const SizedBox(height: AppSpacing.lg + AppSpacing.xs),
                       ],
                       
                       // 공인중개사 답변
@@ -780,9 +784,9 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
               // 하단 버튼
               Container(
                 padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
+                decoration: const BoxDecoration(
                   color: AirbnbColors.surface,
-                  borderRadius: const BorderRadius.only(
+                  borderRadius: BorderRadius.only(
                     bottomLeft: Radius.circular(20),
                     bottomRight: Radius.circular(20),
                   ),
@@ -797,7 +801,7 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
                         },
                         style: OutlinedButton.styleFrom(
                           foregroundColor: AirbnbColors.primary,
-                          side: BorderSide(color: AirbnbColors.primary, width: 1.5),
+                          side: const BorderSide(color: AirbnbColors.primary, width: 1.5),
                           padding: const EdgeInsets.symmetric(vertical: 12),
                         ),
                         icon: const Icon(Icons.phone, size: 18),
@@ -856,7 +860,7 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
               ),
             ],
           ),
-          SizedBox(height: AppSpacing.md + AppSpacing.xs),
+          const SizedBox(height: AppSpacing.md + AppSpacing.xs),
           ...children,
         ],
       ),
@@ -989,7 +993,7 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
                 child: Center(
                   child: Container(
                     constraints: BoxConstraints(maxWidth: maxWidth),
-                    padding: EdgeInsets.symmetric(
+                    padding: const EdgeInsets.symmetric(
                       horizontal: 24,
                       vertical: 80, // 상단 여백
                     ),
@@ -1009,7 +1013,7 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
                             color: AirbnbColors.textPrimary,
                           ),
                         ),
-                        SizedBox(height: AppSpacing.lg),
+                        const SizedBox(height: AppSpacing.lg),
                         // 큰 서브헤드
                         Text(
                           '내집관리 현황을 확인하세요',
@@ -1076,11 +1080,11 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
                     ],
                 if (!isLoading && quotes.isNotEmpty) ...[
                   _buildStatusOverviewCard(),
-                  SizedBox(height: AppSpacing.md),
+                  const SizedBox(height: AppSpacing.md),
                 ],
                 if (!isLoading && (widget.userId == null || widget.userId!.isEmpty)) ...[
                       _buildGuestBanner(),
-                      SizedBox(height: AppSpacing.md),
+                      const SizedBox(height: AppSpacing.md),
                     ],
                     if (!isLoading && structuredQuotes.isNotEmpty) ...[
                       _buildComparisonTable(structuredQuotes),
@@ -1102,7 +1106,7 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
                     else
                       _buildQuoteList(),
                     
-                    SizedBox(height: AppSpacing.xl + AppSpacing.md),
+                    const SizedBox(height: AppSpacing.xl + AppSpacing.md),
                   ],
                 ),
               ),
@@ -1151,7 +1155,7 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
                     borderRadius: BorderRadius.circular(8),
                   ),
                 ),
-                SizedBox(height: AppSpacing.md + AppSpacing.xs),
+                const SizedBox(height: AppSpacing.md + AppSpacing.xs),
                 Container(
                   height: 14,
                   width: 220,
@@ -1160,7 +1164,7 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
                     borderRadius: BorderRadius.circular(8),
                   ),
                 ),
-                SizedBox(height: AppSpacing.md),
+                const SizedBox(height: AppSpacing.md),
                 Container(
                   height: 120,
                   decoration: BoxDecoration(
@@ -1201,7 +1205,7 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
                     AirbnbColors.primaryDark,
                   ),
                 ),
-                SizedBox(height: AppSpacing.xs + AppSpacing.xs / 2),
+                const SizedBox(height: AppSpacing.xs + AppSpacing.xs / 2),
                 Text(
                   '지금은 게스트 모드입니다. 손쉽게 로그인하고 알림/비교 기능을 끝까지 활용해보세요.',
                   style: AppTypography.withColor(
@@ -1209,7 +1213,7 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
                     AirbnbColors.textSecondary,
                   ),
                 ),
-                SizedBox(height: AppSpacing.md + AppSpacing.xs),
+                const SizedBox(height: AppSpacing.md + AppSpacing.xs),
                 Align(
                   alignment: Alignment.centerLeft,
                   child: ElevatedButton.icon(
@@ -1280,7 +1284,7 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
                 color: AirbnbColors.textPrimary,
               ),
             ),
-            SizedBox(height: AppSpacing.md + AppSpacing.xs),
+            const SizedBox(height: AppSpacing.md + AppSpacing.xs),
             Wrap(
               spacing: 12,
               runSpacing: 12,
@@ -1317,11 +1321,11 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
                 color: AirbnbColors.textPrimary,
               ),
             ),
-            SizedBox(height: AppSpacing.md + AppSpacing.xs),
+            const SizedBox(height: AppSpacing.md + AppSpacing.xs),
             SingleChildScrollView(
               scrollDirection: Axis.horizontal,
               child: DataTable(
-                headingRowColor: MaterialStateProperty.resolveWith(
+                headingRowColor: WidgetStateProperty.resolveWith(
                   (states) => AirbnbColors.primaryLight.withValues(alpha: 0.1),
                 ),
                 headingTextStyle: const TextStyle(
@@ -1545,7 +1549,7 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
                         children: [
                           Row(
                             children: [
-                              Icon(Icons.home, size: 16, color: AirbnbColors.textSecondary),
+                              const Icon(Icons.home, size: 16, color: AirbnbColors.textSecondary),
                               const SizedBox(width: 6),
                               Expanded(
                                 child: Text(
@@ -1756,7 +1760,7 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
                       ),
                     ],
                   ),
-                  SizedBox(height: AppSpacing.md + AppSpacing.xs),
+                  const SizedBox(height: AppSpacing.md + AppSpacing.xs),
                 ],
                 
                 // 거래기간 / 수수료 비교
@@ -1780,7 +1784,7 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
                       ),
                     ],
                   ),
-                  SizedBox(height: AppSpacing.md + AppSpacing.xs),
+                  const SizedBox(height: AppSpacing.md + AppSpacing.xs),
                 ],
                 
                 // 공인중개사 답변 (전체 텍스트 표시)
@@ -1817,7 +1821,7 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
                               const Spacer(),
                               Text(
                                 dateFormat.format(quote.answerDate!),
-                                style: TextStyle(
+                                style: const TextStyle(
                                   color: AirbnbColors.textSecondary,
                                 ),
                               ),
@@ -1862,7 +1866,7 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
                   ),
                 ],
                 
-                SizedBox(height: AppSpacing.md),
+                const SizedBox(height: AppSpacing.md),
                 // 1줄째: 중개사 상세 / 견적 상세 (둘 다 큰 버튼)
                 Row(
                   children: [
@@ -1958,7 +1962,7 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
                     ),
                   ),
                 ),
-                SizedBox(height: AppSpacing.md + AppSpacing.xs),
+                const SizedBox(height: AppSpacing.md + AppSpacing.xs),
                 Align(
                   alignment: Alignment.centerRight,
                   child: TextButton.icon(
@@ -1996,7 +2000,7 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
         children: [
           Text(
             label,
-            style: TextStyle(
+            style: const TextStyle(
               fontSize: 10,
               color: AirbnbColors.textSecondary,
               fontWeight: FontWeight.w600,
@@ -2137,7 +2141,7 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Icon(Icons.business, size: 16, color: AirbnbColors.textSecondary),
+                      const Icon(Icons.business, size: 16, color: AirbnbColors.textSecondary),
                       const SizedBox(width: 8),
                       Expanded(
                         child: Text(
@@ -2150,7 +2154,7 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
                       ),
                     ],
                   ),
-                  SizedBox(height: AppSpacing.md),
+                  const SizedBox(height: AppSpacing.md),
                 ],
                 
                 // ========== 기본정보 ==========
@@ -2178,7 +2182,7 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
                             ),
                           ],
                         ),
-                        SizedBox(height: AppSpacing.md + AppSpacing.xs),
+                        const SizedBox(height: AppSpacing.md + AppSpacing.xs),
                         if (quote.propertyType != null) ...[
                           _buildInfoRow('유형', quote.propertyType!),
                           const SizedBox(height: 8),
@@ -2192,7 +2196,7 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
                       ],
                     ),
                   ),
-                  SizedBox(height: AppSpacing.md),
+                  const SizedBox(height: AppSpacing.md),
                 ],
                 
                 // ========== 특이사항 ==========
@@ -2221,7 +2225,7 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
                             ),
                           ],
                         ),
-                        SizedBox(height: AppSpacing.md + AppSpacing.xs),
+                        const SizedBox(height: AppSpacing.md + AppSpacing.xs),
                         if (quote.hasTenant != null) ...[
                           _buildInfoRow('세입자', quote.hasTenant! ? '있음' : '없음'),
                           const SizedBox(height: 8),
@@ -2258,7 +2262,7 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
                       ],
                     ),
                   ),
-                  SizedBox(height: AppSpacing.md),
+                  const SizedBox(height: AppSpacing.md),
                 ],
                 
                 // ========== 중개 제안 (중개업자가 입력한 경우) ==========
@@ -2288,7 +2292,7 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
                             ),
                           ],
                         ),
-                        SizedBox(height: AppSpacing.md + AppSpacing.xs),
+                        const SizedBox(height: AppSpacing.md + AppSpacing.xs),
                         if (quote.recommendedPrice != null && quote.recommendedPrice!.isNotEmpty) ...[
                           _buildInfoRow('권장 거래가', quote.recommendedPrice!),
                           const SizedBox(height: 8),
@@ -2333,13 +2337,13 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
                       ],
                     ),
                   ),
-                  SizedBox(height: AppSpacing.md),
+                  const SizedBox(height: AppSpacing.md),
                 ],
                 
                 // ========== 공인중개사 답변 ==========
                 // 답변이 있거나 상태가 answered/completed인 경우 표시 (답변 데이터가 없어도 상태 확인)
                 if (quote.hasAnswer || quote.status == 'answered' || quote.status == 'completed') ...[
-                  SizedBox(height: AppSpacing.md),
+                  const SizedBox(height: AppSpacing.md),
                   Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
@@ -2383,7 +2387,7 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
                             ],
                           ],
                         ),
-                        SizedBox(height: AppSpacing.md + AppSpacing.xs),
+                        const SizedBox(height: AppSpacing.md + AppSpacing.xs),
                         Container(
                           width: double.infinity,
                           padding: const EdgeInsets.all(14),
@@ -2407,7 +2411,7 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
                                 )
                               : Column(
                                   children: [
-                                    Icon(Icons.hourglass_empty, size: 32, color: AirbnbColors.textLight),
+                                    const Icon(Icons.hourglass_empty, size: 32, color: AirbnbColors.textLight),
                                     const SizedBox(height: 8),
                                     Text(
                                       '답변 내용을 불러오는 중입니다...',
@@ -2425,7 +2429,7 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
                   ),
                 ],
                 
-                SizedBox(height: AppSpacing.md),
+                const SizedBox(height: AppSpacing.md),
                 Row(
                   children: [
                     Expanded(
@@ -2493,7 +2497,7 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
                 ),
                 const SizedBox(height: 8),
                 // 카드에서는 후기 작성 버튼 제거 (상세 페이지에서 통합 처리)
-                SizedBox(height: AppSpacing.md + AppSpacing.xs),
+                const SizedBox(height: AppSpacing.md + AppSpacing.xs),
                 Align(
                   alignment: Alignment.centerRight,
                   child: TextButton.icon(
@@ -2548,8 +2552,8 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
                 color: AirbnbColors.textPrimary,
               ),
             ),
-            SizedBox(height: AppSpacing.md + AppSpacing.xs),
-            Text(
+            const SizedBox(height: AppSpacing.md + AppSpacing.xs),
+            const Text(
               '공인중개사에게 문의를 보내보세요!',
               style: TextStyle(
                 fontSize: 15,
@@ -2598,8 +2602,8 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
                 color: AirbnbColors.textPrimary,
               ),
             ),
-            SizedBox(height: AppSpacing.md + AppSpacing.xs),
-            Text(
+            const SizedBox(height: AppSpacing.md + AppSpacing.xs),
+            const Text(
               '다른 필터를 선택해보세요.',
               style: TextStyle(
                 fontSize: 15,

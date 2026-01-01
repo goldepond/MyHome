@@ -188,7 +188,7 @@ class _HouseDetailPageState extends State<HouseDetailPage> {
         // 현재 위치 가져오기
         _currentPosition = await Geolocator.getCurrentPosition(
           desiredAccuracy: LocationAccuracy.high,
-          timeLimit: Duration(seconds: 10), // 10초 타임아웃
+          timeLimit: const Duration(seconds: 10), // 10초 타임아웃
         );
 
 
@@ -339,7 +339,7 @@ class _HouseDetailPageState extends State<HouseDetailPage> {
               Icons.my_location,
               AirbnbColors.success,
             ),
-            SizedBox(height: AppSpacing.md + AppSpacing.xs),
+            const SizedBox(height: AppSpacing.md + AppSpacing.xs),
             
             // 매물 위치 정보
             _buildLocationRow(
@@ -348,7 +348,7 @@ class _HouseDetailPageState extends State<HouseDetailPage> {
               Icons.home,
               AirbnbColors.warning,
             ),
-            SizedBox(height: AppSpacing.md + AppSpacing.xs),
+            const SizedBox(height: AppSpacing.md + AppSpacing.xs),
             
             // 거리 정보
             if (_distance != null) ...[
@@ -366,7 +366,7 @@ class _HouseDetailPageState extends State<HouseDetailPage> {
                 AirbnbColors.textSecondary,
               ),
             ],
-            SizedBox(height: AppSpacing.md + AppSpacing.xs),
+            const SizedBox(height: AppSpacing.md + AppSpacing.xs),
             
             // 대중교통 정보
             _buildTransportationInfo(),
@@ -398,7 +398,7 @@ class _HouseDetailPageState extends State<HouseDetailPage> {
                   color: color,
                 ),
               ),
-              SizedBox(height: AppSpacing.xs / 2),
+              const SizedBox(height: AppSpacing.xs / 2),
               Text(
                 value,
                 style: AppTypography.withColor(
@@ -435,8 +435,8 @@ class _HouseDetailPageState extends State<HouseDetailPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: const [
+          const Row(
+            children: [
               Icon(
                 Icons.directions_bus,
                 color: AirbnbColors.primary,
@@ -590,10 +590,10 @@ class _HouseDetailPageState extends State<HouseDetailPage> {
               ),
             ],
           ),
-          SizedBox(height: AppSpacing.xs),
+          const SizedBox(height: AppSpacing.xs),
           Row(
             children: [
-              Icon(
+              const Icon(
                 Icons.route,
                 size: 12,
                 color: AirbnbColors.textSecondary,
@@ -610,10 +610,10 @@ class _HouseDetailPageState extends State<HouseDetailPage> {
               ),
             ],
           ),
-          SizedBox(height: AppSpacing.xs / 2),
+          const SizedBox(height: AppSpacing.xs / 2),
           Row(
             children: [
-              Icon(
+              const Icon(
                 Icons.transfer_within_a_station,
                 size: 12,
                 color: AirbnbColors.textSecondary,
@@ -917,7 +917,7 @@ class _HouseDetailPageState extends State<HouseDetailPage> {
                         ),
                       ),
                     ),
-                    SizedBox(height: AppSpacing.md + AppSpacing.xs),
+                    const SizedBox(height: AppSpacing.md + AppSpacing.xs),
                   ],
                   
                   // 내 매물일 때 표시할 정보
@@ -945,7 +945,7 @@ class _HouseDetailPageState extends State<HouseDetailPage> {
                               AirbnbColors.primary,
                             ),
                           ),
-                          SizedBox(height: AppSpacing.xs),
+                          const SizedBox(height: AppSpacing.xs),
                           Text(
                             '이 매물은 내가 등록한 매물입니다',
                             style: TextStyle(
@@ -958,12 +958,12 @@ class _HouseDetailPageState extends State<HouseDetailPage> {
                     ),
                   ],
                   
-                    SizedBox(height: AppSpacing.lg),
+                    const SizedBox(height: AppSpacing.lg),
                   
                   // 상세 정보 섹션들
                   _buildDetailedPropertyInfo(isMyProperty),
                   
-                    SizedBox(height: AppSpacing.lg),
+                    const SizedBox(height: AppSpacing.lg),
                   
                   // 상세 정보 버튼들
                   Row(
@@ -1297,7 +1297,7 @@ class _HouseDetailPageState extends State<HouseDetailPage> {
         children: [
           Row(
             children: [
-              Icon(
+              const Icon(
                 Icons.account_balance_wallet,
                 color: AirbnbColors.primary,
                 size: 20,

@@ -108,14 +108,13 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
 
   @override
   Widget build(BuildContext context) {
-    return WillPopScope(
-      onWillPop: () async {
-        if (FocusScope.of(context).hasFocus) {
+    return PopScope(
+      canPop: true,
+      onPopInvokedWithResult: (didPop, result) async {
+        if (!didPop && FocusScope.of(context).hasFocus) {
           FocusScope.of(context).unfocus();
           await Future.delayed(const Duration(milliseconds: 100));
-          return false;
         }
-        return true;
       },
       child: GestureDetector(
         onTap: () => FocusScope.of(context).unfocus(),
@@ -148,7 +147,7 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Container(
-              padding: EdgeInsets.all(AppSpacing.lg + AppSpacing.xs),
+              padding: const EdgeInsets.all(AppSpacing.lg + AppSpacing.xs),
               decoration: CommonDesignSystem.cardDecoration(),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -171,7 +170,7 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
                       fillColor: AirbnbColors.textSecondary.withValues(alpha: 0.05),
                     ),
                   ),
-                  SizedBox(height: AppSpacing.md),
+                  const SizedBox(height: AppSpacing.md),
                   const Text(
                     '새 전화번호',
                     style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
@@ -191,7 +190,7 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
                       fillColor: AirbnbColors.textSecondary.withValues(alpha: 0.05),
                     ),
                   ),
-                  SizedBox(height: AppSpacing.md),
+                  const SizedBox(height: AppSpacing.md),
                   const Text(
                     '새 전화번호 확인',
                     style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
@@ -210,7 +209,7 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
                       fillColor: AirbnbColors.textSecondary.withValues(alpha: 0.05),
                     ),
                   ),
-                  SizedBox(height: AppSpacing.lg + AppSpacing.xs),
+                  const SizedBox(height: AppSpacing.lg + AppSpacing.xs),
                   SizedBox(
                     width: double.infinity,
                     height: 52,

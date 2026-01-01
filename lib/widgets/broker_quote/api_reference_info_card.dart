@@ -51,7 +51,7 @@ class ApiReferenceInfoCard extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 8),
-          Text(
+          const Text(
             '주소 검색 시 API로 불러온 정보입니다. 답변 작성 시 참고하세요.',
             style: TextStyle(
               fontSize: 13,
@@ -218,10 +218,10 @@ class ApiReferenceInfoCard extends StatelessWidget {
                   color: AirbnbColors.textSecondary.withValues(alpha: 0.05),
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: Row(
+                child: const Row(
                   children: [
                     Icon(Icons.info_outline, color: AirbnbColors.textSecondary, size: 20),
-                    const SizedBox(width: 8),
+                    SizedBox(width: 8),
                     Expanded(
                       child: Text(
                         'API 정보를 불러올 수 없습니다.\n주소 정보를 확인해주세요.',
@@ -284,7 +284,7 @@ class ApiReferenceInfoCard extends StatelessWidget {
             width: 100,
             child: Text(
               label,
-              style: TextStyle(
+              style: const TextStyle(
                 fontSize: 13,
                 color: AirbnbColors.textSecondary,
                 fontWeight: FontWeight.w600,

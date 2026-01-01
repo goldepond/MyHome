@@ -35,8 +35,8 @@ class SelectedQuoteCard extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Row(
-                children: const [
+              const Row(
+                children: [
                   Icon(Icons.check_circle, color: AirbnbColors.success, size: 28),
                   SizedBox(width: 12),
                   Expanded(
@@ -124,9 +124,9 @@ class SelectedQuoteCard extends StatelessWidget {
   }) {
     return Row(
       children: [
-        Icon(Icons.phone, size: 20, color: AirbnbColors.textSecondary),
+        const Icon(Icons.phone, size: 20, color: AirbnbColors.textSecondary),
         const SizedBox(width: 12),
-        Text(
+        const Text(
           '휴대폰',
           style: TextStyle(
             fontSize: 14,
@@ -182,7 +182,7 @@ class SelectedQuoteCard extends StatelessWidget {
         const SizedBox(width: 12),
         Text(
           label,
-          style: TextStyle(
+          style: const TextStyle(
             fontSize: 14,
             fontWeight: FontWeight.bold,
             color: AirbnbColors.textSecondary,

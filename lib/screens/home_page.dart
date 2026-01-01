@@ -1,11 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
-import 'dart:async';
 import 'dart:convert';
 import 'package:property/constants/app_constants.dart';
 import 'package:property/constants/typography.dart';
 import 'package:property/constants/spacing.dart';
-import 'package:property/widgets/common_design_system.dart';
 import 'package:property/api_request/address_service.dart';
 import 'package:property/api_request/firebase_service.dart'; // FirebaseService import
 import 'package:property/api_request/vworld_service.dart'; // VWorld API 서비스 추가
@@ -21,6 +19,7 @@ import 'package:property/widgets/loading_overlay.dart';
 import 'package:property/api_request/apt_info_service.dart';
 import 'package:property/widgets/retry_view.dart';
 import 'package:property/utils/logger.dart';
+import 'package:property/widgets/address_search/address_search_tabs.dart';
 
 class HomePage extends StatefulWidget {
   final String userId;
@@ -34,13 +33,7 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   final FirebaseService _firebaseService = FirebaseService();
 
-  final TextEditingController _controller = TextEditingController();
   final TextEditingController _detailController = TextEditingController();
-  String queryAddress = '';
-  bool isSearchingRoadAddr = false;
-
-  List<Map<String,String>> fullAddrAPIDataList = [];
-  List<String> roadAddressList = [];
 
   Map<String,String> selectedFullAddrAPIData = {};
   String selectedRoadAddress = '';
@@ -48,12 +41,6 @@ class _HomePageState extends State<HomePage> {
   String selectedFullAddress = '';
 
   bool isRegisterLoading = false;
-  String? addressSearchMessage;
-  bool addressSearchMessageIsWarning = false;
-  
-  // 주소 검색 디바운싱 관련
-  Timer? _addressSearchDebounceTimer;
-  String? _lastSearchKeyword;
   Map<String, dynamic>? registerResult;
   String? registerError;
   String? ownerMismatchError;
@@ -63,9 +50,6 @@ class _HomePageState extends State<HomePage> {
   // 부동산 목록
   List<Map<String, dynamic>> estates = [];
 
-  // 페이지네이션 관련 변수
-  int currentPage = 1;
-  int totalCount = 0;
 
   // 주소 파싱 관련 변수
   Map<String, String> parsedAddress1st = {};
@@ -82,6 +66,9 @@ class _HomePageState extends State<HomePage> {
   bool isLoadingAptInfo = false;            // 단지코드 조회 중
   String? kaptCodeStatusMessage;            // 단지코드 조회 상태 메시지
   String? _currentAptInfoRequestKey;
+  
+  // 선택된 반경 (미터 단위, GPS/주소 입력 탭에서 설정)
+  double? selectedRadiusMeters;
 
   @override
   void initState() {
@@ -109,6 +96,7 @@ class _HomePageState extends State<HomePage> {
     }
 
     if (vworldCoordinates == null) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(vworldError ?? '위치 정보를 불러오지 못했습니다. 잠시 후 다시 시도해주세요.'),
@@ -122,6 +110,7 @@ class _HomePageState extends State<HomePage> {
     final lon = double.tryParse(vworldCoordinates!['x'].toString());
 
     if (lat == null || lon == null) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('좌표 정보가 올바르지 않습니다.'),
@@ -152,6 +141,7 @@ class _HomePageState extends State<HomePage> {
           address: selectedFullAddress,
           latitude: lat,
           longitude: lon,
+          radiusMeters: selectedRadiusMeters ?? 1000.0, // 선택된 반경 전달 (기본값 1km)
           userName: widget.userName,
           userId: widget.userId,
           propertyArea: null,
@@ -509,108 +499,6 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-  // 도로명 주소 검색 함수 (AddressService 사용)
-  Future<void> searchRoadAddress(String keyword, {int page = 1, bool skipDebounce = false}) async {
-    // 디바운싱 (페이지네이션은 제외)
-    if (!skipDebounce && page == 1) {
-      // 중복 요청 방지
-      if (_lastSearchKeyword == keyword.trim() && isSearchingRoadAddr) {
-        return;
-      }
-      
-      // 이전 타이머 취소
-      _addressSearchDebounceTimer?.cancel();
-      
-      // 디바운싱 적용
-      _lastSearchKeyword = keyword.trim();
-      _addressSearchDebounceTimer = Timer(const Duration(milliseconds: 500), () {
-        _performAddressSearch(keyword, page: page);
-      });
-      return;
-    }
-    
-    // 페이지네이션이나 즉시 검색이 필요한 경우 바로 실행
-    await _performAddressSearch(keyword, page: page);
-  }
-  
-  // 실제 주소 검색 수행
-  Future<void> _performAddressSearch(String keyword, {int page = 1}) async {
-    setState(() {
-      isSearchingRoadAddr = true;
-      selectedRoadAddress = '';
-      roadAddressList = [];
-      if (page == 1) currentPage = 1;
-    });
-
-    AnalyticsService.instance.logEvent(
-      AnalyticsEventNames.addressSearchStarted,
-      params: {
-        'keyword': keyword,
-        'page': page,
-      },
-      userId: widget.userId.isNotEmpty ? widget.userId : null,
-      userName: widget.userName.isNotEmpty ? widget.userName : null,
-      stage: FunnelStage.addressSearch,
-    );
-
-    try {
-      final AddressSearchResult result = await AddressService().searchRoadAddress(keyword, page: page);
-
-      AnalyticsService.instance.logEvent(
-        AnalyticsEventNames.addressSearchCompleted,
-        params: {
-          'keyword': keyword,
-          'page': page,
-          'resultsCount': result.addresses.length,
-          'totalCount': result.totalCount,
-          'error': result.errorMessage,
-        },
-        userId: widget.userId.isNotEmpty ? widget.userId : null,
-        userName: widget.userName.isNotEmpty ? widget.userName : null,
-        stage: FunnelStage.addressSearch,
-      );
-
-      setState(() {
-        fullAddrAPIDataList = result.fullData;
-        roadAddressList = result.addresses;
-        totalCount = result.totalCount;
-        currentPage = page;
-
-        selectedFullAddrAPIData = {};
-        selectedRoadAddress = '';
-        selectedDetailAddress = '';
-        selectedFullAddress = '';
-
-        kaptCode = null;
-        aptInfo = null;
-        kaptCodeStatusMessage = null;
-
-        hasAttemptedSearch = false;
-        registerResult = null;
-        registerError = null;
-        ownerMismatchError = null;
-        vworldCoordinates = null;
-        vworldError = null;
-        isVWorldLoading = false;
-
-        if (result.errorMessage != null) {
-          addressSearchMessage = result.errorMessage;
-          addressSearchMessageIsWarning = true;
-        } else if (roadAddressList.isNotEmpty) {
-          addressSearchMessage = '검색 결과에서 주소를 선택해주세요.';
-          addressSearchMessageIsWarning = false;
-        } else {
-          addressSearchMessage = '검색 결과가 없습니다.';
-          addressSearchMessageIsWarning = true;
-        }
-      });
-    } finally {
-      setState(() {
-        isSearchingRoadAddr = false;
-      });
-    }
-  }
-  
   /// 주소에서 단지코드 정보 자동 조회
   Future<void> _loadAptInfoFromAddress(String address, {Map<String, String>? fullAddrAPIData}) async {
     if (address.isEmpty) {
@@ -794,7 +682,6 @@ class _HomePageState extends State<HomePage> {
       //     registerError = '등기부등본 조회에 실패했습니다. 주소를 다시 확인해주세요.';
       //   });
       // }
-    } catch (e) {
     } finally {
       setState(() {
         isRegisterLoading = false;
@@ -806,9 +693,7 @@ class _HomePageState extends State<HomePage> {
 
   @override
   void dispose() {
-    _controller.dispose();
     _detailController.dispose();
-    _addressSearchDebounceTimer?.cancel();
     super.dispose();
   }
 
@@ -816,14 +701,13 @@ class _HomePageState extends State<HomePage> {
   Widget build(BuildContext context) {
     final isLoggedIn = widget.userName.isNotEmpty;
     
-    return WillPopScope(
-      onWillPop: () async {
-        if (FocusScope.of(context).hasFocus) {
+    return PopScope(
+      canPop: true,
+      onPopInvokedWithResult: (didPop, result) async {
+        if (!didPop && FocusScope.of(context).hasFocus) {
           FocusScope.of(context).unfocus();
           await Future.delayed(const Duration(milliseconds: 100));
-          return false;
         }
-        return true;
       },
       child: GestureDetector(
         onTap: () => FocusScope.of(context).unfocus(),
@@ -838,141 +722,108 @@ class _HomePageState extends State<HomePage> {
         backgroundColor: AirbnbColors.background,
           resizeToAvoidBottomInset: true,
         body: SafeArea(
-          child: SingleChildScrollView(
-            physics: const AlwaysScrollableScrollPhysics(),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: [
-              // 상단 타이틀 섹션 (검색창 통합)
-              HeroBanner(
-                searchController: _controller,
-                onSearchChanged: (val) {
-                  setState(() => queryAddress = val);
-                  // 자동 검색 (디바운싱은 searchRoadAddress 함수 내부에서 처리됨)
-                  if (val.trim().isNotEmpty) {
-                    searchRoadAddress(val.trim(), page: 1);
-                  }
-                },
-                onSearchSubmitted: () {
-                  if (_controller.text.trim().isNotEmpty) {
-                    searchRoadAddress(_controller.text.trim(), page: 1);
-                  }
-                },
-              ),
-              SizedBox(height: AppSpacing.xl), // 32px - 주요 섹션 전환 (에어비엔비 스타일)
-              if (isSearchingRoadAddr)
-                const Padding(
-                  padding: EdgeInsets.all(20.0),
-                  child: CircularProgressIndicator(
-                    valueColor: const AlwaysStoppedAnimation<Color>(AirbnbColors.primary),
-                  ),
-                ),
-              if (roadAddressList.isNotEmpty)
-                RoadAddressList(
-                  fullAddrAPIDatas: fullAddrAPIDataList,
-                  addresses: roadAddressList,
-                  selectedAddress: selectedRoadAddress, // why?
-                  onSelect: (fullData, displayAddr) async {
-                    final roadAddr = (fullData['roadAddr'] ?? '').trim();
-                    final jibunAddr = (fullData['jibunAddr'] ?? '').trim();
-                    final cleanAddress = roadAddr.isNotEmpty ? roadAddr : jibunAddr;
-
-                    AnalyticsService.instance.logEvent(
-                      AnalyticsEventNames.addressSelected,
-                      params: {
-                        'address': cleanAddress,
-                        'hasBuildingName': (fullData['bdNm'] ?? '').trim().isNotEmpty,
-                        'roadCode': fullData['rnMgtSn'],
-                        'bjdCode': fullData['admCd'],
-                      },
-                      userId: widget.userId.isNotEmpty ? widget.userId : null,
-                      userName: widget.userName.isNotEmpty ? widget.userName : null,
-                      stage: FunnelStage.addressSearch,
-                    );
-
-                    setState(() {
-                      selectedFullAddrAPIData = fullData;
-                      selectedRoadAddress = displayAddr;
-                      selectedDetailAddress = '';
-                      selectedFullAddress = cleanAddress;
-                      _detailController.clear();
-                      parsedAddress1st = AddressUtils.parseAddress1st(cleanAddress);
-                      parsedDetail = {};
-                      // 상태 초기화 후, 상세주소 입력 시에만 단지 정보 조회
-                      hasAttemptedSearch = true;
-                      registerResult = null;
-                      registerError = null;
-                      ownerMismatchError = null;
-                      vworldCoordinates = null;
-                      vworldError = null;
-                      isVWorldLoading = false;
-                      addressSearchMessage = null;
-                      addressSearchMessageIsWarning = false;
-                      kaptCodeStatusMessage = null;
-                      // 단지 정보 초기화 (상세주소 입력 시에만 조회)
-                      aptInfo = null;
-                      kaptCode = null;
-                      
-                    });
-                    
-                    // 주소 선택 시 좌표만 조회 (단지 정보는 상세주소 입력 시 조회)
-                    _loadVWorldData(
-                      cleanAddress,
-                      fullAddrAPIData: fullData.isNotEmpty ? fullData : null,
-                    );
-                  },
-                ),
-              if (totalCount > ApiConstants.pageSize)
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
+          child: LayoutBuilder(
+            builder: (context, constraints) {
+              // 화면 높이에 따라 레이아웃 조정
+              final screenHeight = constraints.maxHeight;
+              final isSmallScreen = screenHeight < 600;
+              
+              return SingleChildScrollView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    if (currentPage > 1)
-                      Flexible(
-                        child: AccessibleWidget.textButton(
-                          label: '이전',
-                          semanticLabel: '이전 페이지로 이동',
-                          onPressed: () {
-                            searchRoadAddress(
-                              queryAddress.isNotEmpty ? queryAddress : _controller.text,
-                              page: currentPage - 1,
-                              skipDebounce: true,
-                            );
-                          },
-                        ),
+                    // 상단 타이틀 섹션
+                    const HeroBanner(
+                      showSearchBar: false,
+                    ),
+                    const SizedBox(height: AppSpacing.lg), // 24px - 주요 섹션 전환
+                    
+                    // 주소 검색 탭 (반응형 높이)
+                    ConstrainedBox(
+                      constraints: BoxConstraints(
+                        minHeight: isSmallScreen ? 1000 : 1000, // GPS 검색 탭의 모든 콘텐츠가 표시되도록 충분한 높이
                       ),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md), // 16px
-                      child: Text(
-                        '페이지 $currentPage / ${((totalCount - 1) ~/ ApiConstants.pageSize) + 1}',
-                        style: const TextStyle(
-                          color: AirbnbColors.primary,
-                          fontWeight: FontWeight.w600,
-                        ),
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+                        child: AddressSearchTabs(
+                    onAddressSelected: (result) async {
+                      final cleanAddress = result.address;
+
+                      // Analytics 이벤트 로깅
+                      AnalyticsService.instance.logEvent(
+                        AnalyticsEventNames.addressSelected,
+                        params: {
+                          'address': cleanAddress,
+                          'hasBuildingName': (result.fullAddrAPIData?['bdNm'] ?? '').trim().isNotEmpty,
+                          'roadCode': result.fullAddrAPIData?['rnMgtSn'],
+                          'bjdCode': result.fullAddrAPIData?['admCd'],
+                          'searchType': result.latitude != null ? 'gps' : 'input',
+                        },
+                        userId: widget.userId.isNotEmpty ? widget.userId : null,
+                        userName: widget.userName.isNotEmpty ? widget.userName : null,
+                        stage: FunnelStage.addressSearch,
+                      );
+
+                      setState(() {
+                        if (result.fullAddrAPIData != null) {
+                          selectedFullAddrAPIData = result.fullAddrAPIData!;
+                        }
+                        selectedRoadAddress = cleanAddress;
+                        selectedDetailAddress = '';
+                        selectedFullAddress = cleanAddress;
+                        selectedRadiusMeters = result.radiusMeters; // 선택된 반경 저장
+                        _detailController.clear();
+                        parsedAddress1st = AddressUtils.parseAddress1st(cleanAddress);
+                        parsedDetail = {};
+                        // 상태 초기화 후, 상세주소 입력 시에만 단지 정보 조회
+                        hasAttemptedSearch = true;
+                        registerResult = null;
+                        registerError = null;
+                        ownerMismatchError = null;
+                        kaptCodeStatusMessage = null;
+                        // 단지 정보 초기화 (상세주소 입력 시에만 조회)
+                        aptInfo = null;
+                        kaptCode = null;
+                      });
+
+                      // 좌표가 이미 있는 경우 (GPS 기반 검색)
+                      if (result.latitude != null && result.longitude != null) {
+                        setState(() {
+                          vworldCoordinates = {
+                            'x': result.longitude.toString(),
+                            'y': result.latitude.toString(),
+                          };
+                          vworldError = null;
+                          isVWorldLoading = false;
+                        });
+                      } else {
+                        // 좌표가 없는 경우 (주소 입력 검색) - 좌표 조회
+                        await _loadVWorldData(
+                          cleanAddress,
+                          fullAddrAPIData: result.fullAddrAPIData?.isNotEmpty == true
+                              ? result.fullAddrAPIData
+                              : null,
+                        );
+                      }
+                        },
                       ),
                     ),
-                    if (currentPage * ApiConstants.pageSize < totalCount)
-                      Flexible(
-                        child: AccessibleWidget.textButton(
-                          label: '다음',
-                          semanticLabel: '다음 페이지로 이동',
-                          onPressed: () {
-                            searchRoadAddress(
-                              queryAddress.isNotEmpty ? queryAddress : _controller.text,
-                              page: currentPage + 1,
-                              skipDebounce: true,
-                            );
-                          },
-                        ),
-                      ),
-                  ],
-                ),
+                    ),
+                    const SizedBox(height: AppSpacing.xl),
+                    
+                    // 선택된 주소 및 기타 콘텐츠
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
               if (selectedRoadAddress.isNotEmpty && !selectedRoadAddress.startsWith('API 오류') && !selectedRoadAddress.startsWith('검색 결과 없음')) ...[
                 // 선택된 주소 표시 - 에어비앤비 스타일 강화
                 Center(
                   child: Container(
                     constraints: const BoxConstraints(maxWidth: 900),
-                    margin: EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.md),  // 24px, 16px (에어비엔비 스타일)
-                    padding: EdgeInsets.all(AppSpacing.lg + AppSpacing.xs),  // 24px (더 여유로운 패딩)
+                    margin: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.md),  // 24px, 16px (에어비엔비 스타일)
+                    padding: const EdgeInsets.all(AppSpacing.lg + AppSpacing.xs),  // 24px (더 여유로운 패딩)
                     decoration: BoxDecoration(
                       color: AirbnbColors.surface,  // primaryDark.withValues(alpha: 0.08) → surface (더 깔끔한 회색)
                       borderRadius: BorderRadius.circular(12),
@@ -997,12 +848,12 @@ class _HomePageState extends State<HomePage> {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Icon(
+                            const Icon(
                               Icons.check_circle_rounded,  // check_circle → check_circle_rounded
                               color: AirbnbColors.primary,  // primaryDark → primary (더 밝게)
                               size: 22,  // 20 → 22
                             ),
-                            SizedBox(width: AppSpacing.sm),  // md → sm (더 컴팩트하게)
+                            const SizedBox(width: AppSpacing.sm),  // md → sm (더 컴팩트하게)
                             Text(
                               '선택된 주소',
                               style: AppTypography.withColor(
@@ -1015,7 +866,7 @@ class _HomePageState extends State<HomePage> {
                             ),
                           ],
                         ),
-                        SizedBox(height: AppSpacing.sm),  // xs → sm (더 여유롭게)
+                        const SizedBox(height: AppSpacing.sm),  // xs → sm (더 여유롭게)
                         // 선택된 주소 텍스트
                         Text(
                           selectedFullAddress,
@@ -1062,7 +913,7 @@ class _HomePageState extends State<HomePage> {
                   ),
                 ),
                 
-                SizedBox(height: AppSpacing.md), // 16px
+                const SizedBox(height: AppSpacing.md), // 16px
                 
                 // 공동주택 단지 정보 (주소 선택 후 자동으로 표시)
                 if (hasAttemptedSearch)
@@ -1099,7 +950,7 @@ class _HomePageState extends State<HomePage> {
                                     height: 24,
                                     child: CircularProgressIndicator(strokeWidth: 2),
                                   ),
-                                  SizedBox(width: AppSpacing.md), // 16px
+                                  const SizedBox(width: AppSpacing.md), // 16px
                                   Text(
                                     '공동주택 단지 정보 조회 중...',
                                     style: AppTypography.withColor(
@@ -1135,7 +986,7 @@ class _HomePageState extends State<HomePage> {
               // 등기부등본 조회 오류 표시
               if (registerError != null)
                 Padding(
-                  padding: EdgeInsets.symmetric(horizontal: AppSpacing.md),
+                  padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
                   child: RetryView(
                     message: registerError!,
                     onRetry: () {
@@ -1173,7 +1024,7 @@ class _HomePageState extends State<HomePage> {
                           color: AirbnbColors.warning.withValues(alpha: 0.6),
                           size: 24,
                         ),
-                        SizedBox(width: AppSpacing.md), // 16px
+                        const SizedBox(width: AppSpacing.md), // 16px
                         Expanded(
                           child: Text(
                             ownerMismatchError!,
@@ -1243,18 +1094,22 @@ class _HomePageState extends State<HomePage> {
               if (hasAttemptedSearch &&
                   selectedFullAddress.isNotEmpty &&
                   !(isLoggedIn && registerResult != null))
-                SizedBox(height: AppSpacing.xxl), // 48px (버튼 높이 56px 고려하여 조정)
+                const SizedBox(height: AppSpacing.xxl), // 48px (버튼 높이 56px 고려하여 조정)
 
               _buildRegisterResultCard(isLoggedIn),
               
               // 웹 전용 푸터 여백 (영상 촬영용)
-              if (kIsWeb) SizedBox(height: AppSpacing.xxxl * 9.375), // 특수 케이스 유지 (600px)
-            ],
-            ),
-          ),
-            ),
+              if (kIsWeb) const SizedBox(height: AppSpacing.xxxl * 9.375), // 특수 케이스 유지 (600px)
+                    ],
+                  ),
+                ],
+              ),
+            );
+            },
           ),
         ),
+      ),
+      ),
       ),
     );
   }
@@ -1299,7 +1154,7 @@ class _HomePageState extends State<HomePage> {
                     AirbnbColors.textSecondary,
                   ),
                 ),
-                SizedBox(height: AppSpacing.xs), // 4px
+                const SizedBox(height: AppSpacing.xs), // 4px
                 Text(
                   content,
                   style: AppTypography.withColor(
@@ -1367,7 +1222,7 @@ class _HomePageState extends State<HomePage> {
                         size: 24,
                       ),
                     ),
-                    SizedBox(width: AppSpacing.md), // 16px
+                    const SizedBox(width: AppSpacing.md), // 16px
                     Expanded(
                       child: Text(
                         '등기부등본 조회 결과',
@@ -1391,7 +1246,7 @@ class _HomePageState extends State<HomePage> {
                       content: selectedFullAddress,
                       iconColor: AirbnbColors.primary,
                     ),
-                    SizedBox(height: AppSpacing.md), // 16px
+                    const SizedBox(height: AppSpacing.md), // 16px
                     _buildInfoCard(
                       icon: Icons.person,
                       title: '계약자',
@@ -1405,7 +1260,7 @@ class _HomePageState extends State<HomePage> {
                 padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg), // 24px
                 child: _buildRegisterSummaryFromSummaryJson(),
               ),
-              SizedBox(height: AppSpacing.lg), // 24px
+              const SizedBox(height: AppSpacing.lg), // 24px
               if (selectedFullAddress.isNotEmpty)
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
@@ -1441,7 +1296,7 @@ class _HomePageState extends State<HomePage> {
                   ),
                 ),
               if (selectedFullAddress.isNotEmpty)
-                SizedBox(height: AppSpacing.xxl), // 48px (56px → 48px로 조정)
+                const SizedBox(height: AppSpacing.xxl), // 48px (56px → 48px로 조정)
             ],
           ),
         ),
@@ -1479,7 +1334,7 @@ class _HomePageState extends State<HomePage> {
             child: Row(
               children: [
                 Icon(icon, color: iconColor, size: 18),
-                SizedBox(width: AppSpacing.sm), // 8px
+                const SizedBox(width: AppSpacing.sm), // 8px
                 Text(
                   title,
                   style: AppTypography.withColor(
@@ -1491,7 +1346,7 @@ class _HomePageState extends State<HomePage> {
             ),
           ),
           // 구분선
-          Divider(height: 1, color: AirbnbColors.borderLight),
+          const Divider(height: 1, color: AirbnbColors.borderLight),
           // 내용
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.sm), // 16px, 8px
@@ -1520,7 +1375,7 @@ class _HomePageState extends State<HomePage> {
               softWrap: true,
             ),
           ),
-          SizedBox(width: AppSpacing.md), // 16px
+          const SizedBox(width: AppSpacing.md), // 16px
           Flexible(
             flex: 3,
             child: Text(
@@ -1872,7 +1727,7 @@ class _HomePageState extends State<HomePage> {
                 _buildDetailRow('건물 구조', building.structure),
                 _buildDetailRow('건물 전체면적', building.areaTotal),
                 if (building.floors.isNotEmpty) ...[
-                  SizedBox(height: AppSpacing.md), // 16px
+                  const SizedBox(height: AppSpacing.md), // 16px
                   Text(
                     '층별 면적',
                     style: AppTypography.withColor(
@@ -1880,9 +1735,9 @@ class _HomePageState extends State<HomePage> {
                       AirbnbColors.textSecondary,
                     ),
                   ),
-                  SizedBox(height: AppSpacing.sm), // 8px
+                  const SizedBox(height: AppSpacing.sm), // 8px
                   ...building.floors.map((f) => Padding(
-                    padding: EdgeInsets.symmetric(vertical: AppSpacing.xs),
+                    padding: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
                             child: Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
@@ -1924,7 +1779,7 @@ class _HomePageState extends State<HomePage> {
                       _buildDetailRow('내용', l.mainText),
                       _buildDetailRow('접수일', l.receipt),
                       if (liens.indexOf(l) != liens.length - 1)
-                        Padding(
+                        const Padding(
                           padding: EdgeInsets.symmetric(vertical: AppSpacing.sm),
                           child: Divider(color: AirbnbColors.border),
                         ),
@@ -1948,205 +1803,6 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-}
-
-/// 도로명 주소 검색 결과 리스트 위젯
-class RoadAddressList extends StatelessWidget {
-  final List<Map<String, String>> fullAddrAPIDatas;
-  final List<String> addresses;
-  final String selectedAddress;
-  final void Function(Map<String, String>, String) onSelect;
-
-  const RoadAddressList(
-      {required this.fullAddrAPIDatas, required this.addresses, required this.selectedAddress, required this.onSelect, super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    final isMobile = MediaQuery
-        .of(context)
-        .size
-        .width < 600;
-    final horizontalMargin = isMobile ? 16.0 : 40.0;
-    final itemPadding = isMobile ? 14.0 : 12.0;
-    final fontSize = isMobile ? 17.0 : 15.0;
-    // 18pt 이상인 경우 배경 사용, 미만인 경우 테두리/아이콘 강조
-    final isLargeText = fontSize >= 18.0;
-
-    List<Widget> listItems = [];
-    for (int i = 0; i < addresses.length; i++) {
-      final addr = addresses[i];
-      final fullData = fullAddrAPIDatas[i];
-      final isSelected = selectedAddress.trim() == addr.trim();
-      
-      // 선택된 항목의 스타일 결정: 큰 텍스트는 배경, 작은 텍스트는 테두리/아이콘 강조
-      final selectedBackgroundColor = isSelected && isLargeText 
-          ? AirbnbColors.primaryDark  // 18pt 이상: 더 진한 보라색 배경
-          : (isSelected && !isLargeText 
-              ? AirbnbColors.primaryDark.withValues(alpha: 0.08)  // 18pt 미만: 연한 배경
-              : AirbnbColors.background);
-      final selectedBorderColor = isSelected 
-          ? AirbnbColors.primaryDark  // 선택된 항목: 더 진한 보라색 테두리
-          : AirbnbColors.border;
-      final selectedBorderWidth = isSelected ? (isLargeText ? 1.0 : 2.0) : 1.0;  // 작은 텍스트는 테두리 두껍게
-      final selectedTextColor = isSelected && isLargeText
-          ? AirbnbColors.background  // 큰 텍스트: 흰색
-          : (isSelected && !isLargeText
-              ? AirbnbColors.primaryDark  // 작은 텍스트: 보라색
-              : AirbnbColors.textPrimary);
-      
-      listItems.add(
-        Material(
-          color: Colors.transparent,
-          child: Semantics(
-            label: '주소 선택: $addr',
-            button: true,
-            child: InkWell(
-              borderRadius: BorderRadius.circular(12),
-              onTap: () => onSelect(fullData, addr),
-              child: Container(
-              width: double.infinity,
-              margin: const EdgeInsets.symmetric(vertical: AppSpacing.xs), // 4px
-              padding: EdgeInsets.symmetric(
-                  vertical: itemPadding, horizontal: AppSpacing.lg), // 24px (18px → 24px)
-              decoration: BoxDecoration(
-                color: selectedBackgroundColor,
-                borderRadius: const BorderRadius.all(Radius.circular(12)),
-                border: Border.all(
-                  color: selectedBorderColor,
-                  width: selectedBorderWidth,
-                ),
-                // 선택된 항목에 더 부드러운 그림자 적용 (에어비앤비 스타일)
-                boxShadow: isSelected
-                    ? [
-                  BoxShadow(
-                    color: AirbnbColors.primaryDark.withValues(alpha: 0.2),  // 0.3 → 0.2 (더 부드럽게)
-                    blurRadius: 12,  // 8 → 12 (더 부드러운 그림자)
-                    offset: const Offset(0, 2),
-                    spreadRadius: 0,
-                  ),
-                ]
-                    : [
-                  // 선택되지 않은 항목에도 미세한 그림자 추가 (깊이감)
-                  BoxShadow(
-                    color: AirbnbColors.textPrimary.withValues(alpha: 0.04),
-                    blurRadius: 4,
-                    offset: const Offset(0, 1),
-                    spreadRadius: 0,
-                  ),
-                ],
-              ),
-              child: Row(
-                children: [
-                  // 선택된 항목 체크 아이콘 - 더 명확한 시각적 피드백
-                  if (isSelected) Icon(
-                      Icons.check_circle_rounded,  // rounded 스타일로 통일성 강화
-                      color: isLargeText 
-                          ? AirbnbColors.background  // 보라색 배경 위: 흰색
-                          : AirbnbColors.primaryDark,  // 연한 배경 위: 보라색
-                      size: 22),  // 20 → 22로 약간 크게
-                  if (isSelected) SizedBox(width: AppSpacing.md),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          addr.split('\n').first,
-                          style: TextStyle(
-                            color: selectedTextColor,
-                            fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
-                            fontSize: fontSize,
-                          ),
-                        ),
-                        if (addr.contains('\n'))
-                          Padding(
-                            padding: EdgeInsets.only(top: AppSpacing.xs),
-                            child: Text(
-                              addr.split('\n').skip(1).join('\n'),
-                              style: TextStyle(
-                                // 보라색 배경 위에서는 완전한 흰색으로 가독성 극대화
-                                color: isSelected && isLargeText
-                                    ? AirbnbColors.background  // 완전한 흰색 (alpha 제거)
-                                    : (isSelected && !isLargeText
-                                        ? AirbnbColors.primaryDark.withValues(alpha: 0.8)  // 약간 더 진하게
-                                        : AirbnbColors.textSecondary),
-                                fontWeight: FontWeight.w500,
-                                fontSize: fontSize - 2,
-                                height: 1.3,  // 1.25 → 1.3으로 가독성 개선
-                              ),
-                            ),
-                          ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            ),
-          ),
-        ),
-      );
-    }
-
-    return Center(
-      child: Container(
-        constraints: const BoxConstraints(maxWidth: 900),
-        margin: EdgeInsets.symmetric(horizontal: horizontalMargin, vertical: AppSpacing.md), // 16px
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-          // 검색 결과 헤더 - 에어비앤비 스타일 강화
-          Container(
-            decoration: BoxDecoration(
-              color: AirbnbColors.surface,  // background → surface로 변경 (더 부드러운 회색)
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: AirbnbColors.borderLight,  // 더 연한 테두리
-                width: 1,
-              ),
-            ),
-            child: Row(
-              children: [
-                // 아이콘 영역 - 더 명확한 시각적 구분
-                Container(
-                  padding: const EdgeInsets.all(AppSpacing.md),
-                  decoration: BoxDecoration(
-                    color: AirbnbColors.primary.withValues(alpha: 0.1),  // 0.08 → 0.1로 약간 진하게
-                    borderRadius: const BorderRadius.horizontal(left: Radius.circular(12)),
-                  ),
-                  child: const Icon(
-                    Icons.location_on_outlined,  // outlined 스타일로 통일성 강화
-                    color: AirbnbColors.primary,
-                    size: 22,  // 20 → 22로 약간 크게
-                  ),
-                ),
-                Expanded(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: AppSpacing.md,
-                      vertical: AppSpacing.md,  // lg → md로 조정 (더 컴팩트하게)
-                    ),
-                    child: Text(
-                      '검색 결과 ${addresses.length}건',
-                      style: AppTypography.withColor(
-                        AppTypography.body.copyWith(
-                          fontWeight: FontWeight.w600,  // w700 → w600 (더 부드럽게)
-                          letterSpacing: -0.15,  // -0.2 → -0.15
-                        ),
-                        AirbnbColors.textPrimary,  // primary → textPrimary (더 자연스럽게)
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-                    SizedBox(height: AppSpacing.md), // 16px
-          ...listItems,
-        ],
-      ),
-      ),
-    );
-  }
 }
 
 
@@ -2209,16 +1865,16 @@ class DetailAddressInput extends StatelessWidget {
           ),
           filled: true,
           fillColor: AirbnbColors.background,
-          border: OutlineInputBorder(
-            borderRadius: const BorderRadius.all(Radius.circular(10)),
+          border: const OutlineInputBorder(
+            borderRadius: BorderRadius.all(Radius.circular(10)),
             borderSide: BorderSide.none,
           ),
-          enabledBorder: OutlineInputBorder(
-            borderRadius: const BorderRadius.all(Radius.circular(10)),
+          enabledBorder: const OutlineInputBorder(
+            borderRadius: BorderRadius.all(Radius.circular(10)),
             borderSide: BorderSide.none,
           ),
-          focusedBorder: OutlineInputBorder(
-            borderRadius: const BorderRadius.all(Radius.circular(10)),
+          focusedBorder: const OutlineInputBorder(
+            borderRadius: BorderRadius.all(Radius.circular(10)),
             borderSide: BorderSide(
               color: AirbnbColors.primary,
               width: 2,
@@ -2230,7 +1886,7 @@ class DetailAddressInput extends StatelessWidget {
           ),
           prefixIcon: Container(
             margin: const EdgeInsets.only(right: AppSpacing.sm),
-            child: Icon(
+            child: const Icon(
               Icons.home_work_outlined,  // home_work → home_work_outlined (통일성 강화)
               color: AirbnbColors.primary,
               size: 24,  // 26 → 24 (더 적절한 크기)
@@ -2273,7 +1929,7 @@ class VWorldDataWidget extends StatelessWidget {
                       color: isLoading ? AirbnbColors.textSecondary : (error != null ? AirbnbColors.warning : AirbnbColors.primary),
                       size: 20,
                     ),
-                    SizedBox(width: AppSpacing.sm), // 8px
+                    const SizedBox(width: AppSpacing.sm), // 8px
                     Text(
                       isLoading ? '위치 정보 조회 중...' : (error != null ? '위치 정보 조회 실패' : '위치 정보'),
                       style: AppTypography.withColor(
@@ -2283,7 +1939,7 @@ class VWorldDataWidget extends StatelessWidget {
                     ),
                   ],
                 ),
-                SizedBox(height: AppSpacing.md), // 16px
+                const SizedBox(height: AppSpacing.md), // 16px
                 
                 // 로딩 중
                 if (isLoading) ...[
@@ -2307,7 +1963,7 @@ class VWorldDataWidget extends StatelessWidget {
                     child: Row(
                       children: [
                         const Icon(Icons.error_outline, color: AirbnbColors.warning, size: 24),
-                        SizedBox(width: AppSpacing.md), // 16px
+                        const SizedBox(width: AppSpacing.md), // 16px
                         Expanded(
                           child: Text(
                             error!,
@@ -2361,7 +2017,7 @@ class VWorldDataWidget extends StatelessWidget {
             ),
             child: Icon(icon, color: iconColor, size: 20),
           ),
-                SizedBox(width: AppSpacing.md), // 16px
+                const SizedBox(width: AppSpacing.md), // 16px
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -2373,7 +2029,7 @@ class VWorldDataWidget extends StatelessWidget {
                           AirbnbColors.textPrimary,
                         ),
                 ),
-                SizedBox(height: AppSpacing.sm), // 8px
+                const SizedBox(height: AppSpacing.sm), // 8px
                 Text(
                   content,
                   style: AppTypography.withColor(

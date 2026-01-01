@@ -316,7 +316,7 @@ class BrokerPropertyDetailPage extends StatelessWidget {
             width: 100,
             child: Text(
               label,
-              style: TextStyle(
+              style: const TextStyle(
                 fontSize: 14,
                 color: AirbnbColors.textSecondary,
                 fontWeight: FontWeight.w600,

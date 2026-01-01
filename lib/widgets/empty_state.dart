@@ -51,7 +51,7 @@ class EmptyState extends StatelessWidget {
             const SizedBox(height: 12),
             Text(
               message,
-              style: TextStyle(
+              style: const TextStyle(
                 fontSize: 15,
                 color: AirbnbColors.textSecondary,
                 height: 1.5,

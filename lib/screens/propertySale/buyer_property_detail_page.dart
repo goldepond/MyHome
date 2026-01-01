@@ -243,11 +243,11 @@ class _BuyerPropertyDetailPageState extends State<BuyerPropertyDetailPage> {
                           padding: const EdgeInsets.only(left: 8.0, right: 8.0, top: 8.0, bottom: 4.0),
                           child: Row(
                             children: [
-                              Icon(Icons.person_outline, size: 14, color: AirbnbColors.textSecondary),
+                              const Icon(Icons.person_outline, size: 14, color: AirbnbColors.textSecondary),
                               const SizedBox(width: 6),
                               Text(
                                 '작성자: ${widget.property.registeredByName}',
-                                style: TextStyle(
+                                style: const TextStyle(
                                   fontSize: 12,
                                   color: AirbnbColors.textSecondary,
                                   fontStyle: FontStyle.italic,
@@ -264,11 +264,11 @@ class _BuyerPropertyDetailPageState extends State<BuyerPropertyDetailPage> {
                           padding: const EdgeInsets.only(left: 8.0, right: 8.0, top: 8.0, bottom: 4.0),
                           child: Row(
                             children: [
-                              Icon(Icons.business, size: 14, color: AirbnbColors.textSecondary),
+                              const Icon(Icons.business, size: 14, color: AirbnbColors.textSecondary),
                               const SizedBox(width: 6),
                               Text(
                                 '작성자: ${widget.property.brokerInfo!['brokerName'] ?? widget.property.brokerInfo!['broker_office_name'] ?? '공인중개사'}',
-                                style: TextStyle(
+                                style: const TextStyle(
                                   fontSize: 12,
                                   color: AirbnbColors.textSecondary,
                                   fontStyle: FontStyle.italic,
@@ -588,7 +588,7 @@ class _BuyerPropertyDetailPageState extends State<BuyerPropertyDetailPage> {
             width: 120,
             child: Text(
               label,
-              style: TextStyle(
+              style: const TextStyle(
                 fontSize: 14,
                 color: AirbnbColors.textSecondary,
                 fontWeight: FontWeight.w600,
@@ -794,7 +794,7 @@ class _BuyerPropertyDetailPageState extends State<BuyerPropertyDetailPage> {
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
+                  const Text(
                     '소개',
                     style: TextStyle(
                       fontSize: 14,

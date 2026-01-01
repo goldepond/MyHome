@@ -90,7 +90,7 @@ class AptInfoService {
       http.Response response;
       try {
         response = await http.get(proxyUri).timeout(
-          Duration(seconds: ApiConstants.requestTimeoutSeconds),
+          const Duration(seconds: ApiConstants.requestTimeoutSeconds),
           onTimeout: () {
             throw TimeoutException('아파트 정보 조회 시간이 초과되었습니다.');
           },
@@ -957,13 +957,13 @@ class AptInfoService {
   static String? _extractSggFromAddress(String address) {
     final sanitized = _stripParentheses(address);
     final match = RegExp(r'\s([가-힣]+(시|군|구))\s').firstMatch(' $sanitized ');
-    return match != null ? match.group(1) : null;
+    return match?.group(1);
   }
 
   static String? _extractEmdFromAddress(String address) {
     final sanitized = _stripParentheses(address);
     final match = RegExp(r'\s([가-힣0-9]+동)\s').firstMatch(' $sanitized ');
-    return match != null ? match.group(1) : null;
+    return match?.group(1);
   }
 
   static String _stripParentheses(String value) {

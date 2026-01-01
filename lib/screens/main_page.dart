@@ -249,7 +249,7 @@ class _MainPageState extends State<MainPage> {
   Widget _buildMobileHeader() {
     // 모바일 화면 최적화
     // ResponsiveHelper는 이미 _buildTopNavigationBar에서 호출됨
-    final horizontalGap = AppSpacing.xs;
+    const horizontalGap = AppSpacing.xs;
 
     // 모바일에서는 항상 화면 폭 안에 4개의 탭이 모두 보이도록
     // 가로 스크롤을 없애고 Expanded 로 균등 분배한다.
@@ -266,7 +266,7 @@ class _MainPageState extends State<MainPage> {
               showLabelOnly: true,
             ),
           ),
-          SizedBox(width: horizontalGap),
+          const SizedBox(width: horizontalGap),
           Expanded(
             child: _buildNavButton(
               '집 구하기',
@@ -276,7 +276,7 @@ class _MainPageState extends State<MainPage> {
               showLabelOnly: true,
             ),
           ),
-          SizedBox(width: horizontalGap),
+          const SizedBox(width: horizontalGap),
           Expanded(
             child: _buildNavButton(
               '내집관리',
@@ -286,7 +286,7 @@ class _MainPageState extends State<MainPage> {
               showLabelOnly: true,
             ),
           ),
-          SizedBox(width: horizontalGap),
+          const SizedBox(width: horizontalGap),
           Expanded(
             child: _buildNavButton(
               '내 정보',

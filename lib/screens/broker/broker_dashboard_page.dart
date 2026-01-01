@@ -39,7 +39,7 @@ class _BrokerDashboardPageState extends State<BrokerDashboardPage> with SingleTi
   List<QuoteRequest> _quotes = [];
   bool _isLoading = true;
   String? _error;
-  String _selectedStatus = 'all'; // all, pending, completed, selected
+  final String _selectedStatus = 'all'; // all, pending, completed, selected
   late TabController _tabController;
 
   String? _brokerRegistrationNumber;
@@ -131,6 +131,7 @@ class _BrokerDashboardPageState extends State<BrokerDashboardPage> with SingleTi
 
     if (confirmed == true && mounted) {
       await _firebaseService.signOut();
+      if (!mounted) return;
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => const LoginPage()),
@@ -179,7 +180,7 @@ class _BrokerDashboardPageState extends State<BrokerDashboardPage> with SingleTi
                 );
               }
             },
-            icon: Icon(Icons.home_outlined, size: 18, color: AirbnbColors.primary),
+            icon: const Icon(Icons.home_outlined, size: 18, color: AirbnbColors.primary),
             label: Text(
               '일반 화면',
               style: AppTypography.withColor(
@@ -270,7 +271,7 @@ class _BrokerDashboardPageState extends State<BrokerDashboardPage> with SingleTi
                                 AirbnbColors.textPrimary,
                               ),
                             ),
-                            SizedBox(height: AppSpacing.lg),
+                            const SizedBox(height: AppSpacing.lg),
                             Text(
                               widget.brokerName,
                               textAlign: TextAlign.center,
@@ -328,7 +329,7 @@ class _BrokerDashboardPageState extends State<BrokerDashboardPage> with SingleTi
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(Icons.error_outline, size: 64, color: AirbnbColors.error.withValues(alpha: 0.3)),
-            SizedBox(height: AppSpacing.md),
+            const SizedBox(height: AppSpacing.md),
             Text(
               _error!,
               style: AppTypography.withColor(
@@ -336,11 +337,11 @@ class _BrokerDashboardPageState extends State<BrokerDashboardPage> with SingleTi
                 AirbnbColors.textSecondary,
               ),
             ),
-            SizedBox(height: AppSpacing.lg),
+            const SizedBox(height: AppSpacing.lg),
             ElevatedButton(
               onPressed: _loadQuotes,
               style: CommonDesignSystem.primaryButtonStyle(),
-              child: Text('다시 시도', style: AppTypography.button),
+              child: const Text('다시 시도', style: AppTypography.button),
             ),
           ],
         ),
@@ -352,12 +353,12 @@ class _BrokerDashboardPageState extends State<BrokerDashboardPage> with SingleTi
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
+            const Icon(
               Icons.inbox_outlined,
               size: 80,
               color: AirbnbColors.border,
             ),
-            SizedBox(height: AppSpacing.lg),
+            const SizedBox(height: AppSpacing.lg),
             Text(
               _selectedStatus == 'all'
                   ? '아직 받은 상담 요청이 없어요'
@@ -367,7 +368,7 @@ class _BrokerDashboardPageState extends State<BrokerDashboardPage> with SingleTi
                 AirbnbColors.textSecondary,
               ),
             ),
-            SizedBox(height: AppSpacing.sm),
+            const SizedBox(height: AppSpacing.sm),
             Text(
               '소유자/임대인분들로부터 상담 요청이 들어오면\n여기에 표시됩니다',
               textAlign: TextAlign.center,
@@ -445,7 +446,7 @@ class _BrokerDashboardPageState extends State<BrokerDashboardPage> with SingleTi
                       size: 20,
                     ),
                   ),
-                  SizedBox(width: AppSpacing.sm + AppSpacing.xs),
+                  const SizedBox(width: AppSpacing.sm + AppSpacing.xs),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -457,7 +458,7 @@ class _BrokerDashboardPageState extends State<BrokerDashboardPage> with SingleTi
                             AirbnbColors.textPrimary,
                           ),
                         ),
-                        SizedBox(height: AppSpacing.xs),
+                        const SizedBox(height: AppSpacing.xs),
                         Text(
                           dateFormat.format(quote.requestDate),
                           style: AppTypography.withColor(
@@ -469,7 +470,7 @@ class _BrokerDashboardPageState extends State<BrokerDashboardPage> with SingleTi
                     ),
                   ),
                   Container(
-                    padding: EdgeInsets.symmetric(horizontal: AppSpacing.sm + AppSpacing.xs, vertical: AppSpacing.xs + AppSpacing.xs / 2),
+                    padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm + AppSpacing.xs, vertical: AppSpacing.xs + AppSpacing.xs / 2),
                     decoration: BoxDecoration(
                       color: hasAnswer ? AirbnbColors.success : AirbnbColors.warning,
                       borderRadius: BorderRadius.circular(20),
@@ -485,7 +486,7 @@ class _BrokerDashboardPageState extends State<BrokerDashboardPage> with SingleTi
                 ],
               ),
 
-              SizedBox(height: AppSpacing.md),
+              const SizedBox(height: AppSpacing.md),
 
               // 매물 정보
               Container(
@@ -499,8 +500,8 @@ class _BrokerDashboardPageState extends State<BrokerDashboardPage> with SingleTi
                   children: [
                     Row(
                       children: [
-                        Icon(Icons.location_on, size: 16, color: AirbnbColors.textSecondary),
-                        SizedBox(width: AppSpacing.sm),
+                        const Icon(Icons.location_on, size: 16, color: AirbnbColors.textSecondary),
+                        const SizedBox(width: AppSpacing.sm),
                         Expanded(
                           child: Text(
                             quote.propertyAddress ?? '-',
@@ -513,11 +514,11 @@ class _BrokerDashboardPageState extends State<BrokerDashboardPage> with SingleTi
                       ],
                     ),
                     if (quote.propertyArea != null) ...[
-                      SizedBox(height: AppSpacing.sm),
+                      const SizedBox(height: AppSpacing.sm),
                       Row(
                         children: [
-                          Icon(Icons.square_foot, size: 16, color: AirbnbColors.textSecondary),
-                          SizedBox(width: AppSpacing.sm),
+                          const Icon(Icons.square_foot, size: 16, color: AirbnbColors.textSecondary),
+                          const SizedBox(width: AppSpacing.sm),
                           Text(
                             '${quote.propertyArea}㎡',
                             style: AppTypography.withColor(
@@ -529,11 +530,11 @@ class _BrokerDashboardPageState extends State<BrokerDashboardPage> with SingleTi
                       ),
                     ],
                     if (quote.desiredPrice != null) ...[
-                      SizedBox(height: AppSpacing.sm),
+                      const SizedBox(height: AppSpacing.sm),
                       Row(
                         children: [
-                          Icon(Icons.attach_money, size: 16, color: AirbnbColors.textSecondary),
-                          SizedBox(width: AppSpacing.sm),
+                          const Icon(Icons.attach_money, size: 16, color: AirbnbColors.textSecondary),
+                          const SizedBox(width: AppSpacing.sm),
                           Text(
                             '희망가: ${quote.desiredPrice}',
                             style: AppTypography.withColor(
@@ -548,7 +549,7 @@ class _BrokerDashboardPageState extends State<BrokerDashboardPage> with SingleTi
                 ),
               ),
 
-              SizedBox(height: AppSpacing.md + AppSpacing.xs),
+              const SizedBox(height: AppSpacing.md + AppSpacing.xs),
 
               // 액션
               Row(
@@ -606,13 +607,13 @@ class _BrokerDashboardPageState extends State<BrokerDashboardPage> with SingleTi
                           borderRadius: BorderRadius.circular(20),
                         ),
                       ),
-                      icon: Icon(Icons.block, size: 16),
+                      icon: const Icon(Icons.block, size: 16),
                       label: Text(
                         '보류하기',
                         style: AppTypography.bodySmall.copyWith(fontWeight: FontWeight.w600),
                       ),
                     ),
-                    SizedBox(width: AppSpacing.sm + AppSpacing.xs),
+                    const SizedBox(width: AppSpacing.sm + AppSpacing.xs),
                   ],
                   ElevatedButton.icon(
                     onPressed: () {

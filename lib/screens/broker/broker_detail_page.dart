@@ -66,11 +66,11 @@ class BrokerDetailPage extends StatelessWidget {
                   recommendCount: recommendCount,
                   notRecommendCount: notRecommendCount,
                 ),
-                SizedBox(height: AppSpacing.md),
+                const SizedBox(height: AppSpacing.md),
                 _buildInfoCard(),
-                SizedBox(height: AppSpacing.md),
+                const SizedBox(height: AppSpacing.md),
                 _buildActionsRow(context),
-                SizedBox(height: AppSpacing.md),
+                const SizedBox(height: AppSpacing.md),
                 if (_canWriteReview)
                   SizedBox(
                     width: double.infinity,
@@ -91,7 +91,7 @@ class BrokerDetailPage extends StatelessWidget {
                       ),
                     ),
                   ),
-                SizedBox(height: AppSpacing.lg),
+                const SizedBox(height: AppSpacing.lg),
                 _buildReviewSection(reviews),
                   ],
                 ),
@@ -134,7 +134,7 @@ class BrokerDetailPage extends StatelessWidget {
             ),
           ),
           if (broker.ownerName != null && broker.ownerName!.isNotEmpty) ...[
-            SizedBox(height: AppSpacing.xs),
+            const SizedBox(height: AppSpacing.xs),
             Text(
               '중개업자명: ${broker.ownerName}',
               style: AppTypography.withColor(
@@ -143,7 +143,7 @@ class BrokerDetailPage extends StatelessWidget {
               ),
             ),
           ],
-          SizedBox(height: AppSpacing.sm),
+          const SizedBox(height: AppSpacing.sm),
           Row(
             children: [
               Icon(Icons.badge, color: AirbnbColors.background.withValues(alpha: 0.9), size: 16),
@@ -157,7 +157,7 @@ class BrokerDetailPage extends StatelessWidget {
               ),
             ],
           ),
-          SizedBox(height: AppSpacing.sm),
+          const SizedBox(height: AppSpacing.sm),
           if (reviewCount > 0) ...[
             Text(
               '추천 $recommendCount · 비추천 $notRecommendCount',
@@ -201,7 +201,7 @@ class BrokerDetailPage extends StatelessWidget {
           // 전화번호
           if (broker.phoneNumber != null && broker.phoneNumber!.isNotEmpty && broker.phoneNumber != '-') ...[
             _infoRow(Icons.phone, '전화번호', broker.phoneNumber!),
-            SizedBox(height: AppSpacing.md + AppSpacing.xs),
+            const SizedBox(height: AppSpacing.md + AppSpacing.xs),
           ],
           // 주소 표시: 도로명주소 우선, 없으면 지번주소
           if (broker.roadAddress.isNotEmpty || broker.jibunAddress.isNotEmpty) ...[
@@ -210,12 +210,12 @@ class BrokerDetailPage extends StatelessWidget {
               '주소',
               broker.roadAddress.isNotEmpty ? broker.roadAddress : broker.jibunAddress,
             ),
-            SizedBox(height: AppSpacing.md + AppSpacing.xs),
+            const SizedBox(height: AppSpacing.md + AppSpacing.xs),
           ],
           // 영업상태
           if (broker.businessStatus != null && broker.businessStatus!.isNotEmpty) ...[
             _infoRow(Icons.store, '영업상태', broker.businessStatus!),
-            SizedBox(height: AppSpacing.md + AppSpacing.xs),
+            const SizedBox(height: AppSpacing.md + AppSpacing.xs),
           ],
           // 등록번호와 고용인원 (한 줄에)
           Row(
@@ -239,7 +239,7 @@ class BrokerDetailPage extends StatelessWidget {
           ),
           // 소개란 (있는 경우만 표시)
           if (broker.introduction != null && broker.introduction!.isNotEmpty) ...[
-            SizedBox(height: AppSpacing.md + AppSpacing.xs),
+            const SizedBox(height: AppSpacing.md + AppSpacing.xs),
             Container(
               padding: const EdgeInsets.all(14),
               decoration: BoxDecoration(
@@ -252,10 +252,10 @@ class BrokerDetailPage extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Row(
+                  const Row(
                     children: [
                       Icon(Icons.description, color: AirbnbColors.textSecondary, size: 18),
-                      const SizedBox(width: 8),
+                      SizedBox(width: 8),
                       Text(
                         '중개사 소개',
                         style: TextStyle(
@@ -265,7 +265,7 @@ class BrokerDetailPage extends StatelessWidget {
                       ),
                     ],
                   ),
-                  SizedBox(height: AppSpacing.sm),
+                  const SizedBox(height: AppSpacing.sm),
                   Text(
                     broker.introduction!,
                     style: AppTypography.withColor(
@@ -280,7 +280,7 @@ class BrokerDetailPage extends StatelessWidget {
           // 행정처분 정보 (있는 경우만 표시)
           if ((broker.penaltyStartDate != null && broker.penaltyStartDate!.isNotEmpty) ||
               (broker.penaltyEndDate != null && broker.penaltyEndDate!.isNotEmpty)) ...[
-            SizedBox(height: AppSpacing.md + AppSpacing.xs),
+            const SizedBox(height: AppSpacing.md + AppSpacing.xs),
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
@@ -307,13 +307,13 @@ class BrokerDetailPage extends StatelessWidget {
                       ),
                     ],
                   ),
-                  SizedBox(height: AppSpacing.sm),
+                  const SizedBox(height: AppSpacing.sm),
                   if (broker.penaltyStartDate != null &&
                       broker.penaltyStartDate!.isNotEmpty)
                     _smallInfoRow('처분 시작일', broker.penaltyStartDate!),
                   if (broker.penaltyEndDate != null &&
                       broker.penaltyEndDate!.isNotEmpty) ...[
-                    SizedBox(height: AppSpacing.xs),
+                    const SizedBox(height: AppSpacing.xs),
                     _smallInfoRow('처분 종료일', broker.penaltyEndDate!),
                   ],
                 ],
@@ -323,7 +323,7 @@ class BrokerDetailPage extends StatelessWidget {
           // 글로벌공인중개사무소 정보 (있는 경우만 표시)
           if ((broker.globalBrokerLanguage != null && broker.globalBrokerLanguage!.isNotEmpty) ||
               (broker.globalBrokerAppnYear != null && broker.globalBrokerAppnYear!.isNotEmpty)) ...[
-            SizedBox(height: AppSpacing.md + AppSpacing.xs),
+            const SizedBox(height: AppSpacing.md + AppSpacing.xs),
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
@@ -349,19 +349,19 @@ class BrokerDetailPage extends StatelessWidget {
                       ),
                     ],
                   ),
-                  SizedBox(height: AppSpacing.sm),
+                  const SizedBox(height: AppSpacing.sm),
                   if (broker.globalBrokerLanguage != null && broker.globalBrokerLanguage!.isNotEmpty)
                     _smallInfoRow('사용언어', broker.globalBrokerLanguage!),
                   if (broker.globalBrokerAppnYear != null && broker.globalBrokerAppnYear!.isNotEmpty) ...[
-                    SizedBox(height: AppSpacing.xs),
+                    const SizedBox(height: AppSpacing.xs),
                     _smallInfoRow('지정연도', broker.globalBrokerAppnYear!),
                   ],
                   if (broker.globalBrokerAppnNo != null && broker.globalBrokerAppnNo!.isNotEmpty) ...[
-                    SizedBox(height: AppSpacing.xs),
+                    const SizedBox(height: AppSpacing.xs),
                     _smallInfoRow('지정번호', broker.globalBrokerAppnNo!),
                   ],
                   if (broker.globalBrokerAppnDe != null && broker.globalBrokerAppnDe!.isNotEmpty) ...[
-                    SizedBox(height: AppSpacing.xs),
+                    const SizedBox(height: AppSpacing.xs),
                     _smallInfoRow('지정일', broker.globalBrokerAppnDe!),
                   ],
                 ],
@@ -390,7 +390,7 @@ class BrokerDetailPage extends StatelessWidget {
                   AirbnbColors.textSecondary,
                 ),
               ),
-              SizedBox(height: AppSpacing.xs / 2),
+              const SizedBox(height: AppSpacing.xs / 2),
               Text(
                 value,
                 style: AppTypography.withColor(
@@ -412,7 +412,7 @@ class BrokerDetailPage extends StatelessWidget {
           width: 80,
           child: Text(
             label,
-            style: TextStyle(
+            style: const TextStyle(
               color: AirbnbColors.textSecondary,
               fontWeight: FontWeight.w600,
             ),
@@ -480,8 +480,8 @@ class BrokerDetailPage extends StatelessWidget {
         const SizedBox(height: 8),
         ...reviews.map((r) {
           return Container(
-            margin: EdgeInsets.only(bottom: AppSpacing.sm),
-            padding: EdgeInsets.all(AppSpacing.md - AppSpacing.xs),
+            margin: const EdgeInsets.only(bottom: AppSpacing.sm),
+            padding: const EdgeInsets.all(AppSpacing.md - AppSpacing.xs),
             decoration: BoxDecoration(
               color: AirbnbColors.surface,
               borderRadius: BorderRadius.circular(8),
@@ -515,13 +515,13 @@ class BrokerDetailPage extends StatelessWidget {
                   ],
                 ),
                 if (r.comment != null && r.comment!.trim().isNotEmpty) ...[
-                  SizedBox(height: AppSpacing.xs),
+                  const SizedBox(height: AppSpacing.xs),
                   Text(
                     r.comment!,
                     style: AppTypography.bodySmall.copyWith(height: 1.3),
                   ),
                 ],
-                SizedBox(height: AppSpacing.xs / 2),
+                const SizedBox(height: AppSpacing.xs / 2),
                 Text(
                   r.userName,
                   style: AppTypography.withColor(
@@ -589,6 +589,8 @@ class BrokerDetailPage extends StatelessWidget {
       quoteRequestId: quoteRequestId!,
     );
 
+    if (!context.mounted) return;
+
     bool recommend = existingReview?.recommend ?? true;
     final commentController =
         TextEditingController(text: existingReview?.comment ?? '');
@@ -618,10 +620,10 @@ class BrokerDetailPage extends StatelessWidget {
                     '${broker.name} 후기',
                     style: AppTypography.body.copyWith(fontWeight: FontWeight.bold),
                   ),
-                  SizedBox(height: AppSpacing.sm),
+                  const SizedBox(height: AppSpacing.sm),
                   Row(
                     children: [
-                      Text('추천 여부', style: AppTypography.bodySmall),
+                      const Text('추천 여부', style: AppTypography.bodySmall),
                       const SizedBox(width: 8),
                       ChoiceChip(
                         label: const Text('추천'),
@@ -644,7 +646,7 @@ class BrokerDetailPage extends StatelessWidget {
                       ),
                     ],
                   ),
-                  SizedBox(height: AppSpacing.md + AppSpacing.xs),
+                  const SizedBox(height: AppSpacing.md + AppSpacing.xs),
                   TextField(
                     controller: commentController,
                     maxLines: 4,
@@ -653,7 +655,7 @@ class BrokerDetailPage extends StatelessWidget {
                       border: OutlineInputBorder(),
                     ),
                   ),
-                  SizedBox(height: AppSpacing.md + AppSpacing.xs),
+                  const SizedBox(height: AppSpacing.md + AppSpacing.xs),
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
