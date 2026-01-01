@@ -9,10 +9,14 @@ import 'address_search_result.dart';
 class GpsBasedSearchTab extends StatefulWidget {
   /// 주소 선택 시 콜백
   final ValueChanged<SelectedAddressResult>? onAddressSelected;
+  
+  /// 콘텐츠 변경 시 콜백 (높이 재측정용)
+  final VoidCallback? onContentChanged;
 
   const GpsBasedSearchTab({
     super.key,
     this.onAddressSelected,
+    this.onContentChanged,
   });
 
   @override
@@ -59,6 +63,7 @@ class GpsBasedSearchTabState extends State<GpsBasedSearchTab> {
   Widget build(BuildContext context) {
     return RegionSelectionSection(
       autoComplete: _autoCompleteEnabled,
+      onContentChanged: widget.onContentChanged, // 콘텐츠 변경 알림 전달
       onComplete: (result) {
         // 자동 완료 처리 후 플래그 설정
         if (_autoCompleteEnabled) {

@@ -356,6 +356,66 @@ ConstrainedBox(
 - 검색 결과는 `RoadAddressList` 위젯으로 표시
 - 지도 및 반경 슬라이더 통합 제공
 
+### 주소 검색 탭 높이 측정 및 자동 확장
+
+**파일 위치:**
+- `lib/widgets/address_search/address_search_tabs.dart`
+
+**구현 개요:**
+- GPS 탭과 주소 입력 탭의 콘텐츠 높이를 동적으로 측정하여 탭 컨테이너 높이를 자동으로 조정
+- 스크롤 없이 콘텐츠에 맞게 높이가 자동 확장되도록 구현
+- overflow 에러 방지를 위한 여유 공간 설정
+
+**핵심 기능:**
+
+1. **높이 측정 로직**
+   - `IntrinsicHeight`를 사용하여 실제 콘텐츠 높이 측정
+   - GPS 탭과 주소 입력 탭 중 더 높은 높이 사용
+   - 여러 번 측정하여 정확도 향상 (300ms, 600ms 지연 재측정)
+
+2. **가변 높이 자동 확장**
+   - maxHeight 제한 제거로 측정된 높이를 그대로 사용
+   - 스크롤 없이 콘텐츠에 맞게 높이 자동 확장
+   - 최소 높이만 보장 (500px)
+
+3. **여유 공간 설정**
+   - GPS 탭: 80px 여유 공간 (측정 오차 및 동적 콘텐츠 대응)
+   - 주소 입력 탭: 40px 여유 공간
+   - overflow 에러 방지를 위한 최소한의 여유 공간
+
+4. **자동 높이 재측정**
+   - 콘텐츠 변경 시 자동 높이 재측정 (`onContentChanged` 콜백)
+   - 주소 선택 후 높이 재측정
+   - 탭 전환 시 높이 재측정
+
+**구현 코드:**
+```dart
+// 높이 측정 수행
+void _performHeightMeasurement() {
+  // IntrinsicHeight를 사용하여 실제 콘텐츠 높이 측정
+  final gpsContext = _gpsTabContentKey.currentContext;
+  if (gpsContext != null) {
+    final renderBox = gpsContext.findRenderObject() as RenderBox?;
+    if (renderBox != null && renderBox.hasSize) {
+      gpsHeight = renderBox.size.height;
+    }
+  }
+  
+  // 두 탭 중 더 높은 높이 사용 + 여유 공간 추가
+  final padding = isGpsTab ? 80.0 : 40.0;
+  final heightWithPadding = maxHeight + padding;
+  
+  setState(() {
+    _tabHeight = heightWithPadding;
+  });
+}
+```
+
+**주의사항:**
+- 높이 측정은 여러 번 수행되어 정확도 향상 (300ms, 600ms 지연 재측정)
+- 동적 콘텐츠 변경(주소 로딩, 에러 메시지 등)을 고려하여 충분한 여유 공간 설정
+- 스크롤 없이 높이가 자동 확장되므로 여유 공간이 중요
+
 ---
 
 ## 좌표 변환 구현
@@ -2793,6 +2853,14 @@ class ApiConstants {
   - JavaScript 객체를 Dart Map으로 변환하는 로직 추가
   - 메시지 리스너 디버깅 로그 추가
   - 지도 이동(`moveend` 이벤트) 시 주소 자동 조회 기능 안정화
+- 2025-01-XX: GPS 탭 가변 높이 측정 및 overflow 문제 해결
+  - `AddressSearchTabs`의 높이 측정 로직 개선
+  - `IntrinsicHeight`를 사용한 정확한 콘텐츠 높이 측정
+  - maxHeight 제한 제거로 가변 높이 자동 확장 지원
+  - 스크롤 없이 높이가 콘텐츠에 맞게 자동 확장되도록 개선
+  - GPS 탭 여유 공간 80px, 주소 입력 탭 40px로 설정하여 overflow 방지
+  - 높이 측정을 여러 번 수행하여 정확도 향상 (300ms, 600ms 지연 재측정)
+  - 콘텐츠 변경 시 자동 높이 재측정 기능 추가
 
 ---
 

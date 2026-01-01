@@ -739,14 +739,10 @@ class _HomePageState extends State<HomePage> {
                     ),
                     const SizedBox(height: AppSpacing.lg), // 24px - 주요 섹션 전환
                     
-                    // 주소 검색 탭 (반응형 높이)
-                    ConstrainedBox(
-                      constraints: BoxConstraints(
-                        minHeight: isSmallScreen ? 1000 : 1000, // GPS 검색 탭의 모든 콘텐츠가 표시되도록 충분한 높이
-                      ),
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
-                        child: AddressSearchTabs(
+                    // 주소 검색 탭 (가변 높이)
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+                      child: AddressSearchTabs(
                     onAddressSelected: (result) async {
                       final cleanAddress = result.address;
 
@@ -808,7 +804,6 @@ class _HomePageState extends State<HomePage> {
                       }
                         },
                       ),
-                    ),
                     ),
                     const SizedBox(height: AppSpacing.xl),
                     

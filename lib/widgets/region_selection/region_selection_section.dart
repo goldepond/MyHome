@@ -41,11 +41,15 @@ class RegionSelectionSection extends StatefulWidget {
   
   /// 자동 완료 활성화 여부 (주소가 준비되면 자동으로 완료 처리)
   final bool autoComplete;
+  
+  /// 콘텐츠 변경 시 콜백 (높이 재측정용)
+  final VoidCallback? onContentChanged;
 
   const RegionSelectionSection({
     super.key,
     this.onComplete,
     this.autoComplete = false,
+    this.onContentChanged,
   });
 
   @override
@@ -123,6 +127,11 @@ class _RegionSelectionSectionState extends State<RegionSelectionSection> {
       _isLoadingAddress = true;
       _addressError = null;
     });
+    
+    // 콘텐츠 변경 알림 (높이 재측정용) - 로딩 상태 변경
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      widget.onContentChanged?.call();
+    });
 
     // Debounce: 500ms 후에 주소 조회
     _debounceTimer?.cancel();
@@ -163,6 +172,11 @@ class _RegionSelectionSectionState extends State<RegionSelectionSection> {
           _addressError = '주소를 찾을 수 없습니다';
         }
       });
+      
+      // 콘텐츠 변경 알림 (높이 재측정용)
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        widget.onContentChanged?.call();
+      });
     } catch (e) {
       if (!mounted) return;
 
@@ -180,6 +194,11 @@ class _RegionSelectionSectionState extends State<RegionSelectionSection> {
         _currentAddress = null;
         _addressError = '주소 조회 중 오류가 발생했습니다';
       });
+      
+      // 콘텐츠 변경 알림 (높이 재측정용)
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        widget.onContentChanged?.call();
+      });
     }
   }
 
@@ -196,6 +215,11 @@ class _RegionSelectionSectionState extends State<RegionSelectionSection> {
   void _onDistanceChanged(double distance) {
     setState(() {
       _displayRadiusMeters = distance;
+    });
+    
+    // 콘텐츠 변경 알림 (높이 재측정용) - 슬라이더 변경
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      widget.onContentChanged?.call();
     });
     
     // 지도에 줌 조정 메시지 전송 (웹 전용)
@@ -357,83 +381,81 @@ class _RegionSelectionSectionState extends State<RegionSelectionSection> {
             ),
           ),
           
-          // 콘텐츠 영역 (스크롤 가능)
-          Expanded(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(AppSpacing.lg),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  // 지도 (고정 높이, 작은 화면에서도 적절)
-                  RegionSelectionMap(
-                    height: 300,
-                    fixedRadiusMeters: _fixedRadiusMeters, // 실제 원의 반경 (고정)
-                    displayRadiusMeters: _displayRadiusMeters, // 표시할 반경 (슬라이더 값)
-                    onLocationChanged: (location) => _updateLocation(location.$1, location.$2),
-                  ),
-                  
-                  const SizedBox(height: AppSpacing.md),
-                  
-                  // 내 위치로 돌아가기 버튼
-                  SizedBox(
-                    width: double.infinity,
-                    child: OutlinedButton.icon(
-                      onPressed: _onReturnToMyLocation,
-                      icon: const Icon(
-                        Icons.my_location,
-                        size: 20,
+          // 콘텐츠 영역 (스크롤 없음 - 외부에서 높이 조정)
+          Padding(
+            padding: const EdgeInsets.all(AppSpacing.lg),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // 지도 (고정 높이, 작은 화면에서도 적절)
+                RegionSelectionMap(
+                  height: 300,
+                  fixedRadiusMeters: _fixedRadiusMeters, // 실제 원의 반경 (고정)
+                  displayRadiusMeters: _displayRadiusMeters, // 표시할 반경 (슬라이더 값)
+                  onLocationChanged: (location) => _updateLocation(location.$1, location.$2),
+                ),
+                
+                const SizedBox(height: AppSpacing.md),
+                
+                // 내 위치로 돌아가기 버튼
+                SizedBox(
+                  width: double.infinity,
+                  child: OutlinedButton.icon(
+                    onPressed: _onReturnToMyLocation,
+                    icon: const Icon(
+                      Icons.my_location,
+                      size: 20,
+                      color: AirbnbColors.primary,
+                    ),
+                    label: Text(
+                      '내 위치로 돌아가기',
+                      style: AppTypography.body.copyWith(
+                        fontWeight: FontWeight.w600,
                         color: AirbnbColors.primary,
                       ),
-                      label: Text(
-                        '내 위치로 돌아가기',
-                        style: AppTypography.body.copyWith(
-                          fontWeight: FontWeight.w600,
-                          color: AirbnbColors.primary,
-                        ),
+                    ),
+                    style: OutlinedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: AppSpacing.lg,
+                        vertical: AppSpacing.md,
                       ),
-                      style: OutlinedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: AppSpacing.lg,
-                          vertical: AppSpacing.md,
-                        ),
-                        side: const BorderSide(
-                          color: AirbnbColors.primary,
-                          width: 1.5,
-                        ),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
+                      side: const BorderSide(
+                        color: AirbnbColors.primary,
+                        width: 1.5,
+                      ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
                       ),
                     ),
                   ),
-                  
-                  const SizedBox(height: AppSpacing.md),
-                  
-                  // 주소 표시
-                  AddressDisplayWidget(
-                    address: _currentAddress,
-                    isLoading: _isLoadingAddress,
-                    error: _addressError,
-                  ),
-                  
-                  const SizedBox(height: AppSpacing.md),
-                  
-                  // 거리 슬라이더
-                  DistanceSliderWidget(
-                    distanceMeters: _displayRadiusMeters,
-                    onDistanceChanged: _onDistanceChanged,
-                  ),
-                  
-                  const SizedBox(height: AppSpacing.lg),
-                  
-                  // 완료 버튼
-                  CompleteButtonWidget(
-                    hasAddress: _currentAddress != null && _currentAddress!.isNotEmpty,
-                    onComplete: _onComplete,
-                  ),
-                ],
-              ),
+                ),
+                
+                const SizedBox(height: AppSpacing.md),
+                
+                // 주소 표시
+                AddressDisplayWidget(
+                  address: _currentAddress,
+                  isLoading: _isLoadingAddress,
+                  error: _addressError,
+                ),
+                
+                const SizedBox(height: AppSpacing.md),
+                
+                // 거리 슬라이더
+                DistanceSliderWidget(
+                  distanceMeters: _displayRadiusMeters,
+                  onDistanceChanged: _onDistanceChanged,
+                ),
+                
+                const SizedBox(height: AppSpacing.lg),
+                
+                // 완료 버튼
+                CompleteButtonWidget(
+                  hasAddress: _currentAddress != null && _currentAddress!.isNotEmpty,
+                  onComplete: _onComplete,
+                ),
+              ],
             ),
           ),
         ],

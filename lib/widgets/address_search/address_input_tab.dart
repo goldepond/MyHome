@@ -22,10 +22,14 @@ import 'package:property/widgets/region_selection_map_stub.dart'
 class AddressInputTab extends StatefulWidget {
   /// 주소 선택 시 콜백
   final ValueChanged<SelectedAddressResult>? onAddressSelected;
+  
+  /// 콘텐츠 변경 시 콜백 (높이 재측정용)
+  final VoidCallback? onContentChanged;
 
   const AddressInputTab({
     super.key,
     this.onAddressSelected,
+    this.onContentChanged,
   });
 
   @override
@@ -84,6 +88,11 @@ class _AddressInputTabState extends State<AddressInputTab> {
         _addresses = [];
       }
     });
+    
+    // 검색 시작 시 콘텐츠 변경 알림 (로딩 상태 변경)
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      widget.onContentChanged?.call();
+    });
 
     try {
       final result = await AddressService().searchRoadAddress(keyword, page: page);
@@ -96,10 +105,20 @@ class _AddressInputTabState extends State<AddressInputTab> {
         _currentPage = page;
         _errorMessage = result.errorMessage;
       });
+      
+      // 콘텐츠 변경 알림 (높이 재측정용)
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        widget.onContentChanged?.call();
+      });
     } catch (e) {
       setState(() {
         _isSearching = false;
         _errorMessage = '주소 검색 중 오류가 발생했습니다: ${e.toString()}';
+      });
+      
+      // 콘텐츠 변경 알림 (높이 재측정용)
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        widget.onContentChanged?.call();
       });
     }
   }
@@ -291,7 +310,7 @@ class _AddressInputTabState extends State<AddressInputTab> {
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
+    return Padding(
       padding: const EdgeInsets.all(AppSpacing.lg),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -367,6 +386,11 @@ class _AddressInputTabState extends State<AddressInputTab> {
                             _selectedLongitude = null;
                             _displayRadiusMeters = 1000.0; // 기본값으로 리셋
                           });
+                          
+                          // 콘텐츠 변경 알림 (높이 재측정용)
+                          WidgetsBinding.instance.addPostFrameCallback((_) {
+                            widget.onContentChanged?.call();
+                          });
                         },
                       )
                     : null,
@@ -389,6 +413,11 @@ class _AddressInputTabState extends State<AddressInputTab> {
                     _selectedLatitude = null;
                     _selectedLongitude = null;
                     _displayRadiusMeters = 1000.0; // 기본값으로 리셋
+                  });
+                  
+                  // 콘텐츠 변경 알림 (높이 재측정용)
+                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                    widget.onContentChanged?.call();
                   });
                 }
               },
