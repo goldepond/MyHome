@@ -187,8 +187,10 @@ class _HouseDetailPageState extends State<HouseDetailPage> {
       } else {
         // 현재 위치 가져오기
         _currentPosition = await Geolocator.getCurrentPosition(
-          desiredAccuracy: LocationAccuracy.high,
-          timeLimit: const Duration(seconds: 10), // 10초 타임아웃
+          locationSettings: const LocationSettings(
+            accuracy: LocationAccuracy.high,
+            timeLimit: Duration(seconds: 10), // 10초 타임아웃
+          ),
         );
 
 
@@ -1704,7 +1706,7 @@ class _HouseDetailPageState extends State<HouseDetailPage> {
                   isSelected ? '선택됨' : '선택 안됨',
                   valueColor: isSelected ? AirbnbColors.success : AirbnbColors.textSecondary,
                 );
-              }).toList(),
+              }),
             ],
           ),
           const SizedBox(height: 16),
@@ -1726,7 +1728,7 @@ class _HouseDetailPageState extends State<HouseDetailPage> {
                 final displayValue = _formatFormFieldValue(key, value);
                 
                 return _buildDetailRow(displayKey, displayValue);
-              }).toList(),
+              }),
             ],
           ),
         ],

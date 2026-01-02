@@ -1,6 +1,6 @@
 # 문서 목록 및 구조
 
-> **최종 업데이트**: 2025-01-27
+> **최종 업데이트**: 2026-01-01
 
 ---
 
@@ -143,14 +143,15 @@
 - GITHUB_ACTIONS_PERMISSIONS_FIX.md → DEPLOYMENT_GUIDE.md로 통합 (이전)
 - DOCUMENT_INTEGRATION_ANALYSIS.md → 통합 완료 후 삭제 (이전)
 - COLOR_CONTRAST_VALIDATION.md → IMPROVEMENTS_STATUS.md로 통합 (이전)
+- cloud_functions_proposal.js → 사용되지 않는 제안 파일 삭제 (2026-01-01)
 
 ---
 
 ## 📋 문서 수 변화
 
 **통합 전**: 18개 문서  
-**통합 후**: 16개 문서  
-**감소**: 2개 문서 통합 완료 ✅ (2025-01-27)
+**현재**: 20개 문서 (MD 파일 19개 + 요약 문서 1개)  
+**변화**: 통합 2개 + 신규 4개 추가 - 불필요한 파일 1개 삭제 (2026-01-01)
 
 ---
 
@@ -183,8 +184,31 @@
 → **IMPLICIT_REGISTRATION_IMPLEMENTATION.md** (암묵적 회원가입)
 
 ### 개선 상태 확인
-→ **IMPROVEMENTS_STATUS.md** (개선 진행 상황)
+→ **IMPROVEMENTS_STATUS.md** (개선 진행 상황)  
+→ **CODE_QUALITY_REVIEW.md** (코드 품질 점검)  
+→ **RECENT_IMPROVEMENTS_7DAYS.md** (최근 7일 개선 내역)  
+→ **PROJECT_REVIEW_CHECKLIST.md** (프로젝트 전체 점검)
 
 ---
 
-**최종 업데이트**: 2025-01-27
+## 📋 최근 추가된 문서
+
+#### 17. **CODE_QUALITY_REVIEW.md** (2026-01-01)
+- 코드 품질 및 스타일 가이드 점검 리포트
+- 캡슐화, 네이밍 컨벤션, 타입 안정성 평가
+- Google Dart Style Guide 준수도 분석
+- 개선 권장 사항 및 수정 완료 내역
+
+#### 18. **RECENT_IMPROVEMENTS_7DAYS.md** (2026-01-01)
+- 최근 7일간 개선된 기능 정리
+- 커밋별 변경사항 상세 분석
+- GPS 기반 검색, 주소 입력 검색 등 신규 기능 문서화
+
+#### 19. **PROJECT_REVIEW_CHECKLIST.md** (2026-01-01)
+- 프로젝트 전체 점검 리포트
+- 용어 일관성, 코드 품질, 문서화 상태 점검
+- 우선순위별 조치 사항
+
+---
+
+**최종 업데이트**: 2026-01-01

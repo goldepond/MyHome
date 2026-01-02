@@ -187,8 +187,10 @@ class _RegionSelectionMapState extends State<RegionSelectionMap> {
 
       // 현재 위치 가져오기
       Position position = await Geolocator.getCurrentPosition(
-        desiredAccuracy: LocationAccuracy.high,
-        timeLimit: const Duration(seconds: 10),
+        locationSettings: const LocationSettings(
+          accuracy: LocationAccuracy.high,
+          timeLimit: Duration(seconds: 10),
+        ),
       );
 
       if (mounted) {

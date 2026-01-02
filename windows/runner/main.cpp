@@ -9,7 +9,20 @@ int APIENTRY wWinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE prev,
                       _In_ wchar_t *command_line, _In_ int show_command) {
   // Attach to console when present (e.g., 'flutter run') or create a
   // new console when running with a debugger.
-  if (!::AttachConsole(ATTACH_PARENT_PROCESS) && ::IsDebuggerPresent()) {
+  // Try to attach to parent console first (for flutter run)
+  bool console_attached = false;
+  if (::AttachConsole(ATTACH_PARENT_PROCESS)) {
+    console_attached = true;
+  } else if (::AttachConsole(::GetCurrentProcessId())) {
+    console_attached = true;
+  }
+  
+  if (console_attached) {
+    // Successfully attached to parent console, resync streams
+    FlutterDesktopResyncOutputStreams();
+  } else {
+    // If attachment fails, create a new console for debug output
+    // This ensures log output is available for Flutter tooling
     CreateAndAttachConsole();
   }
 

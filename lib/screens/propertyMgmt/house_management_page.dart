@@ -12,7 +12,6 @@ import 'package:property/widgets/retry_view.dart';
 import 'package:intl/intl.dart';
 import 'package:property/utils/analytics_service.dart';
 import 'package:property/utils/analytics_events.dart';
-import 'package:property/screens/login_page.dart';
 import 'package:property/screens/broker/broker_detail_page.dart';
 import 'package:property/api_request/broker_service.dart';
 import 'package:property/models/broker_review.dart';

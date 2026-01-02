@@ -222,6 +222,19 @@ class _RegionSelectionSectionState extends State<RegionSelectionSection> {
       widget.onContentChanged?.call();
     });
     
+    // 거리 변경 시에도 자동 완료 (주소가 있는 경우)
+    if (widget.autoComplete && 
+        _currentAddress != null && 
+        _currentLatitude != null && 
+        _longitude != null) {
+      Future.delayed(const Duration(milliseconds: 300), () {
+        if (mounted && _currentAddress != null && 
+            _currentLatitude != null && _longitude != null) {
+          _onComplete();
+        }
+      });
+    }
+    
     // 지도에 줌 조정 메시지 전송 (웹 전용)
     if (kIsWeb && _currentLatitude != null && _longitude != null) {
       web.postMessageToMap({
@@ -279,8 +292,10 @@ class _RegionSelectionSectionState extends State<RegionSelectionSection> {
       
       // 현재 GPS 위치 가져오기
       Position position = await Geolocator.getCurrentPosition(
-        desiredAccuracy: LocationAccuracy.high,
-        timeLimit: const Duration(seconds: 10),
+        locationSettings: const LocationSettings(
+          accuracy: LocationAccuracy.high,
+          timeLimit: Duration(seconds: 10),
+        ),
       );
       
       final lat = position.latitude;
@@ -450,13 +465,14 @@ class _RegionSelectionSectionState extends State<RegionSelectionSection> {
                       onDistanceChanged: _onDistanceChanged,
                     ),
                     
-                    const SizedBox(height: AppSpacing.lg),
-                    
-                    // 완료 버튼
-                    CompleteButtonWidget(
-                      hasAddress: _currentAddress != null && _currentAddress!.isNotEmpty,
-                      onComplete: _onComplete,
-                    ),
+                    // 완료 버튼 - autoComplete가 활성화되어 있으면 버튼 숨김
+                    if (!widget.autoComplete) ...[
+                      const SizedBox(height: AppSpacing.lg),
+                      CompleteButtonWidget(
+                        hasAddress: _currentAddress != null && _currentAddress!.isNotEmpty,
+                        onComplete: _onComplete,
+                      ),
+                    ],
                   ],
                 ),
               ),

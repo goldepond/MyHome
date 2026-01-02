@@ -82,11 +82,6 @@ class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin 
   Map<String, dynamic>? get aptInfo => _aptInfoNotifier.value;
   bool get isLoadingAptInfo => _isLoadingAptInfoNotifier.value;
 
-  @override
-  void initState() {
-    super.initState();
-  }
-
   /// 부동산 상담을 위한 공인중개사 찾기 페이지로 이동
   Future<void> _goToBrokerSearch() async {
     if (selectedFullAddress.isEmpty) {
@@ -1785,7 +1780,7 @@ class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin 
                         ),
                       ],
                     ),
-                  )).toList(),
+                  )),
                 ],
               ],
             ),

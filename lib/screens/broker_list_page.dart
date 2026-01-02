@@ -102,59 +102,58 @@ class _BrokerListPageState extends State<BrokerListPage> {
   final TextEditingController _searchController = TextEditingController();
   
   String _sortOption = 'distance';
-  
-  bool _isSelectionMode = false;
-  final Set<String> _selectedBrokerIds = {};
-  void _toggleSelectionMode() {
-    setState(() {
-      _isSelectionMode = !_isSelectionMode;
-      if (!_isSelectionMode) {
-        _selectedBrokerIds.clear();
-      }
-    });
-  }
 
   Widget _buildHeroSection(BuildContext context, double maxWidth) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(AppSpacing.lg),
-      decoration: BoxDecoration(
-        color: AirbnbColors.background,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: AirbnbColors.borderLight,
-          width: 1,
-        ),
-        boxShadow: [
-          AirbnbColors.cardShadowLarge,
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          // 주소 정보 영역
-          Row(
+    final bool canBulkTop10 = filteredBrokers.isNotEmpty;
+    
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        // 주소 정보 카드 - 에어비엔비 스타일
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(AppSpacing.xl),
+          decoration: BoxDecoration(
+            color: AirbnbColors.background,
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(
+              color: AirbnbColors.borderLight,
+              width: 1,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: AirbnbColors.textPrimary.withValues(alpha: 0.06),
+                blurRadius: 20,
+                offset: const Offset(0, 4),
+                spreadRadius: 0,
+              ),
+            ],
+          ),
+          child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Container(
-                padding: const EdgeInsets.all(AppSpacing.sm),
+                padding: const EdgeInsets.all(AppSpacing.md),
                 decoration: BoxDecoration(
                   color: AirbnbColors.primary.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(16),
                 ),
-                child: const Icon(Icons.location_on, color: AirbnbColors.primary, size: 24),
+                child: const Icon(Icons.location_on, color: AirbnbColors.primary, size: 28),
               ),
-              const SizedBox(width: AppSpacing.md),
+              const SizedBox(width: AppSpacing.lg),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Text(
-                      '선택한 주소 주변',
+                      '검색 위치',
                       style: AppTypography.withColor(
-                        AppTypography.bodySmall,
+                        AppTypography.bodySmall.copyWith(
+                          fontWeight: FontWeight.w600,
+                          letterSpacing: 0.5,
+                        ),
                         AirbnbColors.textSecondary,
                       ),
                     ),
@@ -162,113 +161,220 @@ class _BrokerListPageState extends State<BrokerListPage> {
                     Text(
                       widget.address,
                       style: AppTypography.withColor(
-                        AppTypography.h4,
+                        AppTypography.h3.copyWith(
+                          fontWeight: FontWeight.w700,
+                          height: 1.3,
+                        ),
                         AirbnbColors.textPrimary,
                       ),
                     ),
-                    const SizedBox(height: AppSpacing.xs),
-                    Text(
-                      '검색 반경 ${(_lastSearchRadiusMeters / 1000).toStringAsFixed(1)}km'
-                      '${_searchRadiusExpanded ? ' · 자동 확장됨' : ''}',
-                      style: AppTypography.withColor(
-                        AppTypography.caption,
-                        AirbnbColors.textSecondary,
-                      ),
+                    const SizedBox(height: AppSpacing.sm),
+                    Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: AirbnbColors.surface,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(
+                                Icons.my_location_rounded,
+                                size: 14,
+                                color: AirbnbColors.textSecondary,
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                '${(_lastSearchRadiusMeters / 1000).toStringAsFixed(1)}km',
+                                style: AppTypography.withColor(
+                                  AppTypography.caption.copyWith(fontWeight: FontWeight.w600),
+                                  AirbnbColors.textSecondary,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        if (_searchRadiusExpanded) ...[
+                          const SizedBox(width: AppSpacing.xs),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: AirbnbColors.success.withValues(alpha: 0.1),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const Icon(
+                                  Icons.auto_awesome,
+                                  size: 14,
+                                  color: AirbnbColors.success,
+                                ),
+                                const SizedBox(width: 4),
+                                Text(
+                                  '자동 확장됨',
+                                  style: AppTypography.withColor(
+                                    AppTypography.caption.copyWith(fontWeight: FontWeight.w600),
+                                    AirbnbColors.success,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ],
                     ),
                   ],
                 ),
               ),
             ],
           ),
-          const SizedBox(height: AppSpacing.lg),
-          // 액션 버튼 영역
-          _buildBulkActionButtons(maxWidth),
-        ],
-      ),
+        ),
+        
+        const SizedBox(height: AppSpacing.xl),
+        
+        // 상위 10곳에 문의 버튼 - 큰 CTA 버튼
+        _buildTop10Button(canBulkTop10),
+      ],
     );
   }
 
-  Widget _buildBulkActionButtons(double maxWidth) {
-    // 반응형 디자인: ResponsiveHelper 사용
-    final bool isWide = !ResponsiveHelper.isMobile(context);
-    // 🔥 로그인 체크 제거 - 게스트 모드도 가능
-    final bool canBulkTop10 = filteredBrokers.isNotEmpty;
-    const bool canManual = true;
-    // 반응형 카드 높이
-    final double cardHeight = ResponsiveHelper.isMobile(context) ? 160.0 : 180.0;
-
-    Widget buildActionCard({
-      required String title,
-      required String description,
-      required IconData icon,
-      required bool enabled,
-      required List<Color> gradient,
-      required String badge,
-      required VoidCallback? onTap,
-      VoidCallback? onTapDisabled,
-      required bool requiresLogin,
-    }) {
-      return _ActionCard(
-        title: title,
-        description: description,
-        icon: icon,
-        enabled: enabled,
-        gradient: gradient,
-        badge: badge,
-        cardHeight: cardHeight,
-        onTap: onTap,
-        onTapDisabled: onTapDisabled,
-        requiresLogin: requiresLogin,
-      );
-    }
-
-    final top10Card = buildActionCard(
-      title: '상위 10곳에 문의',
-      description: canBulkTop10
-          ? '정렬 기준 Top10 중개사에게\n원클릭으로 문의를 보냅니다'
-          : '먼저 주소 주변 중개사를\n불러온 뒤 사용 가능합니다',
-      icon: Icons.flash_on_rounded,
-      enabled: canBulkTop10,
-      badge: 'AI 추천',
-      gradient: const [AirbnbColors.primary, AirbnbColors.primary],
-      onTap: _requestQuoteToTop10,
-      requiresLogin: false, // 🔥 게스트 모드도 가능
-    );
-
-    final manualCard = buildActionCard(
-      title: _isSelectionMode ? '선택 모드 종료' : '선택한 곳에 문의',
-      description: '원하는 중개사를 체크하고\n한 번에 문의를 전송하세요',
-      icon: Icons.playlist_add_check_rounded,
-      enabled: canManual,
-      badge: _isSelectionMode ? '선택 중' : '맞춤 요청',
-      gradient: const [AirbnbColors.teal, AirbnbColors.teal],
-      onTap: _toggleSelectionMode,
-      requiresLogin: false, // 🔥 게스트 모드도 가능
-    );
-
-    // 반응형 레이아웃: 가로 배치 vs 세로 배치
-    if (isWide) {
-      return SizedBox(
-        height: cardHeight,
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Expanded(child: top10Card),
-            SizedBox(width: ResponsiveHelper.getCardSpacing(context)),
-            Expanded(child: manualCard),
-          ],
+  Widget _buildTop10Button(bool enabled) {
+    return Container(
+      width: double.infinity,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: enabled
+            ? [
+                BoxShadow(
+                  color: AirbnbColors.primary.withValues(alpha: 0.3),
+                  blurRadius: 20,
+                  offset: const Offset(0, 8),
+                  spreadRadius: 0,
+                ),
+              ]
+            : [
+                BoxShadow(
+                  color: AirbnbColors.textPrimary.withValues(alpha: 0.06),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                  spreadRadius: 0,
+                ),
+              ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: enabled ? _requestQuoteToTop10 : null,
+          borderRadius: BorderRadius.circular(20),
+          child: Container(
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppSpacing.xl,
+              vertical: AppSpacing.xl + AppSpacing.sm,
+            ),
+            decoration: BoxDecoration(
+              gradient: enabled
+                  ? LinearGradient(
+                      colors: [AirbnbColors.primary, AirbnbColors.primaryDark],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    )
+                  : null,
+              color: enabled ? null : AirbnbColors.surface,
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(
+                color: enabled
+                    ? Colors.transparent
+                    : AirbnbColors.borderLight,
+                width: 1,
+              ),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(AppSpacing.sm),
+                  decoration: BoxDecoration(
+                    color: enabled
+                        ? Colors.white.withValues(alpha: 0.2)
+                        : AirbnbColors.textSecondary.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Icon(
+                    Icons.flash_on_rounded,
+                    color: enabled ? Colors.white : AirbnbColors.textSecondary,
+                    size: 28,
+                  ),
+                ),
+                const SizedBox(width: AppSpacing.lg),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Row(
+                        children: [
+                          Text(
+                            '상위 10곳에 문의',
+                            style: AppTypography.withColor(
+                              AppTypography.h3.copyWith(
+                                fontWeight: FontWeight.w700,
+                              ),
+                              enabled ? Colors.white : AirbnbColors.textSecondary,
+                            ),
+                          ),
+                          const SizedBox(width: AppSpacing.sm),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: AppSpacing.sm,
+                              vertical: 4,
+                            ),
+                            decoration: BoxDecoration(
+                              color: enabled
+                                  ? Colors.white.withValues(alpha: 0.25)
+                                  : AirbnbColors.textSecondary.withValues(alpha: 0.1),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Text(
+                              'AI 추천',
+                              style: AppTypography.withColor(
+                                AppTypography.caption.copyWith(
+                                  fontWeight: FontWeight.w700,
+                                  fontSize: 11,
+                                ),
+                                enabled ? Colors.white : AirbnbColors.textSecondary,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: AppSpacing.xs),
+                      Text(
+                        enabled
+                            ? '정렬 기준 상위 10개 중개사에게 원클릭으로 문의를 보냅니다'
+                            : '먼저 주소 주변 중개사를 불러온 뒤 사용 가능합니다',
+                        style: AppTypography.withColor(
+                          AppTypography.bodySmall.copyWith(height: 1.4),
+                          enabled
+                              ? Colors.white.withValues(alpha: 0.9)
+                              : AirbnbColors.textSecondary,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Icon(
+                  Icons.arrow_forward_ios_rounded,
+                  color: enabled ? Colors.white : AirbnbColors.textSecondary,
+                  size: 20,
+                ),
+              ],
+            ),
+          ),
         ),
-      );
-    }
-
-    // 모바일: 세로 배치
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        SizedBox(height: cardHeight, child: top10Card),
-        SizedBox(height: ResponsiveHelper.getCardSpacing(context)),
-        SizedBox(height: cardHeight, child: manualCard),
-      ],
+      ),
     );
   }
 
@@ -772,72 +878,6 @@ class _BrokerListPageState extends State<BrokerListPage> {
 
     return Scaffold(
       backgroundColor: AirbnbColors.background,
-      // 선택 모드일 때 하단 고정 버튼
-      floatingActionButton: _isSelectionMode && widget.userName.isNotEmpty && _selectedBrokerIds.isNotEmpty
-          ? Container(
-              margin: const EdgeInsets.only(left: 16, right: 16, bottom: 24),
-              width: double.infinity,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(20),
-                boxShadow: [
-                  BoxShadow(
-                    color: AirbnbColors.primary.withValues(alpha: 0.4),
-                    blurRadius: 20,
-                    offset: const Offset(0, 8),
-                    spreadRadius: 2,
-                  ),
-                ],
-              ),
-              child: ElevatedButton.icon(
-                onPressed: _requestQuoteToMultiple,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AirbnbColors.textPrimary, // 에어비엔비 스타일: 검은색 배경
-                  foregroundColor: AirbnbColors.textWhite,
-                  padding: const EdgeInsets.symmetric(vertical: AppSpacing.lg, horizontal: AppSpacing.lg),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  elevation: 0,
-                ),
-                icon: Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.2),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: const Icon(Icons.send, size: 28),
-                ),
-                label: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                      decoration: BoxDecoration(
-                        color: AirbnbColors.textWhite.withValues(alpha: 0.2),
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      child: Text(
-                        '${_selectedBrokerIds.length}',
-                        style: AppTypography.withColor(
-                          AppTypography.h3,
-                          AirbnbColors.textWhite,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: AppSpacing.sm),
-                    Text(
-                      '곳에 일괄 문의하기',
-                      style: AppTypography.withColor(
-                        AppTypography.h3,
-                        AirbnbColors.textWhite,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            )
-          : null,
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
       body: CustomScrollView(
         slivers: [
           // 깔끔한 헤더 (메인페이지 스타일)
@@ -928,7 +968,7 @@ class _BrokerListPageState extends State<BrokerListPage> {
               child: Container(
                 constraints: BoxConstraints(maxWidth: maxWidth),
                 child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+                  padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
                   child: Padding(
                     padding: const EdgeInsets.only(top: AppSpacing.lg, bottom: 0),
                     child: Column(
@@ -937,47 +977,71 @@ class _BrokerListPageState extends State<BrokerListPage> {
                       _buildHeroSection(context, maxWidth),
                       const SizedBox(height: AppSpacing.xl),
 
-                      // 공인중개사 목록 헤더 - 웹 스타일
+                      // 공인중개사 목록 헤더 - 에어비엔비 스타일
                       if (!isLoading && brokers.isNotEmpty) ...[
-                        // 검색 및 필터 UI (메인페이지 스타일)
+                        // 검색 및 필터 UI
                         Container(
-                          padding: const EdgeInsets.all(AppSpacing.lg),
-                          decoration: CommonDesignSystem.cardDecoration(
-                            borderRadius: 12,
+                          padding: const EdgeInsets.all(AppSpacing.xl),
+                          decoration: BoxDecoration(
+                            color: AirbnbColors.background,
+                            borderRadius: BorderRadius.circular(20),
+                            border: Border.all(
+                              color: AirbnbColors.borderLight,
+                              width: 1,
+                            ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: AirbnbColors.textPrimary.withValues(alpha: 0.04),
+                                blurRadius: 16,
+                                offset: const Offset(0, 2),
+                                spreadRadius: 0,
+                              ),
+                            ],
                           ),
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              // 헤더
+                              // 헤더 - 에어비엔비 스타일
                               Row(
                                 children: [
                                   Container(
-                                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                                    padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.sm),
                                     decoration: BoxDecoration(
-                                      color: AirbnbColors.primaryDark,
-                                      borderRadius: BorderRadius.circular(24),
+                                      gradient: const LinearGradient(
+                                        colors: [AirbnbColors.primary, AirbnbColors.primaryDark],
+                                        begin: Alignment.topLeft,
+                                        end: Alignment.bottomRight,
+                                      ),
+                                      borderRadius: BorderRadius.circular(12),
+                                      boxShadow: [
+                                        BoxShadow(
+                                          color: AirbnbColors.primary.withValues(alpha: 0.3),
+                                          blurRadius: 8,
+                                          offset: const Offset(0, 2),
+                                        ),
+                                      ],
                                     ),
                                     child: Row(
                                       mainAxisSize: MainAxisSize.min,
                                       children: [
-                                        const Icon(Icons.business, color: Colors.white, size: 20),
+                                        const Icon(Icons.business_rounded, color: Colors.white, size: 20),
                                         const SizedBox(width: AppSpacing.sm),
                                         Text(
                                           '공인중개사 ${filteredBrokers.length}곳',
                                           style: AppTypography.withColor(
-                                            AppTypography.h4,
-                                            AirbnbColors.textWhite,
+                                            AppTypography.h4.copyWith(fontWeight: FontWeight.w700),
+                                            Colors.white,
                                           ),
                                         ),
                                       ],
                                     ),
                                   ),
                                   if (filteredBrokers.length < brokers.length) ...[
-                                    const SizedBox(width: AppSpacing.sm),
+                                    const SizedBox(width: AppSpacing.md),
                                     Text(
-                                      '/ 전체 ${brokers.length}곳',
+                                      '전체 ${brokers.length}곳',
                                       style: AppTypography.withColor(
-                                        AppTypography.bodySmall,
+                                        AppTypography.bodySmall.copyWith(fontWeight: FontWeight.w500),
                                         AirbnbColors.textSecondary,
                                       ),
                                     ),
@@ -985,17 +1049,35 @@ class _BrokerListPageState extends State<BrokerListPage> {
                                 ],
                               ),
                               
-                              const SizedBox(height: AppSpacing.md),
+                              const SizedBox(height: AppSpacing.xl),
                               
-                              // 검색창
+                              // 검색창 - 에어비엔비 스타일
                               TextField(
                                 controller: _searchController,
                                 decoration: InputDecoration(
                                   hintText: '중개사명, 주소로 검색',
-                                  prefixIcon: const Icon(Icons.search, color: AirbnbColors.primary),
+                                  hintStyle: AppTypography.body.copyWith(
+                                    color: AirbnbColors.textSecondary.withValues(alpha: 0.6),
+                                  ),
+                                  prefixIcon: Container(
+                                    margin: const EdgeInsets.all(8),
+                                    padding: const EdgeInsets.all(8),
+                                    decoration: BoxDecoration(
+                                      color: AirbnbColors.primary.withValues(alpha: 0.1),
+                                      borderRadius: BorderRadius.circular(10),
+                                    ),
+                                    child: const Icon(Icons.search_rounded, color: AirbnbColors.primary, size: 20),
+                                  ),
                                   suffixIcon: searchKeyword.isNotEmpty
                                       ? IconButton(
-                                          icon: const Icon(Icons.clear, size: 20),
+                                          icon: Container(
+                                            padding: const EdgeInsets.all(6),
+                                            decoration: BoxDecoration(
+                                              color: AirbnbColors.textSecondary.withValues(alpha: 0.1),
+                                              shape: BoxShape.circle,
+                                            ),
+                                            child: const Icon(Icons.close_rounded, size: 16, color: AirbnbColors.textSecondary),
+                                          ),
                                           onPressed: () {
                                             _searchController.clear();
                                             searchKeyword = '';
@@ -1004,44 +1086,52 @@ class _BrokerListPageState extends State<BrokerListPage> {
                                         )
                                       : null,
                                   filled: true,
-                                  fillColor: AirbnbColors.background,
+                                  fillColor: AirbnbColors.surface,
                                   border: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(12),
+                                    borderRadius: BorderRadius.circular(16),
                                     borderSide: BorderSide.none,
                                   ),
+                                  enabledBorder: OutlineInputBorder(
+                                    borderRadius: BorderRadius.circular(16),
+                                    borderSide: const BorderSide(
+                                      color: AirbnbColors.borderLight,
+                                      width: 1,
+                                    ),
+                                  ),
                                   focusedBorder: OutlineInputBorder(
-                                    borderRadius: BorderRadius.circular(12),
+                                    borderRadius: BorderRadius.circular(16),
                                     borderSide: const BorderSide(color: AirbnbColors.primary, width: 2),
                                   ),
-                                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
                                 ),
+                                style: AppTypography.body,
                                 onChanged: (value) {
                                   searchKeyword = value;
                                   _applyFilters();
                                 },
                               ),
                               
-                              const SizedBox(height: AppSpacing.md),
+                              const SizedBox(height: AppSpacing.xl),
                               
-                              // 정렬 옵션
-                              Row(
+                              // 정렬 옵션 - 에어비엔비 스타일
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    '정렬:',
+                                    '정렬 기준',
                                     style: AppTypography.withColor(
-                                      AppTypography.bodySmall.copyWith(
-                                        fontWeight: FontWeight.w600,
+                                      AppTypography.body.copyWith(
+                                        fontWeight: FontWeight.w700,
                                       ),
-                                      AirbnbColors.textSecondary,
+                                      AirbnbColors.textPrimary,
                                     ),
                                   ),
-                                  const SizedBox(width: AppSpacing.sm),
-                                  Expanded(
-                                    child: Wrap(
-                                      spacing: 8,
-                                      runSpacing: 8,
-                                      children: [
-                                        ChoiceChip(
+                                  const SizedBox(height: AppSpacing.md),
+                                  Wrap(
+                                    spacing: AppSpacing.sm,
+                                    runSpacing: AppSpacing.sm,
+                                    children: [
+                                      ChoiceChip(
                                           label: const Row(
                                             mainAxisSize: MainAxisSize.min,
                                             children: [
@@ -1074,8 +1164,8 @@ class _BrokerListPageState extends State<BrokerListPage> {
                                             ),
                                             _sortOption == 'systemRegNo' ? AirbnbColors.primary : AirbnbColors.textSecondary,
                                           ),
-                                        ),
-                                        ChoiceChip(
+                                      ),
+                                      ChoiceChip(
                                           label: const Row(
                                             mainAxisSize: MainAxisSize.min,
                                             children: [
@@ -1100,8 +1190,8 @@ class _BrokerListPageState extends State<BrokerListPage> {
                                             color: _sortOption == 'distance' ? AirbnbColors.primary : AirbnbColors.textSecondary,
                                             fontWeight: _sortOption == 'distance' ? FontWeight.bold : FontWeight.normal,
                                           ),
-                                        ),
-                                        ChoiceChip(
+                                      ),
+                                      ChoiceChip(
                                           label: const Row(
                                             mainAxisSize: MainAxisSize.min,
                                             children: [
@@ -1126,8 +1216,8 @@ class _BrokerListPageState extends State<BrokerListPage> {
                                             color: _sortOption == 'name' ? AirbnbColors.primary : AirbnbColors.textSecondary,
                                             fontWeight: _sortOption == 'name' ? FontWeight.bold : FontWeight.normal,
                                           ),
-                                        ),
-                                        ChoiceChip(
+                                      ),
+                                      ChoiceChip(
                                           label: const Row(
                                             mainAxisSize: MainAxisSize.min,
                                             children: [
@@ -1152,8 +1242,8 @@ class _BrokerListPageState extends State<BrokerListPage> {
                                             color: _sortOption == 'registrationDate' ? AirbnbColors.primary : AirbnbColors.textSecondary,
                                             fontWeight: _sortOption == 'registrationDate' ? FontWeight.bold : FontWeight.normal,
                                           ),
-                                        ),
-                                        ChoiceChip(
+                                      ),
+                                      ChoiceChip(
                                           label: const Row(
                                             mainAxisSize: MainAxisSize.min,
                                             children: [
@@ -1181,112 +1271,125 @@ class _BrokerListPageState extends State<BrokerListPage> {
                                         ),
                                       ],
                                     ),
-                                  ),
-                                ],
-                              ),
-                              
-                              const SizedBox(height: AppSpacing.sm),
-                              
-                              // 필터 버튼들
-                              Wrap(
-                                spacing: 8,
-                                runSpacing: 8,
-                                children: [
-                                  FilterChip(
-                                    label: const Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        Icon(Icons.phone, size: 16),
-                                        SizedBox(width: 4),
-                                        Text('전화번호 있음'),
-                                      ],
-                                    ),
-                                    selected: showOnlyWithPhone,
-                                    onSelected: (selected) {
-                                      setState(() {
-                                        showOnlyWithPhone = selected;
-                                        _applyFilters();
-                                      });
-                                    },
-                                    selectedColor: AirbnbColors.primary.withValues(alpha: 0.15),
-                                    checkmarkColor: AirbnbColors.primary,
-                                    backgroundColor: AirbnbColors.background,
-                                    side: BorderSide(
-                                      color: showOnlyWithPhone 
-                                          ? AirbnbColors.primary 
-                                          : AirbnbColors.border,
-                                      width: showOnlyWithPhone ? 1.5 : 1,
-                                    ),
-                                    labelStyle: AppTypography.withColor(
-                                      AppTypography.caption.copyWith(
-                                        fontWeight: showOnlyWithPhone ? FontWeight.w700 : FontWeight.w500,
+                                  const SizedBox(height: AppSpacing.xl),
+                                  
+                                  // 필터 옵션 - 에어비엔비 스타일
+                                  Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        '필터',
+                                        style: AppTypography.withColor(
+                                          AppTypography.body.copyWith(
+                                            fontWeight: FontWeight.w700,
+                                          ),
+                                          AirbnbColors.textPrimary,
+                                        ),
                                       ),
-                                      showOnlyWithPhone ? AirbnbColors.primary : AirbnbColors.textSecondary,
-                                    ),
-                                  ),
-                                  FilterChip(
-                                    label: const Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        Icon(Icons.language, size: 16),
-                                        SizedBox(width: 4),
-                                        Text('글로벌공인중개사'),
-                                      ],
-                                    ),
-                                    selected: showOnlyGlobalBroker,
-                                    onSelected: (selected) {
-                                      setState(() {
-                                        showOnlyGlobalBroker = selected;
-                                        _applyFilters();
-                                      });
-                                    },
-                                    selectedColor: AirbnbColors.teal.withValues(alpha: 0.15),
-                                    checkmarkColor: AirbnbColors.teal,
-                                    backgroundColor: AirbnbColors.background,
-                                    side: BorderSide(
-                                      color: showOnlyGlobalBroker 
-                                          ? AirbnbColors.teal 
-                                          : AirbnbColors.border,
-                                      width: showOnlyGlobalBroker ? 1.5 : 1,
-                                    ),
-                                    labelStyle: AppTypography.withColor(
-                                      AppTypography.caption.copyWith(
-                                        fontWeight: showOnlyGlobalBroker ? FontWeight.w700 : FontWeight.w500,
-                                      ),
-                                      showOnlyGlobalBroker ? AirbnbColors.teal : AirbnbColors.textSecondary,
-                                    ),
-                                  ),
-                                  if (showOnlyWithPhone || showOnlyGlobalBroker || searchKeyword.isNotEmpty)
-                                    ActionChip(
-                                      label: const Row(
-                                        mainAxisSize: MainAxisSize.min,
+                                      const SizedBox(height: AppSpacing.md),
+                                      Wrap(
+                                        spacing: AppSpacing.sm,
+                                        runSpacing: AppSpacing.sm,
                                         children: [
-                                          Icon(Icons.refresh, size: 16),
-                                          SizedBox(width: 4),
-                                          Text('초기화'),
+                                          FilterChip(
+                                            label: const Row(
+                                              mainAxisSize: MainAxisSize.min,
+                                              children: [
+                                                Icon(Icons.phone, size: 16),
+                                                SizedBox(width: 4),
+                                                Text('전화번호 있음'),
+                                              ],
+                                            ),
+                                            selected: showOnlyWithPhone,
+                                            onSelected: (selected) {
+                                              setState(() {
+                                                showOnlyWithPhone = selected;
+                                                _applyFilters();
+                                              });
+                                            },
+                                            selectedColor: AirbnbColors.primary.withValues(alpha: 0.15),
+                                            checkmarkColor: AirbnbColors.primary,
+                                            backgroundColor: AirbnbColors.background,
+                                            side: BorderSide(
+                                              color: showOnlyWithPhone 
+                                                  ? AirbnbColors.primary 
+                                                  : AirbnbColors.border,
+                                              width: showOnlyWithPhone ? 1.5 : 1,
+                                            ),
+                                            labelStyle: AppTypography.withColor(
+                                              AppTypography.caption.copyWith(
+                                                fontWeight: showOnlyWithPhone ? FontWeight.w700 : FontWeight.w500,
+                                              ),
+                                              showOnlyWithPhone ? AirbnbColors.primary : AirbnbColors.textSecondary,
+                                            ),
+                                          ),
+                                          FilterChip(
+                                            label: const Row(
+                                              mainAxisSize: MainAxisSize.min,
+                                              children: [
+                                                Icon(Icons.language, size: 16),
+                                                SizedBox(width: 4),
+                                                Text('글로벌공인중개사'),
+                                              ],
+                                            ),
+                                            selected: showOnlyGlobalBroker,
+                                            onSelected: (selected) {
+                                              setState(() {
+                                                showOnlyGlobalBroker = selected;
+                                                _applyFilters();
+                                              });
+                                            },
+                                            selectedColor: AirbnbColors.teal.withValues(alpha: 0.15),
+                                            checkmarkColor: AirbnbColors.teal,
+                                            backgroundColor: AirbnbColors.background,
+                                            side: BorderSide(
+                                              color: showOnlyGlobalBroker 
+                                                  ? AirbnbColors.teal 
+                                                  : AirbnbColors.border,
+                                              width: showOnlyGlobalBroker ? 1.5 : 1,
+                                            ),
+                                            labelStyle: AppTypography.withColor(
+                                              AppTypography.caption.copyWith(
+                                                fontWeight: showOnlyGlobalBroker ? FontWeight.w700 : FontWeight.w500,
+                                              ),
+                                              showOnlyGlobalBroker ? AirbnbColors.teal : AirbnbColors.textSecondary,
+                                            ),
+                                          ),
+                                          if (showOnlyWithPhone || showOnlyGlobalBroker || searchKeyword.isNotEmpty)
+                                            ActionChip(
+                                              label: const Row(
+                                                mainAxisSize: MainAxisSize.min,
+                                                children: [
+                                                  Icon(Icons.refresh_rounded, size: 16),
+                                                  SizedBox(width: 4),
+                                                  Text('초기화'),
+                                                ],
+                                              ),
+                                              onPressed: () {
+                                                setState(() {
+                                                  showOnlyWithPhone = false;
+                                                  showOnlyGlobalBroker = false;
+                                                  searchKeyword = '';
+                                                  _searchController.clear();
+                                                  _applyFilters();
+                                                });
+                                              },
+                                              backgroundColor: AirbnbColors.error.withValues(alpha: 0.1),
+                                              side: BorderSide(
+                                                color: AirbnbColors.error.withValues(alpha: 0.3),
+                                                width: 1,
+                                              ),
+                                              labelStyle: AppTypography.withColor(
+                                                AppTypography.caption.copyWith(
+                                                  fontWeight: FontWeight.w700,
+                                                ),
+                                                AirbnbColors.error,
+                                              ),
+                                            ),
                                         ],
                                       ),
-                                      onPressed: () {
-                                        setState(() {
-                                          showOnlyWithPhone = false;
-                                          showOnlyGlobalBroker = false;
-                                          searchKeyword = '';
-                                          _searchController.clear();
-                                          _applyFilters();
-                                        });
-                                      },
-                                      backgroundColor: AirbnbColors.background,
-                                      side: const BorderSide(
-                                        color: AirbnbColors.border,
-                                        width: 1,
-                                      ),
-                                      labelStyle: AppTypography.withColor(
-                                        AppTypography.caption.copyWith(
-                                          fontWeight: FontWeight.w600,
-                                        ),
-                                        AirbnbColors.textSecondary,
-                                      ),
-                                    ),
+                                    ],
+                                  ),
                                 ],
                               ),
                             ],
@@ -1479,43 +1582,6 @@ class _BrokerListPageState extends State<BrokerListPage> {
                 // 첫 번째 줄: 선택 체크박스 + 사업자명
                 Row(
                   children: [
-                    // 선택 모드일 때 체크박스
-                    if (_isSelectionMode && widget.userName.isNotEmpty) ...[
-                      Container(
-                        padding: const EdgeInsets.all(4),
-                        decoration: BoxDecoration(
-                          color: _selectedBrokerIds.contains(broker.systemRegNo)
-                              ? AirbnbColors.textWhite
-                              : AirbnbColors.textWhite.withValues(alpha: 0.2),
-                          shape: BoxShape.circle,
-                          border: Border.all(
-                            color: AirbnbColors.textWhite,
-                            width: 2,
-                          ),
-                        ),
-                        child: Checkbox(
-                          value: _selectedBrokerIds.contains(broker.systemRegNo),
-                          onChanged: (selected) {
-                            setState(() {
-                              if (selected == true) {
-                                _selectedBrokerIds.add(broker.systemRegNo ?? '');
-                              } else {
-                                _selectedBrokerIds.remove(broker.systemRegNo);
-                              }
-                            });
-                          },
-                          checkColor: AirbnbColors.primary,
-                          fillColor: WidgetStateProperty.resolveWith<Color>((states) {
-                            if (states.contains(WidgetState.selected)) {
-                              return AirbnbColors.textWhite;
-                            }
-                            return Colors.transparent;
-                          }),
-                          side: const BorderSide(color: AirbnbColors.textWhite, width: 2),
-                        ),
-                      ),
-                      const SizedBox(width: AppSpacing.md),
-                    ],
                     Expanded(
                       child: Text(
                         broker.name,
@@ -1750,8 +1816,7 @@ class _BrokerListPageState extends State<BrokerListPage> {
             ),
           ),
 
-          // 액션 버튼들 - 리뉴얼 (선택 모드가 아닐 때만 표시)
-          if (!_isSelectionMode || widget.userName.isEmpty)
+          // 액션 버튼들 - 리뉴얼
             Container(
               padding: const EdgeInsets.all(AppSpacing.lg),
               decoration: const BoxDecoration(
@@ -2822,177 +2887,6 @@ class _BrokerListPageState extends State<BrokerListPage> {
           ),
           backgroundColor: failCount > 0 ? Colors.orange : AirbnbColors.success,
           duration: const Duration(seconds: 3),
-        ),
-      );
-    }
-  }
-  
-  /// 여러 공인중개사에게 일괄 견적 요청 (MVP 핵심 기능)
-  Future<void> _requestQuoteToMultiple() async {
-    // 🔥 로그인 체크 제거 - 게스트 모드도 가능
-    // 선택한 중개사 목록 가져오기
-    final selectedBrokers = filteredBrokers.where((broker) {
-      return _selectedBrokerIds.contains(broker.systemRegNo);
-    }).toList();
-
-    if (selectedBrokers.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('문의할 공인중개사를 선택해주세요.'),
-          backgroundColor: Colors.orange,
-        ),
-      );
-      return;
-    }
-    
-    // 🔥 게스트 모드일 때 연락처 입력 및 계정 생성
-    final isGuestMode = widget.userId == null || widget.userId!.isEmpty;
-    String? userEmail;
-    String? userPhone;
-    String effectiveUserId = widget.userId ?? widget.userName;
-    String effectiveUserName = widget.userName;
-    
-    if (isGuestMode) {
-      final contactInfo = await _showGuestContactDialog();
-      if (contactInfo == null) return; // 취소됨
-      
-      userEmail = contactInfo['email'];
-      userPhone = contactInfo['phone'];
-      
-      // 계정 생성/로그인 처리
-      if (userEmail == null || userPhone == null) return;
-      final createdUserId = await _createOrLoginAccount(userEmail, userPhone);
-      if (createdUserId != null) {
-        effectiveUserId = createdUserId;
-        // 사용자 이름도 업데이트
-        final userData = await _firebaseService.getUser(createdUserId);
-        effectiveUserName = userData?['name'] ?? userEmail.split('@')[0];
-      } else {
-        // 계정 생성 실패 - 문의 중단 (데이터 불일치 방지)
-        if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('계정 생성에 실패했습니다. 잠시 후 다시 시도해주세요.'),
-            backgroundColor: Colors.red,
-            duration: Duration(seconds: 3),
-          ),
-        );
-        return; // 문의 중단
-      }
-    } else {
-      // 정식 로그인 사용자
-      userEmail = await _getUserEmail();
-      final userData = await _firebaseService.getUser(widget.userId!);
-      userPhone = userData?['phone'] as String?;
-    }
-    
-    if (!mounted) return;
-    
-    // 일괄 견적 요청 페이지 표시
-    final result = await Navigator.push<Map<String, dynamic>>(
-      context,
-      MaterialPageRoute(
-        builder: (context) => _MultipleQuoteRequestDialog(
-          brokerCount: selectedBrokers.length,
-          address: widget.address,
-          propertyArea: widget.propertyArea,
-          transactionType: widget.transactionType,
-        ),
-      ),
-    );
-    
-    if (result == null) {
-      AnalyticsService.instance.logEvent(
-        AnalyticsEventNames.quoteRequestBulkCancelled,
-        params: {
-          'mode': 'manual',
-          'selectedCount': selectedBrokers.length,
-        },
-        userId: effectiveUserId,
-        userName: effectiveUserName,
-        stage: FunnelStage.quoteRequest,
-      );
-      return; // 취소됨
-    }
-    
-    // 선택한 모든 중개사에게 동일한 정보로 견적 요청
-    int successCount = 0;
-    int failCount = 0;
-    
-    for (final broker in selectedBrokers) {
-      try {
-        
-        final quoteRequest = QuoteRequest(
-          id: '',
-          userId: effectiveUserId,
-          userName: effectiveUserName,
-          userEmail: userEmail,
-          userPhone: userPhone,
-          brokerName: broker.name,
-          brokerRegistrationNumber: broker.registrationNumber,
-          brokerRoadAddress: broker.roadAddress,
-          brokerJibunAddress: broker.jibunAddress,
-          message: '부동산 상담 요청서',
-          status: 'pending',
-          requestDate: DateTime.now(),
-          transactionType: result['transactionType'] as String?,
-          propertyType: result['propertyType'],
-          propertyAddress: widget.address,
-          propertyArea: result['propertyArea'],
-          hasTenant: result['hasTenant'] as bool?,
-          desiredPrice: result['desiredPrice'] as String?,
-          targetPeriod: null,
-          specialNotes: result['specialNotes'] as String?,
-          // 확인할 견적 정보 (선택되지 않은 항목은 null)
-          commissionRate: result['requestCommissionRate'] == true ? '' : null,
-          recommendedPrice: result['requestRecommendedPrice'] == true ? '' : null,
-          promotionMethod: result['requestPromotionMethod'] == true ? '' : null,
-          recentCases: result['requestRecentCases'] == true ? '' : null,
-        );
-        
-        
-        final requestId = await _firebaseService.saveQuoteRequest(quoteRequest);
-        if (requestId != null) {
-          successCount++;
-        } else {
-          failCount++;
-        }
-      } catch (e) {
-        failCount++;
-      }
-    }
-    
-    
-    AnalyticsService.instance.logEvent(
-      AnalyticsEventNames.quoteRequestBulkManual,
-      params: {
-        'selectedCount': selectedBrokers.length,
-        'successCount': successCount,
-        'failCount': failCount,
-        'address': widget.address,
-      },
-      userId: effectiveUserId,
-      userName: effectiveUserName,
-      stage: FunnelStage.quoteRequest,
-    );
-
-    if (mounted) {
-      // 선택 모드 종료
-      setState(() {
-        _isSelectionMode = false;
-        _selectedBrokerIds.clear();
-      });
-
-      // 확인 화면으로 이동 (현황 보기 CTA 제공)
-      Navigator.of(context).push(
-        MaterialPageRoute(
-          builder: (_) => SubmitSuccessPage(
-            title: '문의가 전송되었습니다',
-          description: '선택한 공인중개사에게 문의를 보냈습니다.\n답변이 도착하면 현황에서 확인할 수 있어요.\n'
-              '성공: $successCount곳${failCount > 0 ? " / 실패: $failCount곳" : ""}',
-            userName: effectiveUserName,
-            userId: effectiveUserId,
-          ),
         ),
       );
     }
@@ -4596,9 +4490,6 @@ class _ActionCard extends StatefulWidget {
   final List<Color> gradient;
   final String badge;
   final double cardHeight;
-  final VoidCallback? onTap;
-  final VoidCallback? onTapDisabled;
-  final bool requiresLogin; // 로그인 필요 여부 (시각적 구분용)
 
   const _ActionCard({
     required this.title,
@@ -4608,9 +4499,6 @@ class _ActionCard extends StatefulWidget {
     required this.gradient,
     required this.badge,
     required this.cardHeight,
-    this.onTap,
-    this.onTapDisabled,
-    this.requiresLogin = false,
   });
 
   @override
@@ -4634,9 +4522,7 @@ class _ActionCardState extends State<_ActionCard> {
         : widget.gradient[0];
     
     final Color borderColor = isDisabled
-        ? (widget.requiresLogin 
-            ? AirbnbColors.primary.withValues(alpha: 0.3)  // 로그인 필요: 보라색 테두리 (연하게)
-            : AirbnbColors.border)  // 일반 비활성화: 회색 테두리
+        ? AirbnbColors.border  // 비활성화: 회색 테두리
         : (_isHovered 
             ? widget.gradient[0].withValues(alpha: 0.8) 
             : widget.gradient[0].withValues(alpha: 0.3));
@@ -4662,11 +4548,6 @@ class _ActionCardState extends State<_ActionCard> {
         },
         onTapUp: (_) {
           setState(() => _isPressed = false);
-          if (widget.enabled && widget.onTap != null) {
-            widget.onTap!();
-          } else if (widget.onTapDisabled != null) {
-            widget.onTapDisabled!();
-          }
         },
         onTapCancel: () {
           setState(() => _isPressed = false);
@@ -4685,7 +4566,7 @@ class _ActionCardState extends State<_ActionCard> {
             border: Border.all(
               color: borderColor,
               width: isDisabled 
-                  ? (widget.requiresLogin ? 2.0 : 1.5)  // 로그인 필요: 더 두꺼운 테두리
+                  ? 1.5
                   : (_isHovered && widget.enabled ? 2 : 1.5),
             ),
             boxShadow: widget.enabled
@@ -4697,7 +4578,7 @@ class _ActionCardState extends State<_ActionCard> {
           child: Material(
             color: Colors.transparent,
             child: InkWell(
-              onTap: widget.enabled ? widget.onTap : (widget.onTapDisabled ?? () {}),
+              onTap: widget.enabled ? () {} : null,
               borderRadius: BorderRadius.circular(20),
               splashColor: Colors.white.withValues(alpha: 0.2),
               highlightColor: Colors.white.withValues(alpha: 0.1),
@@ -4740,21 +4621,14 @@ class _ActionCardState extends State<_ActionCard> {
                                 ),
                                 decoration: BoxDecoration(
                                   color: isDisabled
-                                      ? (widget.requiresLogin 
-                                          ? AirbnbColors.primary.withValues(alpha: 0.1)  // 로그인 필요: 연한 보라색
-                                          : AirbnbColors.surface)  // 일반 비활성화: 회색 배경
+                                      ? AirbnbColors.surface  // 비활성화: 회색 배경
                                       : Colors.white.withValues(alpha: 0.25),
                                   borderRadius: BorderRadius.circular(10),
                                   border: isDisabled
-                                      ? (widget.requiresLogin
-                                          ? Border.all(
-                                              color: AirbnbColors.primary.withValues(alpha: 0.3),
-                                              width: 1,
-                                            )
-                                          : Border.all(
-                                              color: AirbnbColors.border,
-                                              width: 1,
-                                            ))
+                                      ? Border.all(
+                                          color: AirbnbColors.border,
+                                          width: 1,
+                                        )
                                       : Border.all(
                                           color: Colors.white.withValues(alpha: 0.3),
                                           width: 1,
@@ -4767,9 +4641,7 @@ class _ActionCardState extends State<_ActionCard> {
                                       fontWeight: FontWeight.w700,
                                     ),
                                     isDisabled
-                                        ? (widget.requiresLogin 
-                                            ? AirbnbColors.primary  // 로그인 필요: 보라색
-                                            : AirbnbColors.textSecondary)  // 일반 비활성화: 회색
+                                        ? AirbnbColors.textSecondary  // 비활성화: 회색
                                         : AirbnbColors.textWhite,
                                   ),
                                 ),
@@ -4815,15 +4687,6 @@ class _ActionCardState extends State<_ActionCard> {
                           padding: const EdgeInsets.only(top: AppSpacing.sm),
                           child: Row(
                             children: [
-                              // 로그인 필요 아이콘 표시
-                              if (isDisabled && widget.requiresLogin) ...[
-                                Icon(
-                                  Icons.lock_outline_rounded,
-                                  color: AirbnbColors.primary,
-                                  size: ResponsiveHelper.isMobile(context) ? 14 : 16,
-                                ),
-                                const SizedBox(width: 4),
-                              ],
                               AnimatedContainer(
                                 duration: const Duration(milliseconds: 200),
                                 transform: Matrix4.translationValues(
@@ -4834,13 +4697,9 @@ class _ActionCardState extends State<_ActionCard> {
                                 child: Icon(
                                   widget.enabled 
                                       ? Icons.arrow_forward_rounded
-                                      : (widget.requiresLogin 
-                                          ? Icons.login_rounded 
-                                          : Icons.info_outline_rounded),
+                                      : Icons.info_outline_rounded,
                                   color: isDisabled
-                                      ? (widget.requiresLogin 
-                                          ? AirbnbColors.primary  // 로그인 필요: 보라색
-                                          : AirbnbColors.textSecondary)  // 일반 비활성화: 회색
+                                      ? AirbnbColors.textSecondary  // 비활성화: 회색
                                       : textColor,
                                   size: ResponsiveHelper.isMobile(context) ? 15 : 18,
                                 ),
@@ -4849,18 +4708,14 @@ class _ActionCardState extends State<_ActionCard> {
                               Text(
                                 widget.enabled 
                                     ? '바로 실행' 
-                                    : (widget.requiresLogin 
-                                        ? '로그인 필요' 
-                                        : '사용 불가'),
+                                    : '사용 불가',
                                 style: AppTypography.withColor(
                                   AppTypography.caption.copyWith(
                                     fontSize: ResponsiveHelper.isMobile(context) ? 12 : 14,
                                     fontWeight: FontWeight.w700,
                                   ),
                                   isDisabled
-                                      ? (widget.requiresLogin 
-                                          ? AirbnbColors.primary  // 로그인 필요: 보라색
-                                          : AirbnbColors.textSecondary)  // 일반 비활성화: 회색
+                                      ? AirbnbColors.textSecondary  // 비활성화: 회색
                                       : textColor,
                                 ),
                               ),

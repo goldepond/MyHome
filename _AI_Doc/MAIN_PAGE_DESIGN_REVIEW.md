@@ -1,6 +1,7 @@
 # 메인페이지 디자인 에어비엔비 스타일 점검 보고서
 
 > 작성일: 2025-01-27  
+> 최종 업데이트: 2026-01-01  
 > 점검 대상: `home_page.dart`, `hero_banner.dart`  
 > 기준: 에어비엔비 디자인 철학 및 레이아웃 원칙
 
@@ -117,9 +118,9 @@
   - 사용자 여정을 명확히 안내
 
 **코드 확인**:
-```73:85:lib/widgets/hero_banner.dart
+```73:91:lib/widgets/hero_banner.dart
             Text(
-              '한 번 입력하면\n 여러 중개사 답합니다.',
+              '처음이라도 부담 없이,\n비대면으로 문의하세요',
               textAlign: TextAlign.center,
               style: AppTypography.withColor(
                 AppTypography.display.copyWith(
@@ -131,6 +132,13 @@
                 AirbnbColors.textPrimary,
               ),
             ),
+            
+            const SizedBox(height: AppSpacing.lg), // 24px
+            
+            // 큰 서브헤드
+            Text(
+              '나가지 않아도, 집에서 편하게 문의하세요',
+              textAlign: TextAlign.center,
 ```
 
 **개선 필요**:
@@ -151,8 +159,8 @@
   - 실시간 주소 검색 (디바운싱 적용)
   - 로딩 상태 표시
 - ✅ 친근한 톤앤매너
-  - "한 번 입력하면 여러 중개사 답합니다" - 간단명료한 메시지
-  - "주소 한 번 입력으로 여러 중개사의 제안을 한곳에서 확인하세요" - 친절한 안내
+  - "처음이라도 부담 없이, 비대면으로 문의하세요" - 부담 없는 접근성 강조
+  - "나가지 않아도, 집에서 편하게 문의하세요" - 편의성 강조
 
 **코드 확인**:
 ```519:540:lib/screens/home_page.dart
@@ -338,9 +346,9 @@ class AirbnbColors {
 - ✅ 반응형 폰트 크기 적용
 
 **코드 확인**:
-```73:85:lib/widgets/hero_banner.dart
+```73:91:lib/widgets/hero_banner.dart
             Text(
-              '한 번 입력하면\n 여러 중개사 답합니다.',
+              '처음이라도 부담 없이,\n비대면으로 문의하세요',
               textAlign: TextAlign.center,
               style: AppTypography.withColor(
                 AppTypography.display.copyWith(
@@ -352,6 +360,13 @@ class AirbnbColors {
                 AirbnbColors.textPrimary,
               ),
             ),
+            
+            const SizedBox(height: AppSpacing.lg), // 24px
+            
+            // 큰 서브헤드
+            Text(
+              '나가지 않아도, 집에서 편하게 문의하세요',
+              textAlign: TextAlign.center,
 ```
 
 ---
@@ -580,6 +595,7 @@ decoration: BoxDecoration(
 
 ---
 
-**최종 업데이트**: 2025-01-27  
-**전체 완료도**: 90% ✅
+**최종 업데이트**: 2026-01-01  
+**전체 완료도**: 95% ✅  
+**최근 업데이트**: 히어로 배너 문구 최신화 완료 ("처음이라도 부담 없이, 비대면으로 문의하세요")
 

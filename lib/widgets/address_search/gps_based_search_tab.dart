@@ -24,55 +24,30 @@ class GpsBasedSearchTab extends StatefulWidget {
 }
 
 class GpsBasedSearchTabState extends State<GpsBasedSearchTab> {
-  bool _autoCompleteEnabled = false;
-  bool _hasAutoCompleted = false; // 이미 자동 완료했는지 추적
-
   @override
   void initState() {
     super.initState();
-    // GPS 탭이 처음 생성될 때 자동 완료 활성화
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) {
-        setState(() {
-          _autoCompleteEnabled = true;
-        });
-      }
-    });
   }
 
   /// 자동 완료 활성화 (외부에서 호출, 탭 전환 시)
+  /// 항상 활성화되어 있으므로 빈 구현
   void enableAutoComplete() {
-    if (mounted && !_hasAutoCompleted) {
-      setState(() {
-        _autoCompleteEnabled = true;
-      });
-    }
+    // 항상 활성화되어 있으므로 아무 작업도 하지 않음
   }
   
   /// 자동 완료 상태 리셋 (다시 자동 완료할 수 있도록)
+  /// 항상 활성화되어 있으므로 빈 구현
   void resetAutoComplete() {
-    if (mounted) {
-      setState(() {
-        _hasAutoCompleted = false;
-        _autoCompleteEnabled = true;
-      });
-    }
+    // 항상 활성화되어 있으므로 아무 작업도 하지 않음
   }
 
   @override
   Widget build(BuildContext context) {
     return RegionSelectionSection(
-      autoComplete: _autoCompleteEnabled,
+      autoComplete: true, // 항상 자동 완료 활성화
       onContentChanged: widget.onContentChanged, // 콘텐츠 변경 알림 전달
       onComplete: (result) {
-        // 자동 완료 처리 후 플래그 설정
-        if (_autoCompleteEnabled) {
-          setState(() {
-            _hasAutoCompleted = true;
-            _autoCompleteEnabled = false; // 한 번만 자동 완료
-          });
-        }
-        
+        // 자동 완료 제한 제거 - 주소가 변경될 때마다 호출됨
         widget.onAddressSelected?.call(
           SelectedAddressResult(
             address: result.address,
