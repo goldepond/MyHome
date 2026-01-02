@@ -71,7 +71,7 @@ class _HeroBannerState extends State<HeroBanner> {
           children: [
             // 매우 큰 헤드라인 (Stripe/Vercel 스타일)
             Text(
-              '한 번 입력하면\n 여러 중개사 답합니다.',
+              '처음이라도,\n주변 공인중개사에게 바로 문의하세요.',
               textAlign: TextAlign.center,
               style: AppTypography.withColor(
                 AppTypography.display.copyWith(
@@ -88,7 +88,7 @@ class _HeroBannerState extends State<HeroBanner> {
             
             // 큰 서브헤드
             Text(
-              '한 번의 선택으로\n 여러 중개사의 제안을 한곳에서 확인하세요.',
+              '나가지 않아도, 집에서 편하게 상담하세요',
               textAlign: TextAlign.center,
               style: AppTypography.withColor(
                 AppTypography.bodyLarge.copyWith(
