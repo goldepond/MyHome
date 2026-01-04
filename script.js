@@ -360,16 +360,16 @@ async function searchAddress() {
             let response;
             try {
                 response = await fetch(url, {
-                    method: 'GET',
-                    headers: {
-                        'Accept': 'application/json'
+                method: 'GET',
+                headers: {
+                    'Accept': 'application/json'
                     },
                     signal: controller.signal
-                });
+            });
                 clearTimeout(timeoutId);
-                
-                console.log('   ✅ fetch() 완료!');
-                console.log('   📊 응답 상태:', response.status, response.statusText);
+            
+            console.log('   ✅ fetch() 완료!');
+            console.log('   📊 응답 상태:', response.status, response.statusText);
                 console.log('   📋 Content-Type:', response.headers.get('content-type'));
                 
             } catch (fetchError) {
