@@ -14,6 +14,10 @@ app.use(express.static(__dirname));
 
 // 모든 HTML 파일에 대한 라우팅
 app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'landing.html'));
+});
+
+app.get('/search', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
 });
 
@@ -63,6 +67,8 @@ process.on('SIGINT', () => {
     console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
     process.exit(0);
 });
+
+
 
 
 

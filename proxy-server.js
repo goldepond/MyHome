@@ -25,6 +25,24 @@ app.use(express.urlencoded({ extended: true }));
 // 정적 파일 서빙 설정
 app.use('/assest', express.static(path.join(__dirname, 'assest')));
 
+// 요청 로깅 미들웨어 (모든 요청에 대해)
+app.use((req, res, next) => {
+    const startTime = Date.now();
+    console.log('\n🌐 들어온 요청:', {
+        method: req.method,
+        url: req.url,
+        시간: new Date().toLocaleTimeString('ko-KR')
+    });
+    
+    // 응답 완료 시 로깅
+    res.on('finish', () => {
+        const duration = Date.now() - startTime;
+        console.log(`✅ 요청 완료: ${req.url} (${duration}ms) - 상태: ${res.statusCode}\n`);
+    });
+    
+    next();
+});
+
 /* =========================================== */
 /* 2. PROXY ROUTES - 프록시 라우트 설정 */
 /* =========================================== */
@@ -41,25 +59,38 @@ app.use('/api/juso', createProxyMiddleware({
         '^/api/juso': '/addrlink/addrLinkApi.do'
     },
     onProxyReq: (proxyReq, req, res) => {
-        console.log('📍 도로명주소 API 프록시 요청:', proxyReq.path);
+        console.log('\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+        console.log('📍 [도로명주소 API] 프록시 요청');
+        console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+        console.log('   요청 경로:', proxyReq.path);
+        console.log('   원본 URL:', req.originalUrl);
     },
     onProxyRes: (proxyRes, req, res) => {
-        console.log('✅ 도로명주소 API 응답:', proxyRes.statusCode);
+        console.log('   📥 응답 상태:', proxyRes.statusCode, proxyRes.statusMessage);
+        console.log('   Content-Type:', proxyRes.headers['content-type']);
+        console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
     },
     onError: (err, req, res) => {
-        console.error('❌ 도로명주소 API 프록시 오류:', err.message);
+        console.error('\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+        console.error('❌ [도로명주소 API] 프록시 오류');
+        console.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+        console.error('   에러 타입:', err.name);
+        console.error('   에러 메시지:', err.message);
+        console.error('   스택:', err.stack);
+        console.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
         res.status(500).json({ 
             error: '도로명주소 API 프록시 오류',
-            message: err.message 
+            message: err.message,
+            type: err.name
         });
     }
 }));
 
 /**
- * 행정구역코드 API 프록시
+ * 행정구역코드 API 프록시 - 제거됨 (401 인증 오류)
  * apis.data.go.kr/1741000/StanReginCd
  */
-app.use('/api/region', createProxyMiddleware({
+// app.use('/api/region', createProxyMiddleware({
     target: 'https://apis.data.go.kr',
     changeOrigin: true,
     secure: false, // SSL 인증서 검증 비활성화
@@ -67,11 +98,21 @@ app.use('/api/region', createProxyMiddleware({
         '^/api/region': '/1741000/StanReginCd/getStanReginCdList'
     },
     onProxyReq: (proxyReq, req, res) => {
-        console.log('🏛️ 행정구역코드 API 프록시 요청:', proxyReq.path);
+        console.log('\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+        console.log('🏛️ [행정구역코드 API] 프록시 요청');
+        console.log('   요청 경로:', proxyReq.path);
+    },
+    onProxyRes: (proxyRes, req, res) => {
+        console.log('   📥 응답 상태:', proxyRes.statusCode);
+        console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
     },
     onError: (err, req, res) => {
-        console.error('🏛️ 행정구역코드 API 프록시 오류:', err);
-        res.status(500).json({ error: '행정구역코드 API 프록시 오류' });
+        console.error('\n❌ [행정구역코드 API] 프록시 오류:', err.message);
+        console.error('   스택:', err.stack);
+        res.status(500).json({ 
+            error: '행정구역코드 API 프록시 오류',
+            message: err.message 
+        });
     }
 }));
 
@@ -87,11 +128,21 @@ app.use('/api/apt', createProxyMiddleware({
         '^/api/apt': '/1613000/AptListService3/getRoadnameAptList3'
     },
     onProxyReq: (proxyReq, req, res) => {
-        console.log('🏢 아파트 목록 API 프록시 요청:', proxyReq.path);
+        console.log('\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+        console.log('🏢 [아파트 목록 API] 프록시 요청');
+        console.log('   요청 경로:', proxyReq.path);
+    },
+    onProxyRes: (proxyRes, req, res) => {
+        console.log('   📥 응답 상태:', proxyRes.statusCode);
+        console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
     },
     onError: (err, req, res) => {
-        console.error('🏢 아파트 목록 API 프록시 오류:', err);
-        res.status(500).json({ error: '아파트 목록 API 프록시 오류' });
+        console.error('\n❌ [아파트 목록 API] 프록시 오류:', err.message);
+        console.error('   스택:', err.stack);
+        res.status(500).json({ 
+            error: '아파트 목록 API 프록시 오류',
+            message: err.message 
+        });
     }
 }));
 
@@ -107,11 +158,21 @@ app.use('/api/apt-detail', createProxyMiddleware({
         '^/api/apt-detail': '/1613000/AptBasisInfoServiceV4/getAphusDtlInfoV4'
     },
     onProxyReq: (proxyReq, req, res) => {
-        console.log('🏢 아파트 상세 정보 API 프록시 요청:', proxyReq.path);
+        console.log('\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+        console.log('🏢 [아파트 상세 정보 API] 프록시 요청');
+        console.log('   요청 경로:', proxyReq.path);
+    },
+    onProxyRes: (proxyRes, req, res) => {
+        console.log('   📥 응답 상태:', proxyRes.statusCode);
+        console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
     },
     onError: (err, req, res) => {
-        console.error('🏢 아파트 상세 정보 API 프록시 오류:', err);
-        res.status(500).json({ error: '아파트 상세 정보 API 프록시 오류' });
+        console.error('\n❌ [아파트 상세 정보 API] 프록시 오류:', err.message);
+        console.error('   스택:', err.stack);
+        res.status(500).json({ 
+            error: '아파트 상세 정보 API 프록시 오류',
+            message: err.message 
+        });
     }
 }));
 
@@ -126,13 +187,22 @@ app.use('/api/building', createProxyMiddleware({
     pathRewrite: {
         '^/api/building': '/1613000/BldRgstHubService/getBrTitleInfo'
     },
-    logLevel: 'debug',
     onProxyReq: (proxyReq, req, res) => {
-        console.log('🏗️ 건물 정보 API 프록시 요청:', proxyReq.path);
+        console.log('\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+        console.log('🏗️ [건물 정보 API] 프록시 요청');
+        console.log('   요청 경로:', proxyReq.path);
+    },
+    onProxyRes: (proxyRes, req, res) => {
+        console.log('   📥 응답 상태:', proxyRes.statusCode);
+        console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
     },
     onError: (err, req, res) => {
-        console.error('🏗️ 건물 정보 API 프록시 오류:', err);
-        res.status(500).json({ error: '건물 정보 API 프록시 오류' });
+        console.error('\n❌ [건물 정보 API] 프록시 오류:', err.message);
+        console.error('   스택:', err.stack);
+        res.status(500).json({ 
+            error: '건물 정보 API 프록시 오류',
+            message: err.message 
+        });
     }
 }));
 
@@ -147,13 +217,22 @@ app.use('/api/realestate', createProxyMiddleware({
     pathRewrite: {
         '^/api/realestate': '/1613000/RealEstateService/getRealEstateBrokerInfo'
     },
-    logLevel: 'debug',
     onProxyReq: (proxyReq, req, res) => {
-        console.log('🏠 부동산 중개업 조회 API 프록시 요청:', proxyReq.path);
+        console.log('\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+        console.log('🏠 [부동산 중개업 조회 API] 프록시 요청');
+        console.log('   요청 경로:', proxyReq.path);
+    },
+    onProxyRes: (proxyRes, req, res) => {
+        console.log('   📥 응답 상태:', proxyRes.statusCode);
+        console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
     },
     onError: (err, req, res) => {
-        console.error('🏠 부동산 중개업 조회 API 프록시 오류:', err);
-        res.status(500).json({ error: '부동산 중개업 조회 API 프록시 오류' });
+        console.error('\n❌ [부동산 중개업 조회 API] 프록시 오류:', err.message);
+        console.error('   스택:', err.stack);
+        res.status(500).json({ 
+            error: '부동산 중개업 조회 API 프록시 오류',
+            message: err.message 
+        });
     }
 }));
 
@@ -169,16 +248,21 @@ app.use('/api/geocoder', createProxyMiddleware({
         '^/api/geocoder': '/req/address'
     },
     onProxyReq: (proxyReq, req, res) => {
-        console.log('🌍 Geocoder API 프록시 요청:', proxyReq.path);
+        console.log('\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+        console.log('🌍 [Geocoder API] 프록시 요청');
+        console.log('   요청 경로:', proxyReq.path);
     },
     onProxyRes: (proxyRes, req, res) => {
-        console.log('✅ Geocoder API 응답:', proxyRes.statusCode);
+        console.log('   📥 응답 상태:', proxyRes.statusCode);
+        console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
     },
     onError: (err, req, res) => {
-        console.error('❌ Geocoder API 프록시 오류:', err.message);
+        console.error('\n❌ [Geocoder API] 프록시 오류:', err.message);
+        console.error('   스택:', err.stack);
         res.status(500).json({ 
             error: 'Geocoder API 프록시 오류',
-            message: err.message 
+            message: err.message,
+            type: err.name
         });
     }
 }));
@@ -195,16 +279,21 @@ app.use('/api/land', createProxyMiddleware({
         '^/api/land': '/ned/wfs/getLandCharacteristicsWFS'
     },
     onProxyReq: (proxyReq, req, res) => {
-        console.log('🌍 토지특성 API 프록시 요청:', proxyReq.path);
+        console.log('\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+        console.log('🌍 [토지특성 API] 프록시 요청');
+        console.log('   요청 경로:', proxyReq.path);
     },
     onProxyRes: (proxyRes, req, res) => {
-        console.log('✅ 토지특성 API 응답:', proxyRes.statusCode);
+        console.log('   📥 응답 상태:', proxyRes.statusCode);
+        console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
     },
     onError: (err, req, res) => {
-        console.error('❌ 토지특성 API 프록시 오류:', err.message);
+        console.error('\n❌ [토지특성 API] 프록시 오류:', err.message);
+        console.error('   스택:', err.stack);
         res.status(500).json({ 
             error: '토지특성 API 프록시 오류',
-            message: err.message 
+            message: err.message,
+            type: err.name
         });
     }
 }));
@@ -221,16 +310,21 @@ app.use('/api/broker', createProxyMiddleware({
         '^/api/broker': '/ned/wfs/getEstateBrkpgWFS'
     },
     onProxyReq: (proxyReq, req, res) => {
-        console.log('🏘️ 부동산중개업 API 프록시 요청:', proxyReq.path);
+        console.log('\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+        console.log('🏘️ [부동산중개업 API] 프록시 요청');
+        console.log('   요청 경로:', proxyReq.path);
     },
     onProxyRes: (proxyRes, req, res) => {
-        console.log('✅ 부동산중개업 API 응답:', proxyRes.statusCode);
+        console.log('   📥 응답 상태:', proxyRes.statusCode);
+        console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
     },
     onError: (err, req, res) => {
-        console.error('❌ 부동산중개업 API 프록시 오류:', err.message);
+        console.error('\n❌ [부동산중개업 API] 프록시 오류:', err.message);
+        console.error('   스택:', err.stack);
         res.status(500).json({ 
             error: '부동산중개업 API 프록시 오류',
-            message: err.message 
+            message: err.message,
+            type: err.name
         });
     }
 }));
@@ -241,8 +335,12 @@ app.use('/api/broker', createProxyMiddleware({
 /* =========================================== */
 
 app.listen(PORT, () => {
-    console.log(`🚀 프록시 서버가 http://localhost:${PORT}에서 실행 중입니다.`);
-    console.log('📋 사용 가능한 프록시 엔드포인트:');
+    console.log('\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    console.log('🚀 프록시 서버 시작 완료!');
+    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    console.log(`📡 서버 주소: http://localhost:${PORT}`);
+    console.log(`⏰ 시작 시간: ${new Date().toLocaleString('ko-KR')}`);
+    console.log('\n📋 사용 가능한 프록시 엔드포인트:');
     console.log('   - /api/juso (도로명주소 검색)');
     console.log('   - /api/region (행정구역코드)');
     console.log('   - /api/apt (아파트 목록)');
@@ -252,6 +350,8 @@ app.listen(PORT, () => {
     console.log('   - /api/geocoder (Geocoder API)');
     console.log('   - /api/land (토지특성공간정보)');
     console.log('   - /api/broker (부동산중개업WFS조회)');
+    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
+    console.log('💡 Ctrl+C를 눌러 서버를 종료할 수 있습니다.\n');
 });
 
 /* =========================================== */

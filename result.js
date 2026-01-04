@@ -10,29 +10,30 @@
 // 전체 데이터를 저장할 객체
 let allData = {
     addressInfo: null,
-    buildingInfo: null,
     geocoderInfo: null,
     landInfo: null,
+    buildingRegisterPDF: null, // 건축물대장 PDF
 };
 
 // API 응답 표시 상태 추적
 let apiDisplayStatus = {
     addressInfo: { loaded: false, displayed: false, name: '주소 검색 API' },
-    buildingInfo: { loaded: false, displayed: false, name: '건물 정보 API' },
     geocoderInfo: { loaded: false, displayed: false, name: 'Geocoder API' },
     landInfo: { loaded: false, displayed: false, name: '토지특성 API' },
+    buildingRegisterPDF: { loaded: false, displayed: false, name: '건축물대장 API' },
 };
 
 
+// 공공데이터포털 API는 인증 오류로 제거됨
+// VWorld API + 건축물대장 API 사용
+
 /**
- * 건물 정보 API 설정
- * 건물등기정보제공 서비스 API (프록시 서버 사용)
+ * 건축물대장 열람 API 설정
+ * https://apick.app
  */
-const BUILDING_API_CONFIG = {
-    baseUrl: 'https://apis.data.go.kr/1613000/BldRgstHubService/getBrTitleInfo',
-    apiKey: 'lkFNy5FKYttNQrsdPfqBSmg8frydGZUlWeH5sHrmuILv0cwLvMSCDh%2BTl1KORZJXQTqih1BTBLpxfdixxY0mUQ%3D%3D',
-    pageNo: 1,
-    numOfRows: 10
+const BUILDING_REGISTER_API_CONFIG = {
+    baseUrl: 'https://apick.app/rest/building_register',
+    apiKey: '79d716e9c6106372ebd9322825112e86'
 };
 
 /**
@@ -92,12 +93,10 @@ function updateJsonData() {
 function checkApiDisplayStatus() {
     // 각 API의 표시 상태 확인
     const addressInfoSection = document.querySelector('.address-info');
-    const buildingSections = document.querySelectorAll('[id*="buildingInfoPage"]');
     const geocoderSection = document.getElementById('geocoderInfo');
     
     // 표시 상태 업데이트
     apiDisplayStatus.addressInfo.displayed = !!addressInfoSection;
-    apiDisplayStatus.buildingInfo.displayed = buildingSections.length > 0;
     apiDisplayStatus.geocoderInfo.displayed = !!geocoderSection;
     
     // 최종 결과 출력
@@ -117,9 +116,15 @@ function printFinalApiStatus() {
     console.log(JSON.stringify(allData.addressInfo, null, 2));
     console.log('\n');
     
-    // 2. 건물 정보 API
-    console.log('✅ [건물 정보 API] - apis.data.go.kr/BldRgstHubService');
-    console.log(JSON.stringify(allData.buildingInfo, null, 2));
+    // 2. 건축물대장 API
+    console.log('✅ [건축물대장 API] - apick.app/rest/building_register');
+    if (allData.buildingRegisterPDF) {
+        console.log('   📋 응답 헤더:', JSON.stringify(allData.buildingRegisterPDF.headers, null, 2));
+        console.log('   📦 PDF 크기:', (allData.buildingRegisterPDF.blob.size / 1024).toFixed(2), 'KB');
+        console.log('   📄 요청 정보:', JSON.stringify(allData.buildingRegisterPDF.buildingData, null, 2));
+    } else {
+        console.log('   ⏳ 아직 로드되지 않음 또는 호출되지 않음');
+    }
     console.log('\n');
     
     // 3. Geocoder API (좌표 변환)
@@ -264,23 +269,7 @@ function createWhatHouseMappingData() {
         );
     }
     
-    // 5. 건물 정보
-    if (allData.buildingInfo && allData.buildingInfo.length > 0) {
-        const building = allData.buildingInfo[0].data.items.item;
-        if (building) {
-            mappingData.push(
-                { category: '건물정보', apiField: 'mainPurpsCdNm', variableName: 'BUILDING_PURPOSE', value: building.mainPurpsCdNm || '-', unit: '', status: building.mainPurpsCdNm ? '사용가능' : '사용불가' },
-                { category: '건물정보', apiField: 'strctCdNm', variableName: 'BUILDING_STRUCTURE_DETAIL', value: building.strctCdNm || '-', unit: '', status: building.strctCdNm ? '사용가능' : '사용불가' },
-                { category: '건물정보', apiField: 'platArea', variableName: 'BUILDING_AREA', value: building.platArea || '-', unit: '㎡', status: building.platArea ? '사용가능' : '사용불가' },
-                { category: '건물정보', apiField: 'grndFlrCnt', variableName: 'FLOOR_COUNT', value: building.grndFlrCnt || '-', unit: '층', status: building.grndFlrCnt ? '사용가능' : '사용불가' },
-                { category: '건물정보', apiField: 'ugrndFlrCnt', variableName: 'UNDERGROUND_FLOOR_COUNT', value: building.ugrndFlrCnt || '-', unit: '층', status: building.ugrndFlrCnt ? '사용가능' : '사용불가' },
-                { category: '건물정보', apiField: 'heit', variableName: 'BUILDING_HEIGHT', value: building.heit || '-', unit: 'm', status: building.heit ? '사용가능' : '사용불가' },
-                { category: '건물정보', apiField: 'hhldCnt', variableName: 'HOUSEHOLD_COUNT', value: building.hhldCnt || '-', unit: '세대', status: building.hhldCnt ? '사용가능' : '사용불가' },
-                { category: '건물정보', apiField: 'hoCnt', variableName: 'ROOM_COUNT', value: building.hoCnt || '-', unit: '호', status: building.hoCnt ? '사용가능' : '사용불가' },
-                { category: '건물정보', apiField: 'pmsDay', variableName: 'CONSTRUCTION_DATE', value: building.pmsDay || '-', unit: '', status: building.pmsDay ? '사용가능' : '사용불가' }
-            );
-        }
-    }
+    // 5. 건물 정보 - 제거됨 (401 인증 오류)
     
     // 6. 좌표 정보
     if (allData.geocoderInfo && allData.geocoderInfo.result && allData.geocoderInfo.result.point) {
@@ -411,28 +400,7 @@ function createApiAccessPaths() {
         );
     }
     
-    // 5. 건물 정보 접근 경로 (국가공공데이터포털 서비스 중단으로 인해 비활성화)
-    if (allData.buildingInfo && allData.buildingInfo.length > 0) {
-        const building = allData.buildingInfo[0].data.items.item;
-        if (building) {
-            accessPaths.push(
-                { category: '건물정보', dataName: '건물용도', accessPath: 'allData.buildingInfo[0].data.items.item.mainPurpsCdNm', value: building.mainPurpsCdNm || '-' },
-                { category: '건물정보', dataName: '건물구조', accessPath: 'allData.buildingInfo[0].data.items.item.strctCdNm', value: building.strctCdNm || '-' },
-                { category: '건물정보', dataName: '대지면적', accessPath: 'allData.buildingInfo[0].data.items.item.platArea', value: building.platArea || '-' },
-                { category: '건물정보', dataName: '지상층수', accessPath: 'allData.buildingInfo[0].data.items.item.grndFlrCnt', value: building.grndFlrCnt || '-' },
-                { category: '건물정보', dataName: '지하층수', accessPath: 'allData.buildingInfo[0].data.items.item.ugrndFlrCnt', value: building.ugrndFlrCnt || '-' },
-                { category: '건물정보', dataName: '건물높이', accessPath: 'allData.buildingInfo[0].data.items.item.heit', value: building.heit || '-' },
-                { category: '건물정보', dataName: '세대수', accessPath: 'allData.buildingInfo[0].data.items.item.hhldCnt', value: building.hhldCnt || '-' },
-                { category: '건물정보', dataName: '호수', accessPath: 'allData.buildingInfo[0].data.items.item.hoCnt', value: building.hoCnt || '-' },
-                { category: '건물정보', dataName: '착공일', accessPath: 'allData.buildingInfo[0].data.items.item.pmsDay', value: building.pmsDay || '-' }
-            );
-        }
-    } else {
-        // 국가공공데이터포털 서비스 중단 안내
-        accessPaths.push(
-            { category: '건물정보', dataName: '서비스 상태', accessPath: 'N/A', value: '국가공공데이터포털 서비스 중단 (데이터센터 화재)' }
-        );
-    }
+    // 5. 건물 정보 접근 경로 - 제거됨 (401 인증 오류)
     
     // 6. 좌표 정보 접근 경로 (모든 Geocoder 정보 포함)
     if (allData.geocoderInfo) {
@@ -574,118 +542,91 @@ function setupWhatHouseLoader() {
                     loadBtn.textContent = '로딩 중...';
                     loadBtn.disabled = true;
                     
-                    // 모든 WhatHouse HTML 파일들을 순차적으로 로드 (프록시 서버를 통해)
-                    const whathouseFiles = [
-                        'http://localhost:3001/assest/whathouse/whathouse_01.html',
-                        'http://localhost:3001/assest/whathouse/whathouse_02.html',
-                        'http://localhost:3001/assest/whathouse/whathouse_03.html',
-                        'http://localhost:3001/assest/whathouse/whathouse_04.html',
-                        'http://localhost:3001/assest/whathouse/whathouse_05.html',
-                        'http://localhost:3001/assest/whathouse/whathouse_06.html',
-                        'http://localhost:3001/assest/whathouse/whathouse_07.html',
-                        'http://localhost:3001/assest/whathouse/whathouse_08.html',
-                        'http://localhost:3001/assest/whathouse/whathouse_09.html',
-                        'http://localhost:3001/assest/whathouse/whathouse_10.html',
-                        'http://localhost:3001/assest/whathouse/whathouse_11.html',
-                        'http://localhost:3001/assest/whathouse/whathouse_12.html'
-                    ];
+                    // WhatHouse 문서는 iframe으로 직접 로드 (성능 최적화)
+                    // 모든 파일을 미리 로드하지 않고 필요할 때만 로드
+                    const iframeContainer = document.createElement('div');
+                    iframeContainer.style.cssText = 
+                        'width: 100%; height: 600px; border: 1px solid #ddd; overflow: auto;';
                     
-                    let allContent = '';
+                    // 첫 번째 HTML 파일을 iframe으로 로드
+                    const iframe = document.createElement('iframe');
+                    iframe.src = 'http://localhost:3001/assest/whathouse/whathouse_01.html';
+                    iframe.style.cssText = 
+                        'width: 100%; height: 100%; border: none; font-family: Arial, sans-serif;';
+                    iframe.setAttribute('sandbox', 'allow-same-origin allow-scripts');
+                    iframe.setAttribute('loading', 'lazy');
                     
-                    for (let i = 0; i < whathouseFiles.length; i++) {
-                        try {
-                            const response = await fetch(whathouseFiles[i]);
-                            if (response.ok) {
-                                const htmlContent = await response.text();
-                                allContent += htmlContent;
-                            }
-                        } catch (error) {
-                            // Skip failed files
+                    // 문자 인코딩 문제 해결을 위한 스타일 추가
+                    const style = document.createElement('style');
+                    style.textContent = `
+                        iframe {
+                            font-family: Arial, sans-serif !important;
+                            font-size: 14px !important;
+                            line-height: 1.4 !important;
                         }
-                    }
+                        iframe body {
+                            font-family: Arial, sans-serif !important;
+                            font-size: 14px !important;
+                            line-height: 1.4 !important;
+                            color: #000 !important;
+                        }
+                    `;
+                    document.head.appendChild(style);
                     
-                    if (allContent) {
-                        // iframe을 사용하여 WhatHouse 문서들을 개별적으로 표시
-                        const iframeContainer = document.createElement('div');
-                        iframeContainer.style.cssText = 'width: 100%; height: 600px; border: 1px solid #ddd; overflow: auto;';
-                        
-                        // 첫 번째 HTML 파일을 iframe으로 로드
-                        const iframe = document.createElement('iframe');
-                        iframe.src = 'http://localhost:3001/assest/whathouse/whathouse_01.html';
-                        iframe.style.cssText = 'width: 100%; height: 100%; border: none; font-family: Arial, sans-serif;';
-                        iframe.setAttribute('sandbox', 'allow-same-origin allow-scripts');
-                        iframe.setAttribute('loading', 'lazy');
-                        
-                        // 문자 인코딩 문제 해결을 위한 스타일 추가
-                        const style = document.createElement('style');
-                        style.textContent = `
-                            iframe {
-                                font-family: Arial, sans-serif !important;
-                                font-size: 14px !important;
-                                line-height: 1.4 !important;
-                            }
-                            iframe body {
-                                font-family: Arial, sans-serif !important;
-                                font-size: 14px !important;
-                                line-height: 1.4 !important;
-                                color: #000 !important;
-                            }
-                        `;
-                        document.head.appendChild(style);
-                        
-                        iframeContainer.appendChild(iframe);
-                        
-                        // 페이지 네비게이션 버튼 추가
-                        const navContainer = document.createElement('div');
-                        navContainer.style.cssText = 'margin-bottom: 10px; text-align: center;';
-                        
-                        const prevBtn = document.createElement('button');
-                        prevBtn.textContent = '이전 페이지';
-                        prevBtn.style.cssText = 'margin-right: 10px; padding: 5px 10px;';
-                        
-                        const nextBtn = document.createElement('button');
-                        nextBtn.textContent = '다음 페이지';
-                        nextBtn.style.cssText = 'padding: 5px 10px;';
-                        
-                        const pageInfo = document.createElement('span');
-                        pageInfo.textContent = '1 / 6';
-                        pageInfo.style.cssText = 'margin: 0 10px;';
-                        
-                        let currentPage = 1;
-                        const totalPages = 6;
-                        
-                        prevBtn.addEventListener('click', () => {
-                            if (currentPage > 1) {
-                                currentPage--;
-                                iframe.src = `http://localhost:3001/assest/whathouse/whathouse_${String(currentPage).padStart(2, '0')}.html`;
-                                pageInfo.textContent = `${currentPage} / ${totalPages}`;
-                            }
-                        });
-                        
-                        nextBtn.addEventListener('click', () => {
-                            if (currentPage < totalPages) {
-                                currentPage++;
-                                iframe.src = `http://localhost:3001/assest/whathouse/whathouse_${String(currentPage).padStart(2, '0')}.html`;
-                                pageInfo.textContent = `${currentPage} / ${totalPages}`;
-                            }
-                        });
-                        
-                        navContainer.appendChild(prevBtn);
-                        navContainer.appendChild(pageInfo);
-                        navContainer.appendChild(nextBtn);
-                        
-                        content.innerHTML = '';
-                        content.appendChild(navContainer);
-                        content.appendChild(iframeContainer);
-                        
-                        isLoaded = true;
-                        loadBtn.textContent = '문서 다시 로드';
-                        toggleBtn.style.display = 'inline-block';
-                        content.style.display = 'block';
-                        isVisible = true;
-                    } else {
-                        content.innerHTML = '<p style="color: red;">문서를 로드할 수 없습니다.</p>';
-                    }
+                    iframeContainer.appendChild(iframe);
+                    
+                    // 페이지 네비게이션 버튼 추가
+                    const navContainer = document.createElement('div');
+                    navContainer.style.cssText = 'margin-bottom: 10px; text-align: center;';
+                    
+                    const prevBtn = document.createElement('button');
+                    prevBtn.textContent = '이전 페이지';
+                    prevBtn.style.cssText = 'margin-right: 10px; padding: 5px 10px;';
+                    
+                    const nextBtn = document.createElement('button');
+                    nextBtn.textContent = '다음 페이지';
+                    nextBtn.style.cssText = 'padding: 5px 10px;';
+                    
+                    const pageInfo = document.createElement('span');
+                    pageInfo.textContent = '1 / 6';
+                    pageInfo.style.cssText = 'margin: 0 10px;';
+                    
+                    let currentPage = 1;
+                    const TOTAL_PAGES = 6;
+                    
+                    prevBtn.addEventListener('click', () => {
+                        if (currentPage > 1) {
+                            currentPage--;
+                            const pageNum = String(currentPage).padStart(2, '0');
+                            iframe.src = 
+                                `http://localhost:3001/assest/whathouse/whathouse_${pageNum}.html`;
+                            pageInfo.textContent = `${currentPage} / ${TOTAL_PAGES}`;
+                        }
+                    });
+                    
+                    nextBtn.addEventListener('click', () => {
+                        if (currentPage < TOTAL_PAGES) {
+                            currentPage++;
+                            const pageNum = String(currentPage).padStart(2, '0');
+                            iframe.src = 
+                                `http://localhost:3001/assest/whathouse/whathouse_${pageNum}.html`;
+                            pageInfo.textContent = `${currentPage} / ${TOTAL_PAGES}`;
+                        }
+                    });
+                    
+                    navContainer.appendChild(prevBtn);
+                    navContainer.appendChild(pageInfo);
+                    navContainer.appendChild(nextBtn);
+                    
+                    content.innerHTML = '';
+                    content.appendChild(navContainer);
+                    content.appendChild(iframeContainer);
+                    
+                    isLoaded = true;
+                    loadBtn.textContent = '문서 다시 로드';
+                    toggleBtn.style.display = 'inline-block';
+                    content.style.display = 'block';
+                    isVisible = true;
                     
                 } catch (error) {
                     content.innerHTML = '<p style="color: red;">문서 로드 중 오류가 발생했습니다.</p>';
@@ -759,22 +700,6 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('hosuInfoDiv').style.display = 'block';
     }
     
-    // WhatHouse 로더 설정 - 제거됨 (사용자 요청)
-    // setupWhatHouseLoader();
-    
-    // JSON 토글 버튼 설정 - 제거됨 (사용자 요청)
-    // setupJsonToggle();
-    
-    // 페이지 로드 시 JSON 데이터 표시 - 삭제됨 (사용자 요청)
-    // setTimeout(() => {
-    //     updateJsonData();
-    //     
-    //     // WhatHouse 데이터 매핑 표시
-    //     displayWhatHouseDataMapping();
-    //     
-    //     // API 데이터 접근 경로 표시
-    //     displayApiAccessPaths();
-    // }, 1000);
     
     // 모든 API 로드 완료 후 최종 상태 확인 (5초 후)
     setTimeout(() => {
@@ -790,7 +715,6 @@ document.addEventListener('DOMContentLoaded', function() {
             // 주소 정보를 allData에 저장
             allData.addressInfo = fullJusoData;
             apiDisplayStatus.addressInfo.loaded = true;
-            // updateJsonData(); // JSON 데이터 업데이트 - 제거됨 (사용자 요청)
             
             // roadAddrPart1 값을 전역 변수로 저장 (아파트 필터링용)
             window.selectedRoadAddrPart1 = fullJusoData.roadAddrPart1;
@@ -811,23 +735,24 @@ document.addEventListener('DOMContentLoaded', function() {
         try {
             const fullJusoData = JSON.parse(decodeURIComponent(fullData));
             
-            // 건물 정보 API 호출 (행정구역코드 사용)
-            if (fullJusoData.admCd) {
-                const sigunguCd = fullJusoData.admCd.substring(0, 5);
-                const bjdongCd = fullJusoData.admCd.substring(5, 10);
-                
-                // 지번본번을 4자리로 변환 (2자리인 경우 앞에 00을 붙임)
-                const lnbrMnnm = fullJusoData.lnbrMnnm || '0';
-                const bun = lnbrMnnm.toString().padStart(4, '0');
-                
-                loadBuildingInfo(sigunguCd, bjdongCd, bun, dongNm);
-            }
+            // 건물 정보 API는 제거됨 (401 인증 오류)
             
             // Geocoder API 호출 (도로명주소를 좌표로 변환)
             if (fullJusoData.roadAddr) {
                 // 괄호와 참고항목을 제거한 깔끔한 주소 사용
                 const cleanAddress = fullJusoData.roadAddrPart1 || fullJusoData.roadAddr;
                 loadGeocoderInfo(cleanAddress);
+            }
+            
+            // 건축물대장 API 호출
+            if (fullJusoData.roadAddrPart1 && fullJusoData.bdNm) {
+                const buildingData = {
+                    address: fullJusoData.roadAddrPart1,
+                    b_name: fullJusoData.bdNm,
+                    dong: dongNm || fullJusoData.bdNm,
+                    ho: hoNm || ''
+                };
+                loadBuildingRegister(buildingData);
             }
         } catch (error) {
             // API 로드 오류 처리
@@ -879,148 +804,12 @@ function displayFullAddressInfo(fullJusoData) {
 }
 
 /* =========================================== */
-/* 4. BUILDING INFO API - 건물 정보 API */
+/* 4. BUILDING INFO API - 제거됨 (401 인증 오류) */
 /* =========================================== */
-
-/**
- * 건물 정보 API 호출 (1-10페이지 순차 호출)
- * @param {string} sigunguCd - 시군구코드 (행정구역코드 앞 5자리)
- * @param {string} bjdongCd - 법정동코드 (행정구역코드 뒤 5자리)
- * @param {string} bun - 지번본번 (4자리, 2자리인 경우 앞에 00을 붙임)
- * @param {string} dongNm - 동명 (옵션)
- */
-async function loadBuildingInfo(sigunguCd, bjdongCd, bun, dongNm) {
-    console.log('\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-    console.log('🏗️ [건물 정보 API] 호출 시작 (1-10페이지)');
-    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-    console.log(`   전달 파라미터: sigunguCd=${sigunguCd}, bjdongCd=${bjdongCd}, bun=${bun}, dongNm=${dongNm || '없음'}`);
-    if (dongNm) {
-        console.log(`   ⚠️  주의: 건물정보 API는 dongNm 필터를 지원하지 않습니다.`);
-        console.log(`   📌 클라이언트 측에서 "${dongNm}"으로 필터링합니다.`);
-    }
-    
-    let successCount = 0;
-    let failCount = 0;
-    
-    // 1-10페이지 순차 호출
-    for (let pageNo = 1; pageNo <= 10; pageNo++) {
-        try {
-            const params = new URLSearchParams({
-                serviceKey: BUILDING_API_CONFIG.apiKey,
-                sigunguCd: sigunguCd,
-                bjdongCd: bjdongCd,
-                _type: 'json',
-                bun: bun,
-                pageNo: pageNo,
-                numOfRows: BUILDING_API_CONFIG.numOfRows
-            });
-            
-            // 주의: dongNm은 API 파라미터로 지원되지 않으므로 보내지 않음
-            // 대신 응답 후 클라이언트 측에서 필터링
-            
-        // 프록시 서버를 통해 API 호출
-        const url = `http://localhost:3001/api/building?${params.toString()}`;
-            
-            const response = await fetch(url);
-            
-            if (!response.ok) {
-                failCount++;
-                continue; // 다음 페이지로 계속
-            }
-            
-            const contentType = response.headers.get('content-type');
-            
-            let data;
-            if (contentType && contentType.includes('application/json')) {
-                data = await response.json();
-            } else {
-                const xmlText = await response.text();
-                data = parseBuildingXML(xmlText);
-            }
-            
-            if (data.response && data.response.header && data.response.header.resultCode === '00') {
-                // dongNm이 지정된 경우 필터링
-                let filteredBody = data.response.body;
-                if (dongNm && data.response.body && data.response.body.items && data.response.body.items.item) {
-                    const items = Array.isArray(data.response.body.items.item) 
-                        ? data.response.body.items.item 
-                        : [data.response.body.items.item];
-                    
-                    const filteredItems = items.filter(item => {
-                        // dongNm과 일치하는지 확인 (211, 211동 모두 매칭)
-                        const itemDongNm = item.dongNm ? item.dongNm.replace('동', '') : '';
-                        const searchDongNm = dongNm.replace('동', '');
-                        return itemDongNm === searchDongNm;
-                    });
-                    
-                    if (filteredItems.length > 0) {
-                        filteredBody = {
-                            ...data.response.body,
-                            items: {
-                                item: filteredItems
-                            },
-                            totalCount: filteredItems.length
-                        };
-                    } else {
-                        // 필터링 결과가 없으면 이 페이지는 건너뛰기
-                        continue;
-                    }
-                }
-                
-                if (!allData.buildingInfo) {
-                    allData.buildingInfo = [];
-                }
-                allData.buildingInfo.push({
-                    pageNo: pageNo,
-                    data: filteredBody
-                });
-                apiDisplayStatus.buildingInfo.loaded = true;
-                displayBuildingInfo(filteredBody, pageNo);
-                // updateJsonData(); // JSON 데이터 업데이트 - 제거됨 (사용자 요청)
-                successCount++;
-            }
-            
-        } catch (error) {
-            failCount++;
-        }
-        
-        // 페이지 간 간격 (API 서버 부하 방지)
-        if (pageNo < 10) {
-            await new Promise(resolve => setTimeout(resolve, 100));
-        }
-    }
-    
-    // 최종 결과 요약
-    console.log('\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-    if (successCount > 0) {
-        console.log(`✅ [건물 정보 API] 응답 성공 (${successCount}/10 페이지)`);
-        if (dongNm) {
-            // 필터링된 총 건수 계산
-            let totalFiltered = 0;
-            if (allData.buildingInfo) {
-                allData.buildingInfo.forEach(page => {
-                    if (page.data && page.data.items && page.data.items.item) {
-                        const items = Array.isArray(page.data.items.item) 
-                            ? page.data.items.item 
-                            : [page.data.items.item];
-                        totalFiltered += items.length;
-                    }
-                });
-            }
-            console.log(`📌 동명 "${dongNm}" 필터링 결과: ${totalFiltered}건`);
-        }
-    }
-    if (failCount > 0) {
-        console.log(`❌ [건물 정보 API] 응답 실패 (${failCount}/10 페이지)`);
-    }
-    if (successCount === 0 && failCount === 0) {
-        console.log('❌ [건물 정보 API] 응답 없음');
-    }
-    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
-}
+// 건물 정보 API는 공공데이터포털 인증 오류로 제거됨
 
 /* =========================================== */
-/* 8. GEOCODER API - 주소 좌표 변환 API */
+/* 5. GEOCODER API - 주소 좌표 변환 API */
 /* =========================================== */
 
 /**
@@ -1031,6 +820,7 @@ async function loadGeocoderInfo(address) {
     console.log('\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
     console.log('🌍 [Geocoder API] 호출 시작');
     console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    console.log(`   전달 파라미터: address="${address}"`);
     
     try {
         const params = new URLSearchParams({
@@ -1047,20 +837,30 @@ async function loadGeocoderInfo(address) {
         });
         
         const url = `http://localhost:3001/api/geocoder?${params.toString()}`;
+        console.log(`   📡 요청 URL: ${url}`);
+        
         const response = await fetch(url);
+        console.log(`   📥 응답 상태: ${response.status} ${response.statusText}`);
         
         if (!response.ok) {
+            const errorText = await response.text();
+            console.error('   ❌ HTTP 에러 발생:');
+            console.error(`      - 상태 코드: ${response.status}`);
+            console.error(`      - 상태 메시지: ${response.statusText}`);
+            console.error(`      - 응답 본문: ${errorText.substring(0, 500)}`);
             throw new Error(`HTTP ${response.status}: ${response.statusText}`);
         }
         
         const data = await response.json();
+        console.log(`   📦 응답 데이터:`, JSON.stringify(data, null, 2).substring(0, 300));
         
         if (data.response && data.response.status === 'OK') {
-            console.log('✅ [Geocoder API] 응답 성공');
+            console.log('   ✅ API 응답 성공');
+            console.log(`   📍 좌표: (${data.response.result?.point?.x}, ${data.response.result?.point?.y})`);
+            
             allData.geocoderInfo = data.response;
             apiDisplayStatus.geocoderInfo.loaded = true;
             displayGeocoderInfo(data.response);
-            // updateJsonData(); // JSON 데이터 업데이트 - 제거됨 (사용자 요청)
             
             // 주소 요약 카드 업데이트 (좌표 정보 추가)
             displayAddressSummaryCard();
@@ -1071,14 +871,25 @@ async function loadGeocoderInfo(address) {
             }
             
         } else {
-            console.log('❌ [Geocoder API] 응답 실패');
-            console.log(`   상태: ${data.response?.status}`);
-            console.log(`   에러: ${data.response?.error?.message || data.response?.error}`);
+            console.error('   ❌ API 응답 에러:');
+            console.error(`      - 상태: ${data.response?.status || '알 수 없음'}`);
+            console.error(`      - 에러 메시지: ${data.response?.error?.message || data.response?.error || '에러 정보 없음'}`);
+            console.error(`      - 전체 응답:`, JSON.stringify(data, null, 2));
         }
         
+        console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
+        
     } catch (error) {
-        console.log('❌ [Geocoder API] 에러 발생');
-        console.log(`   에러: ${error.message}`);
+        console.error('   ❌ 예외 발생:');
+        console.error(`      - 에러 타입: ${error.name}`);
+        console.error(`      - 에러 메시지: ${error.message}`);
+        console.error(`      - 스택 트레이스:`, error.stack);
+        console.log('\n💡 문제 해결 방법:');
+        console.log('   1. 프록시 서버가 실행 중인지 확인: http://localhost:3001');
+        console.log('   2. 주소 형식이 올바른지 확인');
+        console.log('   3. API 키가 유효한지 확인');
+        console.log('   4. 네트워크 연결 상태 확인');
+        console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
     }
 }
 
@@ -1341,12 +1152,19 @@ async function loadLandInfo(addressData, geocoderData) {
         console.log(`   ${url}\n`);
         
         const response = await fetch(url);
+        console.log(`   📥 응답 상태: ${response.status} ${response.statusText}`);
         
         if (!response.ok) {
+            const errorText = await response.text();
+            console.error('   ❌ HTTP 에러 발생:');
+            console.error(`      - 상태 코드: ${response.status}`);
+            console.error(`      - 상태 메시지: ${response.statusText}`);
+            console.error(`      - 응답 본문: ${errorText.substring(0, 500)}`);
             throw new Error(`HTTP ${response.status}: ${response.statusText}`);
         }
         
         const contentType = response.headers.get('content-type');
+        console.log(`   📋 Content-Type: ${contentType}`);
         let data;
         
         if (contentType && contentType.includes('application/json')) {
@@ -1385,7 +1203,6 @@ async function loadLandInfo(addressData, geocoderData) {
             allData.landInfo = xmlText;
             apiDisplayStatus.landInfo.loaded = true;
             displayLandInfo(xmlText);
-            // updateJsonData(); // JSON 데이터 업데이트 - 제거됨 (사용자 요청)
             
             // 주소 요약 카드 업데이트 (토지 정보 배지 추가)
             displayAddressSummaryCard();
@@ -1416,7 +1233,17 @@ async function loadLandInfo(addressData, geocoderData) {
         }
         
     } catch (error) {
-        console.error('❌ [토지특성 API] 에러 발생:', error.message);
+        console.error('\n┌─────────────────────────────────────────┐');
+        console.error('│    ❌ [토지특성 API] 예외 발생          │');
+        console.error('└─────────────────────────────────────────┘');
+        console.error(`   - 에러 타입: ${error.name}`);
+        console.error(`   - 에러 메시지: ${error.message}`);
+        console.error(`   - 스택 트레이스:`, error.stack);
+        console.log('\n💡 문제 해결 방법:');
+        console.log('   1. 프록시 서버가 실행 중인지 확인: http://localhost:3001');
+        console.log('   2. PNU 값이 올바른지 확인');
+        console.log('   3. API 키가 유효한지 확인');
+        console.log('   4. 네트워크 연결 상태 확인');
     }
     
     console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
@@ -1468,8 +1295,14 @@ async function loadLandInfoByBBOX(point) {
         console.log(`   ${url}\n`);
         
         const response = await fetch(url);
+        console.log(`   📥 응답 상태: ${response.status} ${response.statusText}`);
         
         if (!response.ok) {
+            const errorText = await response.text();
+            console.error('   ❌ HTTP 에러 발생:');
+            console.error(`      - 상태 코드: ${response.status}`);
+            console.error(`      - 상태 메시지: ${response.statusText}`);
+            console.error(`      - 응답 본문: ${errorText.substring(0, 500)}`);
             throw new Error(`HTTP ${response.status}: ${response.statusText}`);
         }
         
@@ -1510,7 +1343,17 @@ async function loadLandInfoByBBOX(point) {
         }
         
     } catch (error) {
-        console.error('❌ [토지특성 API - BBOX 검색] 에러 발생:', error.message);
+        console.error('\n┌─────────────────────────────────────────┐');
+        console.error('│ ❌ [토지특성 API - BBOX 검색] 예외 발생  │');
+        console.error('└─────────────────────────────────────────┘');
+        console.error(`   - 에러 타입: ${error.name}`);
+        console.error(`   - 에러 메시지: ${error.message}`);
+        console.error(`   - 스택 트레이스:`, error.stack);
+        console.log('\n💡 문제 해결 방법:');
+        console.log('   1. 프록시 서버가 실행 중인지 확인: http://localhost:3001');
+        console.log('   2. 좌표 값이 올바른지 확인');
+        console.log('   3. API 키가 유효한지 확인');
+        console.log('   4. 네트워크 연결 상태 확인');
     }
     
     console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
@@ -1703,6 +1546,271 @@ window.parseLandXML = function() {
     }
 };
 
+/* =========================================== */
+/* BUILDING REGISTER API - 건축물대장 열람 API */
+/* =========================================== */
+
+/**
+ * 건축물대장 열람 API 호출
+ * @param {Object} buildingData - { address, b_name, dong, ho }
+ */
+async function loadBuildingRegister(buildingData) {
+    console.log('\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    console.log('📄 [건축물대장 API] 호출 시작');
+    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    console.log('   전달 파라미터:');
+    console.log('   - address:', buildingData.address);
+    console.log('   - b_name:', buildingData.b_name);
+    console.log('   - dong:', buildingData.dong);
+    console.log('   - ho:', buildingData.ho);
+    
+    try {
+        // JSON으로 전송 (프록시 서버가 FormData로 변환)
+        const requestData = {
+            address: buildingData.address,
+            b_name: buildingData.b_name,
+            dong: buildingData.dong,
+            ho: buildingData.ho || ''
+        };
+        
+        console.log('   📡 요청 URL: http://localhost:3001/api/building-register');
+        console.log('   ⏳ fetch() 호출 중...');
+        
+        const response = await fetch('http://localhost:3001/api/building-register', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(requestData)
+        });
+        
+        console.log('   📥 응답 상태:', response.status, response.statusText);
+        
+        // 응답 헤더 확인
+        const success = response.headers.get('success');
+        const result = response.headers.get('result');
+        const ic_id = response.headers.get('ic_id');
+        const cost = response.headers.get('cost');
+        const ms = response.headers.get('ms');
+        
+        console.log('   📋 응답 헤더:');
+        console.log('      - success:', success);
+        console.log('      - result:', result, result === '1' ? '(성공)' : result === '2' ? '(처리중)' : '');
+        console.log('      - ic_id:', ic_id);
+        console.log('      - cost:', cost);
+        console.log('      - ms:', ms);
+        
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.error('   ❌ HTTP 에러 발생:');
+            console.error('      - 상태 코드:', response.status);
+            console.error('      - 상태 메시지:', response.statusText);
+            console.error('      - 응답 본문:', errorText.substring(0, 500));
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+        }
+        
+        // PDF 바이너리 데이터 받기
+        const pdfBlob = await response.blob();
+        console.log('   ✅ PDF 데이터 수신 완료');
+        console.log('   📦 파일 크기:', (pdfBlob.size / 1024).toFixed(2), 'KB');
+        
+        // 데이터 저장
+        allData.buildingRegisterPDF = {
+            blob: pdfBlob,
+            url: URL.createObjectURL(pdfBlob),
+            headers: { success, result, ic_id, cost, ms },
+            buildingData: buildingData,
+            timestamp: new Date().toISOString()
+        };
+        
+        // 상태 업데이트
+        apiDisplayStatus.buildingRegisterPDF.loaded = true;
+        
+        // PDF 표시
+        displayBuildingRegisterPDF();
+        
+        console.log('   ✅ 건축물대장 PDF 표시 완료');
+        console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
+        
+    } catch (error) {
+        console.error('\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+        console.error('❌ [건축물대장 API] 예외 발생');
+        console.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+        console.error('   - 에러 타입:', error.name);
+        console.error('   - 에러 메시지:', error.message);
+        console.error('   - 스택 트레이스:', error.stack);
+        console.log('\n💡 문제 해결 방법:');
+        console.log('   1. API 키가 유효한지 확인');
+        console.log('   2. 주소, 건물명, 동, 호 정보가 정확한지 확인');
+        console.log('   3. 네트워크 연결 상태 확인');
+        console.log('   4. CORS 문제일 수 있음 - 브라우저 콘솔 확인');
+        console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
+    }
+}
+
+/**
+ * 건축물대장 PDF 표시
+ */
+function displayBuildingRegisterPDF() {
+    if (!allData.buildingRegisterPDF) {
+        console.error('❌ PDF 데이터가 없습니다.');
+        return;
+    }
+    
+    // result-content 영역에 표시 (더 눈에 띄게)
+    let container = document.querySelector('.result-content');
+    if (!container) {
+        container = document.querySelector('.address-info');
+    }
+    
+    if (!container) {
+        console.error('❌ 표시할 컨테이너를 찾을 수 없습니다.');
+        return;
+    }
+    
+    // 기존 건축물대장 섹션 제거
+    const existingSection = document.getElementById('buildingRegisterPDF');
+    if (existingSection) {
+        existingSection.remove();
+    }
+    
+    // 건축물대장 섹션 생성
+    const section = document.createElement('div');
+    section.id = 'buildingRegisterPDF';
+    section.className = 'info-card';
+    section.style.marginTop = '20px';
+    section.style.marginBottom = '30px';
+    section.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
+    section.style.color = 'white';
+    section.style.border = 'none';
+    section.style.boxShadow = '0 10px 30px rgba(102, 126, 234, 0.3)';
+    
+    const pdfData = allData.buildingRegisterPDF;
+    
+    section.innerHTML = `
+        <h2 style="color: white; margin-bottom: 20px; font-size: 28px; text-align: center;">
+            📄 건축물대장 (전자문서)
+        </h2>
+        
+        <div style="background: rgba(255,255,255,0.95); padding: 20px; border-radius: 12px; margin-bottom: 20px; color: #333;">
+            <h3 style="color: #667eea; margin-bottom: 15px; font-size: 18px;">📋 조회 정보</h3>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-bottom: 15px;">
+                <div>
+                    <strong style="color: #666;">주소:</strong> <span style="color: #333;">${pdfData.buildingData.address}</span>
+                </div>
+                <div>
+                    <strong style="color: #666;">건물명:</strong> <span style="color: #333;">${pdfData.buildingData.b_name}</span>
+                </div>
+                <div>
+                    <strong style="color: #666;">동:</strong> <span style="color: #333;">${pdfData.buildingData.dong}</span>
+                </div>
+                <div>
+                    <strong style="color: #666;">호:</strong> <span style="color: #333;">${pdfData.buildingData.ho || '전체'}</span>
+                </div>
+            </div>
+            
+            ${pdfData.headers.result ? `
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; padding-top: 15px; border-top: 2px solid #e0e0e0;">
+                <div style="font-size: 13px;">
+                    <strong style="color: #666;">결과:</strong> 
+                    <span style="color: ${pdfData.headers.result === '1' ? '#28a745' : '#ffc107'}; font-weight: bold;">
+                        ${pdfData.headers.result === '1' ? '✅ 성공' : pdfData.headers.result === '2' ? '⏳ 처리중' : pdfData.headers.result}
+                    </span>
+                </div>
+                <div style="font-size: 13px;">
+                    <strong style="color: #666;">요청 ID:</strong> <span style="color: #333;">${pdfData.headers.ic_id || '-'}</span>
+                </div>
+                <div style="font-size: 13px;">
+                    <strong style="color: #666;">요금:</strong> <span style="color: #333;">${pdfData.headers.cost || '-'}원</span>
+                </div>
+                <div style="font-size: 13px;">
+                    <strong style="color: #666;">응답시간:</strong> <span style="color: #333;">${pdfData.headers.ms || '-'}ms</span>
+                </div>
+            </div>
+            ` : ''}
+        </div>
+        
+        <div style="text-align: center; margin-bottom: 20px;">
+            <button onclick="downloadBuildingRegisterPDF()" style="
+                background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+                color: white;
+                border: none;
+                padding: 15px 30px;
+                border-radius: 8px;
+                cursor: pointer;
+                font-size: 16px;
+                font-weight: bold;
+                margin-right: 10px;
+                box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3);
+                transition: all 0.3s ease;
+            " onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 20px rgba(40, 167, 69, 0.4)';" 
+               onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 15px rgba(40, 167, 69, 0.3)';">
+                📥 PDF 다운로드
+            </button>
+            
+            <button onclick="togglePDFViewer()" style="
+                background: rgba(255,255,255,0.2);
+                color: white;
+                border: 2px solid white;
+                padding: 15px 30px;
+                border-radius: 8px;
+                cursor: pointer;
+                font-size: 16px;
+                font-weight: bold;
+                transition: all 0.3s ease;
+            " onmouseover="this.style.background='rgba(255,255,255,0.3)';" 
+               onmouseout="this.style.background='rgba(255,255,255,0.2)';">
+                👁️ PDF 미리보기 토글
+            </button>
+        </div>
+        
+        <div id="pdfViewerContainer" style="display: block; background: white; padding: 10px; border-radius: 12px;">
+            <iframe 
+                src="${pdfData.url}" 
+                style="width: 100%; height: 800px; border: none; border-radius: 8px; background: white;"
+                title="건축물대장 PDF"
+            ></iframe>
+        </div>
+        
+        <div style="margin-top: 15px; font-size: 13px; color: rgba(255,255,255,0.8); text-align: center;">
+            <strong>생성 시간:</strong> ${new Date(pdfData.timestamp).toLocaleString('ko-KR')}
+        </div>
+    `;
+    
+    // 맨 앞에 삽입
+    container.insertBefore(section, container.firstChild);
+    
+    console.log('✅ 건축물대장 PDF 표시 완료');
+}
+
+/**
+ * 건축물대장 PDF 다운로드
+ */
+function downloadBuildingRegisterPDF() {
+    if (!allData.buildingRegisterPDF) {
+        alert('❌ PDF 데이터가 없습니다.');
+        return;
+    }
+    
+    const pdfData = allData.buildingRegisterPDF;
+    const link = document.createElement('a');
+    link.href = pdfData.url;
+    link.download = `건축물대장_${pdfData.buildingData.b_name}_${pdfData.buildingData.dong}_${new Date().toISOString().split('T')[0]}.pdf`;
+    link.click();
+    
+    console.log('📥 PDF 다운로드 시작:', link.download);
+}
+
+/**
+ * PDF 뷰어 토글
+ */
+function togglePDFViewer() {
+    const viewer = document.getElementById('pdfViewerContainer');
+    if (viewer) {
+        viewer.style.display = viewer.style.display === 'none' ? 'block' : 'none';
+    }
+}
+
 /**
  * 페이지 뒤로가기
  */
@@ -1721,9 +1829,9 @@ function submitRequest() {
     // 데이터 유효성 검사
     console.log('📊 데이터 상태 확인:');
     console.log('   - addressInfo:', allData.addressInfo ? '✓' : '✗');
-    console.log('   - buildingInfo:', allData.buildingInfo ? '✓' : '✗');
     console.log('   - geocoderInfo:', allData.geocoderInfo ? '✓' : '✗');
     console.log('   - landInfo:', allData.landInfo ? '✓' : '✗');
+    console.log('   - buildingRegisterPDF:', allData.buildingRegisterPDF ? '✓' : '✗');
     
     // 필수 데이터 체크
     if (!allData.addressInfo) {
@@ -1743,9 +1851,13 @@ function submitRequest() {
     // 현재 페이지의 모든 데이터를 localStorage에 저장
     const transferData = {
         addressInfo: allData.addressInfo,
-        buildingInfo: allData.buildingInfo,
         geocoderInfo: allData.geocoderInfo,
-        landInfo: allData.landInfo
+        landInfo: allData.landInfo,
+        buildingRegisterPDF: allData.buildingRegisterPDF ? {
+            headers: allData.buildingRegisterPDF.headers,
+            buildingData: allData.buildingRegisterPDF.buildingData,
+            timestamp: allData.buildingRegisterPDF.timestamp
+        } : null
     };
     
     console.log('💾 localStorage에 저장 중...');

@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HouseMVP - 찾지 마세요, 오퍼를 받으세요</title>
+    <link rel="stylesheet" href="landing.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- =========================================== -->
+    <!-- HEADER: 상단 네비게이션 -->
+    <!-- =========================================== -->
+    <header class="header">
+        <div class="container">
+            <div class="logo">
+                <span class="logo-icon">🏠</span>
+                <span class="logo-text">HouseMVP</span>
+            </div>
+            <nav class="nav">
+                <button class="nav-btn" onclick="scrollToSection('process')">서비스 안내</button>
+                <button class="nav-btn primary" onclick="goToConditionForm()">조건 입력하기</button>
+            </nav>
+        </div>
+    </header>
+
+    <!-- =========================================== -->
+    <!-- HERO SECTION: 메인 헤드라인 & CTA -->
+    <!-- =========================================== -->
+    <section class="hero" id="hero">
+        <div class="container">
+            <div class="hero-content fade-in">
+                <h1 class="hero-title">
+                    발품 파는 시대는 끝났습니다.<br>
+                    <span class="highlight">이제 앉아서 집을 고르세요.</span>
+                </h1>
+                <p class="hero-subtitle">
+                    찾지 마세요, 오퍼를 받으세요.
+                </p>
+                <button class="cta-button large" onclick="goToConditionForm()">
+                    지금 바로 조건 입력하기
+                </button>
+                <div class="hero-stats">
+                    <div class="stat-item">
+                        <div class="stat-number">0</div>
+                        <div class="stat-label">허위 매물</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number">100%</div>
+                        <div class="stat-label">검증된 중개사</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number">1회</div>
+                        <div class="stat-label">조건 입력</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- =========================================== -->
+    <!-- PROBLEM SECTION: 고통 포인트 -->
+    <!-- =========================================== -->
+    <section class="problem" id="problem">
+        <div class="container">
+            <div class="section-header fade-in">
+                <h2 class="section-title">일일이 찾아다니기 지치지 않으셨나요?</h2>
+            </div>
+            <div class="problem-list">
+                <div class="problem-item fade-in">
+                    <div class="problem-icon">😤</div>
+                    <h3 class="problem-title">네이버 부동산 속 넘쳐나는 허위 매물</h3>
+                    <p class="problem-description">
+                        광고만 보고 달려갔다가 이미 계약된 집, 사진과 다른 집, 
+                        존재하지 않는 집... 허위 매물에 지치셨나요?
+                    </p>
+                </div>
+                <div class="problem-item fade-in">
+                    <div class="problem-icon">😫</div>
+                    <h3 class="problem-title">수십 번의 전화와 헛걸음, 낭비되는 시간</h3>
+                    <p class="problem-description">
+                        매일 수십 개의 매물을 확인하고, 전화하고, 직접 가서 보고... 
+                        정작 마음에 드는 집은 하나도 없었던 경험, 있으시죠?
+                    </p>
+                </div>
+                <div class="problem-item fade-in">
+                    <div class="problem-icon">😰</div>
+                    <h3 class="problem-title">끝없는 검색의 반복</h3>
+                    <p class="problem-description">
+                        새로 올라온 매물을 놓칠까 봐 매일매일 사이트를 확인하고, 
+                        조건에 맞는 집을 찾기 위해 수백 개의 매물을 뒤져봐야 하는 고통.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- =========================================== -->
+    <!-- SOLUTION SECTION: 서비스 메커니즘 -->
+    <!-- =========================================== -->
+    <section class="solution" id="solution">
+        <div class="container">
+            <div class="section-header fade-in">
+                <h2 class="section-title">원하는 조건을 딱 한 번만 입력하세요</h2>
+                <p class="section-subtitle">
+                    구글 시트에 희망 지역, 예산, 조건을 쓰면 끝.
+                </p>
+            </div>
+            <div class="solution-content fade-in">
+                <div class="solution-visual">
+                    <div class="solution-card">
+                        <div class="card-icon">📝</div>
+                        <h3>조건 입력</h3>
+                        <p>희망 지역, 예산, 방 개수, 옵션 등<br>원하는 조건을 한 번에 입력</p>
+                    </div>
+                    <div class="solution-arrow">→</div>
+                    <div class="solution-card">
+                        <div class="card-icon">📨</div>
+                        <h3>중개사 역제안</h3>
+                        <p>검증된 공인중개사들이<br>조건에 맞는 실매물을 직접 제안</p>
+                    </div>
+                    <div class="solution-arrow">→</div>
+                    <div class="solution-card">
+                        <div class="card-icon">✅</div>
+                        <h3>베스트 매물 선택</h3>
+                        <p>제안받은 매물 중에서<br>가장 마음에 드는 집 선택</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- =========================================== -->
+    <!-- PROCESS SECTION: 3단계 프로세스 -->
+    <!-- =========================================== -->
+    <section class="process" id="process">
+        <div class="container">
+            <div class="section-header fade-in">
+                <h2 class="section-title">3단계로 끝나는 집 찾기</h2>
+            </div>
+            <div class="process-steps">
+                <div class="process-step fade-in">
+                    <div class="step-number">1</div>
+                    <div class="step-content">
+                        <h3 class="step-title">조건 입력</h3>
+                        <p class="step-description">
+                            구글 시트에 희망 지역, 예산, 방 개수, 
+                            원하는 옵션 등을 간단히 입력하세요.
+                        </p>
+                    </div>
+                </div>
+                <div class="process-step fade-in">
+                    <div class="step-number">2</div>
+                    <div class="step-content">
+                        <h3 class="step-title">중개사들의 역제안</h3>
+                        <p class="step-description">
+                            검증된 공인중개사들이 조건에 맞는 
+                            실매물을 직접 제안해드립니다.
+                        </p>
+                    </div>
+                </div>
+                <div class="process-step fade-in">
+                    <div class="step-number">3</div>
+                    <div class="step-content">
+                        <h3 class="step-title">베스트 매물 선택</h3>
+                        <p class="step-description">
+                            제안받은 매물 중에서 가장 마음에 드는 
+                            집을 선택하고 바로 계약으로 진행하세요.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- =========================================== -->
+    <!-- BENEFIT SECTION: 신뢰 및 편의성 -->
+    <!-- =========================================== -->
+    <section class="benefit" id="benefit">
+        <div class="container">
+            <div class="section-header fade-in">
+                <h2 class="section-title">검증된 공인중개사가 직접 제안하는 실매물만 확인하세요</h2>
+                <p class="section-subtitle highlight-text">허위 매물 ZERO</p>
+            </div>
+            <div class="benefit-grid">
+                <div class="benefit-card fade-in">
+                    <div class="benefit-icon">🛡️</div>
+                    <h3 class="benefit-title">검증된 중개사만</h3>
+                    <p class="benefit-description">
+                        공인중개사 자격증을 보유한 검증된 중개사만 
+                        제안할 수 있어 신뢰할 수 있습니다.
+                    </p>
+                </div>
+                <div class="benefit-card fade-in">
+                    <div class="benefit-icon">✅</div>
+                    <h3 class="benefit-title">실매물만 제안</h3>
+                    <p class="benefit-description">
+                        허위 매물이나 이미 계약된 매물은 절대 제안하지 않습니다. 
+                        모든 매물은 실거래 가능한 실매물입니다.
+                    </p>
+                </div>
+                <div class="benefit-card fade-in">
+                    <div class="benefit-icon">⏰</div>
+                    <h3 class="benefit-title">시간 절약</h3>
+                    <p class="benefit-description">
+                        수십 번의 전화와 헛걸음 없이, 
+                        조건에 맞는 매물만 선별해서 받아보세요.
+                    </p>
+                </div>
+                <div class="benefit-card fade-in">
+                    <div class="benefit-icon">💼</div>
+                    <h3 class="benefit-title">전문 상담</h3>
+                    <p class="benefit-description">
+                        중개사가 직접 제안하므로 상세한 정보와 
+                        전문적인 상담을 받을 수 있습니다.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- =========================================== -->
+    <!-- FINAL CTA SECTION: 마지막 행동 유도 -->
+    <!-- =========================================== -->
+    <section class="final-cta" id="final-cta">
+        <div class="container">
+            <div class="cta-content fade-in">
+                <h2 class="cta-title">
+                    당신을 위한 최적의 집이<br>
+                    오퍼를 기다리고 있습니다.
+                </h2>
+                <p class="cta-subtitle">
+                    지금 바로 조건을 입력하고, 검증된 중개사들의 제안을 받아보세요.
+                </p>
+                <button class="cta-button large" onclick="goToConditionForm()">
+                    오퍼 받기 시작하기
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- =========================================== -->
+    <!-- FOOTER: 하단 정보 -->
+    <!-- =========================================== -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-logo">
+                    <span class="logo-icon">🏠</span>
+                    <span class="logo-text">HouseMVP</span>
+                </div>
+                <p class="footer-text">찾지 마세요, 오퍼를 받으세요.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- JavaScript -->
+    <script src="utils.js"></script>
+    <script src="landing.js"></script>
+</body>
+</html>
+

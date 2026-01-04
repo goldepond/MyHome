@@ -345,20 +345,56 @@ async function searchAddress() {
             
             const url = `http://localhost:3001/api/juso?${params.toString()}`;
             console.log('   🌐 요청 URL:', url);
+            console.log('   📋 요청 파라미터:');
+            console.log('      - keyword:', keyword);
+            console.log('      - confmKey:', JUSO_API_CONFIG.confmKey.substring(0, 20) + '...');
             console.log('   ⏳ fetch() 호출 중...');
             
-            const response = await fetch(url, {
-                method: 'GET',
-                headers: {
-                    'Accept': 'application/json'
-                }
-            });
+            // 타임아웃 설정 (30초)
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => {
+                console.error('   ⏰ 타임아웃 발생! (30초 경과)');
+                controller.abort();
+            }, 30000);
             
-            console.log('   ✅ fetch() 완료!');
-            console.log('   📊 응답 상태:', response.status, response.statusText);
+            let response;
+            try {
+                response = await fetch(url, {
+                    method: 'GET',
+                    headers: {
+                        'Accept': 'application/json'
+                    },
+                    signal: controller.signal
+                });
+                clearTimeout(timeoutId);
+                
+                console.log('   ✅ fetch() 완료!');
+                console.log('   📊 응답 상태:', response.status, response.statusText);
+                console.log('   📋 Content-Type:', response.headers.get('content-type'));
+                
+            } catch (fetchError) {
+                clearTimeout(timeoutId);
+                
+                if (fetchError.name === 'AbortError') {
+                    console.error('   ❌ 요청 타임아웃 (30초 초과)');
+                    console.error('   💡 해결 방법:');
+                    console.error('      1. 프록시 서버 재시작: node proxy-server.js');
+                    console.error('      2. 외부 API 서버 상태 확인');
+                    console.error('      3. 네트워크 연결 확인');
+                    throw new Error('요청 타임아웃: 프록시 서버 또는 API 서버가 응답하지 않습니다.');
+                }
+                
+                console.error('   ❌ fetch 에러:', fetchError.name, fetchError.message);
+                console.error('   💡 프록시 서버 연결 실패 - http://localhost:3001 확인 필요');
+                throw fetchError;
+            }
             
             if (!response.ok) {
-                console.error('   ❌ HTTP 오류:', response.status, response.statusText);
+                const errorText = await response.text();
+                console.error('   ❌ HTTP 에러 발생:');
+                console.error('      - 상태 코드:', response.status);
+                console.error('      - 상태 메시지:', response.statusText);
+                console.error('      - 응답 본문:', errorText.substring(0, 500));
                 throw new Error(`HTTP ${response.status}: ${response.statusText}`);
             }
             
@@ -383,11 +419,22 @@ async function searchAddress() {
         }
         
     } catch (error) {
-        console.log('❌ [도로명주소 검색 API] 에러 발생');
-        console.log(`   에러: ${error.message}`);
-        showError('주소 검색 중 오류가 발생했습니다. 다시 시도해주세요.');
+        console.error('\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+        console.error('❌ [도로명주소 검색 API] 예외 발생');
+        console.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+        console.error('   - 에러 타입:', error.name);
+        console.error('   - 에러 메시지:', error.message);
+        console.error('   - 스택 트레이스:', error.stack);
+        console.log('\n💡 문제 해결 방법:');
+        console.log('   1. 프록시 서버가 실행 중인지 확인: http://localhost:3001');
+        console.log('   2. 네트워크 연결 상태 확인');
+        console.log('   3. 검색어가 올바른지 확인');
+        console.log('   4. 브라우저 개발자도구 Network 탭에서 요청 확인');
+        console.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
+        showError('주소 검색 중 오류가 발생했습니다. 콘솔을 확인해주세요.');
     } finally {
         hideLoading();
+        console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
     }
 }
 

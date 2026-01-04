@@ -5,7 +5,7 @@
   "main": "index.html",
   "scripts": {
     "start": "node server.js",
-    "proxy": "node proxy-server.js",
+    "proxy": "node proxy-server-simple.js",
     "dev:full": "concurrently \"npm run proxy\" \"npm run start\"",
     "build": "echo 'No build step required for static site'",
     "deploy": "gh-pages -d ."
@@ -22,8 +22,10 @@
     "concurrently": "^8.2.0",
     "cors": "^2.8.5",
     "express": "^4.18.2",
+    "form-data": "^4.0.0",
     "gh-pages": "^4.0.0",
     "http-proxy-middleware": "^2.0.6",
+    "node-fetch": "^2.7.0",
     "serve": "^14.2.0"
   },
   "repository": {
