@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>주소 검색 결과 - House MVP</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+    
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+</head>
+<body>
+    <!-- =========================================== -->
+    <!-- HEADER: 로고 및 인증 버튼 영역 (index.html과 동일) -->
+    <!-- =========================================== -->
+    <header class="header">
+        <div class="container">
+            <div class="logo" onclick="goToMainPage()" style="cursor: pointer;">
+                <span class="logo-icon">🏠</span>
+                <span class="logo-text">HouseMVP</span>
+            </div>
+            <nav class="nav">
+                <div class="auth-links">
+                    <button class="proposals-btn" onclick="goToMyProposals()" title="내 제안서 보기" style="display: none;" id="myProposalsBtn">📊 내 제안서</button>
+                    <button class="login-btn" onclick="openLoginModal()">로그인</button>
+                    <button class="signup-btn" onclick="openSignupModal()">회원가입</button>
+                    <button class="admin-btn" onclick="openLoginModal()" title="관리자 로그인">⚙️</button>
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <!-- =========================================== -->
+    <!-- RESULT SECTION: 검색 결과 및 상세 정보 표시 영역 -->
+    <!-- =========================================== -->
+    <section class="result-section">
+        <div class="container">
+            <div class="result-content">
+                <h1>선택한 주소 정보</h1>
+                <p>검색 결과를 확인하고 추가 정보를 입력해주세요</p>
+                
+                <!-- 주소 요약 카드 (동적으로 생성됨) -->
+                <div id="addressSummaryCard"></div>
+                
+                <!-- 상세정보 보기 버튼 -->
+                <div class="detail-toggle-section">
+                    <button class="detail-toggle-btn" onclick="toggleDetailInfo()">
+                        <span id="toggleIcon">▼</span> 상세정보 보기
+                    </button>
+                </div>
+                
+                <!-- 주소 정보 표시 영역 (동적으로 API 데이터가 추가됨) -->
+                <div class="address-info" id="detailInfoSection" style="display: none;">
+                    <!-- 기존 API 데이터 카드들이 여기에 동적으로 추가됨 -->
+                </div>
+                
+                <!-- 부동산 정보 입력 영역 (숨김 처리) -->
+                <div class="property-input-section" style="display: none;">
+                    <!-- 기본 선택된 주소 정보 (간단 표시) -->
+                    <div class="info-card" style="display: none;">
+                        <h2>📍 선택된 주소</h2>
+                        <div class="address-details">
+                            <div class="road-address">
+                                <strong>도로명주소:</strong>
+                                <span id="selectedRoadAddr">-</span>
+                            </div>
+                            <div class="jibun-address">
+                                <strong>지번주소:</strong>
+                                <span id="selectedJibunAddr">-</span>
+                            </div>
+                            <div class="zip-code">
+                                <strong>우편번호:</strong>
+                                <span id="selectedZipCode">-</span>
+                            </div>
+                            <div class="dong-info" id="dongInfoDiv" style="display: none;">
+                                <strong>동:</strong>
+                                <span id="selectedDong">-</span>
+                            </div>
+                            <div class="hosu-info" id="hosuInfoDiv" style="display: none;">
+                                <strong>호수:</strong>
+                                <span id="selectedHosu">-</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 부동산 정보 입력 폼 (숨김 처리) -->
+                    <div class="info-card" style="display: none;">
+                        <h2>🏠 부동산 정보</h2>
+                        <div class="property-details">
+                            <div class="detail-item">
+                                <label>매물 유형:</label>
+                                <select id="propertyType">
+                                    <option value="apartment">아파트</option>
+                                    <option value="villa">빌라</option>
+                                    <option value="studio">원룸</option>
+                                    <option value="officetel">오피스텔</option>
+                                    <option value="house">단독주택</option>
+                                </select>
+                            </div>
+                            <div class="detail-item">
+                                <label>거래 유형:</label>
+                                <select id="transactionType">
+                                    <option value="sale">매매</option>
+                                    <option value="rent">전세</option>
+                                    <option value="monthly">월세</option>
+                                </select>
+                            </div>
+                            <div class="detail-item">
+                                <label>희망 가격:</label>
+                                <input type="text" id="desiredPrice" placeholder="예: 5억원, 월세 50만원">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 연락처 정보 입력 폼 -->
+                    <div class="info-card">
+                        <h2>👤 연락처 정보</h2>
+                        <div class="contact-details">
+                            <div class="detail-item">
+                                <label>이름:</label>
+                                <input type="text" id="userName" placeholder="이름을 입력해주세요">
+                            </div>
+                            <div class="detail-item">
+                                <label>연락처:</label>
+                                <input type="tel" id="userPhone" placeholder="010-1234-5678">
+                            </div>
+                            <div class="detail-item">
+                                <label>이메일:</label>
+                                <input type="email" id="userEmail" placeholder="example@email.com">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 액션 버튼 -->
+                <div class="action-buttons">
+                    <button class="btn-secondary" onclick="goBack()">다시 검색</button>
+                    <button class="btn-primary" onclick="submitRequest()">공인중개사 찾기</button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- =========================================== -->
+    <!-- LOGIN MODAL: 로그인 팝업 (index.html과 동일) -->
+    <!-- =========================================== -->
+    <div id="loginModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeLoginModal()">&times;</span>
+            <h2>로그인</h2>
+            <form class="login-form">
+                <div class="form-group">
+                    <input type="email" placeholder="이메일" required>
+                </div>
+                <div class="form-group">
+                    <input type="password" placeholder="비밀번호" required>
+                </div>
+                <button type="submit" class="submit-btn">로그인</button>
+            </form>
+            
+            <!-- 소셜 로그인 구분선 -->
+            <div class="divider">
+                <span>또는</span>
+            </div>
+            
+            <!-- Google 로그인 버튼 -->
+            <button type="button" class="google-login-btn" onclick="loginWithGoogle()">
+                <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" class="google-icon">
+                Google로 로그인
+            </button>
+        </div>
+    </div>
+
+    <!-- =========================================== -->
+    <!-- SIGNUP MODAL: 회원가입 팝업 (index.html과 동일) -->
+    <!-- =========================================== -->
+    <div id="signupModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeSignupModal()">&times;</span>
+            <h2>회원가입</h2>
+            <form class="signup-form">
+                <div class="form-group">
+                    <input type="text" placeholder="이름" required>
+                </div>
+                <div class="form-group">
+                    <input type="email" placeholder="이메일" required>
+                </div>
+                <div class="form-group">
+                    <input type="password" placeholder="비밀번호" required>
+                </div>
+                <div class="form-group">
+                    <input type="password" placeholder="비밀번호 확인" required>
+                </div>
+                <button type="submit" class="submit-btn">회원가입</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- JavaScript 파일 로드 -->
+    <script src="utils.js"></script>
+    <script src="firebase-config.js"></script>
+    <script src="auth.js"></script>
+    <script src="result.js?v=1.9"></script>
+</body>
+</html>

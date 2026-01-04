@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>공인중개사 찾기 - House MVP</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+    
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+</head>
+<body>
+    <!-- =========================================== -->
+    <!-- HEADER: 로고 및 인증 버튼 영역 -->
+    <!-- =========================================== -->
+    <header class="header">
+        <div class="container">
+            <div class="logo" onclick="goToMainPage()" style="cursor: pointer;">
+                <span class="logo-icon">🏠</span>
+                <span class="logo-text">HouseMVP</span>
+            </div>
+            <nav class="nav">
+                <div class="auth-links">
+                    <button class="proposals-btn" onclick="goToMyProposals()" title="내 제안서 보기" style="display: none;" id="myProposalsBtn">📊 내 제안서</button>
+                    <button class="login-btn" onclick="openLoginModal()">로그인</button>
+                    <button class="signup-btn" onclick="openSignupModal()">회원가입</button>
+                    <button class="admin-btn" onclick="openLoginModal()" title="관리자 로그인">⚙️</button>
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <!-- =========================================== -->
+    <!-- BROKER SECTION: 공인중개사 검색 결과 표시 영역 -->
+    <!-- =========================================== -->
+    <section class="result-section">
+        <div class="container">
+            <div class="result-content">
+                <h1>🏘️ 주변 공인중개사 찾기</h1>
+                <p>선택한 주소 주변의 공인중개사 정보를 확인하세요</p>
+                
+                <!-- 주소 요약 카드 (동적으로 생성됨) -->
+                <div id="addressSummaryCard"></div>
+                
+                <!-- 중개사 비교 컨트롤 -->
+                <div class="broker-controls">
+                    <h2>🏢 주변 공인중개사 목록</h2>
+                    <div class="broker-filter-buttons">
+                        <button class="filter-btn active" onclick="showTop3Brokers()">📍 가까운 3곳</button>
+                        <button class="filter-btn" onclick="showAllBrokers()">📋 전체 보기 (최대 30곳)</button>
+                    </div>
+                </div>
+
+                <!-- 공인중개사 목록 표시 영역 (동적으로 추가됨) -->
+                <div id="brokerListContainer"></div>
+                
+                <!-- 액션 버튼 -->
+                <div class="action-buttons">
+                    <button class="btn-secondary" onclick="goBack()">이전 페이지</button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- =========================================== -->
+    <!-- LOGIN MODAL: 로그인 팝업 -->
+    <!-- =========================================== -->
+    <div id="loginModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeLoginModal()">&times;</span>
+            <h2>로그인</h2>
+            <form class="login-form">
+                <div class="form-group">
+                    <input type="email" placeholder="이메일" required>
+                </div>
+                <div class="form-group">
+                    <input type="password" placeholder="비밀번호" required>
+                </div>
+                <button type="submit" class="submit-btn">로그인</button>
+            </form>
+            
+            <!-- 소셜 로그인 구분선 -->
+            <div class="divider">
+                <span>또는</span>
+            </div>
+            
+            <!-- Google 로그인 버튼 -->
+            <button type="button" class="google-login-btn" onclick="loginWithGoogle()">
+                <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" class="google-icon">
+                Google로 로그인
+            </button>
+        </div>
+    </div>
+
+    <!-- =========================================== -->
+    <!-- SIGNUP MODAL: 회원가입 팝업 -->
+    <!-- =========================================== -->
+    <div id="signupModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="closeSignupModal()">&times;</span>
+            <h2>회원가입</h2>
+            <form class="signup-form">
+                <div class="form-group">
+                    <input type="text" placeholder="이름" required>
+                </div>
+                <div class="form-group">
+                    <input type="email" placeholder="이메일" required>
+                </div>
+                <div class="form-group">
+                    <input type="password" placeholder="비밀번호" required>
+                </div>
+                <div class="form-group">
+                    <input type="password" placeholder="비밀번호 확인" required>
+                </div>
+                <button type="submit" class="submit-btn">회원가입</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- JavaScript 파일 로드 -->
+    <script src="firebase-config.js"></script>
+    <script src="auth.js"></script>
+    <script src="broker.js?v=2.0"></script>
+</body>
+</html>
+
