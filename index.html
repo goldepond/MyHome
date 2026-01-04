@@ -3,162 +3,264 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>House MVP - 집 찾기</title>
-    <link rel="stylesheet" href="styles.css">
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
-    
-    <!-- Firebase SDK -->
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    <title>찾지 마세요, 오퍼를 받으세요</title>
+    <link rel="stylesheet" href="landing.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+KR:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
     <!-- =========================================== -->
-    <!-- HEADER: 로고 및 인증 버튼 영역 -->
+    <!-- HEADER: 상단 네비게이션 -->
     <!-- =========================================== -->
     <header class="header">
         <div class="container">
-            <!-- 로고 섹션 -->
-            <div class="logo" onclick="goToMainPage()" style="cursor: pointer;">
-                <span class="logo-icon">🏠</span>
-                <span class="logo-text">HouseMVP</span>
+            <div class="logo">
+                <img src="assest/logo.jpg" alt="로고" class="logo-image">
             </div>
-            <!-- 네비게이션: 로그인/회원가입 버튼 -->
             <nav class="nav">
-                <div class="auth-links">
-                    <button class="proposals-btn" onclick="goToMyProposals()" title="내 제안서 보기" style="display: none;" id="myProposalsBtn">📊 내 제안서</button>
-                    <button class="login-btn" onclick="openLoginModal()">로그인</button>
-                    <button class="signup-btn" onclick="openSignupModal()">회원가입</button>
-                    <button class="admin-btn" onclick="openLoginModal()" title="관리자 로그인">⚙️</button>
-                </div>
+                <button class="nav-btn" onclick="scrollToSection('process')">서비스 안내</button>
+                <button class="nav-btn primary" onclick="goToConditionForm()">조건 입력하기</button>
             </nav>
         </div>
     </header>
 
     <!-- =========================================== -->
-    <!-- MAIN BANNER: 메인 검색 영역 -->
+    <!-- HERO SECTION: 메인 헤드라인 & CTA -->
     <!-- =========================================== -->
-    <section class="main-banner">
-        <div class="banner-content">
-            <!-- 메인 타이틀 및 설명 -->
-            <div class="banner-text">
-                <h1>어떤 집을 찾고 계세요?</h1>
-                <p>원하는 지역의 집을 쉽고 빠르게 찾아보세요</p>
+    <section class="hero" id="hero">
+        <div class="container">
+            <div class="hero-content fade-in">
+                <h1 class="hero-title">
+                    발품 파는 시대는 끝났습니다.<br>
+                    <span class="highlight">집이 당신을 찾게 하세요.</span>
+                </h1>
+                <p class="hero-subtitle">
+                    찾지 마세요, 오퍼를 받으세요.
+                </p>
+                <button class="cta-button large" onclick="goToConditionForm()">
+                    지금 바로 조건 입력하기
+                </button>
             </div>
-            
-            <!-- 주소 검색 섹션 -->
-            <div class="search-section">
-                <div class="search-box">
-                    <input type="text" id="addressInput" placeholder="원하시는 지역명, 지하철역, 단지명을 입력해주세요" class="search-input">
-                    <button class="search-btn" onclick="searchAddress()">검색</button>
-                </div>
-                
-                <!-- 최근 검색 & 즐겨찾기 -->
-                <div class="quick-access" id="quickAccess" style="display: none;">
-                    <!-- 최근 검색 -->
-                    <div class="recent-searches" id="recentSearches" style="display: none;">
-                        <h3>🕐 최근 검색</h3>
-                        <div class="recent-list" id="recentList"></div>
-                    </div>
-                    
-                    <!-- 즐겨찾기 -->
-                    <div class="favorites" id="favorites" style="display: none;">
-                        <h3>⭐ 즐겨찾기</h3>
-                        <div class="favorite-list" id="favoriteList"></div>
-                    </div>
-                </div>
-            </div>
-            
-            
         </div>
     </section>
 
     <!-- =========================================== -->
-    <!-- LOGIN MODAL: 로그인 팝업 -->
+    <!-- PROBLEM SECTION: 고통 포인트 -->
     <!-- =========================================== -->
-    <div id="loginModal" class="modal">
-        <div class="modal-content">
-            <span class="close" onclick="closeLoginModal()">&times;</span>
-            <h2>로그인</h2>
-            <form class="login-form" id="loginForm">
-                <div class="form-group">
-                    <input type="text" id="loginId" placeholder="아이디 또는 이메일" required>
-                </div>
-                <div class="form-group">
-                    <input type="password" id="loginPassword" placeholder="비밀번호" required>
-                </div>
-                <button type="submit" class="submit-btn">로그인</button>
-                
-                <!-- 비밀번호 재설정 링크 -->
-                <div class="forgot-password">
-                    <a href="#" onclick="showPasswordResetModal(); return false;">비밀번호를 잊으셨나요?</a>
-                </div>
-            </form>
-            
-            <!-- 관리자 로그인 안내 -->
-            <div class="admin-login-info">
-                <p><strong>관리자 로그인:</strong> ID: admin, 비밀번호: admin</p>
+    <section class="problem" id="problem">
+        <div class="container">
+            <div class="section-header fade-in">
+                <h2 class="section-title">일일이 찾아다니기 지치지 않으셨나요?</h2>
             </div>
-            
-            <!-- 소셜 로그인 구분선 -->
-            <div class="divider">
-                <span>또는</span>
+            <div class="problem-list">
+                <div class="problem-item fade-in">
+                    <div class="problem-icon">😤</div>
+                    <h3 class="problem-title">네이버 부동산 속 넘쳐나는 허위 매물</h3>
+                    <p class="problem-description">
+                        광고만 보고 달려갔다가 이미 계약된 집, 사진과 다른 집, 
+                        존재하지 않는 집... 허위 매물에 지치셨나요?
+                    </p>
+                </div>
+                <div class="problem-item fade-in">
+                    <div class="problem-icon">😫</div>
+                    <h3 class="problem-title">수십 번의 전화와 헛걸음, 낭비되는 시간</h3>
+                    <p class="problem-description">
+                        매일 수십 개의 매물을 확인하고, 전화하고, 직접 가서 보고... 
+                        정작 마음에 드는 집은 하나도 없었던 경험, 있으시죠?
+                    </p>
+                </div>
+                <div class="problem-item fade-in">
+                    <div class="problem-icon">😰</div>
+                    <h3 class="problem-title">끝없는 검색의 반복</h3>
+                    <p class="problem-description">
+                        새로 올라온 매물을 놓칠까 봐 매일매일 사이트를 확인하고, 
+                        조건에 맞는 집을 찾기 위해 수백 개의 매물을 뒤져봐야 하는 고통.
+                    </p>
+                </div>
             </div>
-            
-            <!-- Google 로그인 버튼 -->
-            <button type="button" class="google-login-btn" onclick="loginWithGoogle()">
-                <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" class="google-icon">
-                Google로 로그인
-            </button>
         </div>
-    </div>
+    </section>
 
     <!-- =========================================== -->
-    <!-- SIGNUP MODAL: 회원가입 팝업 -->
+    <!-- SOLUTION SECTION: 서비스 메커니즘 -->
     <!-- =========================================== -->
-    <div id="signupModal" class="modal">
-        <div class="modal-content">
-            <span class="close" onclick="closeSignupModal()">&times;</span>
-            <h2>회원가입</h2>
-            <form class="signup-form">
-                <div class="form-group">
-                    <input type="text" placeholder="이름" required>
+    <section class="solution" id="solution">
+        <div class="container">
+            <div class="section-header fade-in">
+                <h2 class="section-title">원하는 조건을 딱 한 번만 입력하세요</h2>
+                <p class="section-subtitle">
+                    구글 시트에 희망 지역, 예산, 조건을 쓰면 끝.
+                </p>
+            </div>
+            <div class="solution-content fade-in">
+                <div class="solution-visual">
+                    <div class="solution-card">
+                        <div class="card-icon">📝</div>
+                        <h3>조건 입력</h3>
+                        <p>희망 지역, 예산, 방 개수, 옵션 등<br>원하는 조건을 한 번에 입력</p>
+                    </div>
+                    <div class="solution-arrow">→</div>
+                    <div class="solution-card">
+                        <div class="card-icon">📨</div>
+                        <h3>중개사 역제안</h3>
+                        <p>검증된 공인중개사들이<br>조건에 맞는 실매물을 직접 제안</p>
+                    </div>
+                    <div class="solution-arrow">→</div>
+                    <div class="solution-card">
+                        <div class="card-icon">✅</div>
+                        <h3>베스트 매물 선택</h3>
+                        <p>제안받은 매물 중에서<br>가장 마음에 드는 집 선택</p>
+                    </div>
                 </div>
-                <div class="form-group">
-                    <input type="email" placeholder="이메일" required>
-                </div>
-                <div class="form-group">
-                    <input type="password" placeholder="비밀번호" required>
-                </div>
-                <div class="form-group">
-                    <input type="password" placeholder="비밀번호 확인" required>
-                </div>
-                <button type="submit" class="submit-btn">회원가입</button>
-            </form>
+            </div>
         </div>
-    </div>
+    </section>
 
     <!-- =========================================== -->
-    <!-- PASSWORD RESET MODAL: 비밀번호 재설정 팝업 -->
+    <!-- PROCESS SECTION: 3단계 프로세스 -->
     <!-- =========================================== -->
-    <div id="passwordResetModal" class="modal">
-        <div class="modal-content">
-            <span class="close" onclick="closePasswordResetModal()">&times;</span>
-            <h2>비밀번호 재설정</h2>
-            <p style="color: #666; margin-bottom: 20px;">가입하신 이메일 주소를 입력하시면<br>비밀번호 재설정 링크를 보내드립니다.</p>
-            <form class="password-reset-form" id="passwordResetForm">
-                <div class="form-group">
-                    <input type="email" id="resetEmail" placeholder="이메일 주소" required>
+    <section class="process" id="process">
+        <div class="container">
+            <div class="section-header fade-in">
+                <h2 class="section-title">3단계로 끝나는 집 찾기</h2>
+            </div>
+            <div class="process-steps">
+                <div class="process-step fade-in">
+                    <div class="step-number">1</div>
+                    <div class="step-content">
+                        <h3 class="step-title">조건 입력</h3>
+                        <p class="step-description">
+                            구글 시트에 희망 지역, 예산, 방 개수, 
+                            원하는 옵션 등을 간단히 입력하세요.
+                        </p>
+                    </div>
                 </div>
-                <button type="submit" class="submit-btn">재설정 이메일 보내기</button>
-            </form>
+                <div class="process-step fade-in">
+                    <div class="step-number">2</div>
+                    <div class="step-content">
+                        <h3 class="step-title">중개사들의 역제안</h3>
+                        <p class="step-description">
+                            검증된 공인중개사들이 조건에 맞는 
+                            실매물을 직접 제안해드립니다.
+                        </p>
+                    </div>
+                </div>
+                <div class="process-step fade-in">
+                    <div class="step-number">3</div>
+                    <div class="step-content">
+                        <h3 class="step-title">베스트 매물 선택</h3>
+                        <p class="step-description">
+                            제안받은 매물 중에서 가장 마음에 드는 
+                            집을 선택하고 바로 계약으로 진행하세요.
+                        </p>
+                    </div>
+                </div>
+            </div>
         </div>
-    </div>
+    </section>
 
-    <!-- JavaScript 파일 로드 -->
+    <!-- =========================================== -->
+    <!-- BENEFIT SECTION: 신뢰 및 편의성 -->
+    <!-- =========================================== -->
+    <section class="benefit" id="benefit">
+        <div class="container">
+            <div class="section-header fade-in">
+                <h2 class="section-title">검증된 공인중개사가 직접 제안하는 실매물만 확인하세요</h2>
+                <p class="section-subtitle highlight-text">허위 매물 ZERO</p>
+            </div>
+            <div class="benefit-grid">
+                <div class="benefit-card fade-in">
+                    <div class="benefit-icon">🛡️</div>
+                    <h3 class="benefit-title">검증된 중개사만</h3>
+                    <p class="benefit-description">
+                        공인중개사 자격증을 보유한 검증된 중개사만 
+                        제안할 수 있어 신뢰할 수 있습니다.
+                    </p>
+                </div>
+                <div class="benefit-card fade-in">
+                    <div class="benefit-icon">✅</div>
+                    <h3 class="benefit-title">실매물만 제안</h3>
+                    <p class="benefit-description">
+                        허위 매물이나 이미 계약된 매물은 절대 제안하지 않습니다. 
+                        모든 매물은 실거래 가능한 실매물입니다.
+                    </p>
+                </div>
+                <div class="benefit-card fade-in">
+                    <div class="benefit-icon">⏰</div>
+                    <h3 class="benefit-title">시간 절약</h3>
+                    <p class="benefit-description">
+                        수십 번의 전화와 헛걸음 없이, 
+                        조건에 맞는 매물만 선별해서 받아보세요.
+                    </p>
+                </div>
+                <div class="benefit-card fade-in">
+                    <div class="benefit-icon">💼</div>
+                    <h3 class="benefit-title">전문 상담</h3>
+                    <p class="benefit-description">
+                        중개사가 직접 제안하므로 상세한 정보와 
+                        전문적인 상담을 받을 수 있습니다.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- =========================================== -->
+    <!-- FINAL CTA SECTION: 마지막 행동 유도 -->
+    <!-- =========================================== -->
+    <section class="final-cta" id="final-cta">
+        <div class="container">
+            <div class="cta-content fade-in">
+                <h2 class="cta-title">
+                    당신을 위한 최적의 집이<br>
+                    오퍼를 기다리고 있습니다.
+                </h2>
+                <p class="cta-subtitle">
+                    지금 바로 조건을 입력하고, 검증된 중개사들의 제안을 받아보세요.
+                </p>
+                <button class="cta-button large" onclick="goToConditionForm()">
+                    오퍼 받기 시작하기
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- =========================================== -->
+    <!-- FOOTER: 하단 정보 -->
+    <!-- =========================================== -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-brand">
+                    <span class="footer-logo-text">MyHome</span>
+                </div>
+                <div class="footer-info">
+                    <p class="footer-company">
+                        광고·제휴 문의: goldepond@example.com | 대표: 김이택
+                    </p>
+                </div>
+                <div class="footer-links">
+                    <a href="#" class="footer-link">개인정보 처리방침</a>
+                    <span class="footer-separator">|</span>
+                    <a href="#" class="footer-link">서비스 이용약관</a>
+                    <span class="footer-separator">|</span>
+                    <a href="#" class="footer-link">위치기반 서비스 이용약관</a>
+                    <span class="footer-separator">|</span>
+                    <a href="#" class="footer-link">멤버십 이용약관</a>
+                </div>
+                <div class="footer-copyright">
+                    <p>© 2025 MyHome. All rights reserved.</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- JavaScript -->
     <script src="utils.js"></script>
-    <script src="firebase-config.js"></script>
-    <script src="auth.js"></script>
-    <script src="script.js?v=1.3"></script>
+    <script src="landing.js"></script>
 </body>
 </html>
+
+

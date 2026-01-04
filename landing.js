@@ -4,10 +4,10 @@
  */
 
 /**
- * 구글 시트 URL (조건 입력 폼)
+ * 구글 폼 URL (조건 입력 폼)
  * @const {string}
  */
-const GOOGLE_SHEET_URL = 'YOUR_GOOGLE_SHEET_URL_HERE'; // TODO: 실제 구글 시트 URL로 변경
+const GOOGLE_SHEET_URL = 'https://forms.gle/8omqUNxSjX1MgqH16';
 
 /**
  * 페이지 로드 완료 시 초기화
@@ -82,22 +82,16 @@ function scrollToSection(sectionId) {
 }
 
 /**
- * 구글 시트 조건 입력 폼으로 이동
+ * 구글 폼 조건 입력 폼으로 이동
  */
 function goToConditionForm() {
-    if (GOOGLE_SHEET_URL && GOOGLE_SHEET_URL !== 'YOUR_GOOGLE_SHEET_URL_HERE') {
-        // 새 창에서 구글 시트 열기
+    if (GOOGLE_SHEET_URL) {
+        // 새 창에서 구글 폼 열기
         window.open(GOOGLE_SHEET_URL, '_blank');
-        
-        // 또는 현재 창에서 열기
-        // window.location.href = GOOGLE_SHEET_URL;
     } else {
-        // 구글 시트 URL이 설정되지 않은 경우
-        Logger.warn('구글 시트 URL이 설정되지 않았습니다.');
+        // 구글 폼 URL이 설정되지 않은 경우
+        Logger.warn('구글 폼 URL이 설정되지 않았습니다.');
         alert('조건 입력 폼이 준비 중입니다. 곧 이용하실 수 있습니다.');
-        
-        // 임시로 기존 검색 페이지로 이동
-        // window.location.href = 'index.html';
     }
 }
 
@@ -168,4 +162,5 @@ function smoothScrollTo(element) {
         });
     }
 }
+
 

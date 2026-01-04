@@ -3,11 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HouseMVP - 찾지 마세요, 오퍼를 받으세요</title>
+    <title>찾지 마세요, 오퍼를 받으세요</title>
     <link rel="stylesheet" href="landing.css">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+KR:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
     <!-- =========================================== -->
@@ -16,8 +17,7 @@
     <header class="header">
         <div class="container">
             <div class="logo">
-                <span class="logo-icon">🏠</span>
-                <span class="logo-text">HouseMVP</span>
+                <img src="assest/logo.jpg" alt="로고" class="logo-image">
             </div>
             <nav class="nav">
                 <button class="nav-btn" onclick="scrollToSection('process')">서비스 안내</button>
@@ -34,7 +34,7 @@
             <div class="hero-content fade-in">
                 <h1 class="hero-title">
                     발품 파는 시대는 끝났습니다.<br>
-                    <span class="highlight">이제 앉아서 집을 고르세요.</span>
+                    <span class="highlight">집이 당신을 찾게 하세요.</span>
                 </h1>
                 <p class="hero-subtitle">
                     찾지 마세요, 오퍼를 받으세요.
@@ -42,20 +42,6 @@
                 <button class="cta-button large" onclick="goToConditionForm()">
                     지금 바로 조건 입력하기
                 </button>
-                <div class="hero-stats">
-                    <div class="stat-item">
-                        <div class="stat-number">0</div>
-                        <div class="stat-label">허위 매물</div>
-                    </div>
-                    <div class="stat-item">
-                        <div class="stat-number">100%</div>
-                        <div class="stat-label">검증된 중개사</div>
-                    </div>
-                    <div class="stat-item">
-                        <div class="stat-number">1회</div>
-                        <div class="stat-label">조건 입력</div>
-                    </div>
-                </div>
             </div>
         </div>
     </section>
@@ -247,11 +233,26 @@
     <footer class="footer">
         <div class="container">
             <div class="footer-content">
-                <div class="footer-logo">
-                    <span class="logo-icon">🏠</span>
-                    <span class="logo-text">HouseMVP</span>
+                <div class="footer-brand">
+                    <span class="footer-logo-text">MyHome</span>
                 </div>
-                <p class="footer-text">찾지 마세요, 오퍼를 받으세요.</p>
+                <div class="footer-info">
+                    <p class="footer-company">
+                        광고·제휴 문의: goldepond@example.com | 대표: 김이택
+                    </p>
+                </div>
+                <div class="footer-links">
+                    <a href="#" class="footer-link">개인정보 처리방침</a>
+                    <span class="footer-separator">|</span>
+                    <a href="#" class="footer-link">서비스 이용약관</a>
+                    <span class="footer-separator">|</span>
+                    <a href="#" class="footer-link">위치기반 서비스 이용약관</a>
+                    <span class="footer-separator">|</span>
+                    <a href="#" class="footer-link">멤버십 이용약관</a>
+                </div>
+                <div class="footer-copyright">
+                    <p>© 2025 MyHome. All rights reserved.</p>
+                </div>
             </div>
         </div>
     </footer>
@@ -261,4 +262,5 @@
     <script src="landing.js"></script>
 </body>
 </html>
+
 

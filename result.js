@@ -69,7 +69,32 @@ const LAND_API_CONFIG = {
 
 
 /* =========================================== */
-/* 2. PAGE INITIALIZATION - 페이지 초기화 */
+/* 2. ENVIRONMENT DETECTION - 환경 감지 */
+/* =========================================== */
+
+/**
+ * 환경 감지 함수
+ * GitHub Pages인지 로컬 개발 환경인지 자동 감지
+ * @return {boolean} GitHub Pages 환경이면 true
+ */
+function isGitHubPages() {
+    // 로컬 개발 환경 우선 감지
+    const isLocal = window.location.hostname === 'localhost' ||
+                    window.location.hostname === '127.0.0.1' ||
+                    window.location.protocol === 'file:' ||
+                    window.location.hostname === '';
+    
+    // GitHub Pages 환경 감지 (로컬이 아닌 경우에만)
+    const isGitHub = !isLocal && (
+        window.location.hostname === 'github.io' || 
+        window.location.hostname.includes('github.io')
+    );
+    
+    return isGitHub;
+}
+
+/* =========================================== */
+/* 3. PAGE INITIALIZATION - 페이지 초기화 */
 /* =========================================== */
 
 /**
@@ -550,7 +575,11 @@ function setupWhatHouseLoader() {
                     
                     // 첫 번째 HTML 파일을 iframe으로 로드
                     const iframe = document.createElement('iframe');
-                    iframe.src = 'http://localhost:3001/assest/whathouse/whathouse_01.html';
+                    // 환경에 따른 경로 선택
+                    const whathousePath = isGitHubPages() 
+                        ? 'assest/whathouse/whathouse_01.html'
+                        : 'http://localhost:3001/assest/whathouse/whathouse_01.html';
+                    iframe.src = whathousePath;
                     iframe.style.cssText = 
                         'width: 100%; height: 100%; border: none; font-family: Arial, sans-serif;';
                     iframe.setAttribute('sandbox', 'allow-same-origin allow-scripts');
@@ -599,7 +628,9 @@ function setupWhatHouseLoader() {
                             currentPage--;
                             const pageNum = String(currentPage).padStart(2, '0');
                             iframe.src = 
-                                `http://localhost:3001/assest/whathouse/whathouse_${pageNum}.html`;
+                                isGitHubPages() 
+                                    ? `assest/whathouse/whathouse_${pageNum}.html`
+                                    : `http://localhost:3001/assest/whathouse/whathouse_${pageNum}.html`;
                             pageInfo.textContent = `${currentPage} / ${TOTAL_PAGES}`;
                         }
                     });
@@ -609,7 +640,9 @@ function setupWhatHouseLoader() {
                             currentPage++;
                             const pageNum = String(currentPage).padStart(2, '0');
                             iframe.src = 
-                                `http://localhost:3001/assest/whathouse/whathouse_${pageNum}.html`;
+                                isGitHubPages() 
+                                    ? `assest/whathouse/whathouse_${pageNum}.html`
+                                    : `http://localhost:3001/assest/whathouse/whathouse_${pageNum}.html`;
                             pageInfo.textContent = `${currentPage} / ${TOTAL_PAGES}`;
                         }
                     });
@@ -836,7 +869,17 @@ async function loadGeocoderInfo(address) {
             address: address
         });
         
-        const url = `http://localhost:3001/api/geocoder?${params.toString()}`;
+        // 환경에 따른 URL 선택
+        let url;
+        if (isGitHubPages()) {
+            // GitHub Pages: 직접 API 호출
+            url = `${GEOCODER_API_CONFIG.baseUrl}?${params.toString()}`;
+            console.log('   🌐 환경: GitHub Pages (직접 호출)');
+        } else {
+            // 로컬: 프록시 서버 사용
+            url = `http://localhost:3001/api/geocoder?${params.toString()}`;
+            console.log('   🌐 환경: 로컬 (프록시 사용)');
+        }
         console.log(`   📡 요청 URL: ${url}`);
         
         const response = await fetch(url);
@@ -1145,8 +1188,17 @@ async function loadLandInfo(addressData, geocoderData) {
         console.log(`   📄 output: ${LAND_API_CONFIG.output}`);
         console.log(`   🔢 maxFeatures: ${LAND_API_CONFIG.maxFeatures}`);
         
-        // 프록시 서버를 통해 API 호출
-        const url = `http://localhost:3001/api/land?${params.toString()}`;
+        // 환경에 따른 URL 선택
+        let url;
+        if (isGitHubPages()) {
+            // GitHub Pages: 직접 API 호출
+            url = `${LAND_API_CONFIG.baseUrl}?${params.toString()}`;
+            console.log('   🌐 환경: GitHub Pages (직접 호출)');
+        } else {
+            // 로컬: 프록시 서버 사용
+            url = `http://localhost:3001/api/land?${params.toString()}`;
+            console.log('   🌐 환경: 로컬 (프록시 사용)');
+        }
         
         console.log(`\n   🌐 요청 URL:`);
         console.log(`   ${url}\n`);
@@ -1288,8 +1340,17 @@ async function loadLandInfoByBBOX(point) {
         console.log(`   📄 output: ${LAND_API_CONFIG.output}`);
         console.log(`   🔢 maxFeatures: ${LAND_API_CONFIG.maxFeatures}`);
         
-        // 프록시 서버를 통해 API 호출
-        const url = `http://localhost:3001/api/land?${params.toString()}`;
+        // 환경에 따른 URL 선택
+        let url;
+        if (isGitHubPages()) {
+            // GitHub Pages: 직접 API 호출
+            url = `${LAND_API_CONFIG.baseUrl}?${params.toString()}`;
+            console.log('   🌐 환경: GitHub Pages (직접 호출)');
+        } else {
+            // 로컬: 프록시 서버 사용
+            url = `http://localhost:3001/api/land?${params.toString()}`;
+            console.log('   🌐 환경: 로컬 (프록시 사용)');
+        }
         
         console.log(`\n   🌐 요청 URL:`);
         console.log(`   ${url}\n`);
@@ -1573,16 +1634,48 @@ async function loadBuildingRegister(buildingData) {
             ho: buildingData.ho || ''
         };
         
-        console.log('   📡 요청 URL: http://localhost:3001/api/building-register');
+        // 환경에 따른 URL 선택
+        let url;
+        if (isGitHubPages()) {
+            // GitHub Pages: 직접 API 호출
+            url = BUILDING_REGISTER_API_CONFIG.baseUrl;
+            console.log('   🌐 환경: GitHub Pages (직접 호출)');
+        } else {
+            // 로컬: 프록시 서버 사용
+            url = 'http://localhost:3001/api/building-register';
+            console.log('   🌐 환경: 로컬 (프록시 사용)');
+        }
+        
+        console.log(`   📡 요청 URL: ${url}`);
         console.log('   ⏳ fetch() 호출 중...');
         
-        const response = await fetch('http://localhost:3001/api/building-register', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(requestData)
-        });
+        // 환경에 따른 요청 방식 선택
+        let response;
+        if (isGitHubPages()) {
+            // GitHub Pages: 직접 API 호출 (FormData 사용)
+            const formData = new FormData();
+            formData.append('address', requestData.address);
+            formData.append('b_name', requestData.b_name);
+            formData.append('dong', requestData.dong);
+            formData.append('ho', requestData.ho);
+            
+            response = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'CL_AUTH_KEY': BUILDING_REGISTER_API_CONFIG.apiKey
+                },
+                body: formData
+            });
+        } else {
+            // 로컬: 프록시 서버 사용 (JSON 전송)
+            response = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(requestData)
+            });
+        }
         
         console.log('   📥 응답 상태:', response.status, response.statusText);
         

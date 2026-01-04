@@ -1,5 +1,5 @@
 /**
- * @fileoverview 랜딩 페이지 스타일시트
+ * @fileoverview 랜딩 페이지 스타일시트 - 에어비앤비 스타일
  * @description Google JavaScript Style Guide 준수
  */
 
@@ -13,7 +13,7 @@
 }
 
 :root {
-    /* Deep Blue & White & Light Gray 컬러 팔레트 */
+    /* Deep Blue & White & Light Gray 컬러 팔레트 (유지) */
     --color-primary: #1e3a8a; /* Deep Blue */
     --color-primary-light: #3b82f6;
     --color-primary-dark: #1e40af;
@@ -23,15 +23,19 @@
     --color-gray-100: #f1f5f9;
     --color-gray-200: #e2e8f0;
     --color-gray-300: #cbd5e1;
+    --color-gray-400: #94a3b8;
     --color-gray-600: #475569;
+    --color-gray-700: #334155;
     --color-gray-800: #1e293b;
     --color-gray-900: #0f172a;
     
     /* Typography */
     --font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, 
                    'Segoe UI', 'Noto Sans KR', sans-serif;
+    --font-heading: 'Inter', 'Noto Sans KR', -apple-system, BlinkMacSystemFont, 
+                    'Segoe UI', sans-serif;
     
-    /* Spacing */
+    /* Spacing - 에어비앤비 스타일: 더 넓은 여백 */
     --spacing-xs: 0.5rem;
     --spacing-sm: 1rem;
     --spacing-md: 1.5rem;
@@ -39,18 +43,27 @@
     --spacing-xl: 3rem;
     --spacing-2xl: 4rem;
     --spacing-3xl: 6rem;
+    --spacing-4xl: 8rem;
     
-    /* Border Radius */
+    /* Border Radius - 에어비앤비 스타일: 더 둥근 모서리 */
     --radius-sm: 0.5rem;
     --radius-md: 0.75rem;
     --radius-lg: 1rem;
     --radius-xl: 1.5rem;
+    --radius-2xl: 2rem;
+    --radius-full: 9999px;
     
-    /* Shadows */
+    /* Shadows - 에어비앤비 스타일: 부드러운 그림자 */
     --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-    --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    --shadow-2xl: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    
+    /* Transitions */
+    --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-base: 200ms cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-slow: 300ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 html {
@@ -63,26 +76,29 @@ body {
     color: var(--color-gray-800);
     background-color: var(--color-white);
     overflow-x: hidden;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
 }
 
 .container {
-    max-width: 1200px;
+    max-width: 1120px;
     margin: 0 auto;
-    padding: 0 var(--spacing-md);
+    padding: 0 var(--spacing-lg);
 }
 
 /* =========================================== */
-/* 2. HEADER */
+/* 2. HEADER - 에어비앤비 스타일 */
 /* =========================================== */
 .header {
     background: var(--color-white);
-    box-shadow: var(--shadow-sm);
+    box-shadow: 0 1px 0 rgba(0, 0, 0, 0.08);
     position: fixed;
     top: 0;
     left: 0;
     right: 0;
     z-index: 1000;
-    transition: all 0.3s ease;
+    transition: all var(--transition-base);
+    border-bottom: 1px solid var(--color-gray-200);
 }
 
 .header .container {
@@ -90,20 +106,33 @@ body {
     justify-content: space-between;
     align-items: center;
     padding: var(--spacing-md) var(--spacing-lg);
+    height: 80px;
 }
 
 .logo {
     display: flex;
     align-items: center;
     gap: var(--spacing-xs);
-    font-size: 1.5rem;
-    font-weight: 700;
+    font-size: 1.25rem;
+    font-weight: 600;
     color: var(--color-primary);
     cursor: pointer;
+    transition: opacity var(--transition-fast);
+}
+
+.logo:hover {
+    opacity: 0.8;
+}
+
+.logo-image {
+    height: 50px;
+    width: auto;
+    object-fit: contain;
+    display: block;
 }
 
 .logo-icon {
-    font-size: 1.75rem;
+    font-size: 1.5rem;
 }
 
 .nav {
@@ -116,78 +145,121 @@ body {
     padding: var(--spacing-xs) var(--spacing-md);
     border: none;
     background: transparent;
-    color: var(--color-gray-600);
-    font-size: 0.95rem;
+    color: var(--color-gray-700);
+    font-size: 0.875rem;
     font-weight: 500;
     cursor: pointer;
-    transition: color 0.3s ease;
-    border-radius: var(--radius-sm);
+    transition: all var(--transition-fast);
+    border-radius: var(--radius-full);
+    font-family: var(--font-family);
 }
 
 .nav-btn:hover {
-    color: var(--color-primary);
+    background: var(--color-gray-100);
+    color: var(--color-gray-900);
 }
 
 .nav-btn.primary {
     background: var(--color-primary);
     color: var(--color-white);
-    padding: var(--spacing-xs) var(--spacing-lg);
+    padding: 0.625rem var(--spacing-lg);
+    font-weight: 600;
+    box-shadow: var(--shadow-md);
 }
 
 .nav-btn.primary:hover {
     background: var(--color-primary-dark);
+    box-shadow: var(--shadow-lg);
+    transform: translateY(-1px);
 }
 
 /* =========================================== */
-/* 3. HERO SECTION */
+/* 3. HERO SECTION - 에어비앤비 스타일 */
 /* =========================================== */
 .hero {
     min-height: 100vh;
     display: flex;
     align-items: center;
     justify-content: center;
-    background: linear-gradient(135deg, var(--color-gray-50) 0%, var(--color-white) 100%);
+    background: var(--color-white);
     padding-top: 80px;
-    padding-bottom: var(--spacing-3xl);
+    padding-bottom: var(--spacing-4xl);
+    position: relative;
+}
+
+.hero::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(180deg, var(--color-gray-50) 0%, var(--color-white) 50%);
+    opacity: 0.5;
+    z-index: -1;
 }
 
 .hero-content {
     text-align: center;
-    max-width: 900px;
+    max-width: 800px;
+    padding: var(--spacing-2xl) 0;
+}
+
+.hero-logo {
+    margin-bottom: var(--spacing-xl);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.hero-logo-image {
+    max-width: 200px;
+    width: 100%;
+    height: auto;
+    object-fit: contain;
+    border-radius: var(--radius-lg);
 }
 
 .hero-title {
-    font-size: clamp(2rem, 5vw, 3.5rem);
+    font-size: clamp(2.5rem, 6vw, 4rem);
     font-weight: 700;
-    line-height: 1.2;
+    line-height: 1.1;
     color: var(--color-gray-900);
-    margin-bottom: var(--spacing-md);
+    margin-bottom: var(--spacing-lg);
+    letter-spacing: -0.02em;
 }
 
 .hero-title .highlight {
     color: var(--color-primary);
+    display: block;
+    margin-top: 0.25em;
 }
 
 .hero-subtitle {
-    font-size: clamp(1.125rem, 2vw, 1.5rem);
+    font-size: clamp(1.125rem, 2.5vw, 1.375rem);
     color: var(--color-gray-600);
-    margin-bottom: var(--spacing-xl);
+    margin-bottom: var(--spacing-2xl);
     font-weight: 400;
+    line-height: 1.6;
 }
 
 .cta-button {
-    display: inline-block;
-    padding: var(--spacing-md) var(--spacing-xl);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem 2rem;
     background: var(--color-primary);
     color: var(--color-white);
-    font-size: 1.125rem;
+    font-size: 1rem;
     font-weight: 600;
     border: none;
-    border-radius: var(--radius-lg);
+    border-radius: var(--radius-full);
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: all var(--transition-base);
     box-shadow: var(--shadow-lg);
     text-decoration: none;
+    font-family: var(--font-family);
+    letter-spacing: -0.01em;
 }
 
 .cta-button:hover {
@@ -196,17 +268,23 @@ body {
     box-shadow: var(--shadow-xl);
 }
 
+.cta-button:active {
+    transform: translateY(0);
+}
+
 .cta-button.large {
-    padding: var(--spacing-lg) var(--spacing-2xl);
-    font-size: 1.25rem;
+    padding: 1.125rem 2.5rem;
+    font-size: 1.125rem;
 }
 
 .hero-stats {
     display: flex;
     justify-content: center;
-    gap: var(--spacing-2xl);
-    margin-top: var(--spacing-3xl);
+    gap: var(--spacing-3xl);
+    margin-top: var(--spacing-4xl);
     flex-wrap: wrap;
+    padding-top: var(--spacing-2xl);
+    border-top: 1px solid var(--color-gray-200);
 }
 
 .stat-item {
@@ -218,84 +296,114 @@ body {
     font-weight: 700;
     color: var(--color-primary);
     margin-bottom: var(--spacing-xs);
+    letter-spacing: -0.02em;
 }
 
 .stat-label {
-    font-size: 0.95rem;
+    font-size: 0.875rem;
     color: var(--color-gray-600);
+    font-weight: 500;
 }
 
 /* =========================================== */
-/* 4. PROBLEM SECTION */
+/* 4. PROBLEM SECTION - 에어비앤비 스타일 */
 /* =========================================== */
 .problem {
-    padding: var(--spacing-3xl) 0;
+    padding: var(--spacing-4xl) 0;
     background: var(--color-white);
 }
 
 .section-header {
     text-align: center;
-    margin-bottom: var(--spacing-3xl);
+    margin-bottom: var(--spacing-4xl);
+    max-width: 700px;
+    margin-left: auto;
+    margin-right: auto;
 }
 
 .section-title {
-    font-size: clamp(1.75rem, 4vw, 2.5rem);
+    font-size: clamp(2rem, 4vw, 2.75rem);
     font-weight: 700;
     color: var(--color-gray-900);
     margin-bottom: var(--spacing-md);
+    letter-spacing: -0.02em;
+    line-height: 1.2;
+    font-family: var(--font-heading);
 }
 
 .section-subtitle {
-    font-size: clamp(1rem, 2vw, 1.25rem);
+    font-size: clamp(1.125rem, 2vw, 1.25rem);
     color: var(--color-gray-600);
+    line-height: 1.6;
+    font-weight: 400;
 }
 
 .problem-list {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
     gap: var(--spacing-xl);
-    max-width: 1000px;
+    max-width: 1100px;
     margin: 0 auto;
 }
 
 .problem-item {
-    background: var(--color-gray-50);
-    padding: var(--spacing-xl);
-    border-radius: var(--radius-lg);
-    text-align: center;
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    background: var(--color-white);
+    padding: var(--spacing-2xl);
+    border-radius: var(--radius-xl);
+    text-align: left;
+    transition: all var(--transition-base);
+    border: 1px solid var(--color-gray-200);
+    box-shadow: var(--shadow-sm);
 }
 
 .problem-item:hover {
     transform: translateY(-4px);
-    box-shadow: var(--shadow-lg);
+    box-shadow: var(--shadow-xl);
+    border-color: var(--color-gray-300);
 }
 
 .problem-icon {
-    font-size: 3rem;
-    margin-bottom: var(--spacing-md);
+    font-size: 2.5rem;
+    margin-bottom: var(--spacing-lg);
+    display: block;
 }
 
 .problem-title {
     font-size: 1.25rem;
     font-weight: 600;
     color: var(--color-gray-900);
-    margin-bottom: var(--spacing-sm);
+    margin-bottom: var(--spacing-md);
+    line-height: 1.4;
+    letter-spacing: -0.01em;
+    font-family: var(--font-heading);
 }
 
 .problem-description {
-    font-size: 0.95rem;
+    font-size: 0.9375rem;
     color: var(--color-gray-600);
     line-height: 1.7;
 }
 
 /* =========================================== */
-/* 5. SOLUTION SECTION */
+/* 5. SOLUTION SECTION - 에어비앤비 스타일 */
 /* =========================================== */
 .solution {
-    padding: var(--spacing-3xl) 0;
+    padding: var(--spacing-4xl) 0;
     background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
     color: var(--color-white);
+    position: relative;
+    overflow: hidden;
+}
+
+.solution::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: radial-gradient(circle at 30% 50%, rgba(255, 255, 255, 0.1) 0%, transparent 50%);
+    pointer-events: none;
 }
 
 .solution .section-title,
@@ -303,8 +411,14 @@ body {
     color: var(--color-white);
 }
 
+.solution .section-subtitle {
+    opacity: 0.95;
+}
+
 .solution-content {
-    margin-top: var(--spacing-3xl);
+    margin-top: var(--spacing-4xl);
+    position: relative;
+    z-index: 1;
 }
 
 .solution-visual {
@@ -312,8 +426,8 @@ body {
     align-items: center;
     justify-content: center;
     gap: var(--spacing-lg);
-    flex-wrap: wrap;
-    max-width: 1000px;
+    flex-wrap: nowrap;
+    max-width: 1100px;
     margin: 0 auto;
 }
 
@@ -321,42 +435,60 @@ body {
     background: var(--color-white);
     color: var(--color-gray-900);
     padding: var(--spacing-xl);
-    border-radius: var(--radius-lg);
+    border-radius: var(--radius-xl);
     text-align: center;
-    min-width: 200px;
     flex: 1;
-    max-width: 250px;
-    box-shadow: var(--shadow-lg);
+    min-width: 0;
+    max-width: 320px;
+    box-shadow: var(--shadow-2xl);
+    transition: all var(--transition-base);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.solution-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 30px 60px -12px rgba(0, 0, 0, 0.3);
 }
 
 .card-icon {
     font-size: 3rem;
-    margin-bottom: var(--spacing-md);
+    margin-bottom: var(--spacing-lg);
+    display: block;
 }
 
 .solution-card h3 {
     font-size: 1.25rem;
     font-weight: 600;
-    margin-bottom: var(--spacing-sm);
+    margin-bottom: var(--spacing-md);
+    color: var(--color-gray-900);
+    letter-spacing: -0.01em;
+    font-family: var(--font-heading);
 }
 
 .solution-card p {
-    font-size: 0.9rem;
+    font-size: 0.9375rem;
     color: var(--color-gray-600);
     line-height: 1.6;
 }
 
 .solution-arrow {
-    font-size: 2rem;
+    font-size: 1.5rem;
     color: var(--color-white);
-    font-weight: 700;
+    font-weight: 300;
+    opacity: 0.8;
+}
+
+@media (max-width: 768px) {
+    .solution-arrow {
+        transform: rotate(90deg);
+    }
 }
 
 /* =========================================== */
-/* 6. PROCESS SECTION */
+/* 6. PROCESS SECTION - 에어비앤비 스타일 */
 /* =========================================== */
 .process {
-    padding: var(--spacing-3xl) 0;
+    padding: var(--spacing-4xl) 0;
     background: var(--color-gray-50);
 }
 
@@ -371,42 +503,49 @@ body {
 .process-step {
     display: flex;
     align-items: flex-start;
-    gap: var(--spacing-lg);
+    gap: var(--spacing-xl);
     background: var(--color-white);
-    padding: var(--spacing-xl);
-    border-radius: var(--radius-lg);
-    box-shadow: var(--shadow-md);
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    padding: var(--spacing-2xl);
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--color-gray-200);
+    transition: all var(--transition-base);
 }
 
 .process-step:hover {
     transform: translateX(8px);
     box-shadow: var(--shadow-lg);
+    border-color: var(--color-gray-300);
 }
 
 .step-number {
-    width: 60px;
-    height: 60px;
+    width: 56px;
+    height: 56px;
     background: var(--color-primary);
     color: var(--color-white);
-    border-radius: 50%;
+    border-radius: var(--radius-full);
     display: flex;
     align-items: center;
     justify-content: center;
     font-size: 1.5rem;
     font-weight: 700;
     flex-shrink: 0;
+    box-shadow: var(--shadow-md);
 }
 
 .step-content {
     flex: 1;
+    padding-top: 0.25rem;
 }
 
 .step-title {
     font-size: 1.5rem;
     font-weight: 600;
     color: var(--color-gray-900);
-    margin-bottom: var(--spacing-sm);
+    margin-bottom: var(--spacing-md);
+    letter-spacing: -0.01em;
+    line-height: 1.3;
+    font-family: var(--font-heading);
 }
 
 .step-description {
@@ -416,10 +555,10 @@ body {
 }
 
 /* =========================================== */
-/* 7. BENEFIT SECTION */
+/* 7. BENEFIT SECTION - 에어비앤비 스타일 */
 /* =========================================== */
 .benefit {
-    padding: var(--spacing-3xl) 0;
+    padding: var(--spacing-4xl) 0;
     background: var(--color-white);
 }
 
@@ -427,120 +566,207 @@ body {
     color: var(--color-primary);
     font-weight: 600;
     font-size: 1.5rem;
+    display: inline-block;
+    margin-top: var(--spacing-sm);
 }
 
 .benefit-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
     gap: var(--spacing-xl);
-    margin-top: var(--spacing-3xl);
+    margin-top: var(--spacing-4xl);
+    max-width: 1100px;
+    margin-left: auto;
+    margin-right: auto;
 }
 
 .benefit-card {
-    background: var(--color-gray-50);
-    padding: var(--spacing-xl);
-    border-radius: var(--radius-lg);
-    text-align: center;
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    background: var(--color-white);
+    padding: var(--spacing-2xl);
+    border-radius: var(--radius-xl);
+    text-align: left;
+    transition: all var(--transition-base);
+    border: 1px solid var(--color-gray-200);
+    box-shadow: var(--shadow-sm);
 }
 
 .benefit-card:hover {
     transform: translateY(-4px);
-    box-shadow: var(--shadow-lg);
+    box-shadow: var(--shadow-xl);
+    border-color: var(--color-gray-300);
 }
 
 .benefit-icon {
-    font-size: 3rem;
-    margin-bottom: var(--spacing-md);
+    font-size: 2.5rem;
+    margin-bottom: var(--spacing-lg);
+    display: block;
 }
 
 .benefit-title {
     font-size: 1.25rem;
     font-weight: 600;
     color: var(--color-gray-900);
-    margin-bottom: var(--spacing-sm);
+    margin-bottom: var(--spacing-md);
+    letter-spacing: -0.01em;
+    line-height: 1.4;
+    font-family: var(--font-heading);
 }
 
 .benefit-description {
-    font-size: 0.95rem;
+    font-size: 0.9375rem;
     color: var(--color-gray-600);
     line-height: 1.7;
 }
 
 /* =========================================== */
-/* 8. FINAL CTA SECTION */
+/* 8. FINAL CTA SECTION - 에어비앤비 스타일 */
 /* =========================================== */
 .final-cta {
-    padding: var(--spacing-3xl) 0;
+    padding: var(--spacing-4xl) 0;
     background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
     color: var(--color-white);
     text-align: center;
+    position: relative;
+    overflow: hidden;
+}
+
+.final-cta::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: radial-gradient(circle at 70% 50%, rgba(255, 255, 255, 0.1) 0%, transparent 50%);
+    pointer-events: none;
 }
 
 .cta-content {
-    max-width: 800px;
+    max-width: 700px;
     margin: 0 auto;
+    position: relative;
+    z-index: 1;
 }
 
 .cta-title {
-    font-size: clamp(1.75rem, 4vw, 2.5rem);
+    font-size: clamp(2rem, 4vw, 2.75rem);
     font-weight: 700;
-    margin-bottom: var(--spacing-md);
-    line-height: 1.3;
+    margin-bottom: var(--spacing-lg);
+    line-height: 1.2;
+    letter-spacing: -0.02em;
+    font-family: var(--font-heading);
 }
 
 .cta-subtitle {
-    font-size: clamp(1rem, 2vw, 1.25rem);
-    margin-bottom: var(--spacing-xl);
-    opacity: 0.9;
+    font-size: clamp(1.125rem, 2vw, 1.25rem);
+    margin-bottom: var(--spacing-2xl);
+    opacity: 0.95;
+    line-height: 1.6;
 }
 
 .final-cta .cta-button {
     background: var(--color-white);
     color: var(--color-primary);
+    box-shadow: var(--shadow-xl);
 }
 
 .final-cta .cta-button:hover {
-    background: var(--color-gray-100);
+    background: var(--color-gray-50);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-2xl);
 }
 
 /* =========================================== */
-/* 9. FOOTER */
+/* 9. FOOTER - 에어비앤비 스타일 */
 /* =========================================== */
 .footer {
     background: var(--color-gray-900);
     color: var(--color-white);
-    padding: var(--spacing-xl) 0;
+    padding: var(--spacing-3xl) 0 var(--spacing-2xl);
     text-align: center;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .footer-content {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: var(--spacing-sm);
+    gap: var(--spacing-lg);
+    max-width: 900px;
+    margin: 0 auto;
 }
 
-.footer-logo {
-    display: flex;
-    align-items: center;
-    gap: var(--spacing-xs);
-    font-size: 1.25rem;
+.footer-brand {
+    margin-bottom: var(--spacing-sm);
+}
+
+.footer-logo-text {
+    font-size: 1.5rem;
     font-weight: 700;
+    color: var(--color-white);
+    font-family: var(--font-heading);
+    letter-spacing: -0.02em;
 }
 
-.footer-text {
-    font-size: 0.95rem;
-    opacity: 0.8;
+.footer-info {
+    width: 100%;
+}
+
+.footer-company {
+    font-size: 0.875rem;
+    color: var(--color-gray-400);
+    line-height: 1.6;
+    margin: 0;
+}
+
+.footer-links {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+    gap: var(--spacing-sm);
+    margin: var(--spacing-md) 0;
+}
+
+.footer-link {
+    color: var(--color-gray-300);
+    font-size: 0.875rem;
+    text-decoration: none;
+    transition: color var(--transition-fast);
+    font-weight: 400;
+}
+
+.footer-link:hover {
+    color: var(--color-white);
+    text-decoration: underline;
+}
+
+.footer-separator {
+    color: var(--color-gray-600);
+    font-size: 0.875rem;
+    margin: 0 var(--spacing-xs);
+}
+
+.footer-copyright {
+    margin-top: var(--spacing-md);
+    padding-top: var(--spacing-lg);
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    width: 100%;
+}
+
+.footer-copyright p {
+    font-size: 0.8125rem;
+    color: var(--color-gray-500);
+    margin: 0;
 }
 
 /* =========================================== */
-/* 10. ANIMATIONS */
+/* 10. ANIMATIONS - 에어비앤비 스타일 */
 /* =========================================== */
-@keyframes fadeIn {
+@keyframes fadeInUp {
     from {
         opacity: 0;
-        transform: translateY(20px);
+        transform: translateY(30px);
     }
     to {
         opacity: 1;
@@ -550,11 +776,12 @@ body {
 
 .fade-in {
     opacity: 0;
-    animation: fadeIn 0.8s ease forwards;
+    animation: fadeInUp 0.8s cubic-bezier(0.4, 0, 0.2, 1) forwards;
 }
 
 .fade-in.visible {
     opacity: 1;
+    animation: none;
 }
 
 /* =========================================== */
@@ -562,7 +789,8 @@ body {
 /* =========================================== */
 @media (max-width: 768px) {
     .header .container {
-        padding: var(--spacing-sm) var(--spacing-md);
+        padding: var(--spacing-md);
+        height: 72px;
     }
     
     .nav {
@@ -570,62 +798,94 @@ body {
     }
     
     .nav-btn {
-        font-size: 0.85rem;
-        padding: var(--spacing-xs) var(--spacing-sm);
+        font-size: 0.8125rem;
+        padding: 0.5rem var(--spacing-sm);
+    }
+    
+    .nav-btn.primary {
+        padding: 0.5625rem var(--spacing-md);
     }
     
     .hero {
-        padding-top: 100px;
-        padding-bottom: var(--spacing-2xl);
+        padding-top: 72px;
+        padding-bottom: var(--spacing-3xl);
+    }
+    
+    .hero-content {
+        padding: var(--spacing-xl) 0;
     }
     
     .hero-stats {
-        gap: var(--spacing-lg);
+        gap: var(--spacing-xl);
+        margin-top: var(--spacing-3xl);
+        padding-top: var(--spacing-xl);
     }
     
     .stat-number {
         font-size: 2rem;
     }
     
+    .problem,
+    .solution,
+    .process,
+    .benefit,
+    .final-cta {
+        padding: var(--spacing-3xl) 0;
+    }
+    
+    .section-header {
+        margin-bottom: var(--spacing-3xl);
+    }
+    
     .problem-list,
     .benefit-grid {
         grid-template-columns: 1fr;
+        gap: var(--spacing-lg);
     }
     
     .solution-visual {
-        flex-direction: column;
+        flex-wrap: wrap;
+        gap: var(--spacing-md);
     }
     
-    .solution-arrow {
-        transform: rotate(90deg);
+    .solution-card {
+        flex: 1 1 calc(50% - var(--spacing-md));
+        min-width: 280px;
+        max-width: 100%;
+    }
+    
+    @media (max-width: 640px) {
+        .solution-card {
+            flex: 1 1 100%;
+        }
     }
     
     .process-step {
         flex-direction: column;
         text-align: center;
+        align-items: center;
     }
     
     .process-step:hover {
         transform: translateY(-4px);
     }
     
-    .section-title {
-        font-size: 1.75rem;
+    .step-number {
+        margin-bottom: var(--spacing-md);
     }
     
-    .cta-button.large {
-        padding: var(--spacing-md) var(--spacing-xl);
-        font-size: 1.125rem;
+    .benefit-card {
+        text-align: center;
     }
 }
 
 @media (max-width: 480px) {
     .container {
-        padding: 0 var(--spacing-sm);
+        padding: 0 var(--spacing-md);
     }
     
     .hero-title {
-        font-size: 1.75rem;
+        font-size: 2rem;
     }
     
     .hero-subtitle {
@@ -635,11 +895,19 @@ body {
     .problem-item,
     .benefit-card,
     .solution-card {
-        padding: var(--spacing-md);
+        padding: var(--spacing-xl);
     }
     
     .process-step {
-        padding: var(--spacing-md);
+        padding: var(--spacing-xl);
+    }
+    
+    .cta-button.large {
+        padding: 1rem 2rem;
+        font-size: 1rem;
+    }
+    
+    .section-title {
+        font-size: 1.75rem;
     }
 }
-
