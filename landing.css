@@ -72,7 +72,7 @@ html {
 body {
     font-family: var(--font-family);
     line-height: 1.8;
-    color: var(--color-gray-900);
+    color: #1a1a1a; /* var(--color-gray-900)에서 더 진한 색상으로 변경하여 대비 향상 */
     background-color: var(--color-white);
     overflow-x: hidden;
     -webkit-font-smoothing: antialiased;
@@ -211,10 +211,10 @@ body {
 
 .hero-subtitle {
     font-size: clamp(1.25rem, 2.5vw, 1.375rem);
-    color: var(--color-gray-700);
+    color: #404040; /* gray-700에서 더 진한 색상으로 변경 */
     margin-bottom: var(--spacing-xl);
     font-weight: 400;
-    line-height: 1.7;
+    line-height: 1.8; /* 줄 간격 증가 */
     animation: fadeInUp 0.8s ease 0.3s both;
     letter-spacing: -0.008em;
 }
@@ -302,10 +302,11 @@ body {
 
 .hero-free-notice {
     margin-top: var(--spacing-xl);
-    font-size: 0.9375rem;
-    color: var(--color-gray-600);
+    font-size: 1rem; /* 0.9375rem에서 1rem으로 증가 */
+    color: #525252; /* gray-600에서 더 진한 색상으로 변경 */
     font-weight: 400;
     letter-spacing: -0.01em;
+    line-height: 1.7; /* 줄 간격 추가 */
     animation: fadeInUp 0.8s ease 0.6s both;
 }
 
@@ -337,8 +338,8 @@ body {
 
 .section-subtitle {
     font-size: clamp(1.125rem, 2.5vw, 1.25rem);
-    color: var(--color-gray-700);
-    line-height: 1.75;
+    color: #404040; /* gray-700에서 더 진한 색상으로 변경 */
+    line-height: 1.85; /* 줄 간격 증가 */
     font-weight: 400;
     letter-spacing: -0.008em;
 }
@@ -384,8 +385,8 @@ body {
 
 .problem-description {
     font-size: 1.0625rem;
-    color: var(--color-gray-800);
-    line-height: 1.8;
+    color: #262626; /* gray-800에서 더 진한 색상으로 변경 */
+    line-height: 1.9; /* 줄 간격 증가 */
     letter-spacing: -0.01em;
     font-weight: 400;
 }
@@ -661,18 +662,11 @@ body {
 
 .cta-free-notice {
     margin-top: var(--spacing-xl);
-    font-size: 0.9375rem;
-    color: rgba(255, 255, 255, 0.9);
+    font-size: 1rem; /* 0.9375rem에서 1rem으로 증가 */
+    color: rgba(255, 255, 255, 0.95); /* 투명도 증가 */
     font-weight: 400;
     letter-spacing: -0.01em;
-}
-
-.cta-free-notice {
-    margin-top: var(--spacing-xl);
-    font-size: 0.9375rem;
-    color: rgba(255, 255, 255, 0.9);
-    font-weight: 400;
-    letter-spacing: -0.01em;
+    line-height: 1.7; /* 줄 간격 추가 */
 }
 
 /* =========================================== */
@@ -712,9 +706,9 @@ body {
 }
 
 .footer-company {
-    font-size: 0.8125rem;
-    color: var(--color-gray-400);
-    line-height: 1.6;
+    font-size: 0.875rem; /* 0.8125rem에서 0.875rem으로 증가 */
+    color: #a3a3a3; /* gray-400에서 더 진한 색상으로 변경 */
+    line-height: 1.7; /* 줄 간격 증가 */
     margin: 0;
     letter-spacing: -0.01em;
 }
@@ -729,12 +723,13 @@ body {
 }
 
 .footer-link {
-    color: var(--color-gray-400);
-    font-size: 0.8125rem;
+    color: #a3a3a3; /* gray-400에서 더 진한 색상으로 변경 */
+    font-size: 0.875rem; /* 0.8125rem에서 0.875rem으로 증가 */
     text-decoration: none;
     transition: color var(--transition-fast);
     font-weight: 400;
     letter-spacing: -0.01em;
+    line-height: 1.6; /* 줄 간격 추가 */
 }
 
 .footer-link:hover {
@@ -755,10 +750,11 @@ body {
 }
 
 .footer-copyright p {
-    font-size: 0.75rem;
-    color: var(--color-gray-500);
+    font-size: 0.8125rem; /* 0.75rem에서 0.8125rem으로 증가 */
+    color: #737373; /* gray-500에서 더 진한 색상으로 변경 */
     margin: 0;
     letter-spacing: -0.01em;
+    line-height: 1.6; /* 줄 간격 추가 */
 }
 
 /* =========================================== */
@@ -885,7 +881,7 @@ body {
     }
     
     .feature-text {
-        font-size: 0.75rem;
+        font-size: 0.875rem; /* 0.75rem에서 0.875rem으로 증가 */
     }
     
     .hero-title {

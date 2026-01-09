@@ -12,7 +12,10 @@ body {
     font-family: 'Noto Sans KR', sans-serif;
     background: linear-gradient(135deg, #87CEEB 0%, #8b5cf6 100%);
     min-height: 100vh;
-    color: #333;
+    color: #1a1a1a; /* #333에서 더 진한 색상으로 변경 */
+    line-height: 1.7; /* 줄 간격 추가 */
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
 }
 
 .container {
@@ -136,15 +139,17 @@ body {
 }
 
 .info-item .label {
-    font-size: 0.9rem;
-    color: #666;
+    font-size: 0.95rem; /* 0.9rem에서 0.95rem으로 증가 */
+    color: #525252; /* #666에서 더 진한 색상으로 변경 */
     font-weight: 500;
+    line-height: 1.6; /* 줄 간격 추가 */
 }
 
 .info-item .value {
     font-size: 1.1rem;
-    color: #333;
+    color: #1a1a1a; /* #333에서 더 진한 색상으로 변경 */
     font-weight: 600;
+    line-height: 1.7; /* 줄 간격 추가 */
 }
 
 /* 매물 폼 */
@@ -191,9 +196,10 @@ body {
 }
 
 .form-group small {
-    font-size: 0.85rem;
-    color: #666;
-    margin-top: -4px;
+    font-size: 0.9rem; /* 0.85rem에서 0.9rem으로 증가 */
+    color: #525252; /* #666에서 더 진한 색상으로 변경 */
+    margin-top: -2px; /* -4px에서 -2px로 조정 */
+    line-height: 1.6; /* 줄 간격 추가 */
 }
 
 .form-group input,

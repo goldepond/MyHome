@@ -13,9 +13,11 @@
 
 body {
     font-family: 'Noto Sans KR', sans-serif;
-    line-height: 1.6;
-    color: #333;
+    line-height: 1.7; /* 1.6에서 1.7로 증가 */
+    color: #1a1a1a; /* #333에서 더 진한 색상으로 변경 */
     background-color: #f8f9fa;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
 }
 
 .container {
@@ -281,16 +283,18 @@ body {
 
 .quick-text {
     flex: 1;
-    font-size: 0.85rem;
-    color: #333;
+    font-size: 0.9rem; /* 0.85rem에서 0.9rem으로 증가 */
+    color: #1a1a1a; /* #333에서 더 진한 색상으로 변경 */
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+    line-height: 1.6; /* 줄 간격 추가 */
 }
 
 .quick-time {
-    font-size: 0.7rem;
-    color: #999;
+    font-size: 0.8125rem; /* 0.7rem에서 0.8125rem으로 증가 */
+    color: #737373; /* #999에서 더 진한 색상으로 변경 */
+    line-height: 1.5; /* 줄 간격 추가 */
 }
 
 .favorite-item {
@@ -361,14 +365,17 @@ body {
 }
 
 .jibun-addr {
-    color: #666;
-    font-size: 0.9rem;
+    color: #525252; /* #666에서 더 진한 색상으로 변경 */
+    font-size: 0.95rem; /* 0.9rem에서 0.95rem으로 증가 */
+    line-height: 1.6; /* 줄 간격 추가 */
 }
 
 .zip-code {
     color: #8b5cf6;
-    font-size: 0.85rem;
+    font-size: 0.9rem; /* 0.85rem에서 0.9rem으로 증가 */
     margin-top: 5px;
+    line-height: 1.5; /* 줄 간격 추가 */
+    font-weight: 500; /* 가독성 향상 */
 }
 
 .error-message {
@@ -773,10 +780,11 @@ body {
 }
 
 .detail-group .detail-item {
-    margin-bottom: 8px;
-    padding: 6px 0;
+    margin-bottom: 10px; /* 8px에서 10px로 증가 */
+    padding: 8px 0; /* 6px에서 8px로 증가 */
     border-bottom: 1px solid #f0f0f0;
-    font-size: 14px;
+    font-size: 15px; /* 14px에서 15px로 증가 */
+    line-height: 1.7; /* 줄 간격 추가 */
 }
 
 .detail-group .detail-item:last-child {
@@ -1401,9 +1409,10 @@ body {
 }
 
 .summary-label {
-    font-size: 0.75rem;
-    opacity: 0.9;
+    font-size: 0.8125rem; /* 0.75rem에서 0.8125rem으로 증가 */
+    opacity: 0.95; /* 0.9에서 0.95로 증가 */
     font-weight: 600;
+    line-height: 1.5; /* 줄 간격 추가 */
 }
 
 .summary-value {
@@ -1430,24 +1439,26 @@ body {
 }
 
 .badge {
-    padding: 5px 10px;
-    background: rgba(255, 255, 255, 0.2);
+    padding: 6px 12px; /* 5px 10px에서 6px 12px로 증가 */
+    background: rgba(255, 255, 255, 0.25); /* 투명도 증가 */
     border-radius: 15px;
-    font-size: 0.75rem;
+    font-size: 0.8125rem; /* 0.75rem에서 0.8125rem으로 증가 */
     font-weight: 600;
-    border: 1px solid rgba(255, 255, 255, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.35); /* 투명도 증가 */
+    line-height: 1.4; /* 줄 간격 추가 */
 }
 
 /* 데이터 기준일 배지 */
 .data-date-badge {
     display: inline-block;
-    padding: 4px 10px;
-    background: rgba(255, 255, 255, 0.25);
+    padding: 5px 12px; /* 4px 10px에서 5px 12px로 증가 */
+    background: rgba(255, 255, 255, 0.3); /* 투명도 증가 */
     border-radius: 12px;
-    font-size: 0.7rem;
+    font-size: 0.8125rem; /* 0.7rem에서 0.8125rem으로 증가 */
     font-weight: 600;
     margin-left: 10px;
-    border: 1px solid rgba(255, 255, 255, 0.4);
+    border: 1px solid rgba(255, 255, 255, 0.45); /* 투명도 증가 */
+    line-height: 1.4; /* 줄 간격 추가 */
 }
 
 /* 중개사 컨트롤 */
@@ -1536,13 +1547,14 @@ body {
 
 /* 거리 배지 */
 .distance-badge {
-    padding: 4px 8px;
+    padding: 5px 10px; /* 4px 8px에서 5px 10px로 증가 */
     background: #10b981;
     color: white;
     border-radius: 12px;
-    font-size: 0.7rem;
+    font-size: 0.8125rem; /* 0.7rem에서 0.8125rem으로 증가 */
     font-weight: 700;
     white-space: nowrap;
+    line-height: 1.4; /* 줄 간격 추가 */
 }
 
 /* 공인중개사 상세 정보 - 컴팩트 */
@@ -1562,15 +1574,16 @@ body {
 
 .broker-item strong {
     color: #6366f1;
-    margin-bottom: 2px;
-    font-size: 0.7rem;
+    margin-bottom: 4px; /* 2px에서 4px로 증가 */
+    font-size: 0.8125rem; /* 0.7rem에서 0.8125rem으로 증가 */
     font-weight: 600;
+    line-height: 1.5; /* 줄 간격 추가 */
 }
 
 .broker-item span {
-    color: #333;
-    font-size: 0.8rem;
-    line-height: 1.3;
+    color: #1a1a1a; /* #333에서 더 진한 색상으로 변경 */
+    font-size: 0.875rem; /* 0.8rem에서 0.875rem으로 증가 */
+    line-height: 1.6; /* 1.3에서 1.6으로 증가 */
     word-break: break-all;
 }
 
@@ -1585,15 +1598,16 @@ body {
 
 .action-btn {
     flex: 1;
-    padding: 6px 8px;
+    padding: 8px 10px; /* 6px 8px에서 8px 10px로 증가 */
     background: white;
     color: #6366f1;
     border: 1px solid #6366f1;
     border-radius: 5px;
-    font-size: 0.75rem;
+    font-size: 0.8125rem; /* 0.75rem에서 0.8125rem으로 증가 */
     font-weight: 600;
     cursor: pointer;
     transition: all 0.3s ease;
+    line-height: 1.5; /* 줄 간격 추가 */
 }
 
 .action-btn:hover {

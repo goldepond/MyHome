@@ -12,7 +12,10 @@ body {
     font-family: 'Noto Sans KR', sans-serif;
     background: linear-gradient(135deg, #87CEEB 0%, #8b5cf6 100%);
     min-height: 100vh;
-    color: #333;
+    color: #1a1a1a; /* #333에서 더 진한 색상으로 변경 */
+    line-height: 1.7; /* 줄 간격 추가 */
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
 }
 
 .container {
@@ -141,8 +144,9 @@ body {
 }
 
 .stat-label {
-    font-size: 0.9rem;
-    color: #666;
+    font-size: 0.95rem; /* 0.9rem에서 0.95rem으로 증가 */
+    color: #525252; /* #666에서 더 진한 색상으로 변경 */
+    line-height: 1.6; /* 줄 간격 추가 */
 }
 
 /* 필터 섹션 */
@@ -222,15 +226,17 @@ body {
 }
 
 .broker-info .email {
-    font-size: 0.9rem;
-    color: #666;
+    font-size: 0.95rem; /* 0.9rem에서 0.95rem으로 증가 */
+    color: #525252; /* #666에서 더 진한 색상으로 변경 */
+    line-height: 1.6; /* 줄 간격 추가 */
 }
 
 .proposal-badge {
-    padding: 6px 12px;
+    padding: 7px 14px; /* 6px 12px에서 7px 14px로 증가 */
     border-radius: 20px;
-    font-size: 0.85rem;
+    font-size: 0.9rem; /* 0.85rem에서 0.9rem으로 증가 */
     font-weight: 600;
+    line-height: 1.4; /* 줄 간격 추가 */
 }
 
 .badge-submitted {
@@ -269,14 +275,16 @@ body {
 }
 
 .price-label {
-    font-size: 0.9rem;
-    color: #666;
+    font-size: 0.95rem; /* 0.9rem에서 0.95rem으로 증가 */
+    color: #525252; /* #666에서 더 진한 색상으로 변경 */
+    line-height: 1.6; /* 줄 간격 추가 */
 }
 
 .price-value {
     font-size: 1.1rem;
     font-weight: 700;
-    color: #333;
+    color: #1a1a1a; /* #333에서 더 진한 색상으로 변경 */
+    line-height: 1.6; /* 줄 간격 추가 */
 }
 
 .price-value.highlight {
@@ -298,9 +306,10 @@ body {
 .timeline-item-preview {
     display: flex;
     gap: 10px;
-    padding: 8px 0;
-    font-size: 0.9rem;
-    color: #666;
+    padding: 10px 0; /* 8px에서 10px로 증가 */
+    font-size: 0.95rem; /* 0.9rem에서 0.95rem으로 증가 */
+    color: #525252; /* #666에서 더 진한 색상으로 변경 */
+    line-height: 1.7; /* 줄 간격 추가 */
 }
 
 .timeline-day {
@@ -426,8 +435,9 @@ body {
 
 .detail-section p,
 .detail-section ul {
-    color: #333;
-    line-height: 1.8;
+    color: #1a1a1a; /* #333에서 더 진한 색상으로 변경 */
+    line-height: 1.9; /* 1.8에서 1.9로 증가 */
+    font-size: 1rem; /* 폰트 크기 명시 */
 }
 
 .timeline-full {
