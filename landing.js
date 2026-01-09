@@ -1,13 +1,13 @@
 /**
  * @fileoverview 랜딩 페이지 JavaScript
- * @description 스크롤 애니메이션 및 구글 시트 연결 기능
+ * @description 스크롤 애니메이션 및 조건 입력 폼 연결 기능
  */
 
 /**
- * 구글 폼 URL (조건 입력 폼)
+ * 조건 입력 폼 URL
  * @const {string}
  */
-const GOOGLE_SHEET_URL = 'https://forms.gle/8omqUNxSjX1MgqH16';
+const GOOGLE_SHEET_URL = 'https://form.typeform.com/to/kwFQjb2w';
 
 /**
  * 페이지 로드 완료 시 초기화
@@ -82,15 +82,15 @@ function scrollToSection(sectionId) {
 }
 
 /**
- * 구글 폼 조건 입력 폼으로 이동
+ * 조건 입력 폼으로 이동
  */
 function goToConditionForm() {
     if (GOOGLE_SHEET_URL) {
-        // 새 창에서 구글 폼 열기
+        // 새 창에서 조건 입력 폼 열기
         window.open(GOOGLE_SHEET_URL, '_blank');
     } else {
-        // 구글 폼 URL이 설정되지 않은 경우
-        Logger.warn('구글 폼 URL이 설정되지 않았습니다.');
+        // 폼 URL이 설정되지 않은 경우
+        Logger.warn('조건 입력 폼 URL이 설정되지 않았습니다.');
         alert('조건 입력 폼이 준비 중입니다. 곧 이용하실 수 있습니다.');
     }
 }
