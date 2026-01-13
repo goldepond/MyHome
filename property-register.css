@@ -381,33 +381,65 @@ body {
 @media (max-width: 768px) {
     .page-header h1 {
         font-size: 2rem;
+        line-height: 1.3; /* 가독성 향상 */
     }
 
     .selection-info-card,
     .property-form {
-        padding: 20px;
+        padding: 24px; /* 20px에서 24px로 증가 */
+        margin: 16px 10px; /* 모바일에서 여백 추가 */
     }
 
     .form-row {
         grid-template-columns: 1fr;
+        gap: 20px; /* 간격 증가 */
     }
 
     .form-actions {
         flex-direction: column;
+        gap: 12px; /* 버튼 간 간격 추가 */
     }
 
+    /* 터치 친화적 버튼 */
     .btn-primary,
     .btn-secondary,
     .btn-draft {
         width: 100%;
+        padding: 16px 24px; /* 최소 44px 높이 보장 */
+        min-height: 48px;
+        font-size: 1.0625rem; /* 가독성 향상 */
     }
 
     .checkbox-grid {
         grid-template-columns: 1fr;
+        gap: 12px; /* 간격 추가 */
     }
 
     .photo-preview {
         grid-template-columns: repeat(2, 1fr);
+        gap: 12px; /* 간격 추가 */
+    }
+    
+    /* 터치 친화적 폼 입력 */
+    .form-group input,
+    .form-group textarea,
+    .form-group select {
+        padding: 16px; /* 12px에서 16px로 증가 */
+        font-size: 16px; /* iOS 줌 방지 */
+        min-height: 48px; /* 터치 친화적 크기 */
+    }
+    
+    /* 터치 친화적 체크박스 라벨 */
+    .checkbox-label {
+        padding: 16px; /* 12px에서 16px로 증가 */
+        min-height: 48px; /* 터치 친화적 크기 */
+    }
+    
+    /* 터치 친화적 업로드 버튼 */
+    .upload-btn {
+        padding: 16px 24px; /* 최소 44px 높이 보장 */
+        min-height: 48px;
+        font-size: 1.0625rem; /* 가독성 향상 */
     }
 }
 

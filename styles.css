@@ -495,11 +495,26 @@ body {
 @media (max-width: 768px) {
     .detail-input-container {
         grid-template-columns: 1fr;
-        gap: 15px;
+        gap: 20px; /* 15px에서 20px로 증가 */
     }
     
     .detail-input-form {
-        padding: 20px;
+        padding: 24px; /* 20px에서 24px로 증가 */
+        margin: 20px 10px; /* 모바일에서 여백 추가 */
+    }
+    
+    /* 터치 친화적 입력 필드 */
+    .detail-input {
+        padding: 16px; /* 12px에서 16px로 증가 */
+        font-size: 16px; /* iOS 줌 방지 */
+        min-height: 48px; /* 터치 친화적 크기 */
+    }
+    
+    /* 터치 친화적 버튼 */
+    .confirm-btn {
+        padding: 16px 24px; /* 최소 44px 높이 보장 */
+        min-height: 48px;
+        font-size: 1.0625rem; /* 가독성 향상 */
     }
 }
 
@@ -1197,25 +1212,33 @@ body {
 @media (max-width: 768px) {
     .banner-text h1 {
         font-size: 2.5rem;
+        line-height: 1.3; /* 가독성 향상 */
     }
     
     .banner-text p {
-        font-size: 1.1rem;
+        font-size: 1.125rem; /* 1.1rem에서 1.125rem으로 증가 */
+        line-height: 1.7; /* 줄 간격 증가 */
     }
     
     .search-box {
         flex-direction: column;
+        gap: 12px; /* 버튼과 입력 필드 간 간격 추가 */
     }
     
+    /* 터치 친화적 검색 입력 */
     .search-input {
-        padding: 15px 20px;
-        font-size: 1rem;
+        padding: 16px 20px; /* 15px에서 16px로 증가 */
+        font-size: 16px; /* iOS 줌 방지 */
+        min-height: 48px; /* 터치 친화적 크기 */
     }
     
+    /* 터치 친화적 검색 버튼 */
     .search-btn {
-        padding: 15px 25px;
-        font-size: 1rem;
+        padding: 16px 32px; /* 15px에서 16px로 증가 */
+        font-size: 1.0625rem; /* 가독성 향상 */
         min-width: auto;
+        min-height: 48px; /* 터치 친화적 크기 */
+        width: 100%; /* 모바일에서 전체 너비 */
     }
     
     .quick-access {
@@ -1249,23 +1272,50 @@ body {
     
     .modal-content {
         width: 95%;
-        margin: 10% auto;
+        margin: 5% auto; /* 10%에서 5%로 조정하여 더 많은 공간 활용 */
+        max-height: 90vh; /* 모바일에서 스크롤 가능하도록 */
+        padding: 24px; /* 패딩 증가 */
+    }
+    
+    /* 모바일에서 터치 친화적 폼 입력 */
+    .form-group input {
+        padding: 16px; /* 15px에서 16px로 증가 */
+        font-size: 16px; /* iOS 줌 방지 */
+        min-height: 48px; /* 터치 친화적 크기 */
+    }
+    
+    /* 모바일에서 터치 친화적 버튼 */
+    .submit-btn {
+        padding: 16px 24px; /* 최소 44px 높이 보장 */
+        min-height: 48px;
+        font-size: 1.0625rem; /* 가독성 향상 */
+    }
+    
+    /* 모바일에서 헤더 버튼 개선 */
+    .login-btn, .signup-btn, .proposals-btn, .admin-btn {
+        padding: 10px 16px; /* 최소 44px 높이 보장 */
+        min-height: 44px;
+        font-size: 0.9375rem; /* 가독성 향상 */
     }
 }
 
 @media (max-width: 480px) {
     .banner-text h1 {
         font-size: 2rem;
+        line-height: 1.3; /* 가독성 향상 */
     }
     
+    /* 작은 모바일에서도 터치 친화적 크기 유지 */
     .search-input {
-        padding: 12px 15px;
-        font-size: 0.95rem;
+        padding: 16px 18px; /* 최소 터치 크기 유지 */
+        font-size: 16px; /* iOS 줌 방지 */
+        min-height: 48px;
     }
     
     .search-btn {
-        padding: 12px 20px;
-        font-size: 0.95rem;
+        padding: 16px 24px; /* 최소 터치 크기 유지 */
+        font-size: 1rem; /* 0.95rem에서 1rem으로 증가 */
+        min-height: 48px;
     }
     
     .info-card {
@@ -1291,7 +1341,18 @@ body {
     
     .result-content {
         max-width: 100%;
-        padding: 0 10px;
+        padding: 0 16px; /* 10px에서 16px로 증가하여 여백 개선 */
+    }
+    
+    /* 작은 모바일에서 카드 여백 개선 */
+    .info-card {
+        margin-bottom: 20px; /* 카드 간 간격 추가 */
+    }
+    
+    /* 작은 모바일에서 텍스트 가독성 개선 */
+    .detail-group .detail-item {
+        font-size: 15px; /* 최소 크기 유지 */
+        line-height: 1.7; /* 줄 간격 증가 */
     }
 }
 
@@ -1655,78 +1716,93 @@ body {
 @media (max-width: 768px) {
     #brokerListContainer {
         grid-template-columns: 1fr;
-        gap: 12px;
+        gap: 16px; /* 12px에서 16px로 증가 */
     }
     
     .broker-card {
-        padding: 12px;
+        padding: 20px; /* 12px에서 20px로 증가하여 여백 개선 */
+        margin-bottom: 16px; /* 카드 간 간격 추가 */
     }
     
     .broker-card-header h3 {
-        font-size: 0.9rem;
+        font-size: 1rem; /* 0.9rem에서 1rem으로 증가 */
+        line-height: 1.5; /* 가독성 향상 */
     }
     
     .distance-badge {
-        font-size: 0.65rem;
-        padding: 3px 6px;
+        font-size: 0.8125rem; /* 0.65rem에서 0.8125rem으로 증가 */
+        padding: 6px 10px; /* 3px 6px에서 6px 10px로 증가 */
     }
     
     .broker-item {
-        padding: 5px;
+        padding: 12px; /* 5px에서 12px로 증가 */
     }
     
     .broker-item strong {
-        font-size: 0.65rem;
+        font-size: 0.875rem; /* 0.65rem에서 0.875rem으로 증가 */
+        line-height: 1.6; /* 가독성 향상 */
     }
     
     .broker-item span {
-        font-size: 0.75rem;
+        font-size: 0.9375rem; /* 0.75rem에서 0.9375rem으로 증가 */
+        line-height: 1.7; /* 가독성 향상 */
     }
     
     .broker-actions {
-        gap: 4px;
+        gap: 8px; /* 4px에서 8px로 증가 */
+        margin-top: 16px; /* 여백 증가 */
     }
     
+    /* 터치 친화적 액션 버튼 */
     .action-btn {
-        font-size: 0.7rem;
-        padding: 5px 6px;
+        font-size: 0.9375rem; /* 0.7rem에서 0.9375rem으로 증가 */
+        padding: 12px 16px; /* 5px 6px에서 12px 16px로 증가 */
+        min-height: 44px; /* 터치 친화적 크기 */
     }
     
     .broker-controls {
-        padding: 10px;
+        padding: 16px; /* 10px에서 16px로 증가 */
     }
     
     .broker-controls h2 {
-        font-size: 1rem;
+        font-size: 1.125rem; /* 1rem에서 1.125rem으로 증가 */
+        line-height: 1.5; /* 가독성 향상 */
     }
     
+    /* 터치 친화적 필터 버튼 */
     .filter-btn {
-        padding: 6px 12px;
-        font-size: 0.8rem;
+        padding: 10px 16px; /* 6px 12px에서 10px 16px로 증가 */
+        font-size: 0.9375rem; /* 0.8rem에서 0.9375rem으로 증가 */
+        min-height: 44px; /* 터치 친화적 크기 */
     }
     
     .summary-header {
         flex-direction: column;
         align-items: flex-start;
-        gap: 10px;
+        gap: 12px; /* 10px에서 12px로 증가 */
     }
     
+    /* 터치 친화적 아이콘 버튼 */
     .icon-btn {
-        font-size: 0.75rem;
-        padding: 5px 10px;
+        font-size: 0.875rem; /* 0.75rem에서 0.875rem으로 증가 */
+        padding: 10px 14px; /* 5px 10px에서 10px 14px로 증가 */
+        min-height: 44px; /* 터치 친화적 크기 */
     }
     
     .summary-badges {
-        gap: 6px;
+        gap: 8px; /* 6px에서 8px로 증가 */
     }
     
     .badge {
-        font-size: 0.7rem;
-        padding: 4px 8px;
+        font-size: 0.875rem; /* 0.7rem에서 0.875rem으로 증가 */
+        padding: 8px 12px; /* 4px 8px에서 8px 12px로 증가 */
+        line-height: 1.5; /* 가독성 향상 */
     }
     
+    /* 터치 친화적 토글 버튼 */
     .detail-toggle-btn {
-        padding: 10px 20px;
-        font-size: 0.9rem;
+        padding: 14px 24px; /* 10px 20px에서 14px 24px로 증가 */
+        font-size: 1rem; /* 0.9rem에서 1rem으로 증가 */
+        min-height: 48px; /* 터치 친화적 크기 */
     }
 }
