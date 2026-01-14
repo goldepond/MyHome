@@ -80,6 +80,9 @@ body {
     font-size: 17px;
     letter-spacing: -0.01em;
     font-weight: 400;
+    /* 초기 렌더링 최적화 - 폰트 로딩 대기 없이 즉시 표시 */
+    visibility: visible;
+    opacity: 1;
 }
 
 .container {
@@ -132,12 +135,50 @@ body {
     width: auto;
     object-fit: contain;
     display: block;
+    /* 이미지 로딩 최적화 */
+    loading: eager;
+    decoding: async;
 }
 
 .nav {
     display: flex;
     align-items: center;
     gap: var(--spacing-md);
+}
+
+/* 모바일 메뉴 토글 버튼 */
+.mobile-menu-toggle {
+    display: none;
+    flex-direction: column;
+    justify-content: space-around;
+    width: 32px;
+    height: 32px;
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    z-index: 1001;
+}
+
+.mobile-menu-toggle span {
+    width: 100%;
+    height: 3px;
+    background: var(--color-gray-700);
+    border-radius: 3px;
+    transition: all 0.3s ease;
+    transform-origin: center;
+}
+
+.mobile-menu-toggle.active span:nth-child(1) {
+    transform: rotate(45deg) translate(8px, 8px);
+}
+
+.mobile-menu-toggle.active span:nth-child(2) {
+    opacity: 0;
+}
+
+.mobile-menu-toggle.active span:nth-child(3) {
+    transform: rotate(-45deg) translate(8px, -8px);
 }
 
 .nav-btn {
@@ -199,7 +240,14 @@ body {
     margin-bottom: var(--spacing-lg);
     letter-spacing: -0.02em;
     font-family: var(--font-heading);
-    animation: fadeInUp 0.8s ease 0.2s both;
+    /* 모바일에서 즉시 표시 */
+    animation: none;
+}
+
+@media (min-width: 769px) {
+    .hero-title {
+        animation: fadeInUp 0.8s ease 0.2s both;
+    }
 }
 
 .hero-title .highlight {
@@ -215,8 +263,15 @@ body {
     margin-bottom: var(--spacing-xl);
     font-weight: 400;
     line-height: 1.8; /* 줄 간격 증가 */
-    animation: fadeInUp 0.8s ease 0.3s both;
+    /* 모바일에서 즉시 표시 */
+    animation: none;
     letter-spacing: -0.008em;
+}
+
+@media (min-width: 769px) {
+    .hero-subtitle {
+        animation: fadeInUp 0.8s ease 0.3s both;
+    }
 }
 
 .hero-features {
@@ -227,7 +282,14 @@ body {
     max-width: 560px;
     margin-left: auto;
     margin-right: auto;
-    animation: fadeInUp 0.8s ease 0.4s both;
+    /* 모바일에서 즉시 표시 */
+    animation: none;
+}
+
+@media (min-width: 769px) {
+    .hero-features {
+        animation: fadeInUp 0.8s ease 0.4s both;
+    }
 }
 
 .hero-feature-item {
@@ -279,7 +341,14 @@ body {
     font-family: var(--font-family);
     letter-spacing: -0.01em;
     position: relative;
-    animation: fadeInUp 0.8s ease 0.5s both;
+    /* 모바일에서 즉시 표시 */
+    animation: none;
+}
+
+@media (min-width: 769px) {
+    .cta-button {
+        animation: fadeInUp 0.8s ease 0.5s both;
+    }
 }
 
 .cta-button:hover {
@@ -308,7 +377,14 @@ body {
     font-weight: 400;
     letter-spacing: -0.01em;
     line-height: 1.7; /* 줄 간격 추가 */
-    animation: fadeInUp 0.8s ease 0.6s both;
+    /* 모바일에서 즉시 표시 */
+    animation: none;
+}
+
+@media (min-width: 769px) {
+    .hero-free-notice {
+        animation: fadeInUp 0.8s ease 0.6s both;
+    }
 }
 
 /* =========================================== */
@@ -765,6 +841,86 @@ body {
 }
 
 /* =========================================== */
+/* 12. ACCESSIBILITY & UX IMPROVEMENTS */
+/* =========================================== */
+
+/* 포커스 표시 개선 */
+*:focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+    border-radius: var(--radius-sm);
+}
+
+/* 스킵 링크 (접근성) */
+.skip-link {
+    position: absolute;
+    top: -40px;
+    left: 0;
+    background: var(--color-primary);
+    color: var(--color-white);
+    padding: 8px 16px;
+    text-decoration: none;
+    z-index: 10000;
+    border-radius: 0 0 4px 0;
+}
+
+.skip-link:focus {
+    top: 0;
+}
+
+/* 로딩 스피너 */
+.spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid var(--color-gray-200);
+    border-top-color: var(--color-primary);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* 스크린 리더 전용 텍스트 */
+.sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border-width: 0;
+}
+
+/* 터치 디바이스 최적화 */
+@media (hover: none) and (pointer: coarse) {
+    .nav-btn,
+    .cta-button {
+        -webkit-tap-highlight-color: rgba(0, 0, 0, 0.1);
+    }
+}
+
+/* 인쇄 스타일 */
+@media print {
+    .header,
+    .footer,
+    .mobile-menu-toggle,
+    .cta-button {
+        display: none;
+    }
+    
+    body {
+        font-size: 12pt;
+        line-height: 1.5;
+    }
+}
+
+/* =========================================== */
 /* 10. ANIMATIONS */
 /* =========================================== */
 @keyframes fadeInUp {
@@ -779,13 +935,22 @@ body {
 }
 
 .fade-in {
-    opacity: 0;
-    animation: fadeInUp 0.6s ease forwards;
-}
-
-.fade-in.visible {
+    /* 모바일에서 즉시 표시 (이탈률 개선) */
     opacity: 1;
     animation: none;
+}
+
+/* 데스크톱에서만 애니메이션 적용 */
+@media (min-width: 769px) {
+    .fade-in {
+        opacity: 0;
+        animation: fadeInUp 0.6s ease forwards;
+    }
+    
+    .fade-in.visible {
+        opacity: 1;
+        animation: none;
+    }
 }
 
 /* =========================================== */
@@ -799,17 +964,46 @@ body {
     
     .nav {
         gap: var(--spacing-sm);
+        position: relative;
+    }
+    
+    /* 모바일 메뉴 토글 표시 */
+    .mobile-menu-toggle {
+        display: flex;
+    }
+    
+    /* 모바일에서 네비게이션 버튼 숨김 (햄버거 메뉴로 대체) */
+    .nav-btn {
+        display: none;
+    }
+    
+    /* 모바일 메뉴 열림 상태 */
+    .nav.mobile-open .nav-btn {
+        display: flex;
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        flex-direction: column;
+        background: var(--color-white);
+        border-top: 1px solid var(--color-gray-200);
+        padding: var(--spacing-md);
+        gap: var(--spacing-sm);
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        z-index: 1000;
     }
     
     /* 터치 친화적 버튼 크기 (최소 44x44px) */
-    .nav-btn {
+    .nav.mobile-open .nav-btn {
         font-size: 0.875rem;
         padding: 0.75rem 1rem; /* 최소 44px 높이 보장 */
         min-height: 44px;
-        min-width: 44px;
+        width: 100%;
+        text-align: left;
+        justify-content: flex-start;
     }
     
-    .nav-btn.primary {
+    .nav.mobile-open .nav-btn.primary {
         padding: 0.75rem 1.5rem; /* 최소 44px 높이 보장 */
         min-height: 44px;
     }
