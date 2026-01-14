@@ -91,6 +91,13 @@ body {
     padding: 0 var(--spacing-lg);
 }
 
+/* 모바일에서 컨테이너 패딩 최적화 */
+@media (max-width: 768px) {
+    .container {
+        padding: 0 var(--spacing-md); /* lg에서 md로 감소 */
+    }
+}
+
 /* =========================================== */
 /* 2. HEADER - 미니멀 스타일 */
 /* =========================================== */
@@ -229,8 +236,8 @@ body {
 @media (max-width: 768px) {
     .hero {
         min-height: auto; /* 100vh 제거하여 첫 화면에 CTA가 보이도록 */
-        padding-top: 80px;
-        padding-bottom: var(--spacing-xl); /* 5xl에서 xl로 감소 */
+        padding-top: 72px; /* 80px에서 72px로 감소 */
+        padding-bottom: var(--spacing-lg); /* xl에서 lg로 감소 */
     }
 }
 
@@ -244,7 +251,7 @@ body {
 /* 모바일에서 Hero 콘텐츠 패딩 감소 */
 @media (max-width: 768px) {
     .hero-content {
-        padding: var(--spacing-lg) 0; /* 3xl에서 lg로 감소 */
+        padding: var(--spacing-md) 0; /* lg에서 md로 감소 */
     }
 }
 
@@ -326,11 +333,11 @@ body {
 /* 모바일에서 Feature 최적화 - CTA 아래로 이동 */
 @media (max-width: 768px) {
     .hero-features {
-        gap: var(--spacing-xs); /* 간격 감소 */
+        gap: var(--spacing-sm); /* xs에서 sm으로 증가하여 카드가 더 보이도록 */
         margin-bottom: var(--spacing-md); /* 3xl에서 md로 감소 */
         margin-top: var(--spacing-md); /* CTA와의 간격 */
         max-width: 100%;
-        padding: 0 var(--spacing-sm);
+        padding: 0 var(--spacing-xs); /* sm에서 xs로 감소하여 더 넓게 */
     }
 }
 
@@ -356,11 +363,11 @@ body {
 /* 모바일에서 Feature 아이템 최적화 - 카드가 보이도록 */
 @media (max-width: 768px) {
     .hero-feature-item {
-        padding: var(--spacing-sm) var(--spacing-xs); /* 더 작은 패딩 */
-        border: 1px solid rgba(30, 58, 138, 0.12); /* Primary 색상 테두리 */
-        box-shadow: 0 2px 6px rgba(30, 58, 138, 0.1); /* Primary 색상 그림자 */
+        padding: var(--spacing-md) var(--spacing-sm); /* sm-xs에서 md-sm으로 증가하여 더 보이도록 */
+        border: 1px solid rgba(30, 58, 138, 0.15); /* 테두리 더 진하게 */
+        box-shadow: 0 2px 8px rgba(30, 58, 138, 0.12), 0 1px 3px rgba(30, 58, 138, 0.08); /* 그림자 더 강하게 */
         background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%); /* 그라데이션 배경 유지 */
-        border-radius: var(--radius-md); /* 둥근 모서리 */
+        border-radius: var(--radius-lg); /* md에서 lg로 증가 */
     }
 }
 
@@ -378,14 +385,14 @@ body {
 /* 모바일에서 Feature 아이콘과 텍스트 최적화 */
 @media (max-width: 768px) {
     .feature-icon {
-        font-size: 1.25rem; /* 1.75rem에서 감소 */
-        margin-bottom: 4px; /* 간격 감소 */
+        font-size: 1.5rem; /* 1.25rem에서 1.5rem으로 증가하여 더 눈에 띄게 */
+        margin-bottom: var(--spacing-xs); /* 4px에서 xs로 증가 */
     }
     
     .feature-text {
-        font-size: 0.75rem; /* 1rem에서 감소 */
-        color: var(--color-gray-600); /* 더 연한 색상 */
-        font-weight: 400; /* 500에서 400으로 */
+        font-size: 0.875rem; /* 0.75rem에서 0.875rem으로 증가 */
+        color: var(--color-gray-700); /* 600에서 700으로 더 진하게 */
+        font-weight: 500; /* 400에서 500으로 증가 */
     }
 }
 
@@ -449,12 +456,12 @@ body {
     .cta-button.large {
         width: 100%;
         max-width: 100%;
-        padding: 1.25rem 1.5rem; /* 더 크게 */
-        min-height: 56px; /* 48px에서 증가 */
-        font-size: 1.125rem; /* 더 크게 */
+        padding: 1.125rem 1.5rem; /* 1.25rem에서 1.125rem으로 조정 */
+        min-height: 52px; /* 56px에서 52px로 조정 */
+        font-size: 1.0625rem; /* 1.125rem에서 1.0625rem으로 조정 */
         font-weight: 600; /* 더 굵게 */
-        margin-top: var(--spacing-lg); /* 위쪽 여백 추가 */
-        margin-bottom: var(--spacing-md); /* 아래쪽 여백 추가 */
+        margin-top: var(--spacing-md); /* lg에서 md로 감소 */
+        margin-bottom: var(--spacing-sm); /* md에서 sm으로 감소 */
         box-shadow: 0 4px 12px rgba(30, 58, 138, 0.3), 0 2px 4px rgba(30, 58, 138, 0.2); /* 더 강한 그림자 */
     }
     
@@ -496,6 +503,13 @@ body {
 .problem {
     padding: var(--spacing-5xl) 0;
     background: var(--color-gray-50);
+}
+
+/* 모바일에서 Problem 섹션 패딩 최적화 */
+@media (max-width: 768px) {
+    .problem {
+        padding: var(--spacing-2xl) 0; /* 5xl에서 2xl로 감소 */
+    }
 }
 
 .section-header {
@@ -610,6 +624,13 @@ body {
     background: var(--color-primary);
     color: var(--color-white);
     position: relative;
+}
+
+/* 모바일에서 Solution 섹션 패딩 최적화 */
+@media (max-width: 768px) {
+    .solution {
+        padding: var(--spacing-2xl) 0; /* 5xl에서 2xl로 감소 */
+    }
 }
 
 .solution .section-title,
@@ -741,6 +762,13 @@ body {
     background: var(--color-white);
 }
 
+/* 모바일에서 Process 섹션 패딩 최적화 */
+@media (max-width: 768px) {
+    .process {
+        padding: var(--spacing-2xl) 0; /* 5xl에서 2xl로 감소 */
+    }
+}
+
 .process-steps {
     display: flex;
     flex-direction: column;
@@ -821,6 +849,13 @@ body {
     background: var(--color-gray-50);
 }
 
+/* 모바일에서 Benefit 섹션 패딩 최적화 */
+@media (max-width: 768px) {
+    .benefit {
+        padding: var(--spacing-2xl) 0; /* 5xl에서 2xl로 감소 */
+    }
+}
+
 .highlight-text {
     color: var(--color-primary);
     font-weight: 500;
@@ -896,6 +931,13 @@ body {
     color: var(--color-white);
     text-align: center;
     position: relative;
+}
+
+/* 모바일에서 Final CTA 섹션 패딩 최적화 */
+@media (max-width: 768px) {
+    .final-cta {
+        padding: var(--spacing-2xl) 0; /* 5xl에서 2xl로 감소 */
+    }
 }
 
 .cta-content {
@@ -1217,17 +1259,17 @@ body {
     .process,
     .benefit,
     .final-cta {
-        padding: var(--spacing-3xl) 0; /* 5xl에서 3xl로 감소 */
+        padding: var(--spacing-2xl) 0; /* 3xl에서 2xl로 감소하여 더 컴팩트하게 */
     }
     
     .section-header {
-        margin-bottom: var(--spacing-3xl);
+        margin-bottom: var(--spacing-2xl); /* 3xl에서 2xl로 감소 */
     }
     
     .problem-list,
     .benefit-grid {
         grid-template-columns: 1fr;
-        gap: var(--spacing-lg);
+        gap: var(--spacing-md); /* lg에서 md로 감소하여 더 컴팩트하게 */
     }
     
     /* Solution visual은 위에서 이미 최적화됨 */
@@ -1252,15 +1294,15 @@ body {
     
     /* Hero features는 위에서 이미 최적화됨 */
     
-    /* 에어비엔비 스타일: 모바일에서 더 넓은 여백 */
+    /* 모바일에서 카드 간격과 패딩 최적화 */
     .problem-list,
     .benefit-grid {
-        gap: var(--spacing-xl); /* lg에서 xl로 증가 */
+        gap: var(--spacing-lg); /* xl에서 lg로 조정 */
     }
     
     .problem-item,
     .benefit-card {
-        padding: var(--spacing-xl); /* 2xl에서 xl로 감소 */
+        padding: var(--spacing-lg); /* xl에서 lg로 감소하여 더 컴팩트하게 */
     }
     
     .hero-title {
@@ -1275,35 +1317,35 @@ body {
 @media (max-width: 640px) {
     .hero {
         min-height: auto;
-        padding-top: 80px;
-        padding-bottom: var(--spacing-2xl);
+        padding-top: 72px; /* 80px에서 72px로 감소 */
+        padding-bottom: var(--spacing-lg); /* 2xl에서 lg로 감소 */
     }
     
     .hero-title {
         font-size: clamp(1.75rem, 8vw, 2.5rem);
-        margin-bottom: var(--spacing-md);
+        margin-bottom: var(--spacing-sm); /* md에서 sm으로 감소 */
     }
     
     .hero-subtitle {
         font-size: clamp(1rem, 4vw, 1.125rem);
-        margin-bottom: var(--spacing-lg);
+        margin-bottom: var(--spacing-md); /* lg에서 md로 감소 */
     }
     
     .hero-features {
         grid-template-columns: 1fr;
-        gap: var(--spacing-md);
-        max-width: calc(100% - 48px);
-        padding: 0 24px;
+        gap: var(--spacing-sm); /* md에서 sm으로 감소 */
+        max-width: calc(100% - 32px); /* 48px에서 32px로 감소하여 더 넓게 */
+        padding: 0 16px; /* 24px에서 16px로 감소 */
         margin-left: auto;
         margin-right: auto;
     }
     
     .hero-feature-item {
-        padding: var(--spacing-md);
+        padding: var(--spacing-md) var(--spacing-sm); /* md에서 md-sm으로 조정 */
     }
     
     .hero-content {
-        padding: var(--spacing-lg) 0;
+        padding: var(--spacing-md) 0; /* lg에서 md로 감소 */
     }
     
     /* 터치 친화적 CTA 버튼 */
@@ -1316,17 +1358,18 @@ body {
     }
     
     .container {
-        padding: 0 var(--spacing-md);
+        padding: 0 var(--spacing-sm); /* md에서 sm으로 감소하여 더 넓게 */
     }
     
-    /* 에어비엔비 스타일: 더 넓은 여백과 부드러운 카드 */
+    /* 모바일에서 카드 패딩 최적화 */
     .problem-item,
-    .benefit-card,
-    /* Solution card는 위에서 이미 최적화됨 */
+    .benefit-card {
+        padding: var(--spacing-lg); /* xl에서 lg로 감소 */
+    }
     
     .process-step {
-        padding: var(--spacing-xl); /* 2xl에서 xl로 감소 */
-        margin-bottom: var(--spacing-lg); /* 카드 간 간격 추가 */
+        padding: var(--spacing-lg); /* xl에서 lg로 감소 */
+        margin-bottom: var(--spacing-md); /* lg에서 md로 감소 */
     }
     
     .section-title {
