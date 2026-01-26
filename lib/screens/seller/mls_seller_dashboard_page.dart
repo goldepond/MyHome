@@ -1,0 +1,974 @@
+import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import '../../models/mls_property.dart';
+import '../../api_request/mls_property_service.dart';
+import '../../constants/apple_design_system.dart';
+import '../../utils/logger.dart';
+import '../../utils/commission_calculator.dart';
+import '../../widgets/visit_request_quick_sheet.dart';
+import 'mls_property_detail_page.dart';
+
+/// 매도인 MLS 대시보드 - 방문 요청 관리 중심
+///
+/// 핵심 컨셉: 중개사가 매수 희망자를 데리고 방문 요청
+/// - 방문 요청 현황 (대기/승인/완료)
+/// - 승인 시 연락처 상호 교환 → 앱 역할 종료
+/// - 연락처는 승인 전까지 비공개
+class MLSSellerDashboardPage extends StatefulWidget {
+  const MLSSellerDashboardPage({Key? key}) : super(key: key);
+
+  @override
+  State<MLSSellerDashboardPage> createState() => _MLSSellerDashboardPageState();
+}
+
+class _MLSSellerDashboardPageState extends State<MLSSellerDashboardPage> {
+  final _mlsService = MLSPropertyService();
+
+  List<MLSProperty> _properties = [];
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadProperties();
+  }
+
+  void _loadProperties() {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+
+    setState(() => _isLoading = true);
+    _mlsService.getPropertiesByUser(user.uid).listen(
+      (properties) {
+        if (mounted) {
+          setState(() {
+            _properties = properties;
+            _isLoading = false;
+          });
+        }
+      },
+      onError: (error) {
+        Logger.error('Failed to load properties', error: error);
+        if (mounted) setState(() => _isLoading = false);
+      },
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isMobile = AppleResponsive.isMobile(context);
+
+    return Scaffold(
+      backgroundColor: AppleColors.systemGroupedBackground,
+      body: SafeArea(
+        child: _isLoading
+            ? Center(
+                child: CircularProgressIndicator(
+                  valueColor: AlwaysStoppedAnimation<Color>(AppleColors.systemBlue),
+                ),
+              )
+            : _properties.isEmpty
+                ? _buildEmptyState()
+                : _buildPropertyList(isMobile),
+      ),
+    );
+  }
+
+  Widget _buildEmptyState() {
+    return Center(
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.all(AppleSpacing.xxl),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              width: 140,
+              height: 140,
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [
+                    AppleColors.systemBlue.withOpacity(0.15),
+                    AppleColors.systemBlue.withOpacity(0.05),
+                  ],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                borderRadius: BorderRadius.circular(70),
+              ),
+              child: Icon(
+                Icons.rocket_launch_rounded,
+                size: 72,
+                color: AppleColors.systemBlue,
+              ),
+            ),
+            const SizedBox(height: AppleSpacing.xxl),
+            Text(
+              '첫 매물을 등록해보세요!',
+              style: AppleTypography.largeTitle.copyWith(
+                fontWeight: FontWeight.w700,
+                color: AppleColors.label,
+                fontSize: 28,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: AppleSpacing.md),
+            Text(
+              '등록하면 주변 중개사에게 자동 배포되고\n방문 요청을 한눈에 관리하세요',
+              style: AppleTypography.body.copyWith(
+                color: AppleColors.secondaryLabel,
+                height: 1.5,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: AppleSpacing.xxl),
+            _buildBenefitsList(),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBenefitsList() {
+    final benefits = [
+      {'icon': Icons.groups_rounded, 'text': '지역 중개사에게 자동 배포'},
+      {'icon': Icons.schedule_rounded, 'text': '방문 요청을 한눈에 관리'},
+      {'icon': Icons.security_rounded, 'text': '승인 전까지 연락처 비공개'},
+    ];
+
+    return Column(
+      children: benefits.map((benefit) {
+        return Padding(
+          padding: const EdgeInsets.symmetric(vertical: AppleSpacing.xs),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                benefit['icon'] as IconData,
+                size: 20,
+                color: AppleColors.systemBlue,
+              ),
+              const SizedBox(width: AppleSpacing.xs),
+              Text(
+                benefit['text'] as String,
+                style: AppleTypography.subheadline.copyWith(
+                  color: AppleColors.secondaryLabel,
+                ),
+              ),
+            ],
+          ),
+        );
+      }).toList(),
+    );
+  }
+
+  Widget _buildPropertyList(bool isMobile) {
+    // 전체 통계 계산
+    final stats = _calculateOverallStats();
+
+    return ListView.builder(
+      padding: EdgeInsets.all(isMobile ? AppleSpacing.md : AppleSpacing.lg),
+      itemCount: _properties.length + 1, // +1 for stats header
+      itemBuilder: (context, index) {
+        if (index == 0) {
+          return Padding(
+            padding: const EdgeInsets.only(bottom: AppleSpacing.lg),
+            child: _buildStatsDashboard(stats, isMobile),
+          );
+        }
+        final property = _properties[index - 1];
+        return Padding(
+          padding: const EdgeInsets.only(bottom: AppleSpacing.md),
+          child: _buildPropertyCard(property),
+        );
+      },
+    );
+  }
+
+  /// 전체 통계 계산 - 방문 요청 중심
+  _OverallStats _calculateOverallStats() {
+    int pendingRequests = 0; // 대기 중인 방문 요청
+    int approvedRequests = 0; // 승인된 방문 요청
+    int completedRequests = 0; // 완료된 방문 (연락처 교환 완료)
+    double? highestOffer;
+    int activeProperties = 0;
+    int completedProperties = 0;
+
+    for (final property in _properties) {
+      // 방문 요청별 집계
+      for (final request in property.visitRequests) {
+        switch (request.status) {
+          case VisitRequestStatus.pending:
+            pendingRequests++;
+            if (highestOffer == null || request.proposedPrice > highestOffer) {
+              highestOffer = request.proposedPrice;
+            }
+            break;
+          case VisitRequestStatus.approved:
+            approvedRequests++;
+            break;
+          case VisitRequestStatus.reschedule:
+            pendingRequests++; // 다른 시간 제안도 대기 중으로 취급
+            break;
+          default:
+            break;
+        }
+      }
+
+      // 매물 상태별 집계
+      switch (property.status) {
+        case PropertyStatus.active:
+        case PropertyStatus.inquiry:
+        case PropertyStatus.underOffer:
+          activeProperties++;
+          break;
+        case PropertyStatus.depositTaken:
+        case PropertyStatus.sold:
+          completedProperties++;
+          break;
+        default:
+          break;
+      }
+    }
+
+    return _OverallStats(
+      totalProperties: _properties.length,
+      activeProperties: activeProperties,
+      completedProperties: completedProperties,
+      pendingRequests: pendingRequests,
+      approvedRequests: approvedRequests,
+      completedRequests: completedRequests,
+      highestOffer: highestOffer,
+    );
+  }
+
+  /// 통계 대시보드
+  Widget _buildStatsDashboard(_OverallStats stats, bool isMobile) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // 헤더
+        Padding(
+          padding: const EdgeInsets.only(bottom: AppleSpacing.sm),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                '내 매물 현황',
+                style: AppleTypography.title2.copyWith(
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: AppleColors.systemBlue.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  '총 ${stats.totalProperties}건',
+                  style: AppleTypography.subheadline.copyWith(
+                    color: AppleColors.systemBlue,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+
+        // 메인 통계 카드 - 방문 요청 중심
+        Container(
+          padding: const EdgeInsets.all(AppleSpacing.md),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [
+                AppleColors.systemBlue,
+                AppleColors.systemIndigo,
+              ],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            borderRadius: BorderRadius.circular(AppleRadius.lg),
+          ),
+          child: Column(
+            children: [
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildMainStatItem(
+                      icon: Icons.schedule_rounded,
+                      value: '${stats.pendingRequests}건',
+                      label: '응답 대기',
+                    ),
+                  ),
+                  Container(
+                    width: 1,
+                    height: 50,
+                    color: Colors.white24,
+                  ),
+                  Expanded(
+                    child: _buildMainStatItem(
+                      icon: Icons.check_circle_rounded,
+                      value: '${stats.approvedRequests}건',
+                      label: '승인 완료',
+                    ),
+                  ),
+                  Container(
+                    width: 1,
+                    height: 50,
+                    color: Colors.white24,
+                  ),
+                  Expanded(
+                    child: _buildMainStatItem(
+                      icon: Icons.swap_horiz_rounded,
+                      value: '${stats.approvedRequests}건',
+                      label: '연락처 교환',
+                    ),
+                  ),
+                ],
+              ),
+              if (stats.highestOffer != null) ...[
+                const SizedBox(height: AppleSpacing.md),
+                Container(
+                  padding: const EdgeInsets.all(AppleSpacing.sm),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.15),
+                    borderRadius: BorderRadius.circular(AppleRadius.sm),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(Icons.trending_up, color: Colors.amber, size: 16),
+                      const SizedBox(width: 6),
+                      Text(
+                        '최고 희망가 ${_formatPrice(stats.highestOffer!)}',
+                        style: AppleTypography.caption1.copyWith(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ),
+
+        const SizedBox(height: AppleSpacing.md),
+
+        // 상태별 통계
+        Row(
+          children: [
+            Expanded(
+              child: _buildStatusStatCard(
+                label: '진행중',
+                value: stats.activeProperties,
+                color: AppleColors.systemGreen,
+                icon: Icons.play_circle_outline,
+              ),
+            ),
+            const SizedBox(width: AppleSpacing.sm),
+            Expanded(
+              child: _buildStatusStatCard(
+                label: '거래완료',
+                value: stats.completedProperties,
+                color: AppleColors.systemPurple,
+                icon: Icons.check_circle_outline,
+              ),
+            ),
+          ],
+        ),
+
+        const SizedBox(height: AppleSpacing.lg),
+        const Divider(),
+        const SizedBox(height: AppleSpacing.sm),
+
+        // 매물 목록 헤더
+        Text(
+          '등록 매물',
+          style: AppleTypography.headline.copyWith(
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildMainStatItem({
+    required IconData icon,
+    required String value,
+    required String label,
+  }) {
+    return Column(
+      children: [
+        Icon(icon, color: Colors.white, size: 28),
+        const SizedBox(height: AppleSpacing.xs),
+        Text(
+          value,
+          style: AppleTypography.title2.copyWith(
+            color: Colors.white,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+        Text(
+          label,
+          style: AppleTypography.caption1.copyWith(
+            color: Colors.white70,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildStatusStatCard({
+    required String label,
+    required int value,
+    required Color color,
+    required IconData icon,
+  }) {
+    return Container(
+      padding: const EdgeInsets.all(AppleSpacing.sm),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(AppleRadius.md),
+        border: Border.all(color: color.withOpacity(0.2)),
+      ),
+      child: Column(
+        children: [
+          Icon(icon, color: color, size: 24),
+          const SizedBox(height: AppleSpacing.xxs),
+          Text(
+            '$value건',
+            style: AppleTypography.headline.copyWith(
+              color: color,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          Text(
+            label,
+            style: AppleTypography.caption2.copyWith(
+              color: color,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPropertyCard(MLSProperty property) {
+    // 방문 요청 현황 계산
+    final summary = _calculateVisitRequestSummary(property);
+
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => MLSPropertyDetailPage(property: property),
+          ),
+        ).then((_) {
+          // 상세 페이지에서 돌아오면 목록 새로고침
+          _loadProperties();
+        });
+      },
+      child: AppleCard(
+        padding: EdgeInsets.zero,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // 매물 이미지 + 상태 뱃지
+            Stack(
+              children: [
+                if (property.thumbnailUrl != null || property.imageUrls.isNotEmpty)
+                  ClipRRect(
+                    borderRadius: const BorderRadius.vertical(
+                      top: Radius.circular(AppleRadius.lg),
+                    ),
+                    child: Image.network(
+                      property.thumbnailUrl ?? property.imageUrls.first,
+                      height: 180,
+                      width: double.infinity,
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, __, ___) => Container(
+                        height: 180,
+                        color: AppleColors.tertiarySystemFill,
+                        child: Icon(Icons.image_not_supported,
+                          color: AppleColors.tertiaryLabel, size: 48),
+                      ),
+                    ),
+                  )
+                else
+                  Container(
+                    height: 180,
+                    decoration: BoxDecoration(
+                      color: AppleColors.tertiarySystemFill,
+                      borderRadius: const BorderRadius.vertical(
+                        top: Radius.circular(AppleRadius.lg),
+                      ),
+                    ),
+                    child: Center(
+                      child: Icon(Icons.home_outlined,
+                        color: AppleColors.tertiaryLabel, size: 64),
+                    ),
+                  ),
+                // 이미지 개수 표시 (2장 이상일 때)
+                if (property.imageUrls.length > 1)
+                  Positioned(
+                    bottom: AppleSpacing.sm,
+                    right: AppleSpacing.sm,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: AppleSpacing.sm,
+                        vertical: AppleSpacing.xxs,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.black.withOpacity(0.6),
+                        borderRadius: BorderRadius.circular(AppleRadius.sm),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(Icons.photo_library, color: Colors.white, size: 14),
+                          const SizedBox(width: 4),
+                          Text(
+                            '${property.imageUrls.length}장',
+                            style: AppleTypography.caption1.copyWith(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                // 상태 뱃지
+                Positioned(
+                  top: AppleSpacing.sm,
+                  left: AppleSpacing.sm,
+                  child: _buildStatusBadge(property.status),
+                ),
+                // 대기 중인 방문 요청이 있으면 하이라이트
+                if (summary.pendingRequests > 0)
+                  Positioned(
+                    top: AppleSpacing.sm,
+                    right: AppleSpacing.sm,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: AppleSpacing.sm,
+                        vertical: AppleSpacing.xxs,
+                      ),
+                      decoration: BoxDecoration(
+                        color: AppleColors.systemOrange,
+                        borderRadius: BorderRadius.circular(AppleRadius.sm),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(Icons.notifications_active,
+                            color: Colors.white, size: 14),
+                          const SizedBox(width: 4),
+                          Text(
+                            '방문 요청 ${summary.pendingRequests}건',
+                            style: AppleTypography.caption1.copyWith(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+
+            // 매물 정보
+            Padding(
+              padding: const EdgeInsets.all(AppleSpacing.md),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // 주소
+                  Text(
+                    property.roadAddress,
+                    style: AppleTypography.headline.copyWith(
+                      color: AppleColors.label,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  if (property.buildingName.isNotEmpty) ...[
+                    const SizedBox(height: 2),
+                    Text(
+                      property.buildingName,
+                      style: AppleTypography.subheadline.copyWith(
+                        color: AppleColors.secondaryLabel,
+                      ),
+                    ),
+                  ],
+                  const SizedBox(height: AppleSpacing.sm),
+
+                  // 가격
+                  Text(
+                    '희망가 ${_formatPrice(property.desiredPrice)}',
+                    style: AppleTypography.title3.copyWith(
+                      fontWeight: FontWeight.w700,
+                      color: AppleColors.label,
+                    ),
+                  ),
+
+                  // 법정 수수료 정보 (판매자 참고용)
+                  Builder(
+                    builder: (context) {
+                      final price = property.desiredPrice.toInt();
+                      final maxRate = CommissionCalculator.getLegalMaxRate(
+                        transactionPrice: price,
+                        transactionType: CommissionCalculator.transactionSale,
+                      );
+                      final maxCommission = CommissionCalculator.calculateCommission(
+                        transactionPrice: price,
+                        commissionRate: maxRate,
+                      );
+                      return Padding(
+                        padding: const EdgeInsets.only(top: 4),
+                        child: Row(
+                          children: [
+                            Icon(Icons.info_outline, size: 14, color: AppleColors.tertiaryLabel),
+                            const SizedBox(width: 4),
+                            Text(
+                              '중개 수수료 최대 ${CommissionCalculator.formatCommission(maxCommission)} (${maxRate}%)',
+                              style: AppleTypography.caption1.copyWith(
+                                color: AppleColors.tertiaryLabel,
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                  ),
+
+                  // 최고 희망가 (있을 경우)
+                  if (summary.highestOffer != null) ...[
+                    const SizedBox(height: 4),
+                    Row(
+                      children: [
+                        Icon(Icons.trending_up,
+                          size: 16, color: AppleColors.systemGreen),
+                        const SizedBox(width: 4),
+                        Text(
+                          '최고 희망가 ${_formatPrice(summary.highestOffer!)}',
+                          style: AppleTypography.subheadline.copyWith(
+                            color: AppleColors.systemGreen,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+
+                  const SizedBox(height: AppleSpacing.md),
+
+                  // 방문 요청 현황 바
+                  _buildVisitRequestBar(summary),
+
+                  const SizedBox(height: AppleSpacing.sm),
+
+                  // 방문 요청 현황 숫자
+                  _buildVisitRequestStats(summary),
+
+                  // 대기 중인 요청이 있으면 퀵액션 버튼 표시
+                  if (summary.pendingRequests > 0) ...[
+                    const SizedBox(height: AppleSpacing.md),
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton.icon(
+                        onPressed: () => _showVisitRequestSheet(property),
+                        icon: const Icon(Icons.schedule, size: 18),
+                        label: Text('요청 관리 (${summary.pendingRequests}건)'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppleColors.systemOrange,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(AppleRadius.sm),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// 방문 요청 관리 바텀시트 표시
+  void _showVisitRequestSheet(MLSProperty property) {
+    VisitRequestQuickSheet.show(
+      context,
+      property: property,
+      onUpdated: () => _loadProperties(),
+    );
+  }
+
+  /// 방문 요청 현황 계산
+  _VisitRequestSummary _calculateVisitRequestSummary(MLSProperty property) {
+    int totalBrokers = property.brokerResponses.length;
+    int viewedBrokers = 0;
+    int pendingRequests = 0;
+    int approvedRequests = 0;
+    double? highestOffer;
+    String? highestOfferBroker;
+
+    // 중개사 열람 현황
+    for (final response in property.brokerResponses.values) {
+      if (response.hasViewed) {
+        viewedBrokers++;
+      }
+    }
+
+    // 방문 요청 현황
+    for (final request in property.visitRequests) {
+      switch (request.status) {
+        case VisitRequestStatus.pending:
+        case VisitRequestStatus.reschedule:
+          pendingRequests++;
+          if (highestOffer == null || request.proposedPrice > highestOffer) {
+            highestOffer = request.proposedPrice;
+            highestOfferBroker = request.brokerName;
+          }
+          break;
+        case VisitRequestStatus.approved:
+          approvedRequests++;
+          break;
+        default:
+          break;
+      }
+    }
+
+    return _VisitRequestSummary(
+      totalBrokers: totalBrokers,
+      viewedBrokers: viewedBrokers,
+      pendingRequests: pendingRequests,
+      approvedRequests: approvedRequests,
+      highestOffer: highestOffer,
+      highestOfferBroker: highestOfferBroker,
+    );
+  }
+
+  /// 방문 요청 현황 프로그레스 바
+  Widget _buildVisitRequestBar(_VisitRequestSummary summary) {
+    final total = summary.pendingRequests + summary.approvedRequests + summary.viewedBrokers;
+    if (total == 0) {
+      return Container(
+        height: 8,
+        decoration: BoxDecoration(
+          color: AppleColors.tertiarySystemFill,
+          borderRadius: BorderRadius.circular(4),
+        ),
+        child: Center(
+          child: Text(
+            '중개사 배포 대기중',
+            style: AppleTypography.caption2.copyWith(
+              color: AppleColors.tertiaryLabel,
+            ),
+          ),
+        ),
+      );
+    }
+
+    return Container(
+      height: 8,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(4),
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(4),
+        child: Row(
+          children: [
+            if (summary.pendingRequests > 0)
+              Expanded(
+                flex: summary.pendingRequests,
+                child: Container(color: AppleColors.systemOrange),
+              ),
+            if (summary.approvedRequests > 0)
+              Expanded(
+                flex: summary.approvedRequests,
+                child: Container(color: AppleColors.systemGreen),
+              ),
+            if (summary.viewedBrokers > 0)
+              Expanded(
+                flex: summary.viewedBrokers,
+                child: Container(color: AppleColors.systemBlue),
+              ),
+            if (summary.totalBrokers - summary.viewedBrokers > 0)
+              Expanded(
+                flex: summary.totalBrokers - summary.viewedBrokers,
+                child: Container(color: AppleColors.tertiarySystemFill),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// 방문 요청 현황 숫자 표시
+  Widget _buildVisitRequestStats(_VisitRequestSummary summary) {
+    return Wrap(
+      spacing: AppleSpacing.sm,
+      runSpacing: AppleSpacing.xxs,
+      children: [
+        if (summary.pendingRequests > 0)
+          _buildStatChip('방문요청', summary.pendingRequests, AppleColors.systemOrange),
+        if (summary.approvedRequests > 0)
+          _buildStatChip('승인', summary.approvedRequests, AppleColors.systemGreen),
+        if (summary.viewedBrokers > 0)
+          _buildStatChip('열람', summary.viewedBrokers, AppleColors.systemBlue),
+        _buildStatChip('배포', summary.totalBrokers, AppleColors.tertiaryLabel),
+        if (summary.totalBrokers == 0)
+          Text(
+            '아직 배포된 중개사가 없습니다',
+            style: AppleTypography.caption1.copyWith(
+              color: AppleColors.tertiaryLabel,
+            ),
+          ),
+      ],
+    );
+  }
+
+  Widget _buildStatChip(String label, int count, Color color) {
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppleSpacing.xs,
+        vertical: 2,
+      ),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(AppleRadius.xs),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 8,
+            height: 8,
+            decoration: BoxDecoration(
+              color: color,
+              shape: BoxShape.circle,
+            ),
+          ),
+          const SizedBox(width: 4),
+          Text(
+            '$label $count',
+            style: AppleTypography.caption1.copyWith(
+              color: color,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStatusBadge(PropertyStatus status) {
+    final text = _getStatusText(status);
+
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppleSpacing.xs,
+        vertical: AppleSpacing.xxs,
+      ),
+      decoration: BoxDecoration(
+        color: Colors.black.withOpacity(0.6),
+        borderRadius: BorderRadius.circular(AppleRadius.sm),
+      ),
+      child: Text(
+        text,
+        style: AppleTypography.caption1.copyWith(
+          fontWeight: FontWeight.w600,
+          color: Colors.white,
+        ),
+      ),
+    );
+  }
+
+  String _formatPrice(double price) {
+    if (price >= 10000) {
+      final billions = (price / 10000).floor();
+      final remainder = (price % 10000).floor();
+      if (remainder > 0) {
+        return '$billions억 ${remainder}만원';
+      }
+      return '$billions억';
+    }
+    return '${price.toStringAsFixed(0)}만원';
+  }
+
+  String _getStatusText(PropertyStatus status) {
+    switch (status) {
+      case PropertyStatus.draft:
+        return '임시저장';
+      case PropertyStatus.pending:
+        return '검증 대기';
+      case PropertyStatus.rejected:
+        return '검증 거절';
+      case PropertyStatus.active:
+        return '진행중';
+      case PropertyStatus.inquiry:
+        return '문의중';
+      case PropertyStatus.underOffer:
+        return '협의중';
+      case PropertyStatus.depositTaken:
+        return '가계약';
+      case PropertyStatus.sold:
+        return '거래완료';
+      case PropertyStatus.cancelled:
+        return '취소';
+    }
+  }
+
+}
+
+/// 전체 통계 요약 데이터 - 방문 요청 중심
+class _OverallStats {
+  final int totalProperties;
+  final int activeProperties;
+  final int completedProperties;
+  final int pendingRequests; // 대기 중인 방문 요청
+  final int approvedRequests; // 승인된 방문 요청
+  final int completedRequests; // 완료된 방문
+  final double? highestOffer;
+
+  _OverallStats({
+    required this.totalProperties,
+    required this.activeProperties,
+    required this.completedProperties,
+    required this.pendingRequests,
+    required this.approvedRequests,
+    required this.completedRequests,
+    this.highestOffer,
+  });
+}
+
+/// 방문 요청 현황 요약 데이터
+class _VisitRequestSummary {
+  final int totalBrokers; // 배포받은 중개사 수
+  final int viewedBrokers; // 열람한 중개사 수
+  final int pendingRequests; // 대기 중인 방문 요청
+  final int approvedRequests; // 승인된 방문 요청
+  final double? highestOffer; // 최고 희망가
+  final String? highestOfferBroker; // 최고 희망가 중개사
+
+  _VisitRequestSummary({
+    required this.totalBrokers,
+    required this.viewedBrokers,
+    required this.pendingRequests,
+    required this.approvedRequests,
+    this.highestOffer,
+    this.highestOfferBroker,
+  });
+}
+

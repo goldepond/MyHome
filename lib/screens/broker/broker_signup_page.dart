@@ -37,6 +37,7 @@ class _BrokerSignupPageState extends State<BrokerSignupPage> {
   String? _passwordError;
   String? _passwordConfirmError;
   String? _businessNameError;
+  String? _registrationNumberError;
 
   @override
   void dispose() {
@@ -163,10 +164,17 @@ class _BrokerSignupPageState extends State<BrokerSignupPage> {
       _passwordError = null;
       _passwordConfirmError = null;
       _businessNameError = null;
+      _registrationNumberError = null;
     });
-    
+
     bool hasError = false;
-    
+
+    // 등록번호 검증 (필수)
+    if (_registrationNumberController.text.trim().isEmpty) {
+      setState(() => _registrationNumberError = '중개업 등록번호를 입력해주세요');
+      hasError = true;
+    }
+
     // 이메일 검증
     if (_emailController.text.isEmpty) {
       setState(() => _emailError = '이메일을 입력해주세요');
@@ -223,9 +231,6 @@ class _BrokerSignupPageState extends State<BrokerSignupPage> {
     if (!_formKey.currentState!.validate()) {
       return;
     }
-
-    // 등록번호 검증 비활성화 - 검증 없이도 회원가입 가능
-    // 검증 정보가 있으면 사용하고, 없으면 직접 입력한 값 사용
 
     setState(() {
       _isLoading = true;
@@ -335,7 +340,7 @@ class _BrokerSignupPageState extends State<BrokerSignupPage> {
               ),
               const SizedBox(height: 8),
               const Text(
-                '등록번호 검증은 선택사항입니다 (검증 없이도 가입 가능)',
+                '중개업 등록번호를 입력하고 검증해주세요',
                 style: TextStyle(
                   fontSize: 14,
                   color: AirbnbColors.textSecondary,
@@ -413,6 +418,11 @@ class _BrokerSignupPageState extends State<BrokerSignupPage> {
                     const SizedBox(height: 20),
                     TextFormField(
                       controller: _registrationNumberController,
+                      onChanged: (value) {
+                        if (_registrationNumberError != null) {
+                          setState(() => _registrationNumberError = null);
+                        }
+                      },
                       decoration: InputDecoration(
                         labelText: '중개업 등록번호 *',
                         hintText: '예: 11230202200144',
@@ -420,8 +430,31 @@ class _BrokerSignupPageState extends State<BrokerSignupPage> {
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(
+                            color: _registrationNumberError != null ? AirbnbColors.error : AirbnbColors.border,
+                          ),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(
+                            color: _registrationNumberError != null ? AirbnbColors.error : AirbnbColors.primary,
+                            width: 2,
+                          ),
+                        ),
+                        errorBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: const BorderSide(color: AirbnbColors.error, width: 2),
+                        ),
+                        focusedErrorBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: const BorderSide(color: AirbnbColors.error, width: 2),
+                        ),
                         filled: true,
                         fillColor: AirbnbColors.textSecondary.withValues(alpha: 0.05),
+                        errorText: _registrationNumberError,
+                        errorStyle: const TextStyle(fontSize: 12),
                       ),
                       enabled: !_isValidating,
                       keyboardType: TextInputType.number,

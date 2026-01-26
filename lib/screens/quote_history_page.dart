@@ -1469,22 +1469,28 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
       return const SizedBox.shrink();
     }
     
-    return ListView.builder(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      itemCount: _groupedQuotes.length,
-      itemBuilder: (context, index) {
-        final address = _groupedQuotes.keys.elementAt(index);
-        final quotesForAddress = _groupedQuotes[address]!;
-        
-        // 같은 주소에 대한 답변이 여러 개인 경우 그룹으로 표시
-        if (quotesForAddress.length > 1) {
-          return _buildGroupedQuotesCard(address, quotesForAddress);
-        } else {
-          // 답변이 하나만 있는 경우 기존 방식대로 표시
-          return _buildQuoteCard(quotesForAddress.first);
-        }
-      },
+    // 성능 최적화: shrinkWrap 제거, 높이 계산으로 대체
+    // 각 카드의 대략적인 높이: 200px
+    final estimatedHeight = _groupedQuotes.length * 200.0;
+    
+    return SizedBox(
+      height: estimatedHeight.clamp(0.0, double.infinity),
+      child: ListView.builder(
+        physics: const NeverScrollableScrollPhysics(),
+        itemCount: _groupedQuotes.length,
+        itemBuilder: (context, index) {
+          final address = _groupedQuotes.keys.elementAt(index);
+          final quotesForAddress = _groupedQuotes[address]!;
+          
+          // 같은 주소에 대한 답변이 여러 개인 경우 그룹으로 표시
+          if (quotesForAddress.length > 1) {
+            return _buildGroupedQuotesCard(address, quotesForAddress);
+          } else {
+            // 답변이 하나만 있는 경우 기존 방식대로 표시
+            return _buildQuoteCard(quotesForAddress.first);
+          }
+        },
+      ),
     );
   }
   

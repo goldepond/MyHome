@@ -50,6 +50,12 @@ app.*.map.json
 android/local.properties
 android/property_android.iml
 
+# Android keystore files (SECURITY: DO NOT COMMIT)
+android/key.properties
+android/app/upload-keystore.jks
+android/app/*.keystore
+android/app/*.jks
+
 # iOS local configuration
 ios/Flutter/Generated.xcconfig
 ios/Flutter/flutter_export_environment.sh
@@ -109,3 +115,6 @@ ADMIN_ACCESS.md
 node_modules/
 nul
 .env
+
+# FVM Version Cache
+.fvm/

@@ -21,11 +21,51 @@ linter:
   # `// ignore_for_file: name_of_lint` syntax on the line or in the file
   # producing the lint.
   rules:
-    prefer_const_constructors_in_immutables : true
-    prefer_const_constructors : true
-    avoid_print : false
-    # avoid_print: false  # Uncomment to disable the `avoid_print` rule
-    # prefer_single_quotes: true  # Uncomment to enable the `prefer_single_quotes` rule
+    # Google Dart Style Guide - 기본 규칙
+    prefer_const_constructors_in_immutables: true
+    prefer_const_constructors: true
+    prefer_const_literals_to_create_immutables: true
+    prefer_const_declarations: true
+    prefer_final_fields: true
+    prefer_final_locals: true
+    prefer_final_in_for_each: true
+    
+    # 성능 최적화 관련
+    avoid_unnecessary_containers: true
+    avoid_redundant_argument_values: true
+    avoid_slow_async_io: true
+    avoid_types_as_parameter_names: true
+    
+    # 코드 품질
+    always_declare_return_types: true
+    always_put_required_named_parameters_first: true
+    always_specify_types: false  # 타입 추론 허용
+    avoid_empty_else: true
+    avoid_print: false  # 디버깅용으로 허용
+    avoid_relative_lib_imports: true
+    avoid_returning_null_for_future: true
+    avoid_shadowing_type_parameters: true
+    avoid_single_cascade_in_expression_statements: true
+    avoid_type_to_string: true
+    avoid_unused_constructor_parameters: true
+    
+    # 네이밍 규칙
+    non_constant_identifier_names: true
+    constant_identifier_names: true
+    
+    # 주석 및 문서화
+    public_member_api_docs: false  # 선택적
+    
+    # 기타
+    use_key_in_widget_constructors: true
+    use_build_context_synchronously: true
+
+analyzer:
+  exclude:
+    - "**/*.g.dart"
+    - "**/*.freezed.dart"
+  errors:
+    invalid_annotation_target: ignore
 
 # Additional information about this file can be found at
 # https://dart.dev/guides/language/analysis-options

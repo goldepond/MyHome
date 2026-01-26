@@ -10,6 +10,7 @@ import 'package:intl/intl.dart';
 import 'package:property/utils/analytics_service.dart';
 import 'package:property/utils/analytics_events.dart';
 import 'package:property/api_request/firebase_service.dart';
+import 'package:property/utils/commission_calculator.dart';
 
 /// 견적 비교 페이지 (MVP 핵심 기능)
 class QuoteComparisonPage extends StatefulWidget {
@@ -934,7 +935,7 @@ class _QuoteComparisonPageState extends State<QuoteComparisonPage> {
                                         Expanded(
                                           child: _buildCommissionRateItem(
                                             '평균율',
-                                            avgCommissionRate != null 
+                                            avgCommissionRate != null
                                                 ? _formatCommissionRate(avgCommissionRate)
                                                 : '-',
                                             AirbnbColors.background,
@@ -953,6 +954,49 @@ class _QuoteComparisonPageState extends State<QuoteComparisonPage> {
                                           ),
                                         ),
                                       ],
+                                    ),
+                                    // 예상 수수료 금액 범위 표시
+                                    SizedBox(height: isMobile ? 12.0 : (isWeb ? 18.0 : 14.0)),
+                                    Container(
+                                      padding: EdgeInsets.all(isMobile ? 10.0 : (isWeb ? 14.0 : 12.0)),
+                                      decoration: BoxDecoration(
+                                        color: AirbnbColors.background.withValues(alpha: 0.15),
+                                        borderRadius: BorderRadius.circular(8),
+                                      ),
+                                      child: Builder(
+                                        builder: (context) {
+                                          // 평균가 기준 예상 수수료 계산
+                                          final minCommission = CommissionCalculator.calculateCommission(
+                                            transactionPrice: avgPrice,
+                                            commissionRate: minCommissionRate!,
+                                          );
+                                          final maxCommission = CommissionCalculator.calculateCommission(
+                                            transactionPrice: avgPrice,
+                                            commissionRate: maxCommissionRate!,
+                                          );
+                                          return Column(
+                                            children: [
+                                              Text(
+                                                '예상 중개 수수료 (평균가 기준)',
+                                                style: TextStyle(
+                                                  fontSize: isMobile ? 11.0 : (isWeb ? 13.0 : 12.0),
+                                                  color: AirbnbColors.background.withValues(alpha: 0.8),
+                                                  fontWeight: FontWeight.w500,
+                                                ),
+                                              ),
+                                              SizedBox(height: isMobile ? 6.0 : (isWeb ? 10.0 : 8.0)),
+                                              Text(
+                                                '${CommissionCalculator.formatCommission(minCommission)} ~ ${CommissionCalculator.formatCommission(maxCommission)}',
+                                                style: TextStyle(
+                                                  fontSize: isMobile ? 16.0 : (isWeb ? 20.0 : 18.0),
+                                                  fontWeight: FontWeight.bold,
+                                                  color: AirbnbColors.background,
+                                                ),
+                                              ),
+                                            ],
+                                          );
+                                        },
+                                      ),
                                     ),
                                   ],
                                 ),
@@ -1260,52 +1304,142 @@ class _QuoteComparisonPageState extends State<QuoteComparisonPage> {
                       ),
                     ),
                     
-                    // 수수료율을 큰 글씨로 강조 표시
+                    // 수수료율 및 예상 수수료 금액 표시
                     if (quote.commissionRate != null &&
                         quote.commissionRate!.isNotEmpty) ...[
                       SizedBox(height: isMobile ? 10.0 : (isWeb ? 16.0 : 12.0)),
-                      Container(
-                        padding: EdgeInsets.all(isMobile ? 14.0 : (isWeb ? 20.0 : 16.0)),
-                        decoration: BoxDecoration(
-                          // 수수료율: 명확한 배경색으로 가독성 향상
-                          color: AirbnbColors.primary.withValues(alpha: 0.12),
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(
-                            color: AirbnbColors.primary,
-                            width: isMobile ? 1.5 : (isWeb ? 2 : 1.5),
-                          ),
-                        ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Row(
-                              children: [
-                                Icon(
-                                  Icons.percent,
-                                  color: AirbnbColors.textPrimary, // 진한 회색으로 변경
-                                  size: isMobile ? 18.0 : (isWeb ? 24.0 : 20.0),
-                                ),
-                                SizedBox(width: isMobile ? 6.0 : (isWeb ? 10.0 : 8.0)),
-                                Text(
-                                  '수수료율',
-                                  style: TextStyle(
-                                    fontSize: isMobile ? 14.0 : (isWeb ? 18.0 : 16.0),
-                                    fontWeight: FontWeight.w600,
-                                    color: AirbnbColors.textPrimary, // 진한 회색으로 변경
-                                  ),
-                                ),
-                              ],
-                            ),
-                            Text(
-                              quote.commissionRate!,
-                              style: TextStyle(
-                                fontSize: isMobile ? 24.0 : (isWeb ? 32.0 : 28.0),
-                                fontWeight: FontWeight.bold,
-                                color: AirbnbColors.textPrimary,
+                      Builder(
+                        builder: (context) {
+                          final rate = CommissionCalculator.parseRate(quote.commissionRate);
+                          final calculatedCommission = rate != null
+                              ? CommissionCalculator.calculateCommission(
+                                  transactionPrice: price,
+                                  commissionRate: rate,
+                                )
+                              : null;
+                          final validation = rate != null
+                              ? CommissionCalculator.validateCommission(
+                                  transactionPrice: price,
+                                  commissionRate: rate,
+                                  transactionType: CommissionCalculator.transactionSale,
+                                )
+                              : null;
+
+                          return Container(
+                            padding: EdgeInsets.all(isMobile ? 14.0 : (isWeb ? 20.0 : 16.0)),
+                            decoration: BoxDecoration(
+                              color: validation?.isOverLegalMax == true
+                                  ? AirbnbColors.warning.withValues(alpha: 0.15)
+                                  : AirbnbColors.primary.withValues(alpha: 0.12),
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                color: validation?.isOverLegalMax == true
+                                    ? AirbnbColors.warning
+                                    : AirbnbColors.primary,
+                                width: isMobile ? 1.5 : (isWeb ? 2 : 1.5),
                               ),
                             ),
-                          ],
-                        ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Row(
+                                      children: [
+                                        Icon(
+                                          Icons.percent,
+                                          color: AirbnbColors.textPrimary,
+                                          size: isMobile ? 18.0 : (isWeb ? 24.0 : 20.0),
+                                        ),
+                                        SizedBox(width: isMobile ? 6.0 : (isWeb ? 10.0 : 8.0)),
+                                        Text(
+                                          '수수료율',
+                                          style: TextStyle(
+                                            fontSize: isMobile ? 14.0 : (isWeb ? 18.0 : 16.0),
+                                            fontWeight: FontWeight.w600,
+                                            color: AirbnbColors.textPrimary,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    Text(
+                                      quote.commissionRate!,
+                                      style: TextStyle(
+                                        fontSize: isMobile ? 24.0 : (isWeb ? 32.0 : 28.0),
+                                        fontWeight: FontWeight.bold,
+                                        color: AirbnbColors.textPrimary,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                // 예상 수수료 금액 표시
+                                if (calculatedCommission != null) ...[
+                                  SizedBox(height: isMobile ? 12.0 : (isWeb ? 16.0 : 14.0)),
+                                  Container(
+                                    padding: EdgeInsets.all(isMobile ? 10.0 : (isWeb ? 14.0 : 12.0)),
+                                    decoration: BoxDecoration(
+                                      color: AirbnbColors.background,
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    child: Row(
+                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Text(
+                                          '예상 중개 수수료',
+                                          style: TextStyle(
+                                            fontSize: isMobile ? 13.0 : (isWeb ? 15.0 : 14.0),
+                                            fontWeight: FontWeight.w500,
+                                            color: AirbnbColors.textSecondary,
+                                          ),
+                                        ),
+                                        Text(
+                                          CommissionCalculator.formatCommission(calculatedCommission),
+                                          style: TextStyle(
+                                            fontSize: isMobile ? 16.0 : (isWeb ? 20.0 : 18.0),
+                                            fontWeight: FontWeight.bold,
+                                            color: AirbnbColors.textPrimary,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                                // 법정 수수료 초과 경고
+                                if (validation?.isOverLegalMax == true) ...[
+                                  SizedBox(height: isMobile ? 8.0 : (isWeb ? 12.0 : 10.0)),
+                                  Container(
+                                    padding: EdgeInsets.all(isMobile ? 8.0 : (isWeb ? 12.0 : 10.0)),
+                                    decoration: BoxDecoration(
+                                      color: AirbnbColors.warning.withValues(alpha: 0.1),
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    child: Row(
+                                      children: [
+                                        Icon(
+                                          Icons.warning_amber_rounded,
+                                          color: AirbnbColors.warning,
+                                          size: isMobile ? 16.0 : (isWeb ? 20.0 : 18.0),
+                                        ),
+                                        SizedBox(width: isMobile ? 6.0 : (isWeb ? 10.0 : 8.0)),
+                                        Expanded(
+                                          child: Text(
+                                            '법정 최고 수수료율(${validation!.maxLegalRate}%)을 초과합니다',
+                                            style: TextStyle(
+                                              fontSize: isMobile ? 11.0 : (isWeb ? 13.0 : 12.0),
+                                              color: AirbnbColors.warning,
+                                              fontWeight: FontWeight.w500,
+                                            ),
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ],
+                            ),
+                          );
+                        },
                       ),
                     ],
                   ],

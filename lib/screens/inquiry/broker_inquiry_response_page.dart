@@ -279,10 +279,7 @@ class _BrokerInquiryResponsePageState extends State<BrokerInquiryResponsePage> {
       final propertyAddress = data['propertyAddress'];
       if (propertyAddress != null && propertyAddress.toString().isNotEmpty) {
         final address = propertyAddress.toString();
-        debugPrint('문의 답변 페이지 - API 정보 로드 시작: $address');
         _loadApiInfo(address);
-      } else {
-        debugPrint('문의 답변 페이지 - 매물 주소가 없습니다.');
       }
     } catch (e) {
       if (mounted) {

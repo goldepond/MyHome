@@ -239,6 +239,17 @@ class _NotificationPageState extends State<NotificationPage> {
         return Icons.check_circle_outline;
       case 'property_registered':
         return Icons.home_work_outlined;
+      // MLS 거래 관련 알림
+      case 'property_deposit_taken':
+        return Icons.handshake_outlined;
+      case 'property_sold':
+        return Icons.check_circle;
+      case 'property_expired':
+        return Icons.timer_off_outlined;
+      case 'visit_schedule_approved':
+        return Icons.calendar_today;
+      case 'visit_schedule_rejected':
+        return Icons.event_busy;
       default:
         return Icons.notifications_outlined;
     }
@@ -252,6 +263,17 @@ class _NotificationPageState extends State<NotificationPage> {
         return AirbnbColors.success;
       case 'property_registered':
         return AirbnbColors.warning;
+      // MLS 거래 관련 알림
+      case 'property_deposit_taken':
+        return Colors.orange;
+      case 'property_sold':
+        return AirbnbColors.success;
+      case 'property_expired':
+        return Colors.grey;
+      case 'visit_schedule_approved':
+        return AirbnbColors.primary;
+      case 'visit_schedule_rejected':
+        return Colors.red;
       default:
         return AirbnbColors.textSecondary;
     }
@@ -265,6 +287,17 @@ class _NotificationPageState extends State<NotificationPage> {
         return AirbnbColors.success.withValues(alpha: 0.1);
       case 'property_registered':
         return AirbnbColors.warning.withValues(alpha: 0.1);
+      // MLS 거래 관련 알림
+      case 'property_deposit_taken':
+        return Colors.orange.withValues(alpha: 0.1);
+      case 'property_sold':
+        return AirbnbColors.success.withValues(alpha: 0.1);
+      case 'property_expired':
+        return Colors.grey.withValues(alpha: 0.1);
+      case 'visit_schedule_approved':
+        return AirbnbColors.primary.withValues(alpha: 0.1);
+      case 'visit_schedule_rejected':
+        return Colors.red.withValues(alpha: 0.1);
       default:
         return AirbnbColors.textSecondary.withValues(alpha: 0.1);
     }

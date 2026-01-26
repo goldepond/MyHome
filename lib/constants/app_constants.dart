@@ -30,6 +30,14 @@ class AppColors {
   static const Color kBrown = kPrimary;
   static const Color kLightBrown = kBackground;
   static const Color kDarkBrown = kAccent;
+
+  // MLS 시스템 호환성을 위한 별칭
+  static const Color primary = kPrimary;
+  static const Color textSecondary = kTextSecondary;
+  static const Color success = kSuccess;
+  static const Color warning = kWarning;
+  static const Color error = kError;
+  static const Color accent = kAccent;
 }
 
 /// 공통 그라데이션 스타일
@@ -323,16 +331,6 @@ String _getEnv(String key) {
     return '';
   }
 }
-
-// 임시 계정 정보 (테스트용) - 보안상 주석 처리됨
-// class TestConstants {
-//   static const String tempId = 'test';
-//   static const String tempPassword = '1234';
-//   static const String tempPhoneNo = '010-2394-3962';
-//   static const String tempUserName = '김태형';
-//   static const String ePrepayNo = 'B90660318005';
-//   static const String tempCodefPassword = 'A7MilaBGAhxI35F1rhXQscXserkQoz9ZvT7GBCsfVF68curqeV3miATmOJAVyJJN6/MFlwOM9nzaPXr4lhhoLW7APB9S8/YoghUrUNidoOS07X/hRz0yc21k7SBXdjRbYOOgzZNoM6Xwo7xHIO8JULLjVwZNkralC5JnMOwCOxXQ+xGY2BFLD2BqfYDeKAGV7EejhU77lVWGb4Ln73zt/aqPXuSVBhU5BOiZJwZoe703o/VloTyINWR1sU8BFFVpDJziDWFhmby/pfKL7c30YeQSrlSaAl6Is3bPpn4GYj+1FCJL5nP9IYxhoeqyPLTHpmM5FoNeNTKLcfLOgKgkZg==';
-// }
 
 // 시/도-시군구 매핑 데이터
 class RegionConstants {

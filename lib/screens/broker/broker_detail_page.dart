@@ -67,6 +67,8 @@ class BrokerDetailPage extends StatelessWidget {
                   notRecommendCount: notRecommendCount,
                 ),
                 const SizedBox(height: AppSpacing.md),
+                _buildStatsCard(firebaseService),
+                const SizedBox(height: AppSpacing.md),
                 _buildInfoCard(),
                 const SizedBox(height: AppSpacing.md),
                 _buildActionsRow(context),
@@ -177,6 +179,133 @@ class BrokerDetailPage extends StatelessWidget {
           ],
         ],
       ),
+    );
+  }
+
+  /// 중개사 통계 카드 (거래 성사, 평점, 응답률)
+  Widget _buildStatsCard(FirebaseService firebaseService) {
+    return FutureBuilder<Map<String, dynamic>?>(
+      future: firebaseService.getBrokerStats(broker.registrationNumber),
+      builder: (context, snapshot) {
+        final stats = snapshot.data;
+
+        // 통계가 없으면 빈 컨테이너 반환
+        if (stats == null || stats.isEmpty) {
+          return const SizedBox.shrink();
+        }
+
+        final totalDeals = stats['totalDeals'] ?? 0;
+        final avgRating = (stats['averageRating'] ?? 0.0).toDouble();
+        final responseRate = (stats['responseRate'] ?? 0.0).toDouble();
+        final specialties = List<String>.from(stats['specialties'] ?? []);
+
+        return Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: AirbnbColors.background,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: AirbnbColors.borderLight),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                '실적 통계',
+                style: AppTypography.h4.copyWith(fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: AppSpacing.md),
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildStatItem(
+                      icon: Icons.handshake_outlined,
+                      label: '거래 성사',
+                      value: '$totalDeals건',
+                      color: AirbnbColors.success,
+                    ),
+                  ),
+                  Expanded(
+                    child: _buildStatItem(
+                      icon: Icons.star_rounded,
+                      label: '평균 평점',
+                      value: avgRating > 0 ? avgRating.toStringAsFixed(1) : '-',
+                      color: Colors.amber,
+                    ),
+                  ),
+                  Expanded(
+                    child: _buildStatItem(
+                      icon: Icons.speed_rounded,
+                      label: '응답률',
+                      value: responseRate > 0 ? '${responseRate.toInt()}%' : '-',
+                      color: AirbnbColors.primary,
+                    ),
+                  ),
+                ],
+              ),
+              if (specialties.isNotEmpty) ...[
+                const SizedBox(height: AppSpacing.md),
+                Text(
+                  '전문 분야',
+                  style: AppTypography.bodySmall.copyWith(
+                    color: AirbnbColors.textSecondary,
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.xs),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: specialties.map((s) => Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: AirbnbColors.primary.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: Text(
+                      s,
+                      style: AppTypography.bodySmall.copyWith(
+                        color: AirbnbColors.primary,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  )).toList(),
+                ),
+              ],
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildStatItem({
+    required IconData icon,
+    required String label,
+    required String value,
+    required Color color,
+  }) {
+    return Column(
+      children: [
+        Container(
+          padding: const EdgeInsets.all(10),
+          decoration: BoxDecoration(
+            color: color.withValues(alpha: 0.1),
+            shape: BoxShape.circle,
+          ),
+          child: Icon(icon, color: color, size: 24),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          value,
+          style: AppTypography.h4.copyWith(fontWeight: FontWeight.bold),
+        ),
+        const SizedBox(height: 2),
+        Text(
+          label,
+          style: AppTypography.caption.copyWith(
+            color: AirbnbColors.textSecondary,
+          ),
+        ),
+      ],
     );
   }
 

@@ -400,14 +400,17 @@ class _HouseMarketPageState extends State<HouseMarketPage> {
             ),
           ),
           const SizedBox(height: 12),
-          ListView.builder(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            itemCount: _properties.length,
-            itemBuilder: (context, index) {
-              final property = _properties[index];
-              return _buildPropertyCard(property);
-            },
+          // 성능 최적화: shrinkWrap 제거, 높이 제한으로 대체
+          SizedBox(
+            height: _properties.length * 200.0, // 대략적인 높이 계산
+            child: ListView.builder(
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: _properties.length,
+              itemBuilder: (context, index) {
+                final property = _properties[index];
+                return _buildPropertyCard(property);
+              },
+            ),
           ),
         ],
       ),

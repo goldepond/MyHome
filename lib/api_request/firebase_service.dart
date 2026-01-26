@@ -2055,4 +2055,174 @@ class FirebaseService {
       return snapshot.docs.map((doc) => ChatRoom.fromMap(doc.id, doc.data())).toList();
     });
   }
+
+  // ============================================================
+  // 소셜 로그인 (임시 비활성화 - 추후 구현)
+  // ============================================================
+
+  /// 카카오 로그인 (임시 비활성화)
+  Future<Map<String, dynamic>?> signInWithKakao() async {
+    Logger.warning('카카오 로그인은 현재 비활성화되어 있습니다.');
+    return null;
+  }
+
+  /// 구글 로그인 (임시 비활성화)
+  Future<Map<String, dynamic>?> signInWithGoogle() async {
+    Logger.warning('구글 로그인은 현재 비활성화되어 있습니다.');
+    return null;
+  }
+
+  /// 네이버 로그인 (임시 비활성화)
+  Future<Map<String, dynamic>?> signInWithNaver() async {
+    Logger.warning('네이버 로그인은 현재 비활성화되어 있습니다.');
+    return null;
+  }
+
+  // ============================================================
+  // 알림 관련 메서드
+  // ============================================================
+
+  /// 읽지 않은 알림 개수 조회
+  Stream<int> getUnreadNotificationCount(String userId) {
+    return _firestore
+        .collection('notifications')
+        .where('userId', isEqualTo: userId)
+        .where('isRead', isEqualTo: false)
+        .snapshots()
+        .map((snapshot) => snapshot.docs.length);
+  }
+
+  /// 대량 알림 전송
+  Future<void> sendBulkNotifications({
+    required List<String> userIds,
+    required String title,
+    required String message,
+    required String type,
+    String? relatedId,
+    Map<String, dynamic>? additionalData,
+  }) async {
+    final batch = _firestore.batch();
+    for (final userId in userIds) {
+      final docRef = _firestore.collection('notifications').doc();
+      final notificationData = {
+        'userId': userId,
+        'title': title,
+        'message': message,
+        'type': type,
+        'relatedId': relatedId,
+        'isRead': false,
+        'createdAt': FieldValue.serverTimestamp(),
+      };
+      if (additionalData != null) {
+        notificationData['additionalData'] = additionalData;
+      }
+      batch.set(docRef, notificationData);
+    }
+    await batch.commit();
+  }
+
+  // ============================================================
+  // 중개사 통계 관련 메서드
+  // ============================================================
+
+  /// 거래 완료 시 중개사 통계 업데이트
+  Future<void> updateBrokerStatsOnDeal({
+    required String brokerId,
+    required bool isDepositTaken,
+  }) async {
+    try {
+      final docRef = _firestore.collection(_brokersCollectionName).doc(brokerId);
+
+      await _firestore.runTransaction((transaction) async {
+        final doc = await transaction.get(docRef);
+        if (!doc.exists) return;
+
+        final data = doc.data() ?? {};
+        final stats = Map<String, dynamic>.from(data['stats'] ?? {});
+
+        // 통계 업데이트
+        stats['totalDeals'] = (stats['totalDeals'] ?? 0) + 1;
+        if (isDepositTaken) {
+          stats['depositTakenCount'] = (stats['depositTakenCount'] ?? 0) + 1;
+        } else {
+          stats['soldCount'] = (stats['soldCount'] ?? 0) + 1;
+        }
+        stats['lastUpdatedAt'] = FieldValue.serverTimestamp();
+
+        transaction.update(docRef, {'stats': stats});
+      });
+    } catch (e, stackTrace) {
+      Logger.error(
+        '중개사 통계 업데이트 실패',
+        error: e,
+        stackTrace: stackTrace,
+        context: 'updateBrokerStatsOnDeal',
+      );
+    }
+  }
+
+  /// 중개사 통계 조회
+  Future<Map<String, dynamic>?> getBrokerStats(String brokerId) async {
+    try {
+      final doc = await _firestore.collection(_brokersCollectionName).doc(brokerId).get();
+      if (!doc.exists) return null;
+
+      final data = doc.data();
+      return data?['stats'] as Map<String, dynamic>?;
+    } catch (e) {
+      Logger.error('중개사 통계 조회 실패', error: e, context: 'getBrokerStats');
+      return null;
+    }
+  }
+
+  /// 중개사 리뷰 작성
+  Future<bool> createBrokerReview(BrokerReview review) async {
+    try {
+      // 리뷰 저장
+      await _firestore.collection('broker_reviews').add(review.toMap());
+
+      // 중개사 평균 평점 업데이트
+      await _updateBrokerAverageRating(review.brokerRegistrationNumber);
+
+      return true;
+    } catch (e) {
+      Logger.error('리뷰 작성 실패', error: e, context: 'createBrokerReview');
+      return false;
+    }
+  }
+
+  /// 중개사 평균 평점 업데이트
+  Future<void> _updateBrokerAverageRating(String brokerRegistrationNumber) async {
+    try {
+      final reviews = await _firestore
+          .collection('broker_reviews')
+          .where('brokerRegistrationNumber', isEqualTo: brokerRegistrationNumber)
+          .get();
+
+      if (reviews.docs.isEmpty) return;
+
+      double totalRating = 0;
+      for (final doc in reviews.docs) {
+        totalRating += (doc.data()['rating'] as num?)?.toDouble() ?? 0;
+      }
+
+      final averageRating = totalRating / reviews.docs.length;
+
+      // 등록번호로 중개사 문서 찾기
+      final brokerQuery = await _firestore
+          .collection(_brokersCollectionName)
+          .where('registrationNumber', isEqualTo: brokerRegistrationNumber)
+          .limit(1)
+          .get();
+
+      if (brokerQuery.docs.isNotEmpty) {
+        await brokerQuery.docs.first.reference.update({
+          'stats.averageRating': averageRating,
+          'stats.totalReviews': reviews.docs.length,
+        });
+      }
+    } catch (e) {
+      Logger.error('평균 평점 업데이트 실패', error: e, context: '_updateBrokerAverageRating');
+    }
+  }
 }

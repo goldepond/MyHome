@@ -1,5 +1,22 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+/// 알림 타입 상수
+class NotificationType {
+  static const String quoteReceived = 'quote_received';
+  static const String quoteAnswered = 'quote_answered';
+  static const String brokerSelected = 'broker_selected';
+  static const String propertyRegistered = 'property_registered';
+  static const String info = 'info';
+
+  // MLS 거래 관련 알림
+  static const String propertyDepositTaken = 'property_deposit_taken';  // 가계약 성사
+  static const String propertySold = 'property_sold';                    // 거래 완료
+  static const String propertyExpired = 'property_expired';              // 매물 만료
+  static const String competitorAdvanced = 'competitor_advanced';        // 다른 중개사 단계 상승
+  static const String visitScheduleApproved = 'visit_schedule_approved'; // 방문 승인
+  static const String visitScheduleRejected = 'visit_schedule_rejected'; // 방문 거절
+}
+
 class NotificationModel {
   final String id;
   final String userId; // 알림 받는 사람

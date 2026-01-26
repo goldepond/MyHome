@@ -1838,23 +1838,34 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
     final sortedDates = _dateGroupedQuotes.keys.toList()
       ..sort((a, b) => b.compareTo(a)); // 내림차순 (최신 날짜가 먼저)
 
-    return ListView.builder(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      itemCount: sortedDates.length,
-      itemBuilder: (context, dateIndex) {
-        final dateKey = sortedDates[dateIndex];
-        final quotesForDate = _dateGroupedQuotes[dateKey]!;
-        final isLatestGroup = dateIndex == 0; // 첫 번째 그룹이 최신
+    // 성능 최적화: shrinkWrap 제거, 높이 계산으로 대체
+    // 각 날짜 그룹의 대략적인 높이: 헤더(60px) + 카드들(각 200px)
+    final estimatedHeight = sortedDates.fold<double>(
+      0.0,
+      (sum, dateKey) {
+        final quotesCount = _dateGroupedQuotes[dateKey]!.length;
+        return sum + 60.0 + (quotesCount * 200.0);
+      },
+    );
 
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // 날짜별 섹션 헤더
-            _buildDateSectionHeader(dateKey, quotesForDate.length, isLatestGroup),
-            const SizedBox(height: AppSpacing.md + AppSpacing.xs),
-            // 해당 날짜의 견적 카드들
-            ...quotesForDate.map((quote) {
+    return SizedBox(
+      height: estimatedHeight.clamp(0.0, double.infinity),
+      child: ListView.builder(
+        physics: const NeverScrollableScrollPhysics(),
+        itemCount: sortedDates.length,
+        itemBuilder: (context, dateIndex) {
+          final dateKey = sortedDates[dateIndex];
+          final quotesForDate = _dateGroupedQuotes[dateKey]!;
+          final isLatestGroup = dateIndex == 0; // 첫 번째 그룹이 최신
+
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // 날짜별 섹션 헤더
+              _buildDateSectionHeader(dateKey, quotesForDate.length, isLatestGroup),
+              const SizedBox(height: AppSpacing.md + AppSpacing.xs),
+              // 해당 날짜의 견적 카드들
+              ...quotesForDate.map((quote) {
               final isMobile = ResponsiveHelper.isMobile(context);
               return Padding(
                 padding: EdgeInsets.only(
@@ -1880,6 +1891,7 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
           ],
         );
       },
+      ),
     );
   }
 

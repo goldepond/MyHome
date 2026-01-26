@@ -7,104 +7,161 @@ service cloud.firestore {
       allow read: if request.auth != null;
       allow write: if request.auth != null && request.auth.uid == userId;
     }
-    
+
     // 공인중개사 컬렉션
     match /brokers/{brokerId} {
       allow read: if request.auth != null;
       allow write: if request.auth != null && request.auth.uid == brokerId;
     }
-    
+
     // 견적문의 컬렉션 (내집관리 페이지 필수)
     match /quoteRequests/{requestId} {
-      allow read: if request.auth != null;
-      allow create: if request.auth != null;
-      allow update: if request.auth != null;
-      allow delete: if request.auth != null && (
+      allow read: if request.auth != null && (
         resource.data.userId == request.auth.uid ||
-        resource.data.userName == request.auth.uid
+        resource.data.brokerId == request.auth.uid
       );
+      allow create: if request.auth != null;
+      allow update: if request.auth != null && (
+        resource.data.userId == request.auth.uid ||
+        resource.data.brokerId == request.auth.uid
+      );
+      allow delete: if request.auth != null && resource.data.userId == request.auth.uid;
     }
-    
+
     // 부동산 매물
     match /properties/{propertyId} {
       allow read: if request.auth != null;
-      allow write: if request.auth != null;
+      allow create: if request.auth != null;
+      allow update, delete: if request.auth != null && resource.data.userId == request.auth.uid;
     }
-    
+
+    // MLS 매물 컬렉션
+    match /mlsProperties/{propertyId} {
+      allow read: if request.auth != null;
+      allow create: if request.auth != null;
+      // 매물 소유자는 모든 업데이트 가능
+      allow delete: if request.auth != null && resource.data.userId == request.auth.uid;
+      // 업데이트: 소유자 또는 targetBrokerIds에 포함된 중개사
+      allow update: if request.auth != null && (
+        resource.data.userId == request.auth.uid ||
+        // 중개사가 방문 요청을 추가/수정할 수 있도록 허용
+        (request.auth.uid in resource.data.targetBrokerIds) ||
+        // 새로운 중개사도 방문 요청 가능 (targetBrokerIds에 추가될 때)
+        (request.auth.uid in request.resource.data.targetBrokerIds)
+      );
+
+      // 중개사 참여 정보 서브컬렉션
+      match /broker_participations/{participationId} {
+        allow read: if request.auth != null;
+        allow create: if request.auth != null;
+        allow update, delete: if request.auth != null && resource.data.brokerId == request.auth.uid;
+      }
+    }
+
+    // 방문 스케줄 컬렉션
+    match /visitSchedules/{scheduleId} {
+      allow read: if request.auth != null && (
+        resource.data.sellerId == request.auth.uid ||
+        resource.data.brokerId == request.auth.uid
+      );
+      allow create: if request.auth != null;
+      allow update, delete: if request.auth != null && (
+        resource.data.sellerId == request.auth.uid ||
+        resource.data.brokerId == request.auth.uid
+      );
+    }
+
     // 계약 정보
     match /contracts/{contractId} {
-      allow read: if request.auth != null;
-      allow write: if request.auth != null;
+      allow read: if request.auth != null && (
+        resource.data.sellerId == request.auth.uid ||
+        resource.data.buyerId == request.auth.uid ||
+        resource.data.brokerId == request.auth.uid
+      );
+      allow create: if request.auth != null;
+      allow update: if request.auth != null && (
+        resource.data.sellerId == request.auth.uid ||
+        resource.data.buyerId == request.auth.uid ||
+        resource.data.brokerId == request.auth.uid
+      );
+      allow delete: if false; // 계약 삭제 금지
     }
-    
+
     // 알림 컬렉션
     match /notifications/{notificationId} {
-      allow read: if request.auth != null;
+      allow read: if request.auth != null && resource.data.userId == request.auth.uid;
       allow create: if request.auth != null;
-      allow update: if request.auth != null;
-      allow delete: if request.auth != null;
+      allow update, delete: if request.auth != null && resource.data.userId == request.auth.uid;
     }
-    
+
     // 채팅방 컬렉션
     match /chatRooms/{roomId} {
-      allow read: if request.auth != null;
+      allow read: if request.auth != null && (
+        resource.data.participantIds.hasAny([request.auth.uid])
+      );
       allow create: if request.auth != null;
-      allow update: if request.auth != null;
-      allow delete: if request.auth != null;
+      allow update: if request.auth != null && (
+        resource.data.participantIds.hasAny([request.auth.uid])
+      );
+      allow delete: if false; // 채팅방 삭제 금지
     }
-    
+
     // 채팅 메시지 (chatMessages)
     match /chatMessages/{messageId} {
       allow read: if request.auth != null;
-      allow create: if request.auth != null;
-      allow update: if request.auth != null;
-      allow delete: if request.auth != null;
+      allow create: if request.auth != null && request.resource.data.senderId == request.auth.uid;
+      allow update: if request.auth != null && resource.data.senderId == request.auth.uid;
+      allow delete: if false; // 메시지 삭제 금지
     }
-    
+
     // 공인중개사 후기
     match /brokerReviews/{reviewId} {
       allow read: if request.auth != null;
       allow create: if request.auth != null;
-      allow update: if request.auth != null;
-      allow delete: if request.auth != null;
+      allow update, delete: if request.auth != null && resource.data.userId == request.auth.uid;
     }
-    
+
     // 채팅 메시지 (chat_messages - 기존)
     match /chat_messages/{messageId} {
       allow read: if request.auth != null && (
-        resource.data.senderId == request.auth.uid || 
+        resource.data.senderId == request.auth.uid ||
         resource.data.receiverId == request.auth.uid
       );
-      allow create: if request.auth != null && 
+      allow create: if request.auth != null &&
         request.resource.data.senderId == request.auth.uid;
-      allow update: if request.auth != null && 
+      allow update: if request.auth != null &&
         resource.data.senderId == request.auth.uid;
     }
-    
+
     // 방문 신청
     match /visit_requests/{requestId} {
       allow read: if request.auth != null && (
-        resource.data.buyerId == request.auth.uid || 
+        resource.data.buyerId == request.auth.uid ||
         resource.data.sellerId == request.auth.uid
       );
-      allow create: if request.auth != null && 
+      allow create: if request.auth != null &&
         request.resource.data.buyerId == request.auth.uid;
       allow update: if request.auth != null && (
-        resource.data.buyerId == request.auth.uid || 
+        resource.data.buyerId == request.auth.uid ||
         resource.data.sellerId == request.auth.uid
       );
       allow delete: if request.auth != null && (
-        resource.data.buyerId == request.auth.uid || 
+        resource.data.buyerId == request.auth.uid ||
         resource.data.sellerId == request.auth.uid
       );
     }
-    
-    // 사용자 로그 (관리자/디버깅용)
+
+    // 사용자 로그 (관리자/디버깅용) - 본인 로그만 접근
     match /user_logs/{logId} {
-      allow read: if request.auth != null;
+      allow read: if request.auth != null && resource.data.userId == request.auth.uid;
       allow create: if request.auth != null;
-      allow update: if request.auth != null;
-      allow delete: if request.auth != null;
+      allow update, delete: if false; // 로그 수정/삭제 금지
+    }
+
+    // MLS 시퀀스 카운터 (시스템 전용)
+    match /mls_sequences/{region} {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null;
     }
   }
 }

@@ -40,7 +40,7 @@ class DefaultFirebaseOptions {
     appId: '1:1018586798653:android:904da780b6004266cae854',
     messagingSenderId: '1018586798653',
     projectId: 'houseproject-18f44',
-    storageBucket: 'houseproject-18f44.appspot.com',
+    storageBucket: 'houseproject-18f44.firebasestorage.app',
   );
 
   static const FirebaseOptions ios = FirebaseOptions(
@@ -48,7 +48,7 @@ class DefaultFirebaseOptions {
     appId: '1:1018586798653:ios:904da780b6004266cae854',
     messagingSenderId: '1018586798653',
     projectId: 'houseproject-18f44',
-    storageBucket: 'houseproject-18f44.appspot.com',
+    storageBucket: 'houseproject-18f44.firebasestorage.app',
     iosBundleId: 'com.example.property',
   );
 
@@ -57,7 +57,7 @@ class DefaultFirebaseOptions {
     appId: '1:1018586798653:macos:904da780b6004266cae854',
     messagingSenderId: '1018586798653',
     projectId: 'houseproject-18f44',
-    storageBucket: 'houseproject-18f44.appspot.com',
+    storageBucket: 'houseproject-18f44.firebasestorage.app',
     iosBundleId: 'com.example.property',
   );
 
@@ -67,7 +67,7 @@ class DefaultFirebaseOptions {
     messagingSenderId: '1018586798653',
     projectId: 'houseproject-18f44',
     authDomain: 'houseproject-18f44.firebaseapp.com',
-    storageBucket: 'houseproject-18f44.appspot.com',
+    storageBucket: 'houseproject-18f44.firebasestorage.app',
   );
 
   static const FirebaseOptions windows = FirebaseOptions(
@@ -75,6 +75,6 @@ class DefaultFirebaseOptions {
     appId: '1:1018586798653:windows:904da780b6004266cae854',
     messagingSenderId: '1018586798653',
     projectId: 'houseproject-18f44',
-    storageBucket: 'houseproject-18f44.appspot.com',
+    storageBucket: 'houseproject-18f44.firebasestorage.app',
   );
 } 

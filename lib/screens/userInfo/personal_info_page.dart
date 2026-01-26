@@ -5,7 +5,7 @@ import 'package:property/constants/typography.dart';
 import 'package:property/constants/spacing.dart';
 import 'package:property/constants/responsive_constants.dart';
 import 'package:property/api_request/firebase_service.dart';
-import 'package:property/screens/main_page.dart';
+import 'package:property/screens/auth/auth_landing_page.dart';
 import 'package:property/screens/change_password_page.dart';
 import 'package:property/screens/policy/privacy_policy_page.dart';
 import 'package:property/screens/policy/terms_of_service_page.dart';
@@ -93,15 +93,12 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
     if (confirmed == true) {
       // Firebase 로그아웃
       await _firebaseService.signOut();
-      
-      // 로그인 페이지로 이동하고 모든 이전 페이지 스택 제거
+
+      // 로그인 랜딩 페이지로 이동하고 모든 이전 페이지 스택 제거
       if (context.mounted) {
         Navigator.of(context).pushAndRemoveUntil(
           MaterialPageRoute(
-            builder: (context) => const MainPage(
-              userId: '',
-              userName: '',
-            ),
+            builder: (context) => const AuthLandingPage(),
           ),
           (route) => false,
         );
@@ -199,13 +196,10 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
             ),
           );
 
-          // 메인 페이지로 이동하고 모든 스택 제거
+          // 로그인 랜딩 페이지로 이동하고 모든 스택 제거
           Navigator.of(context).pushAndRemoveUntil(
             MaterialPageRoute(
-              builder: (context) => const MainPage(
-                userId: '',
-                userName: '',
-              ),
+              builder: (context) => const AuthLandingPage(),
             ),
             (route) => false,
           );

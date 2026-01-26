@@ -55,8 +55,13 @@ dependencies:
   flutter_rating_bar: ^4.0.1
   geolocator: ^14.0.2
   geocoding: ^4.0.0
-  web: ^1.1.0
-  
+
+  # 소셜 로그인
+  kakao_flutter_sdk_user: ^1.9.6
+
+  # 캘린더
+  table_calendar: ^3.1.2
+
   # 지도 구현
 
 dev_dependencies:

@@ -7,9 +7,11 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:property/firebase_options.dart';
 import 'package:property/constants/app_constants.dart';
 import 'package:property/screens/main_page.dart';
-import 'package:property/screens/broker/broker_dashboard_page.dart';
+import 'package:property/screens/broker/mls_broker_dashboard_page.dart';
+import 'package:property/screens/auth/auth_landing_page.dart';
 import 'package:property/api_request/firebase_service.dart';
 import 'package:property/screens/inquiry/broker_inquiry_response_page.dart';
+import 'package:kakao_flutter_sdk_user/kakao_flutter_sdk_user.dart' as kakao;
 import 'package:property/utils/app_analytics_observer.dart';
 import 'package:property/utils/admin_page_loader_actual.dart';
 import 'package:property/utils/logger.dart';
@@ -19,7 +21,15 @@ import 'main_stub.dart' if (dart.library.html) 'main_web.dart' as web;
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
+
+  // 카카오 SDK 초기화 (네이티브 앱 키)
+  // ⚠️ 배포 전 필수: Kakao Developers에서 발급받은 실제 키로 교체하세요
+  // https://developers.kakao.com/console/app
+  kakao.KakaoSdk.init(
+    nativeAppKey: 'YOUR_KAKAO_NATIVE_APP_KEY',
+    javaScriptAppKey: 'YOUR_KAKAO_JAVASCRIPT_APP_KEY',
+  );
+
   // 이미지 캐시 최적화 (메모리 사용량 제한)
   PaintingBinding.instance.imageCache.maximumSize = 100;
   PaintingBinding.instance.imageCache.maximumSizeBytes = 50 * 1024 * 1024; // 50MB
@@ -314,7 +324,7 @@ class _AuthGateState extends State<_AuthGate> {
       }
     });
   }
-  
+
   /// Firebase를 백그라운드에서 비동기로 초기화
   Future<void> _initializeFirebaseAsync() async {
     // Firebase가 준비될 때까지 대기 (최대 1초로 단축)
@@ -323,35 +333,12 @@ class _AuthGateState extends State<_AuthGate> {
       await Future.delayed(const Duration(milliseconds: 100));
       attempts++;
     }
-    
+
     if (mounted) {
       setState(() {
         _firebaseReady = true;
       });
-      // Firebase가 준비되면 익명 로그인 시도 (백그라운드)
-      _initializeAnonymousUser();
-    }
-  }
-  
-  Future<void> _initializeAnonymousUser() async {
-    // Firebase가 준비되지 않았으면 대기
-    if (Firebase.apps.isEmpty) {
-      return;
-    }
-    
-    // 이미 로그인된 사용자가 있으면 익명 로그인은 시도하지 않는다.
-    if (FirebaseAuth.instance.currentUser != null) {
-      return;
-    }
-    
-    try {
-      await FirebaseService().signInAnonymously();
-    } catch (e) {
-      // 익명 로그인 실패는 무시하고 계속 진행
-      Logger.warning(
-        '익명 로그인 실패',
-        metadata: {'error': e.toString()},
-      );
+      // 익명 로그인 제거 - 로그인 필수로 변경
     }
   }
   
@@ -363,25 +350,28 @@ class _AuthGateState extends State<_AuthGate> {
         body: Center(child: CircularProgressIndicator()),
       );
     }
-    
-    // Firebase가 준비되지 않았어도 기본 UI 표시
+
+    // Firebase가 준비되지 않았어도 랜딩 페이지 표시
     if (!_firebaseReady) {
-      return const MainPage(userId: '', userName: '');
+      return const AuthLandingPage();
     }
-    
+
     return StreamBuilder<User?>(
       stream: FirebaseAuth.instance.authStateChanges(),
       builder: (context, snapshot) {
         final user = snapshot.data;
-        
-        // Firebase 준비 중이거나 익명 로그인 중이어도 기본 UI 표시
-        if (snapshot.connectionState == ConnectionState.waiting && user == null) {
-          return const MainPage(userId: '', userName: '');
+
+        // Firebase 준비 중에는 로딩 표시
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Scaffold(
+            body: Center(child: CircularProgressIndicator()),
+          );
         }
-        
-        if (user == null) {
+
+        // 비로그인 상태 또는 익명 사용자: 랜딩 페이지로 이동
+        if (user == null || user.isAnonymous) {
           _cachedUserData = null;
-          return const MainPage(userId: '', userName: '');
+          return const AuthLandingPage();
         }
         
         // 캐시된 데이터가 있고 같은 사용자면 즉시 반환
@@ -392,7 +382,7 @@ class _AuthGateState extends State<_AuthGate> {
             final brokerId =
                 _cachedUserData!['brokerId'] ?? _cachedUserData!['uid'];
             final brokerName = _cachedUserData!['name'] ?? '공인중개사';
-            return BrokerDashboardPage(
+            return MLSBrokerDashboardPage(
               brokerId: brokerId,
               brokerName: brokerName,
               brokerData: _cachedUserData!['brokerData'],
@@ -458,11 +448,19 @@ class _AuthGateState extends State<_AuthGate> {
               );
             }
             
-            // 로딩 중에도 기본 UI를 먼저 표시
+            // 로딩 중에는 로딩 인디케이터 표시 (중개사/일반 사용자 구분 전이므로)
             if (userSnap.connectionState == ConnectionState.waiting) {
-              return MainPage(
-                userId: user.uid,
-                userName: user.email?.split('@').first ?? '사용자',
+              return const Scaffold(
+                body: Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      CircularProgressIndicator(),
+                      SizedBox(height: 16),
+                      Text('로그인 정보를 확인하는 중...'),
+                    ],
+                  ),
+                ),
               );
             }
 
@@ -484,7 +482,7 @@ class _AuthGateState extends State<_AuthGate> {
                 profile['brokerData'] != null) {
               final brokerId = profile['brokerId'] ?? profile['uid'];
               final brokerName = profile['name'] ?? '공인중개사';
-              return BrokerDashboardPage(
+              return MLSBrokerDashboardPage(
                 brokerId: brokerId,
                 brokerName: brokerName,
                 brokerData: profile['brokerData'],
