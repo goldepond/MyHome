@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:property/models/property.dart';
+import 'package:property/api_request/google_sign_in_helper.dart';
 import 'package:property/models/quote_request.dart';
 import 'package:property/models/broker_review.dart';
 import 'package:property/models/notification_model.dart';
@@ -2066,10 +2067,69 @@ class FirebaseService {
     return null;
   }
 
-  /// 구글 로그인 (임시 비활성화)
+  /// 구글 로그인
   Future<Map<String, dynamic>?> signInWithGoogle() async {
-    Logger.warning('구글 로그인은 현재 비활성화되어 있습니다.');
-    return null;
+    try {
+      // 플랫폼 지원 여부 확인
+      if (!GoogleSignInService.isSupported) {
+        Logger.warning('구글 로그인은 이 플랫폼에서 지원되지 않습니다.');
+        return null;
+      }
+
+      // Google Sign-In 수행
+      final userCredential = await GoogleSignInService.signIn();
+
+      if (userCredential == null) {
+        Logger.info('구글 로그인 취소됨');
+        return null;
+      }
+
+      final user = userCredential.user;
+      if (user == null) {
+        Logger.error('구글 로그인 실패: Firebase 사용자 없음');
+        return null;
+      }
+
+      // Firestore에 사용자 문서 생성/업데이트
+      final userDoc = await _firestore.collection(_usersCollectionName).doc(user.uid).get();
+
+      if (!userDoc.exists) {
+        // 신규 사용자 - 문서 생성
+        await _firestore.collection(_usersCollectionName).doc(user.uid).set({
+          'name': user.displayName ?? '사용자',
+          'email': user.email ?? '',
+          'photoUrl': user.photoURL,
+          'userType': 'user',
+          'createdAt': FieldValue.serverTimestamp(),
+          'updatedAt': FieldValue.serverTimestamp(),
+          'provider': 'google',
+        });
+        Logger.info('구글 로그인 성공 (신규 사용자): ${user.uid}');
+      } else {
+        // 기존 사용자 - 마지막 로그인 시간 업데이트
+        await _firestore.collection(_usersCollectionName).doc(user.uid).update({
+          'updatedAt': FieldValue.serverTimestamp(),
+          'lastLoginAt': FieldValue.serverTimestamp(),
+        });
+        Logger.info('구글 로그인 성공 (기존 사용자): ${user.uid}');
+      }
+
+      // 최신 사용자 정보 가져오기
+      final updatedDoc = await _firestore.collection(_usersCollectionName).doc(user.uid).get();
+      final userData = updatedDoc.data() ?? {};
+
+      return {
+        'uid': user.uid,
+        'name': userData['name'] ?? user.displayName ?? '사용자',
+        'email': user.email ?? '',
+        'photoUrl': user.photoURL,
+        'userType': userData['userType'] ?? 'user',
+        'provider': 'google',
+      };
+    } catch (e) {
+      Logger.error('구글 로그인 오류: $e');
+      return null;
+    }
   }
 
   /// 네이버 로그인 (임시 비활성화)
