@@ -57,6 +57,18 @@ class AdminUserLogsPage extends StatefulWidget {
 class _AdminUserLogsPageState extends State<AdminUserLogsPage> {
   final LogService _logService = LogService();
 
+  /// 로그를 사용자별로 그룹화
+  Map<String, List<ActionLog>> _groupLogsByUser(List<ActionLog> logs) {
+    final Map<String, List<ActionLog>> grouped = {};
+    for (final log in logs) {
+      if (!grouped.containsKey(log.userId)) {
+        grouped[log.userId] = [];
+      }
+      grouped[log.userId]!.add(log);
+    }
+    return grouped;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -81,7 +93,7 @@ class _AdminUserLogsPageState extends State<AdminUserLogsPage> {
                 ),
                 SizedBox(height: 8),
                 Text(
-                  '앱 내 사용자들의 주요 활동 내역을 실시간으로 확인합니다.',
+                  '사용자별로 그룹화된 활동 내역입니다. 클릭하면 상세 로그를 볼 수 있습니다.',
                   style: TextStyle(
                     fontSize: 14,
                     color: AirbnbColors.textSecondary,
@@ -90,11 +102,11 @@ class _AdminUserLogsPageState extends State<AdminUserLogsPage> {
               ],
             ),
           ),
-          
-          // 로그 리스트
+
+          // 로그 리스트 (사용자별 그룹화)
           Expanded(
             child: StreamBuilder<List<ActionLog>>(
-              stream: _logService.getLogs(limit: 100),
+              stream: _logService.getLogs(limit: 200),
               builder: (context, snapshot) {
                 if (snapshot.hasError) {
                   return Center(child: Text('오류 발생: ${snapshot.error}'));
@@ -110,18 +122,94 @@ class _AdminUserLogsPageState extends State<AdminUserLogsPage> {
                   return const Center(child: Text('기록된 로그가 없습니다.'));
                 }
 
-                return ListView.separated(
+                // 사용자별로 그룹화
+                final groupedLogs = _groupLogsByUser(logs);
+                final userIds = groupedLogs.keys.toList();
+
+                // 최근 활동 순으로 정렬
+                userIds.sort((a, b) {
+                  final aLatest = groupedLogs[a]!.first.timestamp;
+                  final bLatest = groupedLogs[b]!.first.timestamp;
+                  return bLatest.compareTo(aLatest);
+                });
+
+                return ListView.builder(
                   padding: const EdgeInsets.all(16),
-                  itemCount: logs.length,
-                  separatorBuilder: (context, index) => const Divider(),
+                  itemCount: userIds.length,
                   itemBuilder: (context, index) {
-                    final log = logs[index];
-                    return _buildLogTile(log);
+                    final odbc = userIds[index];
+                    final userLogs = groupedLogs[odbc]!;
+                    return _buildUserCard(odbc, userLogs);
                   },
                 );
               },
             ),
           ),
+        ],
+      ),
+    );
+  }
+
+  /// 사용자별 카드 (접을 수 있는 형태)
+  Widget _buildUserCard(String odbc, List<ActionLog> logs) {
+    final latestLog = logs.first;
+    final dateFormat = DateFormat('MM/dd HH:mm');
+
+    return Card(
+      margin: const EdgeInsets.only(bottom: 12),
+      elevation: 1,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: ExpansionTile(
+        leading: CircleAvatar(
+          backgroundColor: AirbnbColors.primary.withValues(alpha: 0.1),
+          child: const Icon(Icons.person, color: AirbnbColors.primary),
+        ),
+        title: Text(
+          _shortenUserId(odbc),
+          style: const TextStyle(fontWeight: FontWeight.bold),
+        ),
+        subtitle: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+              decoration: BoxDecoration(
+                color: AirbnbColors.success.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Text(
+                '${logs.length}개 활동',
+                style: const TextStyle(
+                  fontSize: 12,
+                  color: AirbnbColors.success,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ),
+            const SizedBox(width: 8),
+            Text(
+              '최근: ${dateFormat.format(latestLog.timestamp)}',
+              style: const TextStyle(
+                fontSize: 12,
+                color: AirbnbColors.textSecondary,
+              ),
+            ),
+          ],
+        ),
+        children: [
+          const Divider(height: 1),
+          ...logs.take(20).map((log) => _buildLogTile(log)),
+          if (logs.length > 20)
+            Padding(
+              padding: const EdgeInsets.all(12),
+              child: Text(
+                '...외 ${logs.length - 20}개 더 있음',
+                style: const TextStyle(
+                  color: AirbnbColors.textSecondary,
+                  fontSize: 12,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ),
         ],
       ),
     );
@@ -133,7 +221,6 @@ class _AdminUserLogsPageState extends State<AdminUserLogsPage> {
     // 한글로 변환
     final actionKorean = _actionTypeMap[log.actionType] ?? log.actionType;
     final screenKorean = _getScreenNameKorean(log.target);
-    final userShortId = _shortenUserId(log.userId);
 
     IconData icon;
     Color color;
@@ -161,48 +248,18 @@ class _AdminUserLogsPageState extends State<AdminUserLogsPage> {
     }
 
     return ListTile(
-      leading: CircleAvatar(
-        backgroundColor: color.withValues(alpha: 0.1),
-        child: Icon(icon, color: color, size: 20),
-      ),
+      dense: true,
+      leading: Icon(icon, color: color, size: 20),
       title: Text(
         '$actionKorean: $screenKorean',
-        style: const TextStyle(fontWeight: FontWeight.bold),
+        style: const TextStyle(fontSize: 14),
       ),
-      subtitle: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Icon(Icons.person_outline, size: 14, color: AirbnbColors.textSecondary),
-              const SizedBox(width: 4),
-              Text(
-                userShortId,
-                style: const TextStyle(fontSize: 12, color: AirbnbColors.textSecondary),
-              ),
-              const SizedBox(width: 12),
-              Icon(Icons.access_time, size: 14, color: AirbnbColors.textSecondary),
-              const SizedBox(width: 4),
-              Text(
-                dateFormat.format(log.timestamp),
-                style: const TextStyle(color: AirbnbColors.textSecondary, fontSize: 12),
-              ),
-            ],
-          ),
-          if (log.metadata.isNotEmpty && _hasUsefulMetadata(log.metadata))
-            Container(
-              margin: const EdgeInsets.only(top: 4),
-              padding: const EdgeInsets.all(8),
-              decoration: BoxDecoration(
-                color: AirbnbColors.surface,
-                borderRadius: BorderRadius.circular(4),
-              ),
-              child: Text(
-                _formatMetadata(log.metadata),
-                style: const TextStyle(fontSize: 11, color: AirbnbColors.textSecondary),
-              ),
-            ),
-        ],
+      trailing: Text(
+        dateFormat.format(log.timestamp),
+        style: const TextStyle(
+          color: AirbnbColors.textSecondary,
+          fontSize: 11,
+        ),
       ),
     );
   }
@@ -215,7 +272,9 @@ class _AdminUserLogsPageState extends State<AdminUserLogsPage> {
     }
 
     // minified 또는 dynamic 이름은 "기타 화면"으로 표시
-    if (target.contains('minified') || target.contains('dynamic') || target.contains('<')) {
+    if (target.contains('minified') ||
+        target.contains('dynamic') ||
+        target.contains('<')) {
       return '기타 화면';
     }
 
@@ -231,31 +290,11 @@ class _AdminUserLogsPageState extends State<AdminUserLogsPage> {
   }
 
   /// 사용자 ID를 짧게 표시 (처음 8자만)
-  String _shortenUserId(String userId) {
-    if (userId == 'anonymous') return '비로그인';
-    if (userId.length > 8) {
-      return '${userId.substring(0, 8)}...';
+  String _shortenUserId(String odbc) {
+    if (odbc == 'anonymous') return '비로그인 사용자';
+    if (odbc.length > 12) {
+      return '사용자 ${odbc.substring(0, 8)}...';
     }
-    return userId;
-  }
-
-  /// 유용한 메타데이터가 있는지 확인
-  bool _hasUsefulMetadata(Map<String, dynamic> metadata) {
-    // screenClass만 있는 경우는 유용하지 않음
-    if (metadata.length == 1 && metadata.containsKey('screenClass')) {
-      return false;
-    }
-    return metadata.isNotEmpty;
-  }
-
-  /// 메타데이터를 읽기 쉽게 포맷
-  String _formatMetadata(Map<String, dynamic> metadata) {
-    final filtered = Map.from(metadata)..remove('screenClass');
-    if (filtered.isEmpty) return '';
-
-    return filtered.entries
-        .map((e) => '${e.key}: ${e.value}')
-        .join(', ');
+    return '사용자 $odbc';
   }
 }
-
