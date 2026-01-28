@@ -1,5 +1,13 @@
 {
   "projects": {
     "default": "houseproject-18f44"
+  },
+  "targets": {
+    "houseproject-18f44": {
+      "hosting": {
+        "main": ["houseproject-18f44"],
+        "admin": ["houseproject-admin"]
+      }
+    }
   }
 }

@@ -84,53 +84,49 @@ class AdminApp extends StatelessWidget {
         useMaterial3: true,
         fontFamily: 'NotoSansKR',
       ),
-      // 관리자 앱은 루트('/')로 접속하면 바로 관리자 인증 게이트로 연결
-      home: const AdminAuthGate(),
+      // 관리자 앱은 자동 익명 로그인 후 대시보드로 연결
+      home: const AdminAutoLogin(),
     );
   }
 }
 
-/// 관리자 로그인 확인 및 대시보드 연결
-class AdminAuthGate extends StatefulWidget {
-  const AdminAuthGate({super.key});
+/// 자동 익명 로그인 후 대시보드 연결 (로그인 UI 없음)
+class AdminAutoLogin extends StatefulWidget {
+  const AdminAutoLogin({super.key});
 
   @override
-  State<AdminAuthGate> createState() => _AdminAuthGateState();
+  State<AdminAutoLogin> createState() => _AdminAutoLoginState();
 }
 
-class _AdminAuthGateState extends State<AdminAuthGate> {
-  bool _isInitializingAnonymous = false;
+class _AdminAutoLoginState extends State<AdminAutoLogin> {
+  bool _isLoading = true;
+  String? _error;
 
   @override
   void initState() {
     super.initState();
-    _initializeAnonymousUser();
+    _autoLogin();
   }
 
-  Future<void> _initializeAnonymousUser() async {
-    // 이미 로그인된 사용자가 있으면 패스
-    if (FirebaseAuth.instance.currentUser != null) {
-      return;
-    }
-    
-    setState(() {
-      _isInitializingAnonymous = true;
-    });
-    
+  Future<void> _autoLogin() async {
     try {
-      // 임시: 관리자도 일단 익명 로그인 등을 사용한다고 가정
-      // 실제 운영 시에는 이메일/비밀번호 로그인 폼으로 대체 권장
-      await FirebaseService().signInAnonymously();
+      // 이미 로그인되어 있으면 패스
+      if (FirebaseAuth.instance.currentUser != null) {
+        setState(() => _isLoading = false);
+        return;
+      }
+
+      // 자동 익명 로그인
+      await FirebaseAuth.instance.signInAnonymously();
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
     } catch (e) {
-      // 익명 로그인 실패는 로깅
-      Logger.warning(
-        '익명 로그인 실패 (관리자 앱)',
-        metadata: {'error': e.toString()},
-      );
-    } finally {
+      Logger.warning('자동 로그인 실패', metadata: {'error': e.toString()});
       if (mounted) {
         setState(() {
-          _isInitializingAnonymous = false;
+          _isLoading = false;
+          _error = e.toString();
         });
       }
     }
@@ -138,40 +134,54 @@ class _AdminAuthGateState extends State<AdminAuthGate> {
 
   @override
   Widget build(BuildContext context) {
-    return StreamBuilder<User?>(
-      stream: FirebaseAuth.instance.authStateChanges(),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting || _isInitializingAnonymous) {
-          return const Scaffold(
-            body: Center(child: CircularProgressIndicator()),
-          );
-        }
-
-        if (snapshot.hasData) {
-          // 로그인 성공 -> 관리자 대시보드
-          return AdminDashboard(
-            userId: snapshot.data!.uid,
-            userName: snapshot.data!.email ?? '관리자',
-          );
-        }
-
-        // 로그인 실패 또는 로그아웃 상태
-        return Scaffold(
-          body: Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Text('관리자 접근 권한이 필요합니다.'),
-                const SizedBox(height: 20),
-                ElevatedButton(
-                  onPressed: _initializeAnonymousUser,
-                  child: const Text('로그인 재시도'),
-                ),
-              ],
-            ),
+    // 로딩 중
+    if (_isLoading) {
+      return const Scaffold(
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              CircularProgressIndicator(),
+              SizedBox(height: 16),
+              Text('관리자 페이지 로딩 중...'),
+            ],
           ),
-        );
-      },
+        ),
+      );
+    }
+
+    // 에러 발생 시
+    if (_error != null) {
+      return Scaffold(
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(Icons.error_outline, size: 48, color: Colors.red),
+              const SizedBox(height: 16),
+              Text('로그인 오류: $_error'),
+              const SizedBox(height: 16),
+              ElevatedButton(
+                onPressed: () {
+                  setState(() {
+                    _isLoading = true;
+                    _error = null;
+                  });
+                  _autoLogin();
+                },
+                child: const Text('재시도'),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    // 로그인 성공 -> 대시보드
+    final user = FirebaseAuth.instance.currentUser;
+    return AdminDashboard(
+      userId: user?.uid ?? 'admin',
+      userName: '관리자',
     );
   }
 }
