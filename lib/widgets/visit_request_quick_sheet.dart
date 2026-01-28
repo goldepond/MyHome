@@ -155,11 +155,11 @@ class _VisitRequestQuickSheetState extends State<VisitRequestQuickSheet> {
       padding: const EdgeInsets.all(AppleSpacing.md),
       decoration: BoxDecoration(
         color: isReschedule
-            ? AppleColors.systemBlue.withOpacity(0.05)
+            ? AppleColors.systemBlue.withValues(alpha: 0.05)
             : AppleColors.secondarySystemGroupedBackground,
         borderRadius: BorderRadius.circular(AppleRadius.md),
         border: isReschedule
-            ? Border.all(color: AppleColors.systemBlue.withOpacity(0.3))
+            ? Border.all(color: AppleColors.systemBlue.withValues(alpha: 0.3))
             : null,
       ),
       child: Column(
@@ -177,7 +177,7 @@ class _VisitRequestQuickSheetState extends State<VisitRequestQuickSheet> {
                       width: 40,
                       height: 40,
                       decoration: BoxDecoration(
-                        color: AppleColors.systemBlue.withOpacity(0.1),
+                        color: AppleColors.systemBlue.withValues(alpha: 0.1),
                         shape: BoxShape.circle,
                       ),
                       child: Icon(Icons.person, color: AppleColors.systemBlue, size: 20),
@@ -299,7 +299,7 @@ class _VisitRequestQuickSheetState extends State<VisitRequestQuickSheet> {
                   onPressed: _isLoading ? null : () => _rejectRequest(request),
                   style: OutlinedButton.styleFrom(
                     foregroundColor: AppleColors.systemRed,
-                    side: BorderSide(color: AppleColors.systemRed.withOpacity(0.5)),
+                    side: BorderSide(color: AppleColors.systemRed.withValues(alpha: 0.5)),
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(AppleRadius.sm),
                     ),

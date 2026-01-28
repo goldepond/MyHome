@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../../models/mls_property.dart';
@@ -15,7 +16,7 @@ import 'mls_property_detail_page.dart';
 /// - 승인 시 연락처 상호 교환 → 앱 역할 종료
 /// - 연락처는 승인 전까지 비공개
 class MLSSellerDashboardPage extends StatefulWidget {
-  const MLSSellerDashboardPage({Key? key}) : super(key: key);
+  const MLSSellerDashboardPage({super.key});
 
   @override
   State<MLSSellerDashboardPage> createState() => _MLSSellerDashboardPageState();
@@ -26,6 +27,7 @@ class _MLSSellerDashboardPageState extends State<MLSSellerDashboardPage> {
 
   List<MLSProperty> _properties = [];
   bool _isLoading = true;
+  StreamSubscription<List<MLSProperty>>? _subscription;
 
   @override
   void initState() {
@@ -33,18 +35,33 @@ class _MLSSellerDashboardPageState extends State<MLSSellerDashboardPage> {
     _loadProperties();
   }
 
+  @override
+  void dispose() {
+    _subscription?.cancel();
+    super.dispose();
+  }
+
   void _loadProperties() {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) return;
 
-    setState(() => _isLoading = true);
-    _mlsService.getPropertiesByUser(user.uid).listen(
+    if (_properties.isEmpty) {
+      setState(() => _isLoading = true);
+    }
+
+    _subscription?.cancel();
+    _subscription = _mlsService.getPropertiesByUser(user.uid).listen(
       (properties) {
         if (mounted) {
-          setState(() {
-            _properties = properties;
-            _isLoading = false;
-          });
+          // 데이터가 변경되었을 때만 setState
+          if (_shouldUpdate(properties)) {
+            setState(() {
+              _properties = properties;
+              _isLoading = false;
+            });
+          } else if (_isLoading) {
+            setState(() => _isLoading = false);
+          }
         }
       },
       onError: (error) {
@@ -54,13 +71,43 @@ class _MLSSellerDashboardPageState extends State<MLSSellerDashboardPage> {
     );
   }
 
+  bool _shouldUpdate(List<MLSProperty> newList) {
+    if (_properties.length != newList.length) return true;
+    for (int i = 0; i < _properties.length; i++) {
+      if (_properties[i].id != newList[i].id ||
+          _properties[i].updatedAt != newList[i].updatedAt) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   @override
   Widget build(BuildContext context) {
     final isMobile = AppleResponsive.isMobile(context);
 
     return Scaffold(
       backgroundColor: AppleColors.systemGroupedBackground,
+      appBar: AppBar(
+        backgroundColor: AppleColors.systemBackground,
+        elevation: 0,
+        centerTitle: true,
+        title: const Text(
+          '내 매물',
+          style: TextStyle(
+            fontSize: 17,
+            fontWeight: FontWeight.w600,
+            color: AppleColors.label,
+          ),
+        ),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios, size: 20),
+          color: AppleColors.label,
+          onPressed: () => Navigator.pop(context),
+        ),
+      ),
       body: SafeArea(
+        top: false,
         child: _isLoading
             ? Center(
                 child: CircularProgressIndicator(
@@ -87,8 +134,8 @@ class _MLSSellerDashboardPageState extends State<MLSSellerDashboardPage> {
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   colors: [
-                    AppleColors.systemBlue.withOpacity(0.15),
-                    AppleColors.systemBlue.withOpacity(0.05),
+                    AppleColors.systemBlue.withValues(alpha: 0.15),
+                    AppleColors.systemBlue.withValues(alpha: 0.05),
                   ],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
@@ -261,7 +308,7 @@ class _MLSSellerDashboardPageState extends State<MLSSellerDashboardPage> {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(
-                  color: AppleColors.systemBlue.withOpacity(0.1),
+                  color: AppleColors.systemBlue.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Text(
@@ -332,7 +379,7 @@ class _MLSSellerDashboardPageState extends State<MLSSellerDashboardPage> {
                 Container(
                   padding: const EdgeInsets.all(AppleSpacing.sm),
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.15),
+                    color: Colors.white.withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(AppleRadius.sm),
                   ),
                   child: Row(
@@ -430,9 +477,9 @@ class _MLSSellerDashboardPageState extends State<MLSSellerDashboardPage> {
     return Container(
       padding: const EdgeInsets.all(AppleSpacing.sm),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
+        color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(AppleRadius.md),
-        border: Border.all(color: color.withOpacity(0.2)),
+        border: Border.all(color: color.withValues(alpha: 0.2)),
       ),
       child: Column(
         children: [
@@ -490,10 +537,13 @@ class _MLSSellerDashboardPageState extends State<MLSSellerDashboardPage> {
                       height: 180,
                       width: double.infinity,
                       fit: BoxFit.cover,
+                      // 메모리 최적화: 캐시 크기 제한
+                      cacheWidth: 400,
+                      cacheHeight: 360,
                       errorBuilder: (_, __, ___) => Container(
                         height: 180,
                         color: AppleColors.tertiarySystemFill,
-                        child: Icon(Icons.image_not_supported,
+                        child: const Icon(Icons.image_not_supported,
                           color: AppleColors.tertiaryLabel, size: 48),
                       ),
                     ),
@@ -523,7 +573,7 @@ class _MLSSellerDashboardPageState extends State<MLSSellerDashboardPage> {
                         vertical: AppleSpacing.xxs,
                       ),
                       decoration: BoxDecoration(
-                        color: Colors.black.withOpacity(0.6),
+                        color: Colors.black.withValues(alpha: 0.6),
                         borderRadius: BorderRadius.circular(AppleRadius.sm),
                       ),
                       child: Row(
@@ -846,7 +896,7 @@ class _MLSSellerDashboardPageState extends State<MLSSellerDashboardPage> {
         vertical: 2,
       ),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
+        color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(AppleRadius.xs),
       ),
       child: Row(
@@ -882,7 +932,7 @@ class _MLSSellerDashboardPageState extends State<MLSSellerDashboardPage> {
         vertical: AppleSpacing.xxs,
       ),
       decoration: BoxDecoration(
-        color: Colors.black.withOpacity(0.6),
+        color: Colors.black.withValues(alpha: 0.6),
         borderRadius: BorderRadius.circular(AppleRadius.sm),
       ),
       child: Text(

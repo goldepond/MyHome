@@ -478,7 +478,7 @@ class _MLSMarketplacePageState extends State<MLSMarketplacePage> {
         vertical: AppleSpacing.xxs,
       ),
       decoration: BoxDecoration(
-        color: statusColor.withOpacity(0.1),
+        color: statusColor.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(AppleRadius.sm),
       ),
       child: Text(
@@ -612,7 +612,7 @@ class _MLSMarketplacePageState extends State<MLSMarketplacePage> {
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
           decoration: BoxDecoration(
-            color: isActive ? AppleColors.systemBlue.withOpacity(0.1) : AppleColors.tertiarySystemFill,
+            color: isActive ? AppleColors.systemBlue.withValues(alpha: 0.1) : AppleColors.tertiarySystemFill,
             borderRadius: BorderRadius.circular(AppleRadius.full),
             border: Border.all(
               color: isActive ? AppleColors.systemBlue : Colors.transparent,
@@ -728,7 +728,7 @@ class _MLSMarketplacePageState extends State<MLSMarketplacePage> {
                 gradient: LinearGradient(
                   colors: [
                     AppleColors.systemBlue,
-                    AppleColors.systemBlue.withOpacity(0.8),
+                    AppleColors.systemBlue.withValues(alpha: 0.8),
                   ],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,

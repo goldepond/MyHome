@@ -85,7 +85,7 @@ class _MLSPropertyDetailPageState extends State<MLSPropertyDetailPage> {
         icon: Container(
           padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
-            color: Colors.black.withOpacity(0.3),
+            color: Colors.black.withValues(alpha: 0.3),
             shape: BoxShape.circle,
           ),
           child: const Icon(Icons.arrow_back, color: Colors.white, size: 20),
@@ -100,9 +100,12 @@ class _MLSPropertyDetailPageState extends State<MLSPropertyDetailPage> {
                   Image.network(
                     imageUrl,
                     fit: BoxFit.cover,
+                    // 메모리 최적화: 캐시 크기 제한
+                    cacheWidth: 800,
+                    cacheHeight: 600,
                     errorBuilder: (_, __, ___) => Container(
                       color: AppleColors.tertiarySystemFill,
-                      child: Icon(Icons.image_not_supported, color: AppleColors.tertiaryLabel, size: 48),
+                      child: const Icon(Icons.image_not_supported, color: AppleColors.tertiaryLabel, size: 48),
                     ),
                   ),
                   // 그라데이션 오버레이
@@ -112,9 +115,9 @@ class _MLSPropertyDetailPageState extends State<MLSPropertyDetailPage> {
                         begin: Alignment.topCenter,
                         end: Alignment.bottomCenter,
                         colors: [
-                          Colors.black.withOpacity(0.3),
+                          Colors.black.withValues(alpha: 0.3),
                           Colors.transparent,
-                          Colors.black.withOpacity(0.5),
+                          Colors.black.withValues(alpha: 0.5),
                         ],
                       ),
                     ),
@@ -127,7 +130,7 @@ class _MLSPropertyDetailPageState extends State<MLSPropertyDetailPage> {
                       child: Container(
                         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                         decoration: BoxDecoration(
-                          color: Colors.black.withOpacity(0.6),
+                          color: Colors.black.withValues(alpha: 0.6),
                           borderRadius: BorderRadius.circular(16),
                         ),
                         child: Row(
@@ -326,7 +329,7 @@ class _MLSPropertyDetailPageState extends State<MLSPropertyDetailPage> {
                   child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                     decoration: BoxDecoration(
-                      color: AppleColors.systemOrange.withOpacity(0.15),
+                      color: AppleColors.systemOrange.withValues(alpha: 0.15),
                       borderRadius: BorderRadius.circular(4),
                     ),
                     child: Text(
@@ -394,7 +397,7 @@ class _MLSPropertyDetailPageState extends State<MLSPropertyDetailPage> {
                 return Container(
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                   decoration: BoxDecoration(
-                    color: AppleColors.systemBlue.withOpacity(0.1),
+                    color: AppleColors.systemBlue.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(16),
                   ),
                   child: Text(
@@ -495,10 +498,10 @@ class _MLSPropertyDetailPageState extends State<MLSPropertyDetailPage> {
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                   decoration: BoxDecoration(
-                    color: AppleColors.systemGreen.withOpacity(0.1),
+                    color: AppleColors.systemGreen.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(16),
                     border: Border.all(
-                      color: AppleColors.systemGreen.withOpacity(0.3),
+                      color: AppleColors.systemGreen.withValues(alpha: 0.3),
                     ),
                   ),
                   child: Row(
@@ -854,7 +857,7 @@ class _MLSPropertyDetailPageState extends State<MLSPropertyDetailPage> {
           Container(
             padding: const EdgeInsets.all(AppleSpacing.md),
             decoration: BoxDecoration(
-              color: statusInfo.color.withOpacity(0.1),
+              color: statusInfo.color.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(AppleRadius.sm),
             ),
             child: Row(
@@ -916,9 +919,9 @@ class _MLSPropertyDetailPageState extends State<MLSPropertyDetailPage> {
               child: Container(
                 padding: const EdgeInsets.all(AppleSpacing.md),
                 decoration: BoxDecoration(
-                  color: AppleColors.systemGreen.withOpacity(0.1),
+                  color: AppleColors.systemGreen.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(AppleRadius.sm),
-                  border: Border.all(color: AppleColors.systemGreen.withOpacity(0.3)),
+                  border: Border.all(color: AppleColors.systemGreen.withValues(alpha: 0.3)),
                 ),
                 child: Row(
                   children: [
@@ -1030,7 +1033,7 @@ class _MLSPropertyDetailPageState extends State<MLSPropertyDetailPage> {
                 padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
                 decoration: BoxDecoration(
                   color: isSelected
-                      ? Colors.white.withOpacity(0.3)
+                      ? Colors.white.withValues(alpha: 0.3)
                       : AppleColors.secondarySystemFill,
                   borderRadius: BorderRadius.circular(8),
                 ),
@@ -1086,15 +1089,15 @@ class _MLSPropertyDetailPageState extends State<MLSPropertyDetailPage> {
     return Container(
       decoration: BoxDecoration(
         color: isPending
-            ? AppleColors.systemOrange.withOpacity(0.05)
+            ? AppleColors.systemOrange.withValues(alpha: 0.05)
             : AppleColors.secondarySystemGroupedBackground,
         borderRadius: BorderRadius.circular(AppleRadius.lg),
         border: isPending
-            ? Border.all(color: AppleColors.systemOrange.withOpacity(0.3))
+            ? Border.all(color: AppleColors.systemOrange.withValues(alpha: 0.3))
             : null,
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
+            color: Colors.black.withValues(alpha: 0.04),
             blurRadius: 10,
             offset: const Offset(0, 2),
           ),
@@ -1117,7 +1120,7 @@ class _MLSPropertyDetailPageState extends State<MLSPropertyDetailPage> {
                       width: 40,
                       height: 40,
                       decoration: BoxDecoration(
-                        color: AppleColors.systemBlue.withOpacity(0.1),
+                        color: AppleColors.systemBlue.withValues(alpha: 0.1),
                         shape: BoxShape.circle,
                       ),
                       child: Icon(
@@ -1158,7 +1161,7 @@ class _MLSPropertyDetailPageState extends State<MLSPropertyDetailPage> {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                 decoration: BoxDecoration(
-                  color: statusColor.withOpacity(0.15),
+                  color: statusColor.withValues(alpha: 0.15),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
@@ -1219,7 +1222,7 @@ class _MLSPropertyDetailPageState extends State<MLSPropertyDetailPage> {
               width: double.infinity,
               padding: const EdgeInsets.all(AppleSpacing.sm),
               decoration: BoxDecoration(
-                color: AppleColors.systemBlue.withOpacity(0.08),
+                color: AppleColors.systemBlue.withValues(alpha: 0.08),
                 borderRadius: BorderRadius.circular(AppleRadius.sm),
               ),
               child: Row(
@@ -1250,9 +1253,9 @@ class _MLSPropertyDetailPageState extends State<MLSPropertyDetailPage> {
                 width: double.infinity,
                 padding: const EdgeInsets.all(AppleSpacing.md),
                 decoration: BoxDecoration(
-                  color: AppleColors.systemGreen.withOpacity(0.1),
+                  color: AppleColors.systemGreen.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(AppleRadius.md),
-                  border: Border.all(color: AppleColors.systemGreen.withOpacity(0.3)),
+                  border: Border.all(color: AppleColors.systemGreen.withValues(alpha: 0.3)),
                 ),
                 child: Row(
                   children: [
@@ -1299,7 +1302,7 @@ class _MLSPropertyDetailPageState extends State<MLSPropertyDetailPage> {
               width: double.infinity,
               padding: const EdgeInsets.all(AppleSpacing.sm),
               decoration: BoxDecoration(
-                color: AppleColors.systemBlue.withOpacity(0.1),
+                color: AppleColors.systemBlue.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(AppleRadius.sm),
               ),
               child: Row(
@@ -1329,7 +1332,7 @@ class _MLSPropertyDetailPageState extends State<MLSPropertyDetailPage> {
                     onPressed: () => _rejectRequest(request),
                     style: OutlinedButton.styleFrom(
                       foregroundColor: AppleColors.systemRed,
-                      side: BorderSide(color: AppleColors.systemRed.withOpacity(0.5)),
+                      side: BorderSide(color: AppleColors.systemRed.withValues(alpha: 0.5)),
                       padding: const EdgeInsets.symmetric(vertical: 12),
                     ),
                     child: const Text('거절'),
@@ -1343,7 +1346,7 @@ class _MLSPropertyDetailPageState extends State<MLSPropertyDetailPage> {
                     onPressed: () => _suggestAlternativeTime(request),
                     style: OutlinedButton.styleFrom(
                       foregroundColor: AppleColors.systemBlue,
-                      side: BorderSide(color: AppleColors.systemBlue.withOpacity(0.5)),
+                      side: BorderSide(color: AppleColors.systemBlue.withValues(alpha: 0.5)),
                       padding: const EdgeInsets.symmetric(vertical: 12),
                     ),
                     child: const Text('다른 시간'),
@@ -1373,34 +1376,6 @@ class _MLSPropertyDetailPageState extends State<MLSPropertyDetailPage> {
           Text(
             '요청: ${_formatTimeAgo(request.createdAt)}',
             style: AppleTypography.caption2.copyWith(color: AppleColors.tertiaryLabel),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildInfoTag({
-    required IconData icon,
-    required String label,
-    required Color color,
-  }) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(icon, size: 14, color: color),
-          const SizedBox(width: 4),
-          Text(
-            label,
-            style: AppleTypography.caption1.copyWith(
-              color: color,
-              fontWeight: FontWeight.w600,
-            ),
           ),
         ],
       ),
@@ -1462,7 +1437,7 @@ class _MLSPropertyDetailPageState extends State<MLSPropertyDetailPage> {
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: AppleColors.systemGreen.withOpacity(0.1),
+                  color: AppleColors.systemGreen.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Row(
@@ -2032,7 +2007,7 @@ class _MLSPropertyDetailPageState extends State<MLSPropertyDetailPage> {
             label: const Text('삭제'),
             style: OutlinedButton.styleFrom(
               foregroundColor: AppleColors.systemRed,
-              side: BorderSide(color: AppleColors.systemRed.withOpacity(0.5)),
+              side: BorderSide(color: AppleColors.systemRed.withValues(alpha: 0.5)),
               padding: const EdgeInsets.symmetric(vertical: 14),
             ),
           ),
@@ -2086,9 +2061,9 @@ class _MLSPropertyDetailPageState extends State<MLSPropertyDetailPage> {
               child: Container(
                 padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
                 decoration: BoxDecoration(
-                  color: AppleColors.systemGreen.withOpacity(0.1),
+                  color: AppleColors.systemGreen.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(AppleRadius.sm),
-                  border: Border.all(color: AppleColors.systemGreen.withOpacity(0.3)),
+                  border: Border.all(color: AppleColors.systemGreen.withValues(alpha: 0.3)),
                 ),
                 child: Row(
                   children: [
@@ -2155,7 +2130,7 @@ class _MLSPropertyDetailPageState extends State<MLSPropertyDetailPage> {
             child: Container(
               padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
               decoration: BoxDecoration(
-                color: AppleColors.systemOrange.withOpacity(0.1),
+                color: AppleColors.systemOrange.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(AppleRadius.sm),
               ),
               child: Row(

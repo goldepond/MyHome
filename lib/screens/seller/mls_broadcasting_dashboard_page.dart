@@ -206,7 +206,7 @@ class _MLSBroadcastingDashboardPageState extends State<MLSBroadcastingDashboardP
                 Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: AppColors.success.withOpacity(0.1),
+                    color: AppColors.success.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Row(

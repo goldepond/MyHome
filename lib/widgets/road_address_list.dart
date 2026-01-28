@@ -86,13 +86,13 @@ class _AddressListItemState extends State<_AddressListItem> {
     // 배경색 결정 (우선순위: 클릭 > 호버 > 선택 > 기본)
     Color backgroundColor;
     if (_isPressed) {
-      backgroundColor = AirbnbColors.blue.withOpacity(0.2);
+      backgroundColor = AirbnbColors.blue.withValues(alpha: 0.2);
     } else if (_isHovered) {
-      backgroundColor = AirbnbColors.blue.withOpacity(0.08);
+      backgroundColor = AirbnbColors.blue.withValues(alpha: 0.08);
     } else if (widget.isSelected && isLargeText) {
       backgroundColor = AirbnbColors.blueDark;
     } else if (widget.isSelected) {
-      backgroundColor = AirbnbColors.blue.withOpacity(0.15);
+      backgroundColor = AirbnbColors.blue.withValues(alpha: 0.15);
     } else {
       backgroundColor = AirbnbColors.background;
     }
@@ -153,8 +153,8 @@ class _AddressListItemState extends State<_AddressListItem> {
             boxShadow: (widget.isSelected || _isHovered || _isPressed)
                 ? [
                     BoxShadow(
-                      color: AirbnbColors.blueDark.withOpacity(
-                        _isPressed ? 0.3 : (_isHovered ? 0.15 : 0.2),
+                      color: AirbnbColors.blueDark.withValues(
+                        alpha: _isPressed ? 0.3 : (_isHovered ? 0.15 : 0.2),
                       ),
                       blurRadius: _isPressed ? 16 : 12,
                       offset: const Offset(0, 2),

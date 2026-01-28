@@ -623,7 +623,7 @@ class _MLSBrokerDashboardPageState extends State<MLSBrokerDashboardPage>
                       child: Container(
                         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                         decoration: BoxDecoration(
-                          color: AppleColors.systemRed.withOpacity(0.1),
+                          color: AppleColors.systemRed.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(16),
                         ),
                         child: Row(
@@ -1416,7 +1416,7 @@ class _MLSBrokerDashboardPageState extends State<MLSBrokerDashboardPage>
         color: AppleColors.systemBackground,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: isVerified ? AppleColors.systemGreen.withOpacity(0.3) : AppleColors.separator,
+          color: isVerified ? AppleColors.systemGreen.withValues(alpha: 0.3) : AppleColors.separator,
         ),
       ),
       child: Column(
@@ -1429,7 +1429,7 @@ class _MLSBrokerDashboardPageState extends State<MLSBrokerDashboardPage>
                 width: 56,
                 height: 56,
                 decoration: BoxDecoration(
-                  color: AppleColors.systemBlue.withOpacity(0.1),
+                  color: AppleColors.systemBlue.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(28),
                 ),
                 child: Icon(
@@ -1460,7 +1460,7 @@ class _MLSBrokerDashboardPageState extends State<MLSBrokerDashboardPage>
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                             decoration: BoxDecoration(
-                              color: AppleColors.systemGreen.withOpacity(0.1),
+                              color: AppleColors.systemGreen.withValues(alpha: 0.1),
                               borderRadius: BorderRadius.circular(12),
                             ),
                             child: Row(
@@ -1717,7 +1717,7 @@ class _MLSBrokerDashboardPageState extends State<MLSBrokerDashboardPage>
                           Container(
                             padding: const EdgeInsets.all(10),
                             decoration: BoxDecoration(
-                              color: AppleColors.systemBlue.withOpacity(0.1),
+                              color: AppleColors.systemBlue.withValues(alpha: 0.1),
                               borderRadius: BorderRadius.circular(12),
                             ),
                             child: Icon(
@@ -2031,142 +2031,6 @@ class _MLSBrokerDashboardPageState extends State<MLSBrokerDashboardPage>
         }
       }
     }
-  }
-
-  /// 진행 상황 상세 보기
-  void _showProgressDetail(MLSProperty property) {
-    final myResponse = property.brokerResponses[widget.brokerId];
-    if (myResponse == null) return;
-
-    final stageInfo = switch (myResponse.stage) {
-      BrokerStage.received => ('수신', '매물을 배포 받았습니다', AppleColors.secondaryLabel),
-      BrokerStage.viewed => ('열람', '매물을 확인했습니다', AppleColors.systemBlue),
-      BrokerStage.requested => ('요청 대기', '방문 요청 승인을 기다리고 있습니다', AppleColors.systemOrange),
-      BrokerStage.approved => ('승인됨', '연락처가 교환되었습니다', AppleColors.systemGreen),
-      BrokerStage.completed => ('완료', '거래가 완료되었습니다', AppleColors.systemPurple),
-    };
-
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.transparent,
-      builder: (context) => Container(
-        decoration: const BoxDecoration(
-          color: AppleColors.systemBackground,
-          borderRadius: BorderRadius.vertical(top: Radius.circular(AppleRadius.lg)),
-        ),
-        child: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.all(AppleSpacing.lg),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // 핸들바
-                Center(
-                  child: Container(
-                    width: 36,
-                    height: 5,
-                    decoration: BoxDecoration(
-                      color: AppleColors.separator,
-                      borderRadius: BorderRadius.circular(2.5),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: AppleSpacing.lg),
-
-                Text(
-                  '진행 상황',
-                  style: AppleTypography.title2.copyWith(fontWeight: FontWeight.w700),
-                ),
-                const SizedBox(height: AppleSpacing.xs),
-                Text(
-                  property.roadAddress,
-                  style: AppleTypography.subheadline.copyWith(color: AppleColors.secondaryLabel),
-                ),
-
-                const SizedBox(height: AppleSpacing.lg),
-
-                // 현재 단계
-                Container(
-                  padding: const EdgeInsets.all(AppleSpacing.md),
-                  decoration: BoxDecoration(
-                    color: stageInfo.$3.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(AppleRadius.md),
-                  ),
-                  child: Row(
-                    children: [
-                      Container(
-                        width: 48,
-                        height: 48,
-                        decoration: BoxDecoration(
-                          color: stageInfo.$3,
-                          borderRadius: BorderRadius.circular(24),
-                        ),
-                        child: const Icon(Icons.check, color: Colors.white),
-                      ),
-                      const SizedBox(width: AppleSpacing.md),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              stageInfo.$1,
-                              style: AppleTypography.headline.copyWith(
-                                color: stageInfo.$3,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                            Text(
-                              stageInfo.$2,
-                              style: AppleTypography.subheadline.copyWith(
-                                color: AppleColors.secondaryLabel,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-
-                const SizedBox(height: AppleSpacing.lg),
-
-                // 다음 단계 버튼
-                if (myResponse.stage == BrokerStage.received)
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: () {
-                        Navigator.pop(context);
-                        _advanceStage(property);
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppleColors.systemBlue,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: AppleSpacing.md),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(AppleRadius.sm),
-                        ),
-                      ),
-                      child: Text(_getNextStageButtonText(myResponse.stage)),
-                    ),
-                  ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  String _getNextStageButtonText(BrokerStage currentStage) {
-    return switch (currentStage) {
-      BrokerStage.received => '매물 확인',
-      BrokerStage.viewed => '방문 요청',
-      BrokerStage.requested => '',
-      BrokerStage.approved => '',
-      BrokerStage.completed => '',
-    };
   }
 
   Future<void> _advanceStage(MLSProperty property) async {

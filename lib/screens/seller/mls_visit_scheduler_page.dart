@@ -141,7 +141,7 @@ class _MLSVisitSchedulerPageState extends State<MLSVisitSchedulerPage> {
             shape: BoxShape.circle,
           ),
           todayDecoration: BoxDecoration(
-            color: AppColors.primary.withOpacity(0.3),
+            color: AppColors.primary.withValues(alpha: 0.3),
             shape: BoxShape.circle,
           ),
           markerDecoration: const BoxDecoration(
@@ -240,7 +240,7 @@ class _MLSVisitSchedulerPageState extends State<MLSVisitSchedulerPage> {
                       Switch(
                         value: slot.isAvailable,
                         onChanged: (value) => _toggleSlotAvailability(dateKey, index, value),
-                        activeColor: AppColors.primary,
+                        activeTrackColor: AppColors.primary,
                       ),
                       IconButton(
                         icon: const Icon(Icons.delete, color: AppColors.error),

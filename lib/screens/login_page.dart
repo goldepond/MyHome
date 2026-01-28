@@ -536,66 +536,10 @@ class _LoginPageState extends State<LoginPage> {
     }
   }
 
-  // 네이버 로그인
-  Future<void> _loginWithNaver() async {
-    setState(() => _isLoading = true);
-    try {
-      final result = await _firebaseService.signInWithNaver();
-      await _handleSocialLoginResult(result, '네이버');
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('네이버 로그인 중 오류가 발생했습니다: ${e.toString()}'),
-            backgroundColor: AppleColors.systemRed,
-          ),
-        );
-      }
-    } finally {
-      if (mounted) setState(() => _isLoading = false);
-    }
-  }
-
   // 소셜 로그인 버튼들
   Widget _buildSocialLoginButtons() {
     return Column(
       children: [
-        // 네이버 로그인 버튼
-        SizedBox(
-          width: double.infinity,
-          height: 52,
-          child: OutlinedButton(
-            onPressed: _isLoading ? null : _loginWithNaver,
-            style: OutlinedButton.styleFrom(
-              backgroundColor: const Color(0xFF03C75A), // 네이버 그린
-              foregroundColor: Colors.white,
-              side: BorderSide.none,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  'N',
-                  style: AppTypography.button.copyWith(
-                    fontWeight: FontWeight.w900,
-                    fontSize: 20,
-                    color: Colors.white,
-                  ),
-                ),
-                const SizedBox(width: AppSpacing.sm),
-                Text(
-                  '네이버로 로그인',
-                  style: AppTypography.button.copyWith(color: Colors.white),
-                ),
-              ],
-            ),
-          ),
-        ),
-        const SizedBox(height: AppSpacing.sm),
-
         // 카카오 로그인 버튼
         SizedBox(
           width: double.infinity,

@@ -163,6 +163,19 @@ class _MLSQuickRegistrationPageState extends State<MLSQuickRegistrationPage>
 
     return Scaffold(
       backgroundColor: AppleColors.systemBackground,
+      appBar: AppBar(
+        backgroundColor: AppleColors.systemBackground,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back_ios, color: AppleColors.label),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+        title: Text(
+          _currentStep == 0 ? '매물 등록' : '${_currentStep + 1}/3 단계',
+          style: AppleTypography.headline.copyWith(color: AppleColors.label),
+        ),
+        centerTitle: true,
+      ),
       body: SafeArea(
         child: Center(
           child: ConstrainedBox(
@@ -1330,7 +1343,7 @@ class _MLSQuickRegistrationPageState extends State<MLSQuickRegistrationPage>
                       height: 52,
                       decoration: BoxDecoration(
                         color: hasSlots
-                            ? AppleColors.systemBlue.withOpacity(0.1)
+                            ? AppleColors.systemBlue.withValues(alpha: 0.1)
                             : AppleColors.tertiarySystemFill,
                         borderRadius: BorderRadius.circular(AppleRadius.sm),
                         border: hasSlots
@@ -1467,7 +1480,7 @@ class _MLSQuickRegistrationPageState extends State<MLSQuickRegistrationPage>
                             padding: const EdgeInsets.all(AppleSpacing.md),
                             decoration: BoxDecoration(
                               color: isSelected
-                                  ? AppleColors.systemBlue.withOpacity(0.1)
+                                  ? AppleColors.systemBlue.withValues(alpha: 0.1)
                                   : AppleColors.tertiarySystemFill,
                               borderRadius: BorderRadius.circular(AppleRadius.sm),
                               border: isSelected

@@ -61,7 +61,5 @@
         </intent>
         <!-- 카카오톡 앱 설치 여부 확인용 -->
         <package android:name="com.kakao.talk" />
-        <!-- 네이버 앱 설치 여부 확인용 -->
-        <package android:name="com.nhn.android.search" />
     </queries>
 </manifest>

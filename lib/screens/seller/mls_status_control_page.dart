@@ -25,7 +25,6 @@ class _MLSStatusControlPageState extends State<MLSStatusControlPage> {
 
   MLSProperty? _property;
   bool _isLoading = false;
-  bool _isUpdatingStatus = false;
 
   @override
   void initState() {
@@ -91,7 +90,7 @@ class _MLSStatusControlPageState extends State<MLSStatusControlPage> {
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: _getStatusColor(_property!.status).withOpacity(0.1),
+              color: _getStatusColor(_property!.status).withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Column(
@@ -195,7 +194,7 @@ class _MLSStatusControlPageState extends State<MLSStatusControlPage> {
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           color: isCurrent
-            ? _getStatusColor(status).withOpacity(0.1)
+            ? _getStatusColor(status).withValues(alpha: 0.1)
             : Colors.transparent,
           border: Border.all(
             color: isActive
@@ -374,7 +373,7 @@ class _MLSStatusControlPageState extends State<MLSStatusControlPage> {
             Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: _getStatusColor(history.to).withOpacity(0.2),
+                color: _getStatusColor(history.to).withValues(alpha: 0.2),
                 shape: BoxShape.circle,
               ),
               child: Icon(
@@ -452,7 +451,7 @@ class _MLSStatusControlPageState extends State<MLSStatusControlPage> {
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: AppColors.warning.withOpacity(0.1),
+                  color: AppColors.warning.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Row(
@@ -492,7 +491,7 @@ class _MLSStatusControlPageState extends State<MLSStatusControlPage> {
   }
 
   Future<void> _updateStatus(PropertyStatus newStatus) async {
-    setState(() => _isUpdatingStatus = true);
+    setState(() => _isLoading = true);
 
     try {
       await _mlsService.updateStatus(
@@ -515,7 +514,7 @@ class _MLSStatusControlPageState extends State<MLSStatusControlPage> {
         const SnackBar(content: Text('상태 변경에 실패했습니다')),
       );
     } finally {
-      if (mounted) setState(() => _isUpdatingStatus = false);
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 

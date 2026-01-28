@@ -54,25 +54,6 @@ class _AuthLandingPageState extends State<AuthLandingPage> {
     }
   }
 
-  // 네이버 로그인
-  Future<void> _signInWithNaver() async {
-    setState(() => _isLoading = true);
-    try {
-      final result = await _firebaseService.signInWithNaver();
-      if (result != null && mounted) {
-        // 로그인 성공 - AuthGate가 자동으로 MainPage로 이동
-      } else if (mounted) {
-        _showError('네이버 로그인에 실패했습니다.');
-      }
-    } catch (e) {
-      if (mounted) {
-        _showError('네이버 로그인 중 오류가 발생했습니다.');
-      }
-    } finally {
-      if (mounted) setState(() => _isLoading = false);
-    }
-  }
-
   // 이메일로 시작하기 (회원가입 페이지로 이동)
   void _startWithEmail() {
     Navigator.push(
@@ -199,16 +180,6 @@ class _AuthLandingPageState extends State<AuthLandingPage> {
   Widget _buildSocialButtons() {
     return Column(
       children: [
-        // 네이버 로그인 버튼
-        _SocialLoginButton(
-          text: '네이버로 시작하기',
-          backgroundColor: const Color(0xFF03C75A),
-          textColor: Colors.white,
-          iconPath: 'naver',
-          onPressed: _signInWithNaver,
-        ),
-        const SizedBox(height: AppleSpacing.sm),
-
         // 카카오 로그인 버튼
         _SocialLoginButton(
           text: '카카오로 시작하기',
@@ -384,27 +355,6 @@ class _SocialLoginButton extends StatelessWidget {
               color: Color(0xFF4285F4),
               fontSize: 14,
               fontWeight: FontWeight.w700,
-            ),
-          ),
-        ),
-      );
-    }
-
-    if (iconPath == 'naver') {
-      return Container(
-        width: 24,
-        height: 24,
-        decoration: const BoxDecoration(
-          color: Colors.white,
-          shape: BoxShape.circle,
-        ),
-        child: const Center(
-          child: Text(
-            'N',
-            style: TextStyle(
-              color: Color(0xFF03C75A),
-              fontSize: 16,
-              fontWeight: FontWeight.w900,
             ),
           ),
         ),

@@ -264,7 +264,7 @@ class _MLSNegotiationLogPageState extends State<MLSNegotiationLogPage> {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        border: Border.all(color: AppColors.primary.withOpacity(0.3)),
+        border: Border.all(color: AppColors.primary.withValues(alpha: 0.3)),
         borderRadius: BorderRadius.circular(8),
       ),
       child: Column(
@@ -466,7 +466,7 @@ class _MLSNegotiationLogPageState extends State<MLSNegotiationLogPage> {
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: AppColors.success.withOpacity(0.1),
+                color: AppColors.success.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Column(
@@ -714,7 +714,7 @@ class _MLSNegotiationLogPageState extends State<MLSNegotiationLogPage> {
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: AppColors.warning.withOpacity(0.1),
+                  color: AppColors.warning.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: const Text(

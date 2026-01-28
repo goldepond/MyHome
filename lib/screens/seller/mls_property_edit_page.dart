@@ -187,7 +187,7 @@ class _MLSPropertyEditPageState extends State<MLSPropertyEditPage> {
             width: 44,
             height: 44,
             decoration: BoxDecoration(
-              color: AppleColors.systemBlue.withOpacity(0.1),
+              color: AppleColors.systemBlue.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(AppleRadius.sm),
             ),
             child: Icon(icon, color: AppleColors.systemBlue, size: 22),
@@ -335,7 +335,7 @@ class _MLSPropertyEditPageState extends State<MLSPropertyEditPage> {
                 width: 24,
                 height: 24,
                 decoration: BoxDecoration(
-                  color: Colors.black.withOpacity(0.6),
+                  color: Colors.black.withValues(alpha: 0.6),
                   shape: BoxShape.circle,
                 ),
                 child: const Icon(
@@ -661,7 +661,7 @@ class _MLSPropertyEditPageState extends State<MLSPropertyEditPage> {
               Switch.adaptive(
                 value: _negotiable,
                 onChanged: (value) => setState(() => _negotiable = value),
-                activeColor: AppleColors.systemBlue,
+                activeTrackColor: AppleColors.systemBlue,
               ),
             ],
           ),
@@ -727,7 +727,7 @@ class _MLSPropertyEditPageState extends State<MLSPropertyEditPage> {
                   height: 56,
                   decoration: BoxDecoration(
                     color: hasSlots
-                        ? AppleColors.systemBlue.withOpacity(0.1)
+                        ? AppleColors.systemBlue.withValues(alpha: 0.1)
                         : AppleColors.tertiarySystemFill,
                     borderRadius: BorderRadius.circular(AppleRadius.sm),
                     border: hasSlots
@@ -795,14 +795,6 @@ class _MLSPropertyEditPageState extends State<MLSPropertyEditPage> {
         fontWeight: FontWeight.w600,
       ),
     );
-  }
-
-  int _getTotalSlotCount() {
-    int count = 0;
-    for (final slots in _availableSlots.values) {
-      count += slots.length;
-    }
-    return count;
   }
 
   /// 요일별 시간대 선택 다이얼로그
@@ -879,7 +871,7 @@ class _MLSPropertyEditPageState extends State<MLSPropertyEditPage> {
                             padding: const EdgeInsets.all(AppleSpacing.md),
                             decoration: BoxDecoration(
                               color: isSelected
-                                  ? AppleColors.systemBlue.withOpacity(0.1)
+                                  ? AppleColors.systemBlue.withValues(alpha: 0.1)
                                   : AppleColors.tertiarySystemFill,
                               borderRadius: BorderRadius.circular(AppleRadius.sm),
                               border: isSelected

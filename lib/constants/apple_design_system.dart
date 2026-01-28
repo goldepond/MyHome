@@ -254,7 +254,7 @@ class AppleShadows {
   /// 미세한 그림자 (떠있는 느낌)
   static List<BoxShadow> get subtle => [
     BoxShadow(
-      color: AppleColors.label.withOpacity(0.04),
+      color: AppleColors.label.withValues(alpha: 0.04),
       blurRadius: 8,
       offset: const Offset(0, 2),
       spreadRadius: 0,
@@ -264,7 +264,7 @@ class AppleShadows {
   /// 일반 그림자 (카드)
   static List<BoxShadow> get card => [
     BoxShadow(
-      color: AppleColors.label.withOpacity(0.08),
+      color: AppleColors.label.withValues(alpha: 0.08),
       blurRadius: 16,
       offset: const Offset(0, 4),
       spreadRadius: 0,
@@ -274,7 +274,7 @@ class AppleShadows {
   /// 강한 그림자 (모달, 팝업)
   static List<BoxShadow> get strong => [
     BoxShadow(
-      color: AppleColors.label.withOpacity(0.12),
+      color: AppleColors.label.withValues(alpha: 0.12),
       blurRadius: 24,
       offset: const Offset(0, 8),
       spreadRadius: 0,
@@ -375,7 +375,7 @@ class AppleCard extends StatelessWidget {
             color: Colors.transparent,
             borderRadius: BorderRadius.circular(AppleRadius.lg),
             border: Border.all(
-              color: AppleColors.separator.withOpacity(0.3),
+              color: AppleColors.separator.withValues(alpha: 0.3),
               width: 0.5,
             ),
             boxShadow: hasShadow ? AppleShadows.subtle : null,

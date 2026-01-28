@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import '../models/mls_property.dart';
 import '../models/notification_model.dart';
@@ -13,9 +14,17 @@ import 'firebase_service.dart';
 /// - 방문 예약 관리
 /// - 협의 이력 관리
 class MLSPropertyService {
+  // 싱글톤 패턴
+  static final MLSPropertyService _instance = MLSPropertyService._internal();
+  factory MLSPropertyService() => _instance;
+  MLSPropertyService._internal();
+
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   static const String _collectionName = 'mlsProperties';
+
+  // 스트림 캐싱용 변수 (재구독 방지)
+  final Map<String, Stream<List<MLSProperty>>> _broadcastStreams = {};
 
   /// 매물 생성
   Future<String> createProperty(MLSProperty property) async {
@@ -88,7 +97,15 @@ class MLSPropertyService {
 
   /// 중개사가 영업할 매물 목록 조회 (모든 활성 매물)
   /// whereIn 대신 클라이언트 필터링 사용하여 인덱스 제약 회피
+  /// 스트림 캐싱으로 재구독 방지
   Stream<List<MLSProperty>> getAllBrowsableProperties({String? region}) {
+    final cacheKey = 'browsable_${region ?? 'all'}';
+
+    // 이미 캐싱된 스트림이 있으면 재사용
+    if (_broadcastStreams.containsKey(cacheKey)) {
+      return _broadcastStreams[cacheKey]!;
+    }
+
     Query<Map<String, dynamic>> query = _firestore
       .collection(_collectionName)
       .where('isActive', isEqualTo: true)
@@ -99,7 +116,7 @@ class MLSPropertyService {
       query = query.where('region', isEqualTo: region);
     }
 
-    return query.snapshots().map((snapshot) {
+    final stream = query.snapshots().map((snapshot) {
       return snapshot.docs
         .map((doc) => MLSProperty.fromMap(doc.data()))
         .where((p) =>
@@ -107,7 +124,15 @@ class MLSPropertyService {
           p.status == PropertyStatus.inquiry ||
           p.status == PropertyStatus.underOffer)
         .toList();
-    });
+    }).asBroadcastStream();
+
+    _broadcastStreams[cacheKey] = stream;
+    return stream;
+  }
+
+  /// 캐시된 스트림 초기화 (지역 변경 시 호출)
+  void clearBrowsableCache() {
+    _broadcastStreams.removeWhere((key, _) => key.startsWith('browsable_'));
   }
 
   /// 전체 매물의 지역 목록 조회 (필터용)
@@ -194,8 +219,15 @@ class MLSPropertyService {
   }
 
   /// 중개사에게 배포된 모든 매물 조회 (실시간 스트림 버전)
+  /// 스트림 캐싱으로 재구독 방지
   Stream<List<MLSProperty>> getPropertiesBroadcastedToBrokerStream(String brokerId) {
-    return _firestore
+    final cacheKey = 'broadcasted_$brokerId';
+
+    if (_broadcastStreams.containsKey(cacheKey)) {
+      return _broadcastStreams[cacheKey]!;
+    }
+
+    final stream = _firestore
       .collection(_collectionName)
       .where('targetBrokerIds', arrayContains: brokerId)
       .where('isDeleted', isEqualTo: false)
@@ -206,12 +238,22 @@ class MLSPropertyService {
         return snapshot.docs
           .map((doc) => MLSProperty.fromMap(doc.data()))
           .toList();
-      });
+      }).asBroadcastStream();
+
+    _broadcastStreams[cacheKey] = stream;
+    return stream;
   }
 
   /// 중개사가 가계약 또는 거래완료한 매물 조회 (성과 탭용)
+  /// 스트림 캐싱으로 재구독 방지
   Stream<List<MLSProperty>> getCompletedPropertiesByBroker(String brokerId) {
-    return _firestore
+    final cacheKey = 'completed_$brokerId';
+
+    if (_broadcastStreams.containsKey(cacheKey)) {
+      return _broadcastStreams[cacheKey]!;
+    }
+
+    final stream = _firestore
       .collection(_collectionName)
       .where('finalBrokerId', isEqualTo: brokerId)
       .where('isDeleted', isEqualTo: false)
@@ -224,7 +266,21 @@ class MLSPropertyService {
             property.status == PropertyStatus.depositTaken ||
             property.status == PropertyStatus.sold)
           .toList();
-      });
+      }).asBroadcastStream();
+
+    _broadcastStreams[cacheKey] = stream;
+    return stream;
+  }
+
+  /// 중개사 관련 캐시 초기화 (로그아웃 시 호출)
+  void clearBrokerCache(String brokerId) {
+    _broadcastStreams.removeWhere((key, _) =>
+        key == 'broadcasted_$brokerId' || key == 'completed_$brokerId');
+  }
+
+  /// 전체 캐시 초기화 (로그아웃 시 호출)
+  void clearAllCache() {
+    _broadcastStreams.clear();
   }
 
   /// 매물 배포 (지역 내 중개사에게 푸시)

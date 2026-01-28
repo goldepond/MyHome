@@ -3,7 +3,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:property/models/property.dart';
 import 'package:property/api_request/google_sign_in_helper.dart';
 import 'package:property/api_request/kakao_sign_in_helper.dart';
-import 'package:property/api_request/naver_sign_in_helper.dart';
 import 'package:property/models/quote_request.dart';
 import 'package:property/models/broker_review.dart';
 import 'package:property/models/notification_model.dart';
@@ -2337,106 +2336,6 @@ class FirebaseService {
       };
     } catch (e) {
       Logger.error('구글 로그인 오류: $e');
-      return null;
-    }
-  }
-
-  /// 네이버 로그인
-  Future<Map<String, dynamic>?> signInWithNaver() async {
-    try {
-      Logger.info('[Firebase 네이버] ========== signInWithNaver 시작 ==========');
-
-      // 플랫폼 지원 여부 확인
-      if (!NaverSignInService.isSupported) {
-        Logger.warning('네이버 로그인은 이 플랫폼에서 지원되지 않습니다.');
-        return null;
-      }
-
-      // 네이버 로그인 수행
-      final naverUser = await NaverSignInService.signIn();
-
-      if (naverUser == null) {
-        Logger.info('네이버 로그인 취소됨');
-        return null;
-      }
-
-      Logger.info('[Firebase 네이버] 네이버 로그인 성공: ${naverUser['id']}');
-
-      // 네이버 ID를 기반으로 Firebase Custom Token 또는 익명 로그인 후 연동
-      // 네이버는 Firebase와 직접 연동이 안되므로 커스텀 인증 또는 이메일 기반 처리
-      final naverId = naverUser['id'] ?? '';
-      final naverEmail = naverUser['email'] ?? 'naver_$naverId@naver.placeholder';
-      final naverName = naverUser['name'] ?? naverUser['nickname'] ?? '네이버 사용자';
-
-      // 이메일이 있으면 해당 이메일로 사용자 찾기/생성
-      String finalUserId;
-      bool isNewUser = false;
-
-      // 기존 네이버 연동 사용자 찾기
-      final existingUsers = await _firestore
-          .collection(_usersCollectionName)
-          .where('naverId', isEqualTo: naverId)
-          .limit(1)
-          .get();
-
-      if (existingUsers.docs.isNotEmpty) {
-        // 기존 사용자 발견
-        finalUserId = existingUsers.docs.first.id;
-        Logger.info('[Firebase 네이버] 기존 네이버 연동 사용자 발견: $finalUserId');
-
-        // 마지막 로그인 시간 업데이트
-        await _firestore.collection(_usersCollectionName).doc(finalUserId).update({
-          'updatedAt': FieldValue.serverTimestamp(),
-          'lastLoginAt': FieldValue.serverTimestamp(),
-        });
-      } else {
-        // 신규 사용자 - Firebase 익명 로그인 후 네이버 정보 연동
-        isNewUser = true;
-        UserCredential? credential;
-
-        if (_auth.currentUser == null) {
-          credential = await _auth.signInAnonymously();
-          finalUserId = credential.user!.uid;
-        } else {
-          finalUserId = _auth.currentUser!.uid;
-        }
-
-        // 사용자 문서 생성
-        await _firestore.collection(_usersCollectionName).doc(finalUserId).set({
-          'name': naverName,
-          'email': naverEmail,
-          'naverId': naverId,
-          'photoUrl': naverUser['profileImageUrl'],
-          'phone': naverUser['mobile'],
-          'gender': naverUser['gender'],
-          'birthday': naverUser['birthday'],
-          'userType': 'user',
-          'createdAt': FieldValue.serverTimestamp(),
-          'updatedAt': FieldValue.serverTimestamp(),
-          'provider': 'naver',
-        });
-
-        Logger.info('[Firebase 네이버] 신규 네이버 사용자 생성: $finalUserId');
-      }
-
-      // 최신 사용자 정보 가져오기
-      final updatedDoc = await _firestore.collection(_usersCollectionName).doc(finalUserId).get();
-      final userData = updatedDoc.data() ?? {};
-
-      Logger.info('[Firebase 네이버] ========== signInWithNaver 완료 ==========');
-
-      return {
-        'uid': finalUserId,
-        'name': userData['name'] ?? naverName,
-        'email': userData['email'] ?? naverEmail,
-        'photoUrl': naverUser['profileImageUrl'],
-        'userType': userData['userType'] ?? 'user',
-        'provider': 'naver',
-        'naverId': naverId,
-        'isNewUser': isNewUser,
-      };
-    } catch (e) {
-      Logger.error('[Firebase 네이버] 네이버 로그인 오류: $e');
       return null;
     }
   }

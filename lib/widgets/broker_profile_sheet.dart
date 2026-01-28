@@ -166,7 +166,7 @@ class _BrokerProfileSheetState extends State<BrokerProfileSheet> {
             color: AppleColors.secondarySystemGroupedBackground,
             borderRadius: BorderRadius.circular(AppleRadius.md),
             border: Border.all(
-              color: isVerified ? AppleColors.systemGreen.withOpacity(0.3) : AppleColors.separator,
+              color: isVerified ? AppleColors.systemGreen.withValues(alpha: 0.3) : AppleColors.separator,
             ),
           ),
           child: Column(
@@ -179,7 +179,7 @@ class _BrokerProfileSheetState extends State<BrokerProfileSheet> {
                     width: 56,
                     height: 56,
                     decoration: BoxDecoration(
-                      color: AppleColors.systemBlue.withOpacity(0.1),
+                      color: AppleColors.systemBlue.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(28),
                     ),
                     child: Icon(
@@ -210,7 +210,7 @@ class _BrokerProfileSheetState extends State<BrokerProfileSheet> {
                               Container(
                                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                                 decoration: BoxDecoration(
-                                  color: AppleColors.systemGreen.withOpacity(0.1),
+                                  color: AppleColors.systemGreen.withValues(alpha: 0.1),
                                   borderRadius: BorderRadius.circular(12),
                                 ),
                                 child: Row(

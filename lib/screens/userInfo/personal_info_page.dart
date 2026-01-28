@@ -459,10 +459,6 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
     final phone = _userData?['phone']?.toString() ??
         _userData?['phoneNumber']?.toString() ??
         '';
-    final role = _userData?['role']?.toString() ??
-        _userData?['userType']?.toString() ??
-        '';
-    final provider = _userData?['provider']?.toString() ?? '';
     final brokerRegistrationNumber =
         _userData?['brokerRegistrationNumber']?.toString() ??
             _userData?['registrationNumber']?.toString() ??
@@ -506,33 +502,6 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
     );
   }
 
-  String _getRoleDisplayName(String role) {
-    switch (role.toLowerCase()) {
-      case 'broker':
-        return '공인중개사';
-      case 'user':
-        return '일반 사용자';
-      case 'admin':
-        return '관리자';
-      default:
-        return role;
-    }
-  }
-
-  String _getProviderDisplayName(String provider) {
-    switch (provider.toLowerCase()) {
-      case 'google':
-        return '구글';
-      case 'kakao':
-        return '카카오';
-      case 'naver':
-        return '네이버';
-      case 'apple':
-        return 'Apple';
-      default:
-        return '이메일';
-    }
-  }
 
   /// 설정 섹션
   Widget _buildSettingsSection(bool isWide) {

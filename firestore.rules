@@ -2,47 +2,83 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-    // 사용자 프로필
+    // === 헬퍼 함수 ===
+
+    // 인증된 사용자인지 확인
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    // 본인인지 확인
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    // 필수 필드 존재 여부 확인
+    function hasRequiredFields(fields) {
+      return request.resource.data.keys().hasAll(fields);
+    }
+
+    // 문자열 길이 제한
+    function isValidString(field, maxLen) {
+      return request.resource.data[field] is string &&
+             request.resource.data[field].size() <= maxLen;
+    }
+
+    // 타임스탬프 유효성
+    function isValidTimestamp(field) {
+      return request.resource.data[field] is timestamp;
+    }
+
+    // === 사용자 프로필 ===
     match /users/{userId} {
-      allow read: if request.auth != null;
-      allow write: if request.auth != null && request.auth.uid == userId;
+      allow read: if isAuthenticated();
+      allow create: if isOwner(userId) && hasRequiredFields(['email', 'createdAt']);
+      allow update: if isOwner(userId);
+      allow delete: if false; // 사용자 삭제는 관리자만
     }
 
-    // 공인중개사 컬렉션
+    // === 공인중개사 컬렉션 ===
     match /brokers/{brokerId} {
-      allow read: if request.auth != null;
-      allow write: if request.auth != null && request.auth.uid == brokerId;
+      allow read: if isAuthenticated();
+      allow create: if isOwner(brokerId) && hasRequiredFields(['name', 'phone', 'createdAt']);
+      allow update: if isOwner(brokerId);
+      allow delete: if false; // 중개사 삭제는 관리자만
     }
 
-    // 견적문의 컬렉션 (내집관리 페이지 필수)
+    // === 견적문의 컬렉션 ===
     match /quoteRequests/{requestId} {
-      allow read: if request.auth != null && (
+      allow read: if isAuthenticated() && (
         resource.data.userId == request.auth.uid ||
         resource.data.brokerId == request.auth.uid
       );
-      allow create: if request.auth != null;
-      allow update: if request.auth != null && (
+      allow create: if isAuthenticated() &&
+        request.resource.data.userId == request.auth.uid &&
+        hasRequiredFields(['userId', 'createdAt', 'status']);
+      allow update: if isAuthenticated() && (
         resource.data.userId == request.auth.uid ||
         resource.data.brokerId == request.auth.uid
       );
-      allow delete: if request.auth != null && resource.data.userId == request.auth.uid;
+      allow delete: if isAuthenticated() && resource.data.userId == request.auth.uid;
     }
 
-    // 부동산 매물
+    // === 부동산 매물 ===
     match /properties/{propertyId} {
-      allow read: if request.auth != null;
-      allow create: if request.auth != null;
-      allow update, delete: if request.auth != null && resource.data.userId == request.auth.uid;
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated() &&
+        request.resource.data.userId == request.auth.uid;
+      allow update, delete: if isAuthenticated() && resource.data.userId == request.auth.uid;
     }
 
-    // MLS 매물 컬렉션
+    // === MLS 매물 컬렉션 ===
     match /mlsProperties/{propertyId} {
-      allow read: if request.auth != null;
-      allow create: if request.auth != null;
-      // 매물 소유자는 모든 업데이트 가능
-      allow delete: if request.auth != null && resource.data.userId == request.auth.uid;
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated() &&
+        request.resource.data.userId == request.auth.uid &&
+        hasRequiredFields(['userId', 'roadAddress', 'createdAt', 'status']);
+      allow delete: if isAuthenticated() && resource.data.userId == request.auth.uid;
       // 업데이트: 소유자 또는 targetBrokerIds에 포함된 중개사
-      allow update: if request.auth != null && (
+      allow update: if isAuthenticated() && (
         resource.data.userId == request.auth.uid ||
         // 중개사가 방문 요청을 추가/수정할 수 있도록 허용
         (request.auth.uid in resource.data.targetBrokerIds) ||
@@ -52,34 +88,38 @@ service cloud.firestore {
 
       // 중개사 참여 정보 서브컬렉션
       match /broker_participations/{participationId} {
-        allow read: if request.auth != null;
-        allow create: if request.auth != null;
-        allow update, delete: if request.auth != null && resource.data.brokerId == request.auth.uid;
+        allow read: if isAuthenticated();
+        allow create: if isAuthenticated() &&
+          request.resource.data.brokerId == request.auth.uid;
+        allow update, delete: if isAuthenticated() && resource.data.brokerId == request.auth.uid;
       }
     }
 
-    // 방문 스케줄 컬렉션
+    // === 방문 스케줄 컬렉션 ===
     match /visitSchedules/{scheduleId} {
-      allow read: if request.auth != null && (
+      allow read: if isAuthenticated() && (
         resource.data.sellerId == request.auth.uid ||
         resource.data.brokerId == request.auth.uid
       );
-      allow create: if request.auth != null;
-      allow update, delete: if request.auth != null && (
+      allow create: if isAuthenticated() &&
+        (request.resource.data.sellerId == request.auth.uid ||
+         request.resource.data.brokerId == request.auth.uid);
+      allow update, delete: if isAuthenticated() && (
         resource.data.sellerId == request.auth.uid ||
         resource.data.brokerId == request.auth.uid
       );
     }
 
-    // 계약 정보
+    // === 계약 정보 ===
     match /contracts/{contractId} {
-      allow read: if request.auth != null && (
+      allow read: if isAuthenticated() && (
         resource.data.sellerId == request.auth.uid ||
         resource.data.buyerId == request.auth.uid ||
         resource.data.brokerId == request.auth.uid
       );
-      allow create: if request.auth != null;
-      allow update: if request.auth != null && (
+      allow create: if isAuthenticated() &&
+        hasRequiredFields(['sellerId', 'brokerId', 'createdAt']);
+      allow update: if isAuthenticated() && (
         resource.data.sellerId == request.auth.uid ||
         resource.data.buyerId == request.auth.uid ||
         resource.data.brokerId == request.auth.uid
@@ -87,81 +127,94 @@ service cloud.firestore {
       allow delete: if false; // 계약 삭제 금지
     }
 
-    // 알림 컬렉션
+    // === 알림 컬렉션 ===
     match /notifications/{notificationId} {
-      allow read: if request.auth != null && resource.data.userId == request.auth.uid;
-      allow create: if request.auth != null;
-      allow update, delete: if request.auth != null && resource.data.userId == request.auth.uid;
+      allow read: if isAuthenticated() && resource.data.userId == request.auth.uid;
+      // 시스템이나 다른 사용자가 알림 생성 가능
+      allow create: if isAuthenticated();
+      allow update, delete: if isAuthenticated() && resource.data.userId == request.auth.uid;
     }
 
-    // 채팅방 컬렉션
+    // === 채팅방 컬렉션 ===
     match /chatRooms/{roomId} {
-      allow read: if request.auth != null && (
-        resource.data.participantIds.hasAny([request.auth.uid])
-      );
-      allow create: if request.auth != null;
-      allow update: if request.auth != null && (
-        resource.data.participantIds.hasAny([request.auth.uid])
-      );
+      allow read: if isAuthenticated() &&
+        resource.data.participantIds.hasAny([request.auth.uid]);
+      allow create: if isAuthenticated() &&
+        request.resource.data.participantIds.hasAny([request.auth.uid]);
+      allow update: if isAuthenticated() &&
+        resource.data.participantIds.hasAny([request.auth.uid]);
       allow delete: if false; // 채팅방 삭제 금지
     }
 
-    // 채팅 메시지 (chatMessages)
+    // === 채팅 메시지 (chatMessages) ===
     match /chatMessages/{messageId} {
-      allow read: if request.auth != null;
-      allow create: if request.auth != null && request.resource.data.senderId == request.auth.uid;
-      allow update: if request.auth != null && resource.data.senderId == request.auth.uid;
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated() &&
+        request.resource.data.senderId == request.auth.uid &&
+        hasRequiredFields(['senderId', 'content', 'createdAt', 'roomId']);
+      allow update: if isAuthenticated() && resource.data.senderId == request.auth.uid;
       allow delete: if false; // 메시지 삭제 금지
     }
 
-    // 공인중개사 후기
+    // === 공인중개사 후기 ===
     match /brokerReviews/{reviewId} {
-      allow read: if request.auth != null;
-      allow create: if request.auth != null;
-      allow update, delete: if request.auth != null && resource.data.userId == request.auth.uid;
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated() &&
+        request.resource.data.userId == request.auth.uid &&
+        hasRequiredFields(['userId', 'brokerId', 'rating', 'createdAt']);
+      allow update, delete: if isAuthenticated() && resource.data.userId == request.auth.uid;
     }
 
-    // 채팅 메시지 (chat_messages - 기존)
+    // === 채팅 메시지 (chat_messages - 레거시) ===
     match /chat_messages/{messageId} {
-      allow read: if request.auth != null && (
+      allow read: if isAuthenticated() && (
         resource.data.senderId == request.auth.uid ||
         resource.data.receiverId == request.auth.uid
       );
-      allow create: if request.auth != null &&
+      allow create: if isAuthenticated() &&
         request.resource.data.senderId == request.auth.uid;
-      allow update: if request.auth != null &&
+      allow update: if isAuthenticated() &&
         resource.data.senderId == request.auth.uid;
+      allow delete: if false;
     }
 
-    // 방문 신청
+    // === 방문 신청 ===
     match /visit_requests/{requestId} {
-      allow read: if request.auth != null && (
+      allow read: if isAuthenticated() && (
         resource.data.buyerId == request.auth.uid ||
         resource.data.sellerId == request.auth.uid
       );
-      allow create: if request.auth != null &&
+      allow create: if isAuthenticated() &&
         request.resource.data.buyerId == request.auth.uid;
-      allow update: if request.auth != null && (
+      allow update: if isAuthenticated() && (
         resource.data.buyerId == request.auth.uid ||
         resource.data.sellerId == request.auth.uid
       );
-      allow delete: if request.auth != null && (
+      allow delete: if isAuthenticated() && (
         resource.data.buyerId == request.auth.uid ||
         resource.data.sellerId == request.auth.uid
       );
     }
 
-    // 사용자 로그 (관리자/디버깅용) - 본인 로그만 접근
+    // === 사용자 로그 (관리자/디버깅용) ===
     match /user_logs/{logId} {
-      allow read: if request.auth != null && resource.data.userId == request.auth.uid;
-      allow create: if request.auth != null;
+      allow read: if isAuthenticated() && resource.data.userId == request.auth.uid;
+      allow create: if isAuthenticated() &&
+        request.resource.data.userId == request.auth.uid;
       allow update, delete: if false; // 로그 수정/삭제 금지
     }
 
-    // MLS 시퀀스 카운터 (시스템 전용)
+    // === MLS 시퀀스 카운터 (시스템 전용) ===
     match /mls_sequences/{region} {
-      allow read: if request.auth != null;
-      allow write: if request.auth != null;
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated();
+    }
+
+    // === 중개사 통계 ===
+    match /brokerStats/{brokerId} {
+      allow read: if isAuthenticated();
+      // 통계는 시스템/서버에서만 업데이트 (Cloud Functions 권장)
+      allow write: if isAuthenticated();
     }
   }
 }

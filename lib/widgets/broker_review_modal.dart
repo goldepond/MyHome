@@ -112,7 +112,7 @@ class _BrokerReviewModalState extends State<BrokerReviewModal> {
                       width: 56,
                       height: 56,
                       decoration: BoxDecoration(
-                        color: AppleColors.systemGreen.withOpacity(0.1),
+                        color: AppleColors.systemGreen.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(AppleRadius.md),
                       ),
                       child: const Icon(
@@ -315,7 +315,7 @@ class _BrokerReviewModalState extends State<BrokerReviewModal> {
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: AppleSpacing.md),
         decoration: BoxDecoration(
-          color: isSelected ? color.withOpacity(0.1) : AppleColors.tertiarySystemFill,
+          color: isSelected ? color.withValues(alpha: 0.1) : AppleColors.tertiarySystemFill,
           borderRadius: BorderRadius.circular(AppleRadius.md),
           border: Border.all(
             color: isSelected ? color : Colors.transparent,

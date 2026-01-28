@@ -1,5 +1,6 @@
 {
-    "java.compile.nullAnalysis.mode": "automatic",
-    "java.configuration.updateBuildConfiguration": "automatic",
-    "cmake.sourceDirectory": "D:/Project/windows/flutter"
+  "java.compile.nullAnalysis.mode": "automatic",
+  "java.configuration.updateBuildConfiguration": "automatic",
+  "cmake.sourceDirectory": "D:/Project/windows/flutter",
+  "dart.flutterSdkPath": ".fvm/versions/3.24.5"
 }

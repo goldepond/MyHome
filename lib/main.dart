@@ -307,7 +307,6 @@ class _AuthGate extends StatefulWidget {
 class _AuthGateState extends State<_AuthGate> {
   Map<String, dynamic>? _cachedUserData;
   bool _firebaseReady = false;
-  bool _showingProfileCompletion = false;
 
   /// 기본 이름인지 확인 (소셜 로그인 기본값)
   bool _isDefaultName(String? name) {
