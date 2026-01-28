@@ -11,6 +11,7 @@ import 'broker/mls_broker_dashboard_page.dart';
 import 'seller/mls_seller_dashboard_page.dart';
 import 'seller/mls_quick_registration_page.dart';
 import 'notification/notification_page.dart';
+import 'userInfo/personal_info_page.dart';
 
 class MainPage extends StatefulWidget {
   final String userId;
@@ -292,212 +293,25 @@ class MainPageState extends State<MainPage> {
             );
           },
         ),
-      // 프로필/설정 (1클릭 접근)
+      // 전체 메뉴 (설정/마이페이지)
       IconButton(
-        icon: const Icon(Icons.person_outline, size: 24),
+        icon: const Icon(Icons.menu, size: 24),
         color: AppleColors.label,
-        tooltip: '프로필',
-        onPressed: () => _showProfileSheet(),
+        tooltip: '전체',
+        onPressed: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => PersonalInfoPage(
+                userId: widget.userId,
+                userName: widget.userName,
+              ),
+            ),
+          );
+        },
       ),
       const SizedBox(width: 4),
     ];
-  }
-
-  /// 프로필/설정 바텀시트
-  void _showProfileSheet() {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.transparent,
-      isScrollControlled: true,
-      builder: (context) => _buildProfileSheet(),
-    );
-  }
-
-  Widget _buildProfileSheet() {
-    final isLoggedIn = widget.userId.isNotEmpty;
-
-    return Container(
-      constraints: BoxConstraints(
-        maxHeight: MediaQuery.of(context).size.height * 0.6,
-      ),
-      decoration: const BoxDecoration(
-        color: AppleColors.systemBackground,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-      ),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          // 핸들바
-          Padding(
-            padding: const EdgeInsets.only(top: 8),
-            child: Container(
-              width: 36,
-              height: 5,
-              decoration: BoxDecoration(
-                color: AppleColors.separator,
-                borderRadius: BorderRadius.circular(2.5),
-              ),
-            ),
-          ),
-
-          // 프로필 헤더
-          Padding(
-            padding: const EdgeInsets.all(20),
-            child: Row(
-              children: [
-                Container(
-                  width: 56,
-                  height: 56,
-                  decoration: BoxDecoration(
-                    color: AppleColors.systemBlue.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(28),
-                  ),
-                  child: Icon(
-                    isLoggedIn ? Icons.person : Icons.person_outline,
-                    color: AppleColors.systemBlue,
-                    size: 28,
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        isLoggedIn ? widget.userName : '로그인이 필요합니다',
-                        style: AppleTypography.title3.copyWith(
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                      if (isLoggedIn && _isBroker)
-                        Container(
-                          margin: const EdgeInsets.only(top: 4),
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                          decoration: BoxDecoration(
-                            color: AppleColors.systemBlue.withOpacity(0.1),
-                            borderRadius: BorderRadius.circular(4),
-                          ),
-                          child: Text(
-                            '공인중개사',
-                            style: AppleTypography.caption1.copyWith(
-                              color: AppleColors.systemBlue,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ),
-                    ],
-                  ),
-                ),
-                IconButton(
-                  onPressed: () => Navigator.pop(context),
-                  icon: Icon(Icons.close, color: AppleColors.secondaryLabel),
-                ),
-              ],
-            ),
-          ),
-
-          const Divider(height: 1),
-
-          // 메뉴 아이템
-          Flexible(
-            child: ListView(
-              shrinkWrap: true,
-              padding: const EdgeInsets.symmetric(vertical: 8),
-              children: [
-                if (isLoggedIn) ...[
-                  _buildProfileMenuItem(
-                    icon: Icons.person_outline,
-                    label: '내 정보',
-                    onTap: () {
-                      Navigator.pop(context);
-                      Navigator.pushNamed(context, '/personal-info');
-                    },
-                  ),
-                  if (_isBroker)
-                    _buildProfileMenuItem(
-                      icon: Icons.store_outlined,
-                      label: '중개사 프로필 관리',
-                      onTap: () {
-                        Navigator.pop(context);
-                        Navigator.pushNamed(context, '/broker-settings');
-                      },
-                    ),
-                  _buildProfileMenuItem(
-                    icon: Icons.history,
-                    label: '활동 내역',
-                    onTap: () {
-                      Navigator.pop(context);
-                      Navigator.pushNamed(context, '/quote-history');
-                    },
-                  ),
-                  const Divider(indent: 56),
-                  _buildProfileMenuItem(
-                    icon: Icons.help_outline,
-                    label: '도움말',
-                    onTap: () {
-                      Navigator.pop(context);
-                      // TODO: 도움말 페이지
-                    },
-                  ),
-                  _buildProfileMenuItem(
-                    icon: Icons.logout,
-                    label: '로그아웃',
-                    color: AppleColors.systemRed,
-                    onTap: () async {
-                      Navigator.pop(context);
-                      await _firebaseService.signOut();
-                      if (mounted) {
-                        Navigator.of(context).pushReplacement(
-                          MaterialPageRoute(builder: (_) => const AuthLandingPage()),
-                        );
-                      }
-                    },
-                  ),
-                ] else ...[
-                  _buildProfileMenuItem(
-                    icon: Icons.login,
-                    label: '로그인',
-                    onTap: () {
-                      Navigator.pop(context);
-                      _login();
-                    },
-                  ),
-                  _buildProfileMenuItem(
-                    icon: Icons.person_add_outlined,
-                    label: '회원가입',
-                    onTap: () {
-                      Navigator.pop(context);
-                      Navigator.pushNamed(context, '/signup');
-                    },
-                  ),
-                ],
-              ],
-            ),
-          ),
-
-          SizedBox(height: MediaQuery.of(context).padding.bottom + 16),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildProfileMenuItem({
-    required IconData icon,
-    required String label,
-    required VoidCallback onTap,
-    Color? color,
-  }) {
-    return ListTile(
-      leading: Icon(icon, color: color ?? AppleColors.label, size: 22),
-      title: Text(
-        label,
-        style: AppleTypography.body.copyWith(
-          color: color ?? AppleColors.label,
-        ),
-      ),
-      trailing: Icon(Icons.chevron_right, color: AppleColors.tertiaryLabel, size: 20),
-      onTap: onTap,
-    );
   }
 
   Widget _buildMobileHeader() {
@@ -661,22 +475,32 @@ class MainPageState extends State<MainPage> {
                 },
               ),
 
-            // 2. 설정 버튼
+            // 2. 전체 메뉴 버튼
             if (widget.userId.isNotEmpty) ...[
               const SizedBox(width: 8),
               _buildHeaderActionButton(
-                icon: Icons.settings_outlined,
-                tooltip: '설정',
-                onPressed: _showProfileSheet,
+                icon: Icons.menu,
+                tooltip: '전체',
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => PersonalInfoPage(
+                        userId: widget.userId,
+                        userName: widget.userName,
+                      ),
+                    ),
+                  );
+                },
               ),
             ],
 
-            // 3. 중개사 대시보드 버튼 (모드 전환 - primary)
+            // 3. 중개사 모드로 전환 (모드 전환 - primary)
             if (_isBroker) ...[
               const SizedBox(width: 8),
               _buildHeaderActionButton(
-                icon: Icons.business_rounded,
-                tooltip: '중개사 대시보드',
+                icon: Icons.swap_horiz_rounded,
+                tooltip: '중개사 모드로 전환',
                 isPrimary: true,
                 onPressed: () {
                   final brokerId = _brokerData?['brokerId'] as String? ?? widget.userId;

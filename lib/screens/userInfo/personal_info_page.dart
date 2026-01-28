@@ -1,16 +1,18 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:property/constants/app_constants.dart';
-import 'package:property/constants/typography.dart';
-import 'package:property/constants/spacing.dart';
-import 'package:property/constants/responsive_constants.dart';
+import 'package:property/constants/apple_design_system.dart';
 import 'package:property/api_request/firebase_service.dart';
 import 'package:property/screens/auth/auth_landing_page.dart';
-import 'package:property/screens/change_password_page.dart';
 import 'package:property/screens/policy/privacy_policy_page.dart';
 import 'package:property/screens/policy/terms_of_service_page.dart';
 import 'package:property/widgets/customer_service_dialog.dart';
+import 'package:property/screens/broker/broker_settings_page.dart';
+import 'package:property/screens/seller/mls_seller_dashboard_page.dart';
+import 'package:property/screens/seller/mls_quick_registration_page.dart';
+import 'package:property/screens/notification/notification_page.dart';
+import 'package:property/screens/broker/mls_broker_dashboard_page.dart';
 
+/// 전체 페이지 (설정/마이페이지) - 반응형 디자인
 class PersonalInfoPage extends StatefulWidget {
   final String userId;
   final String userName;
@@ -27,734 +29,726 @@ class PersonalInfoPage extends StatefulWidget {
 
 class _PersonalInfoPageState extends State<PersonalInfoPage> {
   final FirebaseService _firebaseService = FirebaseService();
-  
-  // 사용자 정보 관련 변수들
+
   Map<String, dynamic>? _userData;
-  bool _isLoadingUserData = true;
-  
+  bool _isLoading = true;
+  bool _isBroker = false;
+  int _unreadNotificationCount = 0;
+  StreamSubscription<int>? _notificationSubscription;
+
+  // 반응형 브레이크포인트
+  static const double _mobileBreakpoint = 600;
+  static const double _tabletBreakpoint = 900;
+  static const double _maxContentWidth = 700;
 
   @override
   void initState() {
     super.initState();
     _loadUserData();
-  }
-  
-  Future<void> _loadUserData() async {
-    if (mounted) {
-      setState(() {
-        _isLoadingUserData = true;
-      });
-    }
-    
-    try {
-      final userData = await _firebaseService.getUser(widget.userId);
-      if (mounted) {
-        setState(() {
-          _userData = userData;
-          _isLoadingUserData = false;
-        });
-      }
-    } catch (e) {
-      if (mounted) {
-        setState(() {
-          _isLoadingUserData = false;
-        });
-      }
-    }
+    _subscribeToNotifications();
   }
 
   @override
   void dispose() {
+    _notificationSubscription?.cancel();
     super.dispose();
   }
 
-
-  // 로그아웃 기능
-  Future<void> _logout(BuildContext context) async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('로그아웃'),
-        content: const Text('정말 로그아웃하시겠습니까?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('취소'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(true),
-            style: TextButton.styleFrom(foregroundColor: AirbnbColors.error),
-            child: const Text('로그아웃'),
-          ),
-        ],
-      ),
-    );
-
-    if (confirmed == true) {
-      // Firebase 로그아웃
-      await _firebaseService.signOut();
-
-      // 로그인 랜딩 페이지로 이동하고 모든 이전 페이지 스택 제거
-      if (context.mounted) {
-        Navigator.of(context).pushAndRemoveUntil(
-          MaterialPageRoute(
-            builder: (context) => const AuthLandingPage(),
-          ),
-          (route) => false,
-        );
+  void _subscribeToNotifications() {
+    if (widget.userId.isEmpty) return;
+    _notificationSubscription = _firebaseService
+        .getUnreadNotificationCount(widget.userId)
+        .listen((count) {
+      if (mounted) {
+        setState(() => _unreadNotificationCount = count);
       }
-    }
+    });
   }
 
-  // 회원탈퇴 기능
-  Future<void> _deleteAccount(BuildContext context) async {
-    // 첫 번째 확인 다이얼로그
-    final firstConfirm = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('회원탈퇴'),
-        content: const Text(
-          '정말 회원탈퇴를 하시겠습니까?\n\n'
-          '탈퇴 시 모든 데이터가 삭제되며 복구할 수 없습니다.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('취소'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(true),
-            style: TextButton.styleFrom(foregroundColor: AirbnbColors.error),
-            child: const Text('탈퇴하기'),
-          ),
-        ],
-      ),
-    );
-
-    if (firstConfirm != true) return;
-    if (!mounted) return;
-    final finalConfirm = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text(
-          '⚠️ 최종 확인',
-          style: TextStyle(color: AirbnbColors.error),
-        ),
-        content: const Text(
-          '회원탈퇴를 진행하시겠습니까?\n\n'
-          '이 작업은 되돌릴 수 없습니다.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(false),
-            child: const Text('취소'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(true),
-            style: TextButton.styleFrom(foregroundColor: AirbnbColors.error),
-            child: const Text(
-              '탈퇴하기',
-              style: TextStyle(fontWeight: FontWeight.bold),
-            ),
-          ),
-        ],
-      ),
-    );
-
-    if (finalConfirm != true) return;
-
-    // 로딩 다이얼로그 표시
-    if (!context.mounted) return;
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) => const AlertDialog(
-        content: Row(
-          children: [
-            CircularProgressIndicator(),
-            SizedBox(width: 16),
-            Text('회원탈퇴 처리 중...'),
-          ],
-        ),
-      ),
-    );
+  Future<void> _loadUserData() async {
+    setState(() => _isLoading = true);
 
     try {
-      final errorMessage = await _firebaseService.deleteUserAccount(widget.userId);
+      final userData = await _firebaseService.getUser(widget.userId);
 
-      if (!context.mounted) return;
-      Navigator.of(context).pop(); // 로딩 다이얼로그 닫기
+      bool isBroker = false;
+      Map<String, dynamic>? mergedData = userData;
 
-      if (errorMessage == null) {
-        // 성공
-        if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('회원탈퇴가 완료되었습니다.'),
-              backgroundColor: AirbnbColors.success,
-              duration: Duration(seconds: 3),
-            ),
-          );
-
-          // 로그인 랜딩 페이지로 이동하고 모든 스택 제거
-          Navigator.of(context).pushAndRemoveUntil(
-            MaterialPageRoute(
-              builder: (context) => const AuthLandingPage(),
-            ),
-            (route) => false,
-          );
+      if (userData != null) {
+        final role = userData['role']?.toString().toLowerCase() ?? '';
+        if (role == 'broker') {
+          isBroker = true;
+        } else {
+          final brokerData = await _firebaseService.getBroker(widget.userId);
+          isBroker = brokerData != null;
+          if (brokerData != null) {
+            // 공인중개사 데이터 병합
+            mergedData = {...userData, ...brokerData};
+          }
         }
       } else {
-        // 실패
-        if (context.mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(errorMessage),
-              backgroundColor: AirbnbColors.error,
-              duration: const Duration(seconds: 5),
-            ),
-          );
+        // users 컬렉션에 없으면 brokers 컬렉션에서 조회
+        final brokerData = await _firebaseService.getBroker(widget.userId);
+        if (brokerData != null) {
+          isBroker = true;
+          mergedData = brokerData;
         }
       }
+
+      if (mounted) {
+        setState(() {
+          _userData = mergedData;
+          _isBroker = isBroker;
+          _isLoading = false;
+        });
+      }
     } catch (e) {
-      if (!context.mounted) return;
-      Navigator.of(context).pop(); // 로딩 다이얼로그 닫기
-      
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('회원탈퇴 중 오류가 발생했습니다: $e'),
-            backgroundColor: AirbnbColors.error,
-            duration: const Duration(seconds: 5),
-          ),
-        );
+      if (mounted) {
+        setState(() => _isLoading = false);
       }
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final isMobile = ResponsiveHelper.isMobile(context);
-    final isTablet = ResponsiveHelper.isTablet(context);
-    final bannerHeight = isMobile ? AppSpacing.xxxl * 5 : (isTablet ? AppSpacing.xxxl * 5.625 : AppSpacing.xxxl * 6.25);
-    const double overlapHeight = AppSpacing.xxxl * 1.25;
-
     return Scaffold(
-      backgroundColor: AirbnbColors.background,
-      body: SafeArea(
-        child: SingleChildScrollView(
-          child: Stack(
-            alignment: Alignment.topCenter,
-          children: [
-              // 히어로 배너 (메인페이지 스타일)
-            Container(
-                height: bannerHeight,
-              width: double.infinity,
-              padding: EdgeInsets.symmetric(
-                vertical: isMobile ? 48.0 : 64.0,
-                horizontal: isMobile ? 24.0 : 48.0,
-              ),
-              decoration: const BoxDecoration(
-                color: AirbnbColors.background,
-              ),
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 1200),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    // 매우 큰 헤드라인 (Stripe/Vercel 스타일)
-                    Text(
-                      '내 정보',
-                      textAlign: TextAlign.center,
-                      style: AppTypography.withColor(
-                        AppTypography.display.copyWith(
-                          fontSize: isMobile ? AppTypography.display.fontSize! : (isTablet ? AppTypography.display.fontSize! * 1.3 : AppTypography.display.fontSize! * 1.6),
-                          fontWeight: FontWeight.w800,
-                          letterSpacing: -1.5,
-                          height: 1.1,
-                        ),
-                        AirbnbColors.textPrimary,
-                      ),
-                    ),
-                    const SizedBox(height: AppSpacing.lg),
-                    // 큰 서브헤드
-                    Text(
-                      '내 계정 정보를 확인하고 관리하세요',
-                      textAlign: TextAlign.center,
-                      style: AppTypography.withColor(
-                        AppTypography.bodyLarge.copyWith(
-                          fontSize: isMobile ? AppTypography.bodyLarge.fontSize! : AppTypography.h4.fontSize!,
-                          fontWeight: FontWeight.w400,
-                          height: 1.6,
-                        ),
-                        AirbnbColors.textSecondary,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
+      backgroundColor: AppleColors.systemGroupedBackground,
+      appBar: _buildAppBar(context),
+      body: _isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : LayoutBuilder(
+              builder: (context, constraints) {
+                final isWide = constraints.maxWidth > _mobileBreakpoint;
+                final isVeryWide = constraints.maxWidth > _tabletBreakpoint;
 
-              // 메인 콘텐츠 (배너와 겹치게 배치)
-              Padding(
-                padding: EdgeInsets.only(top: bannerHeight - overlapHeight),
-                child: Center(
-                  child: Container(
-                    constraints: const BoxConstraints(maxWidth: 900),
-                    padding: const EdgeInsets.symmetric(horizontal: 24),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // 사용자 정보 카드
-                    Card(
-                      elevation: 0,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                      color: AirbnbColors.background,
-                      shadowColor: AirbnbColors.textPrimary.withValues(alpha: 0.06),
+                return SingleChildScrollView(
+                  child: Center(
+                    child: ConstrainedBox(
+                      constraints: BoxConstraints(
+                        maxWidth: isVeryWide ? _maxContentWidth : double.infinity,
+                      ),
                       child: Padding(
-                        padding: const EdgeInsets.all(20),
+                        padding: EdgeInsets.symmetric(
+                          horizontal: isWide ? 24 : 0,
+                          vertical: isWide ? 16 : 0,
+                        ),
                         child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Text(
-                              '내 정보',
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                color: AirbnbColors.textPrimary,
-                              ),
+                            // 프로필 헤더
+                            _buildProfileHeader(isWide),
+                            SizedBox(height: isWide ? 16 : 8),
+                            // 바로가기 섹션
+                            _buildQuickMenuSection(isWide),
+                            SizedBox(height: isWide ? 16 : 8),
+                            // 개인정보 섹션
+                            _buildSectionCard(
+                              isWide: isWide,
+                              child: _buildPersonalInfoSection(isWide),
                             ),
-                            const SizedBox(height: AppSpacing.md),
-                            SizedBox(
-                              width: double.infinity,
-                              height: 50,
-                              child: ElevatedButton.icon(
-                                onPressed: () {
-                                  Navigator.of(context).push(
-                                    MaterialPageRoute(
-                                      builder: (_) => const ChangePasswordPage(),
-                                    ),
-                                  );
-                                },
-                                icon: const Icon(Icons.password, color: AirbnbColors.background),
-                                label: const Text(
-                                  '전화번호 변경',
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.bold,
-                                    color: AirbnbColors.background,
-                                  ),
-                                ),
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: AirbnbColors.textPrimary, // 에어비엔비 스타일: 검은색 배경
-                                  foregroundColor: AirbnbColors.background,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                ),
-                              ),
+                            SizedBox(height: isWide ? 16 : 8),
+                            // 설정 섹션
+                            _buildSectionCard(
+                              isWide: isWide,
+                              child: _buildSettingsSection(isWide),
                             ),
-                            const SizedBox(height: AppSpacing.md + AppSpacing.xs),
-                            if (_isLoadingUserData)
-                              const Center(
-                                child: Padding(
-                                  padding: EdgeInsets.all(20),
-                                  child: CircularProgressIndicator(),
-                                ),
-                              )
-                            else ...[
-                              if (_userData?['email'] != null) ...[
-                                const SizedBox(height: AppSpacing.md + AppSpacing.xs),
-                                _buildInfoRow(
-                                  Icons.email_outlined, 
-                                  '이메일', 
-                                  _userData!['email'],
-                                ),
-                              ],
-                              if (_userData?['phone'] != null && _userData!['phone'].toString().isNotEmpty) ...[
-                                const SizedBox(height: AppSpacing.md + AppSpacing.xs),
-                                _buildEditableInfoRow(
-                                  Icons.phone_outlined, 
-                                  '전화번호', 
-                                  _userData!['phone'],
-                                  onEdit: () => _showEditPhoneDialog(),
-                                ),
-                              ],
-                              const SizedBox(height: AppSpacing.md + AppSpacing.xs),
-                              _buildEditableInfoRow(
-                                Icons.person, 
-                                '이름', 
-                                _userData?['name'] ?? widget.userName,
-                                onEdit: () => _showEditNameDialog(),
-                              ),
-                              const SizedBox(height: AppSpacing.md + AppSpacing.xs),
-                              _buildInfoRow(
-                                Icons.badge_outlined, 
-                                '역할', 
-                                _getRoleDisplayName(_userData?['role'] ?? 'user'),
-                              ),
-                            ],
-                            const SizedBox(height: AppSpacing.md),
+                            SizedBox(height: isWide ? 16 : 8),
+                            // 기타 섹션
+                            _buildSectionCard(
+                              isWide: isWide,
+                              child: _buildOtherSection(isWide),
+                            ),
+                            SizedBox(height: isWide ? 48 : 32),
                           ],
                         ),
                       ),
                     ),
-                    const SizedBox(height: 24),
+                  ),
+                );
+              },
+            ),
+    );
+  }
 
-                    // 계정 정보 섹션
-                    if (_userData != null && !_isLoadingUserData) ...[
-                      Card(
-                        elevation: 0,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                        color: AirbnbColors.background,
-                        shadowColor: AirbnbColors.textPrimary.withValues(alpha: 0.06),
-                        child: Padding(
-                          padding: const EdgeInsets.all(20),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Text(
-                                '계정 정보',
-                                style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  color: AirbnbColors.textPrimary,
-                                ),
-                              ),
-                              const SizedBox(height: AppSpacing.md),
-                              if (_userData?['createdAt'] != null) ...[
-                                _buildInfoRow(
-                                  Icons.calendar_today_outlined,
-                                  '가입일',
-                                  _formatDate(_userData!['createdAt']),
-                                ),
-                                const SizedBox(height: AppSpacing.md + AppSpacing.xs),
-                              ],
-                              if (_userData?['updatedAt'] != null && _userData!['updatedAt'] != _userData!['createdAt']) ...[
-                                _buildInfoRow(
-                                  Icons.update_outlined,
-                                  '최종 수정일',
-                                  _formatDate(_userData!['updatedAt']),
-                                ),
-                              ],
-                            ],
+  PreferredSizeWidget _buildAppBar(BuildContext context) {
+    return AppBar(
+      backgroundColor: AppleColors.systemBackground,
+      elevation: 0,
+      centerTitle: true,
+      title: const Text(
+        '전체',
+        style: TextStyle(
+          fontSize: 17,
+          fontWeight: FontWeight.w600,
+          color: AppleColors.label,
+        ),
+      ),
+      leading: IconButton(
+        icon: const Icon(Icons.arrow_back_ios, size: 20),
+        color: AppleColors.label,
+        onPressed: () => Navigator.pop(context),
+      ),
+    );
+  }
+
+  /// 섹션 카드 래퍼 (웹에서 카드 스타일 적용)
+  Widget _buildSectionCard({required bool isWide, required Widget child}) {
+    if (!isWide) {
+      return child;
+    }
+
+    return Container(
+      decoration: BoxDecoration(
+        color: AppleColors.systemBackground,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: AppleColors.separator.withValues(alpha: 0.3)),
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: child,
+    );
+  }
+
+  /// 프로필 헤더
+  Widget _buildProfileHeader(bool isWide) {
+    final userName = _userData?['name'] ?? widget.userName;
+    final userEmail = _userData?['email'] ?? '';
+
+    Widget content = Container(
+      color: AppleColors.systemBackground,
+      padding: EdgeInsets.all(isWide ? 24 : 20),
+      child: Row(
+        children: [
+          // 프로필 이미지
+          Container(
+            width: 56,
+            height: 56,
+            decoration: BoxDecoration(
+              color: AppleColors.systemBlue.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(28),
+            ),
+            child: const Icon(
+              Icons.person,
+              size: 28,
+              color: AppleColors.systemBlue,
+            ),
+          ),
+          const SizedBox(width: 16),
+          // 사용자 정보
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Flexible(
+                      child: Text(
+                        userName,
+                        style: const TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w600,
+                          color: AppleColors.label,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    if (_isBroker) ...[
+                      const SizedBox(width: 8),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: AppleColors.systemBlue.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: const Text(
+                          '공인중개사',
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
+                            color: AppleColors.systemBlue,
                           ),
                         ),
                       ),
-                      const SizedBox(height: 24),
                     ],
-                    
-                    // 고객센터 / 문의하기 섹션
-                    Card(
-                      elevation: 0,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                      color: AirbnbColors.background,
-                      shadowColor: AirbnbColors.textPrimary.withValues(alpha: 0.06),
-                      child: Padding(
-                        padding: const EdgeInsets.all(12),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Padding(
-                              padding: EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-                              child: Text(
-                                '고객센터 / 문의하기',
-                                style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  color: AirbnbColors.textPrimary,
-                                ),
-                              ),
-                            ),
-                            ListTile(
-                              leading: const Icon(Icons.support_agent_outlined, color: AirbnbColors.primary),
-                              title: const Text('문의하기 / 피드백'),
-                              subtitle: const Text('카카오톡, 페이스북, 스레드, 이메일'),
-                              trailing: const Icon(Icons.chevron_right),
-                              onTap: () {
-                                showCustomerServiceDialog(context);
-                              },
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-                    
-                    // 정책 및 도움말 섹션
-                    Card(
-                      elevation: 0,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                      color: AirbnbColors.background,
-                      shadowColor: AirbnbColors.textPrimary.withValues(alpha: 0.06),
-                      child: Padding(
-                        padding: const EdgeInsets.all(12),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Padding(
-                              padding: EdgeInsets.symmetric(horizontal: 8, vertical: 8),
-                              child: Text(
-                                '정책 및 도움말',
-                                style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  color: AirbnbColors.textPrimary,
-                                ),
-                              ),
-                            ),
-                            ListTile(
-                              leading: const Icon(Icons.privacy_tip_outlined, color: AirbnbColors.primary),
-                              title: const Text('개인정보 처리방침'),
-                              trailing: const Icon(Icons.chevron_right),
-                              onTap: () {
-                                Navigator.of(context).push(
-                                  MaterialPageRoute(builder: (_) => const PrivacyPolicyPage()),
-                                );
-                              },
-                            ),
-                            const Divider(height: 1),
-                            ListTile(
-                              leading: const Icon(Icons.description_outlined, color: AirbnbColors.primary),
-                              title: const Text('이용약관'),
-                              trailing: const Icon(Icons.chevron_right),
-                              onTap: () {
-                                Navigator.of(context).push(
-                                  MaterialPageRoute(builder: (_) => const TermsOfServicePage()),
-                                );
-                              },
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-                    
-                    // 로그아웃 섹션
-                    Card(
-                      elevation: 0,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                      color: AirbnbColors.background,
-                      shadowColor: AirbnbColors.textPrimary.withValues(alpha: 0.06),
-                      child: Padding(
-                        padding: const EdgeInsets.all(20),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text(
-                              '계정 관리',
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                color: AirbnbColors.textPrimary,
-                              ),
-                            ),
-                            const SizedBox(height: AppSpacing.md),
-                            SizedBox(
-                              width: double.infinity,
-                              height: 50,
-                              child: ElevatedButton.icon(
-                                onPressed: () => _logout(context),
-                                icon: const Icon(Icons.logout, color: AirbnbColors.background),
-                                label: const Text(
-                                  '로그아웃',
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.bold,
-                                    color: AirbnbColors.background,
-                                  ),
-                                ),
-                                style: ElevatedButton.styleFrom(
-                                  backgroundColor: AirbnbColors.error,
-                                  foregroundColor: AirbnbColors.background,
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                ),
-                              ),
-                            ),
-                            const SizedBox(height: AppSpacing.md + AppSpacing.xs),
-                            SizedBox(
-                              width: double.infinity,
-                              height: 50,
-                              child: OutlinedButton.icon(
-                                onPressed: () => _deleteAccount(context),
-                                icon: const Icon(Icons.delete_forever, color: AirbnbColors.error),
-                                label: const Text(
-                                  '회원탈퇴',
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.bold,
-                                    color: AirbnbColors.error,
-                                  ),
-                                ),
-                                style: OutlinedButton.styleFrom(
-                                  foregroundColor: AirbnbColors.error,
-                                  side: const BorderSide(color: AirbnbColors.error, width: 2),
-                                  shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                        const SizedBox(height: 24),
                   ],
+                ),
+                if (userEmail.isNotEmpty) ...[
+                  const SizedBox(height: 4),
+                  Text(
+                    userEmail,
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: AppleColors.secondaryLabel,
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+          // 편집 버튼
+          IconButton(
+            onPressed: () => _showEditNameDialog(),
+            icon: const Icon(Icons.edit_outlined, size: 20),
+            color: AppleColors.tertiaryLabel,
+          ),
+        ],
+      ),
+    );
+
+    if (isWide) {
+      return Container(
+        decoration: BoxDecoration(
+          color: AppleColors.systemBackground,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: AppleColors.separator.withValues(alpha: 0.3)),
+        ),
+        clipBehavior: Clip.antiAlias,
+        child: content,
+      );
+    }
+
+    return content;
+  }
+
+  /// 바로가기 섹션 - 심플한 디자인
+  Widget _buildQuickMenuSection(bool isWide) {
+    final quickMenuItems = <_QuickMenuItem>[
+      _QuickMenuItem(
+        icon: Icons.add_box_outlined,
+        label: '빠른 등록',
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const MLSQuickRegistrationPage(),
+            ),
+          );
+        },
+      ),
+      _QuickMenuItem(
+        icon: Icons.home_outlined,
+        label: '내 매물',
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const MLSSellerDashboardPage(),
+            ),
+          );
+        },
+      ),
+      if (_isBroker)
+        _QuickMenuItem(
+          icon: Icons.swap_horiz_rounded,
+          label: '중개 모드',
+          onTap: () {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                builder: (context) => MLSBrokerDashboardPage(
+                  brokerId: widget.userId,
+                  brokerName: widget.userName,
+                ),
+              ),
+            );
+          },
+        ),
+      if (_isBroker)
+        _QuickMenuItem(
+          icon: Icons.badge_outlined,
+          label: '중개사 프로필',
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => BrokerSettingsPage(
+                  brokerId: widget.userId,
+                  brokerName: widget.userName,
+                ),
+              ),
+            );
+          },
+        ),
+    ];
+
+    if (quickMenuItems.isEmpty) return const SizedBox.shrink();
+
+    Widget content = Container(
+      color: AppleColors.systemBackground,
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Padding(
+            padding: EdgeInsets.only(left: 4, bottom: 12),
+            child: Text(
+              '바로가기',
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                color: AppleColors.secondaryLabel,
               ),
             ),
           ),
+          Row(
+            children: quickMenuItems.map((item) {
+              return Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 4),
+                  child: _buildQuickMenuItem(item),
+                ),
+              );
+            }).toList(),
+          ),
+        ],
+      ),
+    );
+
+    if (isWide) {
+      return Container(
+        decoration: BoxDecoration(
+          color: AppleColors.systemBackground,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: AppleColors.separator.withValues(alpha: 0.3)),
         ),
-      ],
+        clipBehavior: Clip.antiAlias,
+        child: content,
+      );
+    }
+
+    return content;
+  }
+
+  Widget _buildQuickMenuItem(_QuickMenuItem item) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: item.onTap,
+        borderRadius: BorderRadius.circular(10),
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 14),
+          decoration: BoxDecoration(
+            color: AppleColors.tertiarySystemFill,
+            borderRadius: BorderRadius.circular(10),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(
+                item.icon,
+                size: 24,
+                color: AppleColors.label,
+              ),
+              const SizedBox(height: 6),
+              Text(
+                item.label,
+                style: const TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w500,
+                  color: AppleColors.label,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ],
           ),
         ),
       ),
     );
   }
 
+  /// 개인정보 섹션
+  Widget _buildPersonalInfoSection(bool isWide) {
+    final phone = _userData?['phone']?.toString() ??
+        _userData?['phoneNumber']?.toString() ??
+        '';
+    final role = _userData?['role']?.toString() ??
+        _userData?['userType']?.toString() ??
+        '';
+    final provider = _userData?['provider']?.toString() ?? '';
+    final brokerRegistrationNumber =
+        _userData?['brokerRegistrationNumber']?.toString() ??
+            _userData?['registrationNumber']?.toString() ??
+            '';
+
+    return Container(
+      color: AppleColors.systemBackground,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildSectionHeader('개인정보'),
+          _buildListTile(
+            icon: Icons.person_outline,
+            title: '이름',
+            value: _userData?['name'] ??
+                _userData?['ownerName'] ??
+                widget.userName,
+            onTap: () => _showEditNameDialog(),
+          ),
+          _buildDivider(),
+          _buildListTile(
+            icon: Icons.phone_outlined,
+            title: '전화번호',
+            value: phone.isNotEmpty ? phone : '-',
+            onTap: () => _showEditPhoneDialog(),
+          ),
+          // 공인중개사인 경우 등록번호 표시
+          if (_isBroker) ...[
+            _buildDivider(),
+            _buildListTile(
+              icon: Icons.badge_outlined,
+              title: '중개업 등록번호',
+              value: brokerRegistrationNumber.isNotEmpty
+                  ? brokerRegistrationNumber
+                  : '-',
+            ),
+          ],
+          const SizedBox(height: 8),
+        ],
+      ),
+    );
+  }
+
   String _getRoleDisplayName(String role) {
     switch (role.toLowerCase()) {
-      case 'admin':
-        return '관리자';
       case 'broker':
         return '공인중개사';
       case 'user':
-      default:
         return '일반 사용자';
+      case 'admin':
+        return '관리자';
+      default:
+        return role;
     }
   }
 
-  String _formatDate(dynamic date) {
-    if (date == null) return '-';
-    
-    try {
-      DateTime dateTime;
-      if (date is String) {
-        dateTime = DateTime.parse(date);
-      } else if (date is DateTime) {
-        dateTime = date;
-      } else {
-        return '-';
-      }
-      
-      final year = dateTime.year;
-      final month = dateTime.month.toString().padLeft(2, '0');
-      final day = dateTime.day.toString().padLeft(2, '0');
-      return '$year년 $month월 $day일';
-    } catch (e) {
-      return '-';
+  String _getProviderDisplayName(String provider) {
+    switch (provider.toLowerCase()) {
+      case 'google':
+        return '구글';
+      case 'kakao':
+        return '카카오';
+      case 'naver':
+        return '네이버';
+      case 'apple':
+        return 'Apple';
+      default:
+        return '이메일';
     }
   }
 
-  Widget _buildInfoRow(IconData icon, String label, String value) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        Container(
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: AirbnbColors.borderLight,
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Icon(
-            icon,
-            size: 24,
-            color: AirbnbColors.primary,
-          ),
-        ),
-        const SizedBox(width: 16),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+  /// 설정 섹션
+  Widget _buildSettingsSection(bool isWide) {
+    return Container(
+      color: AppleColors.systemBackground,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildSectionHeader('설정'),
+          Stack(
             children: [
-              Text(
-                label,
-                style: const TextStyle(
-                  fontSize: 13,
-                  color: AirbnbColors.textSecondary,
-                  fontWeight: FontWeight.w500,
-                ),
+              _buildListTile(
+                icon: Icons.notifications_outlined,
+                title: '알림',
+                showArrow: true,
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => NotificationPage(userId: widget.userId),
+                    ),
+                  );
+                },
               ),
-              const SizedBox(height: 2),
-              Text(
-                value,
-                style: const TextStyle(
-                  fontSize: 16,
-                  color: AirbnbColors.textPrimary,
-                  fontWeight: FontWeight.w600,
+              // 알림 배지
+              if (_unreadNotificationCount > 0)
+                Positioned(
+                  left: 38,
+                  top: 8,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: AppleColors.systemRed,
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(
+                      _unreadNotificationCount > 99 ? '99+' : '$_unreadNotificationCount',
+                      style: const TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.w600,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
                 ),
-              ),
             ],
           ),
-        ),
-      ],
+          const SizedBox(height: 8),
+        ],
+      ),
     );
   }
 
-  Widget _buildEditableInfoRow(IconData icon, String label, String value, {required VoidCallback onEdit}) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        Container(
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: AirbnbColors.borderLight,
-            borderRadius: BorderRadius.circular(12),
+  /// 기타 섹션
+  Widget _buildOtherSection(bool isWide) {
+    return Container(
+      color: AppleColors.systemBackground,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildSectionHeader('기타'),
+          _buildListTile(
+            icon: Icons.headset_mic_outlined,
+            title: '고객센터',
+            showArrow: true,
+            onTap: () => showCustomerServiceDialog(context),
           ),
-          child: Icon(
-            icon,
-            size: 24,
-            color: AirbnbColors.primary,
+          _buildDivider(),
+          _buildListTile(
+            icon: Icons.article_outlined,
+            title: '이용약관',
+            showArrow: true,
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const TermsOfServicePage()),
+              );
+            },
           ),
-        ),
-        const SizedBox(width: 16),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                label,
-                style: const TextStyle(
-                  fontSize: 13,
-                  color: AirbnbColors.textSecondary,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-              const SizedBox(height: 2),
-              Text(
-                value,
-                style: const TextStyle(
-                  fontSize: 16,
-                  color: AirbnbColors.textPrimary,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-            ],
+          _buildDivider(),
+          _buildListTile(
+            icon: Icons.shield_outlined,
+            title: '개인정보 처리방침',
+            showArrow: true,
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const PrivacyPolicyPage()),
+              );
+            },
           ),
-        ),
-        IconButton(
-          icon: const Icon(Icons.edit, color: AirbnbColors.primary),
-          onPressed: onEdit,
-          tooltip: '$label 수정',
-        ),
-      ],
+          _buildDivider(),
+          _buildListTile(
+            icon: Icons.info_outline,
+            title: '앱 버전',
+            value: '1.0.0',
+          ),
+          _buildDivider(),
+          _buildListTile(
+            icon: Icons.logout_rounded,
+            title: '로그아웃',
+            titleColor: AppleColors.systemRed,
+            onTap: () => _logout(),
+          ),
+          _buildDivider(),
+          _buildListTile(
+            icon: Icons.person_remove_outlined,
+            title: '회원탈퇴',
+            titleColor: AppleColors.systemRed,
+            onTap: () => _deleteAccount(),
+          ),
+          const SizedBox(height: 8),
+        ],
+      ),
     );
   }
 
-  /// 이름 수정 다이얼로그
+  Widget _buildSectionHeader(String title) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
+      child: Text(
+        title,
+        style: const TextStyle(
+          fontSize: 13,
+          fontWeight: FontWeight.w600,
+          color: AppleColors.secondaryLabel,
+        ),
+      ),
+    );
+  }
+
+  /// 리스트 타일 빌더
+  Widget _buildListTile({
+    required IconData icon,
+    required String title,
+    String? value,
+    Color? titleColor,
+    bool showArrow = false,
+    VoidCallback? onTap,
+  }) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+          child: Row(
+            children: [
+              Icon(
+                icon,
+                size: 22,
+                color: titleColor ?? AppleColors.secondaryLabel,
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Text(
+                  title,
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: titleColor ?? AppleColors.label,
+                  ),
+                ),
+              ),
+              if (value != null)
+                Flexible(
+                  child: Text(
+                    value,
+                    style: TextStyle(
+                      fontSize: 15,
+                      color: AppleColors.secondaryLabel,
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+              if (showArrow || onTap != null)
+                Padding(
+                  padding: const EdgeInsets.only(left: 8),
+                  child: Icon(
+                    Icons.chevron_right,
+                    size: 20,
+                    color: AppleColors.tertiaryLabel,
+                  ),
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDivider() {
+    return const Padding(
+      padding: EdgeInsets.only(left: 56),
+      child: Divider(height: 1, color: AppleColors.separator),
+    );
+  }
+
+  // ============================================================
+  // 다이얼로그 및 액션 메서드들
+  // ============================================================
+
   Future<void> _showEditNameDialog() async {
-    final nameController = TextEditingController(
-      text: _userData?['name'] ?? widget.userName ?? '',
+    final controller = TextEditingController(
+      text: _userData?['name'] ?? widget.userName,
     );
 
     final result = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
         title: const Text('이름 수정'),
         content: TextField(
-          controller: nameController,
-          decoration: const InputDecoration(
+          controller: controller,
+          decoration: InputDecoration(
             labelText: '이름',
-            border: OutlineInputBorder(),
-            hintText: '이름을 입력하세요',
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
           ),
           autofocus: true,
         ),
@@ -763,89 +757,43 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
             onPressed: () => Navigator.pop(context, false),
             child: const Text('취소'),
           ),
-          ElevatedButton(
-            onPressed: () {
-              if (nameController.text.trim().isEmpty) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('이름을 입력해주세요.'),
-                    backgroundColor: AirbnbColors.error,
-                  ),
-                );
-                return;
-              }
-              Navigator.pop(context, true);
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AirbnbColors.textPrimary, // 에어비엔비 스타일: 검은색 배경
-              foregroundColor: AirbnbColors.background,
-            ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
             child: const Text('저장'),
           ),
         ],
       ),
     );
 
-    if (result == true) {
-      await _updateName(nameController.text.trim());
-    }
-
-    nameController.dispose();
-  }
-
-  /// 이름 업데이트
-  Future<void> _updateName(String newName) async {
-    try {
-      final success = await _firebaseService.updateUserName(widget.userId, newName);
-
-      if (mounted) {
-        if (success) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('이름이 수정되었습니다.'),
-              backgroundColor: AirbnbColors.success,
-            ),
-          );
-          // 정보 다시 로드
-          _loadUserData();
-        } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('이름 수정에 실패했습니다.'),
-              backgroundColor: AirbnbColors.error,
-            ),
-          );
-        }
-      }
-    } catch (e) {
-      if (mounted) {
+    if (result == true && controller.text.trim().isNotEmpty) {
+      final success = await _firebaseService.updateUserName(
+        widget.userId,
+        controller.text.trim(),
+      );
+      if (success && mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('오류가 발생했습니다: $e'),
-            backgroundColor: AirbnbColors.error,
-          ),
+          const SnackBar(content: Text('이름이 수정되었습니다.')),
         );
+        _loadUserData();
       }
     }
+    controller.dispose();
   }
 
-  /// 휴대폰 번호 수정 다이얼로그
   Future<void> _showEditPhoneDialog() async {
-    final phoneController = TextEditingController(
-      text: _userData?['phone'] ?? '',
-    );
+    final controller = TextEditingController(text: _userData?['phone'] ?? '');
 
     final result = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('휴대폰 번호 수정'),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+        title: const Text('전화번호 수정'),
         content: TextField(
-          controller: phoneController,
-          decoration: const InputDecoration(
-            labelText: '휴대폰 번호',
-            border: OutlineInputBorder(),
+          controller: controller,
+          decoration: InputDecoration(
+            labelText: '전화번호',
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
             hintText: '010-1234-5678',
-            helperText: '하이픈(-) 없이 숫자만 입력하거나 하이픈 포함 입력 가능',
           ),
           keyboardType: TextInputType.phone,
           autofocus: true,
@@ -855,99 +803,109 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
             onPressed: () => Navigator.pop(context, false),
             child: const Text('취소'),
           ),
-          ElevatedButton(
-            onPressed: () {
-              final phone = phoneController.text.trim();
-              if (phone.isEmpty) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('휴대폰 번호를 입력해주세요.'),
-                    backgroundColor: AirbnbColors.error,
-                  ),
-                );
-                return;
-              }
-
-              // 간단한 전화번호 형식 검증 (하이픈 제거 후 검증)
-              final cleanPhone = phone.replaceAll('-', '').replaceAll(' ', '').replaceAll('(', '').replaceAll(')', '');
-              if (cleanPhone.length < 10 || cleanPhone.length > 11) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('올바른 휴대폰 번호 형식이 아닙니다.\n예: 010-1234-5678 또는 01012345678'),
-                    backgroundColor: AirbnbColors.error,
-                  ),
-                );
-                return;
-              }
-              // 010, 011, 016, 017, 018, 019로 시작하는지 확인
-              if (!cleanPhone.startsWith('010') && 
-                  !cleanPhone.startsWith('011') && 
-                  !cleanPhone.startsWith('016') && 
-                  !cleanPhone.startsWith('017') && 
-                  !cleanPhone.startsWith('018') && 
-                  !cleanPhone.startsWith('019')) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('휴대폰 번호는 010, 011, 016, 017, 018, 019로 시작해야 합니다.'),
-                    backgroundColor: AirbnbColors.error,
-                  ),
-                );
-                return;
-              }
-
-              Navigator.pop(context, true);
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AirbnbColors.textPrimary, // 에어비엔비 스타일: 검은색 배경
-              foregroundColor: AirbnbColors.background,
-            ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
             child: const Text('저장'),
           ),
         ],
       ),
     );
 
-    if (result == true) {
-      await _updatePhone(phoneController.text.trim());
+    if (result == true && controller.text.trim().isNotEmpty) {
+      final success = await _firebaseService.updateUserPhone(
+        widget.userId,
+        controller.text.trim(),
+      );
+      if (success && mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('전화번호가 수정되었습니다.')),
+        );
+        _loadUserData();
+      }
     }
-
-    phoneController.dispose();
+    controller.dispose();
   }
 
-  /// 휴대폰 번호 업데이트
-  Future<void> _updatePhone(String newPhone) async {
-    try {
-      final success = await _firebaseService.updateUserPhone(widget.userId, newPhone);
-
-      if (mounted) {
-        if (success) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('휴대폰 번호가 수정되었습니다.'),
-              backgroundColor: AirbnbColors.success,
-            ),
-          );
-          // 정보 다시 로드
-          _loadUserData();
-        } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('휴대폰 번호 수정에 실패했습니다.'),
-              backgroundColor: AirbnbColors.error,
-            ),
-          );
-        }
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('오류가 발생했습니다: $e'),
-            backgroundColor: AirbnbColors.error,
+  Future<void> _logout() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+        title: const Text('로그아웃'),
+        content: const Text('로그아웃 하시겠습니까?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('취소'),
           ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: TextButton.styleFrom(foregroundColor: AppleColors.systemRed),
+            child: const Text('로그아웃'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true) {
+      await _firebaseService.signOut();
+      if (mounted) {
+        Navigator.of(context).pushAndRemoveUntil(
+          MaterialPageRoute(builder: (_) => const AuthLandingPage()),
+          (route) => false,
         );
       }
     }
   }
 
-} 
+  Future<void> _deleteAccount() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+        title: const Text('회원탈퇴'),
+        content: const Text(
+          '정말 탈퇴하시겠습니까?\n\n모든 데이터가 삭제되며 복구할 수 없습니다.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('취소'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: TextButton.styleFrom(foregroundColor: AppleColors.systemRed),
+            child: const Text('탈퇴하기'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true) {
+      final error = await _firebaseService.deleteUserAccount(widget.userId);
+      if (error == null && mounted) {
+        Navigator.of(context).pushAndRemoveUntil(
+          MaterialPageRoute(builder: (_) => const AuthLandingPage()),
+          (route) => false,
+        );
+      } else if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(error ?? '회원탈퇴 실패')),
+        );
+      }
+    }
+  }
+}
+
+/// 바로가기 메뉴 아이템
+class _QuickMenuItem {
+  final IconData icon;
+  final String label;
+  final VoidCallback onTap;
+
+  _QuickMenuItem({
+    required this.icon,
+    required this.label,
+    required this.onTap,
+  });
+}

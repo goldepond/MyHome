@@ -1,4 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">MyHome</string>
+    <!-- 네이버 로그인 설정 - 네이버 개발자 센터에서 발급받은 값으로 교체 필요 -->
+    <string name="naver_client_id">YOUR_NAVER_CLIENT_ID</string>
+    <string name="naver_client_secret">YOUR_NAVER_CLIENT_SECRET</string>
+    <string name="naver_client_name">MyHome</string>
 </resources> 

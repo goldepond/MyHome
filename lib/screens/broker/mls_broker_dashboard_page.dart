@@ -10,7 +10,7 @@ import '../main_page.dart';
 import '../auth/auth_landing_page.dart';
 import '../notification/notification_page.dart';
 import '../seller/mls_property_detail_page.dart';
-import 'broker_settings_page.dart';
+import '../userInfo/personal_info_page.dart';
 
 /// MLS 중개사 대시보드 - Apple HIG 스타일
 class MLSBrokerDashboardPage extends StatefulWidget {
@@ -77,15 +77,13 @@ class _MLSBrokerDashboardPageState extends State<MLSBrokerDashboardPage>
   bool _isLoading = true;
   String? _errorMessage;
 
+  // 데이터 캐시용 (이전 값과 비교하여 불필요한 setState 방지)
+  List<MLSProperty>? _cachedRawProperties;
+
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
-    _tabController.addListener(() {
-      if (!_tabController.indexIsChanging) {
-        setState(() {});
-      }
-    });
     _loadRegions();
     _subscribeToProperties();
   }
@@ -101,33 +99,46 @@ class _MLSBrokerDashboardPageState extends State<MLSBrokerDashboardPage>
 
   Future<void> _loadRegions() async {
     final regions = await _mlsService.getAvailableRegions();
-    if (mounted) {
+    if (mounted && regions != _availableRegions) {
       setState(() => _availableRegions = regions);
     }
   }
 
-  void _subscribeToProperties() {
-    setState(() {
-      _isLoading = true;
-      _errorMessage = null;
-    });
+  void _subscribeToProperties({bool forceReload = false}) {
+    // 지역 변경 시에만 캐시 초기화
+    if (forceReload) {
+      _mlsService.clearBrowsableCache();
+    }
 
-    // 1. 전체 활성 매물 구독
+    // 최초 로딩 시에만 로딩 상태 표시
+    if (_allProperties.isEmpty) {
+      setState(() {
+        _isLoading = true;
+        _errorMessage = null;
+      });
+    }
+
+    // 1. 전체 활성 매물 구독 (캐싱된 스트림 재사용)
     _allPropertiesSubscription?.cancel();
     _allPropertiesSubscription = _mlsService
         .getAllBrowsableProperties(region: _selectedRegion)
         .listen(
       (properties) {
         if (mounted) {
-          setState(() {
-            _allProperties = _filterByStatus(properties);
-            _isLoading = false;
-          });
+          // 데이터가 변경되었을 때만 setState 호출
+          final filtered = _filterByStatus(properties);
+          if (_shouldUpdateList(_allProperties, filtered) || _isLoading) {
+            setState(() {
+              _cachedRawProperties = properties;
+              _allProperties = filtered;
+              _isLoading = false;
+            });
+          }
         }
       },
       onError: (e) {
         Logger.error('전체 매물 로드 실패', error: e);
-        if (mounted) {
+        if (mounted && _isLoading) {
           setState(() {
             _errorMessage = '매물을 불러오는데 실패했습니다.';
             _isLoading = false;
@@ -136,7 +147,7 @@ class _MLSBrokerDashboardPageState extends State<MLSBrokerDashboardPage>
       },
     );
 
-    // 2. 내가 참여 중인 매물 구독
+    // 2. 내가 참여 중인 매물 구독 (캐싱된 스트림 재사용)
     _myPropertiesSubscription?.cancel();
     _myPropertiesSubscription = _mlsService
         .getPropertiesBroadcastedToBrokerStream(widget.brokerId)
@@ -151,13 +162,15 @@ class _MLSBrokerDashboardPageState extends State<MLSBrokerDashboardPage>
                 p.status != PropertyStatus.depositTaken;
           }).toList();
           competing.sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
-          setState(() => _myCompetingProperties = competing);
+          if (_shouldUpdateList(_myCompetingProperties, competing)) {
+            setState(() => _myCompetingProperties = competing);
+          }
         }
       },
       onError: (e) => Logger.error('내 참여 매물 로드 실패', error: e),
     );
 
-    // 3. 성과 매물 구독
+    // 3. 성과 매물 구독 (캐싱된 스트림 재사용)
     _completedSubscription?.cancel();
     _completedSubscription = _mlsService
         .getCompletedPropertiesByBroker(widget.brokerId)
@@ -166,14 +179,29 @@ class _MLSBrokerDashboardPageState extends State<MLSBrokerDashboardPage>
         if (mounted) {
           final won = properties.where((p) => p.status == PropertyStatus.depositTaken).toList();
           final completed = properties.where((p) => p.status == PropertyStatus.sold).toList();
-          setState(() {
-            _wonProperties = won;
-            _completedProperties = completed;
-          });
+          if (_shouldUpdateList(_wonProperties, won) ||
+              _shouldUpdateList(_completedProperties, completed)) {
+            setState(() {
+              _wonProperties = won;
+              _completedProperties = completed;
+            });
+          }
         }
       },
       onError: (e) => Logger.error('성과 매물 로드 실패', error: e),
     );
+  }
+
+  /// 리스트가 실제로 변경되었는지 확인
+  bool _shouldUpdateList(List<MLSProperty> oldList, List<MLSProperty> newList) {
+    if (oldList.length != newList.length) return true;
+    for (int i = 0; i < oldList.length; i++) {
+      if (oldList[i].id != newList[i].id ||
+          oldList[i].updatedAt != newList[i].updatedAt) {
+        return true;
+      }
+    }
+    return false;
   }
 
   List<MLSProperty> _filterByStatus(List<MLSProperty> properties) {
@@ -211,14 +239,19 @@ class _MLSBrokerDashboardPageState extends State<MLSBrokerDashboardPage>
   }
 
   void _onRegionChanged(String? region) {
+    if (_selectedRegion == region) return; // 동일한 지역이면 무시
     setState(() => _selectedRegion = region);
-    _subscribeToProperties();
+    _subscribeToProperties(forceReload: true);
   }
 
   void _onStatusChanged(int index) {
+    if (_selectedStatusIndex == index) return; // 동일하면 무시
     setState(() {
       _selectedStatusIndex = index;
-      _subscribeToProperties();
+      // 재구독 없이 캐싱된 데이터에서 필터링만 수행
+      if (_cachedRawProperties != null) {
+        _allProperties = _filterByStatus(_cachedRawProperties!);
+      }
     });
   }
 
@@ -269,27 +302,27 @@ class _MLSBrokerDashboardPageState extends State<MLSBrokerDashboardPage>
             },
           ),
           const SizedBox(width: 8),
-          // 2. 설정
+          // 2. 전체 메뉴 (설정/마이페이지)
           _buildHeaderActionButton(
-            icon: Icons.settings_outlined,
-            tooltip: '설정',
+            icon: Icons.menu,
+            tooltip: '전체',
             onPressed: () {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => BrokerSettingsPage(
-                    brokerId: widget.brokerId,
-                    brokerName: widget.brokerName,
+                  builder: (context) => PersonalInfoPage(
+                    userId: widget.brokerId,
+                    userName: widget.brokerName,
                   ),
                 ),
               );
             },
           ),
           const SizedBox(width: 8),
-          // 3. 일반 모드 (Primary 스타일)
+          // 3. 일반 모드로 전환 (Primary 스타일)
           _buildHeaderActionButton(
-            icon: Icons.person_outline,
-            tooltip: '일반 모드',
+            icon: Icons.swap_horiz_rounded,
+            tooltip: '일반 모드로 전환',
             isPrimary: true,
             onPressed: () {
               Navigator.of(context).pushReplacement(
@@ -629,14 +662,22 @@ class _MLSBrokerDashboardPageState extends State<MLSBrokerDashboardPage>
   }
 
   void _resetFilters() {
+    final regionChanged = _selectedRegion != null;
     setState(() {
       _selectedRegion = null;
       _selectedStatusIndex = 0;
       _isPriceFilterActive = false;
       _priceRange = const RangeValues(0, 500000);
       _selectedPropertyType = null;
+      // 지역이 변경되지 않았으면 캐싱된 데이터에서 필터링만 수행
+      if (!regionChanged && _cachedRawProperties != null) {
+        _allProperties = _filterByStatus(_cachedRawProperties!);
+      }
     });
-    _subscribeToProperties();
+    // 지역이 변경되었을 때만 재구독
+    if (regionChanged) {
+      _subscribeToProperties(forceReload: true);
+    }
   }
 
   String _formatPriceRangeLabel() {
@@ -711,9 +752,11 @@ class _MLSBrokerDashboardPageState extends State<MLSBrokerDashboardPage>
           setState(() {
             _priceRange = range;
             _isPriceFilterActive = isActive;
-            _allProperties = _filterByStatus(_allProperties);
+            // 캐싱된 원본 데이터에서 필터링 (재구독 불필요)
+            if (_cachedRawProperties != null) {
+              _allProperties = _filterByStatus(_cachedRawProperties!);
+            }
           });
-          _subscribeToProperties();
         },
       ),
     );
@@ -772,8 +815,13 @@ class _MLSBrokerDashboardPageState extends State<MLSBrokerDashboardPage>
     return ListTile(
       onTap: () {
         Navigator.pop(context);
-        setState(() => _selectedPropertyType = value);
-        _subscribeToProperties();
+        setState(() {
+          _selectedPropertyType = value;
+          // 캐싱된 원본 데이터에서 필터링 (재구독 불필요)
+          if (_cachedRawProperties != null) {
+            _allProperties = _filterByStatus(_cachedRawProperties!);
+          }
+        });
       },
       leading: Icon(
         _getPropertyTypeIcon(value),
@@ -1333,10 +1381,6 @@ class _MLSBrokerDashboardPageState extends State<MLSBrokerDashboardPage>
           _buildBrokerProfileCard(),
           const SizedBox(height: 20),
 
-          // 통계
-          _buildStatsCard(),
-          const SizedBox(height: 24),
-
           // 가계약
           if (_wonProperties.isNotEmpty) ...[
             _buildSectionTitle('가계약 성사 ${_wonProperties.length}건'),
@@ -1350,28 +1394,6 @@ class _MLSBrokerDashboardPageState extends State<MLSBrokerDashboardPage>
             _buildSectionTitle('거래 완료 ${_completedProperties.length}건'),
             const SizedBox(height: 12),
             ..._completedProperties.map((p) => _buildResultCard(p, isWon: false)),
-          ],
-
-          // 성과가 없을 때
-          if (_wonProperties.isEmpty && _completedProperties.isEmpty) ...[
-            const SizedBox(height: 40),
-            Center(
-              child: Column(
-                children: [
-                  Icon(Icons.emoji_events_outlined, size: 48, color: AppleColors.tertiaryLabel),
-                  const SizedBox(height: 12),
-                  Text(
-                    '아직 성과가 없습니다',
-                    style: AppleTypography.headline.copyWith(color: AppleColors.secondaryLabel),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    '영업 활동을 통해 가계약을 성사시켜보세요',
-                    style: AppleTypography.subheadline.copyWith(color: AppleColors.tertiaryLabel),
-                  ),
-                ],
-              ),
-            ),
           ],
         ],
       ),
@@ -1533,67 +1555,6 @@ class _MLSBrokerDashboardPageState extends State<MLSBrokerDashboardPage>
       return '${digits.substring(0, 3)}-${digits.substring(3, 6)}-${digits.substring(6)}';
     }
     return phone;
-  }
-
-  Widget _buildStatsCard() {
-    final total = _wonProperties.length + _completedProperties.length;
-    final commission = total * 100; // 임시
-
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [AppleColors.systemBlue, AppleColors.systemIndigo],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            '이번 달 성과',
-            style: AppleTypography.subheadline.copyWith(color: Colors.white70),
-          ),
-          const SizedBox(height: 16),
-          Row(
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      '$total건',
-                      style: AppleTypography.largeTitle.copyWith(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    Text('성사 건수', style: AppleTypography.caption1.copyWith(color: Colors.white60)),
-                  ],
-                ),
-              ),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      '$commission만원',
-                      style: AppleTypography.largeTitle.copyWith(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    Text('예상 수수료', style: AppleTypography.caption1.copyWith(color: Colors.white60)),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
   }
 
   Widget _buildSectionTitle(String title) {

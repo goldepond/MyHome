@@ -9,6 +9,7 @@ import 'package:property/constants/app_constants.dart';
 import 'package:property/screens/main_page.dart';
 import 'package:property/screens/broker/mls_broker_dashboard_page.dart';
 import 'package:property/screens/auth/auth_landing_page.dart';
+import 'package:property/screens/auth/profile_completion_page.dart';
 import 'package:property/api_request/firebase_service.dart';
 import 'package:property/screens/inquiry/broker_inquiry_response_page.dart';
 import 'package:kakao_flutter_sdk_user/kakao_flutter_sdk_user.dart' as kakao;
@@ -22,12 +23,10 @@ import 'main_stub.dart' if (dart.library.html) 'main_web.dart' as web;
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // 카카오 SDK 초기화 (네이티브 앱 키)
-  // ⚠️ 배포 전 필수: Kakao Developers에서 발급받은 실제 키로 교체하세요
-  // https://developers.kakao.com/console/app
+  // 카카오 SDK 초기화
   kakao.KakaoSdk.init(
-    nativeAppKey: 'YOUR_KAKAO_NATIVE_APP_KEY',
-    javaScriptAppKey: 'YOUR_KAKAO_JAVASCRIPT_APP_KEY',
+    nativeAppKey: '79eb4a17226ceff2ac253ae9fbe7d6af',
+    javaScriptAppKey: 'c31199c0e7e674ea06152e43591f98b6',
   );
 
   // 이미지 캐시 최적화 (메모리 사용량 제한)
@@ -308,6 +307,47 @@ class _AuthGate extends StatefulWidget {
 class _AuthGateState extends State<_AuthGate> {
   Map<String, dynamic>? _cachedUserData;
   bool _firebaseReady = false;
+  bool _showingProfileCompletion = false;
+
+  /// 기본 이름인지 확인 (소셜 로그인 기본값)
+  bool _isDefaultName(String? name) {
+    if (name == null) return true;
+    const defaultNames = [
+      '카카오 사용자',
+      '구글 사용자',
+      '네이버 사용자',
+      '사용자',
+      'Google 사용자',
+      'Kakao 사용자',
+      'Naver 사용자',
+    ];
+    if (defaultNames.contains(name)) return true;
+
+    // 소셜 로그인 ID 형식 체크 (예: kakao_4719204516, google_xxx, naver_xxx)
+    final lowerName = name.toLowerCase();
+    if (lowerName.startsWith('kakao_') ||
+        lowerName.startsWith('google_') ||
+        lowerName.startsWith('naver_')) {
+      return true;
+    }
+
+    return false;
+  }
+
+  /// 프로필 완성이 필요한지 확인
+  bool _needsProfileCompletion(Map<String, dynamic>? userData) {
+    if (userData == null) return true;
+
+    final name = userData['name'] as String?;
+    final phone = userData['phone'] as String?;
+    final profileCompleted = userData['profileCompleted'] as bool? ?? false;
+
+    // 이미 프로필 완성 표시가 있으면 스킵
+    if (profileCompleted) return false;
+
+    // 이름이 기본값이거나 전화번호가 없으면 프로필 완성 필요
+    return _isDefaultName(name) || phone == null || phone.isEmpty;
+  }
   bool _showLoading = true;
   
   @override
@@ -389,6 +429,20 @@ class _AuthGateState extends State<_AuthGate> {
             );
           }
 
+          // 프로필 완성이 필요한지 확인 (일반 사용자만)
+          if (_needsProfileCompletion(_cachedUserData!['userData'])) {
+            return ProfileCompletionPage(
+              userId: _cachedUserData!['uid'],
+              currentName: _cachedUserData!['name'],
+              onComplete: () {
+                // 프로필 완성 후 캐시 초기화하여 새로 로드
+                setState(() {
+                  _cachedUserData = null;
+                });
+              },
+            );
+          }
+
           // 일반 사용자 기본 페이지
           return MainPage(
             key: ValueKey('main_${_cachedUserData!['uid']}'),
@@ -439,12 +493,16 @@ class _AuthGateState extends State<_AuthGate> {
             };
           }(),
           builder: (context, userSnap) {
-            // 에러 발생 시 기본 UI 표시 (재시도 옵션 제공)
+            // 에러 발생 시 프로필 완성 페이지 표시 (재시도 가능)
             if (userSnap.hasError) {
-              // 에러가 발생해도 기본 UI는 표시
-              return MainPage(
+              return ProfileCompletionPage(
                 userId: user.uid,
-                userName: user.email?.split('@').first ?? '사용자',
+                currentName: user.email?.split('@').first,
+                onComplete: () {
+                  setState(() {
+                    _cachedUserData = null;
+                  });
+                },
               );
             }
             
@@ -466,11 +524,16 @@ class _AuthGateState extends State<_AuthGate> {
 
             final profile = userSnap.data;
 
-            // 프로필이 없으면 기본 UI 표시
+            // 프로필이 없으면 프로필 완성 페이지로
             if (profile == null) {
-              return MainPage(
+              return ProfileCompletionPage(
                 userId: user.uid,
-                userName: user.email?.split('@').first ?? '사용자',
+                currentName: user.email?.split('@').first,
+                onComplete: () {
+                  setState(() {
+                    _cachedUserData = null;
+                  });
+                },
               );
             }
 
@@ -486,6 +549,19 @@ class _AuthGateState extends State<_AuthGate> {
                 brokerId: brokerId,
                 brokerName: brokerName,
                 brokerData: profile['brokerData'],
+              );
+            }
+
+            // 프로필 완성이 필요한지 확인 (일반 사용자만)
+            if (_needsProfileCompletion(profile['userData'])) {
+              return ProfileCompletionPage(
+                userId: profile['uid'] as String,
+                currentName: profile['name'] as String?,
+                onComplete: () {
+                  setState(() {
+                    _cachedUserData = null;
+                  });
+                },
               );
             }
 

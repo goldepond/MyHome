@@ -2,6 +2,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:property/models/property.dart';
 import 'package:property/api_request/google_sign_in_helper.dart';
+import 'package:property/api_request/kakao_sign_in_helper.dart';
+import 'package:property/api_request/naver_sign_in_helper.dart';
 import 'package:property/models/quote_request.dart';
 import 'package:property/models/broker_review.dart';
 import 'package:property/models/notification_model.dart';
@@ -9,16 +11,37 @@ import 'package:property/models/chat_model.dart';
 import 'package:property/utils/logger.dart';
 
 class FirebaseService {
+  // 싱글톤 패턴 - 인스턴스 재사용으로 성능 향상
+  static final FirebaseService _instance = FirebaseService._internal();
+  factory FirebaseService() => _instance;
+  FirebaseService._internal();
+
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final FirebaseAuth _auth = FirebaseAuth.instance;
-  final String _collectionName = 'properties';
-  final String _usersCollectionName = 'users';
-  final String _brokersCollectionName = 'brokers'; // 공인중개사 컬렉션
-  final String _quoteRequestsCollectionName = 'quoteRequests';
-  final String _brokerReviewsCollectionName = 'brokerReviews';
-  final String _notificationsCollectionName = 'notifications';
-  final String _chatRoomsCollectionName = 'chatRooms';
-  final String _chatMessagesCollectionName = 'chatMessages';
+  static const String _collectionName = 'properties';
+  static const String _usersCollectionName = 'users';
+  static const String _brokersCollectionName = 'brokers';
+  static const String _quoteRequestsCollectionName = 'quoteRequests';
+  static const String _brokerReviewsCollectionName = 'brokerReviews';
+  static const String _notificationsCollectionName = 'notifications';
+  static const String _chatRoomsCollectionName = 'chatRooms';
+  static const String _chatMessagesCollectionName = 'chatMessages';
+
+  // 캐시: 자주 조회되는 데이터 캐싱
+  final Map<String, Map<String, dynamic>?> _userCache = {};
+  final Map<String, Map<String, dynamic>?> _brokerCache = {};
+  DateTime? _lastCacheClear;
+
+  /// 캐시 초기화 (10분마다 자동)
+  void _checkCacheExpiry() {
+    final now = DateTime.now();
+    if (_lastCacheClear == null ||
+        now.difference(_lastCacheClear!).inMinutes > 10) {
+      _userCache.clear();
+      _brokerCache.clear();
+      _lastCacheClear = now;
+    }
+  }
 
   // 사용자 인증 관련 메서드들
   /// 익명 로그인: 로그인 없이도 UID를 발급받아 데이터를 연결할 수 있게 한다.
@@ -271,18 +294,22 @@ class FirebaseService {
   }
 
   // 사용자 조회
-  Future<Map<String, dynamic>?> getUser(String id) async {
-    // id 체크 - 빈 문자열이면 null 반환
-    if (id.isEmpty) {
-      return null;
+  Future<Map<String, dynamic>?> getUser(String id, {bool useCache = true}) async {
+    if (id.isEmpty) return null;
+
+    _checkCacheExpiry();
+
+    // 캐시 확인
+    if (useCache && _userCache.containsKey(id)) {
+      return _userCache[id];
     }
-    
+
     try {
       final doc = await _firestore.collection(_usersCollectionName).doc(id).get();
-      if (doc.exists) {
-        return doc.data();
-      }
-      return null;
+      final data = doc.exists ? doc.data() : null;
+      // 캐시 저장
+      _userCache[id] = data;
+      return data;
     } catch (e) {
       return null;
     }
@@ -485,6 +512,18 @@ class FirebaseService {
       }
     } catch (e) {
       return '회원탈퇴 중 오류가 발생했습니다.\n잠시 후 다시 시도해주세요.';
+    }
+  }
+
+  // 사용자 정보 업데이트 (일반)
+  Future<bool> updateUser(String id, Map<String, dynamic> data) async {
+    try {
+      await _firestore.collection(_usersCollectionName).doc(id).update(data);
+      Logger.info('[Firebase] 사용자 정보 업데이트 성공: $id');
+      return true;
+    } catch (e) {
+      Logger.error('[Firebase] 사용자 정보 업데이트 실패: $e');
+      return false;
     }
   }
 
@@ -1733,25 +1772,39 @@ class FirebaseService {
   }
 
   /// 공인중개사 정보 조회
-  Future<Map<String, dynamic>?> getBroker(String brokerId) async {
+  Future<Map<String, dynamic>?> getBroker(String brokerId, {bool useCache = true}) async {
+    if (brokerId.isEmpty) return null;
+
+    _checkCacheExpiry();
+
+    // 캐시 확인
+    if (useCache && _brokerCache.containsKey(brokerId)) {
+      return _brokerCache[brokerId];
+    }
+
     try {
       // UID로 조회
       final doc = await _firestore.collection(_brokersCollectionName).doc(brokerId).get();
       if (doc.exists) {
-        return doc.data();
+        final data = doc.data();
+        _brokerCache[brokerId] = data;
+        return data;
       }
-      
+
       // brokerId로 조회
       final querySnapshot = await _firestore
           .collection(_brokersCollectionName)
           .where('brokerId', isEqualTo: brokerId)
           .limit(1)
           .get();
-      
+
       if (querySnapshot.docs.isNotEmpty) {
-        return querySnapshot.docs.first.data();
+        final data = querySnapshot.docs.first.data();
+        _brokerCache[brokerId] = data;
+        return data;
       }
-      
+
+      _brokerCache[brokerId] = null;
       return null;
     } catch (e) {
       return null;
@@ -2061,10 +2114,163 @@ class FirebaseService {
   // 소셜 로그인 (임시 비활성화 - 추후 구현)
   // ============================================================
 
-  /// 카카오 로그인 (임시 비활성화)
+  /// 카카오 로그인
+  /// 카카오 OAuth로 로그인 후 Firebase Anonymous 계정과 연결하여 인증 상태 유지
   Future<Map<String, dynamic>?> signInWithKakao() async {
-    Logger.warning('카카오 로그인은 현재 비활성화되어 있습니다.');
-    return null;
+    Logger.info('[Firebase 카카오] ========== signInWithKakao 시작 ==========');
+
+    try {
+      // 플랫폼 지원 여부 확인
+      Logger.info('[Firebase 카카오] 1. 플랫폼 지원 여부 확인...');
+      if (!KakaoSignInService.isSupported) {
+        Logger.warning('[Firebase 카카오] - 이 플랫폼에서 지원되지 않습니다.');
+        return null;
+      }
+      Logger.info('[Firebase 카카오] - 플랫폼 지원됨 ✓');
+
+      // 카카오 로그인 수행
+      Logger.info('[Firebase 카카오] 2. KakaoSignInService.signIn() 호출...');
+      final kakaoUser = await KakaoSignInService.signIn();
+
+      if (kakaoUser == null) {
+        Logger.info('[Firebase 카카오] - 카카오 로그인 취소됨 또는 실패');
+        return null;
+      }
+
+      Logger.info('[Firebase 카카오] 3. 카카오 사용자 정보 수신 완료');
+      final kakaoId = kakaoUser['id'] as String;
+      final nickname = kakaoUser['nickname'] as String? ?? '카카오 사용자';
+      final email = kakaoUser['email'] as String?;
+      final profileImageUrl = kakaoUser['profileImageUrl'] as String?;
+
+      Logger.info('[Firebase 카카오] - kakaoId: $kakaoId');
+      Logger.info('[Firebase 카카오] - nickname: $nickname');
+      Logger.info('[Firebase 카카오] - email: $email');
+      Logger.info('[Firebase 카카오] - profileImageUrl: ${profileImageUrl != null ? "있음" : "없음"}');
+
+      // Firebase Anonymous 로그인 (카카오는 Firebase OAuth Provider가 없음)
+      // 카카오 ID를 기반으로 고유한 이메일 생성하여 Firebase에 연결
+      final kakaoEmail = email ?? 'kakao_$kakaoId@myhome.com';
+      Logger.info('[Firebase 카카오] 4. Firebase 이메일 생성: $kakaoEmail');
+
+      User? firebaseUser;
+
+      // 먼저 기존 계정이 있는지 확인
+      Logger.info('[Firebase 카카오] 5. Firebase 기존 계정 로그인 시도...');
+      try {
+        // 카카오 ID로 생성한 이메일로 로그인 시도
+        final credential = await _auth.signInWithEmailAndPassword(
+          email: kakaoEmail,
+          password: 'kakao_oauth_$kakaoId', // 카카오 ID 기반 고정 비밀번호
+        );
+        firebaseUser = credential.user;
+        Logger.info('[Firebase 카카오] - 기존 계정 로그인 성공: ${firebaseUser?.uid}');
+      } on FirebaseAuthException catch (e) {
+        Logger.info('[Firebase 카카오] - Firebase Auth 예외: ${e.code}');
+        if (e.code == 'user-not-found' || e.code == 'wrong-password' || e.code == 'invalid-credential') {
+          // 기존 계정이 없으면 새로 생성
+          Logger.info('[Firebase 카카오] 6. 신규 계정 생성 시도...');
+          try {
+            final credential = await _auth.createUserWithEmailAndPassword(
+              email: kakaoEmail,
+              password: 'kakao_oauth_$kakaoId',
+            );
+            firebaseUser = credential.user;
+            Logger.info('[Firebase 카카오] - 계정 생성 성공: ${firebaseUser?.uid}');
+
+            Logger.info('[Firebase 카카오] - displayName 업데이트 중...');
+            await firebaseUser?.updateDisplayName(nickname);
+            if (profileImageUrl != null) {
+              Logger.info('[Firebase 카카오] - photoURL 업데이트 중...');
+              await firebaseUser?.updatePhotoURL(profileImageUrl);
+            }
+            Logger.info('[Firebase 카카오] - 프로필 업데이트 완료');
+          } catch (createError) {
+            Logger.error('[Firebase 카카오] - 계정 생성 실패: $createError');
+            Logger.error('[Firebase 카카오] - 에러 타입: ${createError.runtimeType}');
+            return null;
+          }
+        } else {
+          Logger.error('[Firebase 카카오] - 로그인 실패 (예상치 못한 에러): ${e.code}');
+          Logger.error('[Firebase 카카오] - 에러 메시지: ${e.message}');
+          return null;
+        }
+      }
+
+      if (firebaseUser == null) {
+        Logger.error('[Firebase 카카오] - Firebase 사용자 없음 (null)');
+        return null;
+      }
+
+      // Firestore에 사용자 문서 생성/업데이트
+      Logger.info('[Firebase 카카오] 7. Firestore 사용자 문서 확인...');
+      final userDoc = await _firestore.collection(_usersCollectionName).doc(firebaseUser.uid).get();
+      Logger.info('[Firebase 카카오] - 문서 존재 여부: ${userDoc.exists}');
+      bool isNewUser = false;
+
+      if (!userDoc.exists) {
+        // 신규 사용자 - 문서 생성
+        isNewUser = true;
+        Logger.info('[Firebase 카카오] 8. Firestore 신규 문서 생성 중...');
+        try {
+          await _firestore.collection(_usersCollectionName).doc(firebaseUser.uid).set({
+            'name': nickname,
+            'email': email ?? kakaoEmail,
+            'photoUrl': profileImageUrl,
+            'kakaoId': kakaoId,
+            'userType': 'user',
+            'createdAt': FieldValue.serverTimestamp(),
+            'updatedAt': FieldValue.serverTimestamp(),
+            'provider': 'kakao',
+          });
+          Logger.info('[Firebase 카카오] - Firestore 문서 생성 완료');
+        } catch (firestoreError) {
+          Logger.error('[Firebase 카카오] - Firestore 문서 생성 실패: $firestoreError');
+        }
+      } else {
+        // 기존 사용자 - 마지막 로그인 시간 업데이트
+        Logger.info('[Firebase 카카오] 8. 기존 사용자 - 로그인 시간 업데이트 중...');
+        try {
+          await _firestore.collection(_usersCollectionName).doc(firebaseUser.uid).update({
+            'updatedAt': FieldValue.serverTimestamp(),
+            'lastLoginAt': FieldValue.serverTimestamp(),
+          });
+          Logger.info('[Firebase 카카오] - 로그인 시간 업데이트 완료');
+        } catch (updateError) {
+          Logger.error('[Firebase 카카오] - 로그인 시간 업데이트 실패: $updateError');
+        }
+      }
+
+      // 최신 사용자 정보 가져오기
+      Logger.info('[Firebase 카카오] 9. 최신 사용자 정보 조회...');
+      final updatedDoc = await _firestore.collection(_usersCollectionName).doc(firebaseUser.uid).get();
+      final userData = updatedDoc.data() ?? {};
+      Logger.info('[Firebase 카카오] - 조회된 데이터: ${userData.keys.toList()}');
+
+      final result = {
+        'uid': firebaseUser.uid,
+        'name': userData['name'] ?? nickname,
+        'email': userData['email'] ?? email ?? kakaoEmail,
+        'photoUrl': profileImageUrl,
+        'kakaoId': kakaoId,
+        'userType': userData['userType'] ?? 'user',
+        'provider': 'kakao',
+        'isNewUser': isNewUser,
+      };
+
+      Logger.info('[Firebase 카카오] 10. 최종 반환 데이터:');
+      Logger.info('[Firebase 카카오] - uid: ${result['uid']}');
+      Logger.info('[Firebase 카카오] - name: ${result['name']}');
+      Logger.info('[Firebase 카카오] - userType: ${result['userType']}');
+      Logger.info('[Firebase 카카오] ========== signInWithKakao 완료 ==========');
+
+      return result;
+    } catch (e, stackTrace) {
+      Logger.error('[Firebase 카카오] 예외 발생: $e');
+      Logger.error('[Firebase 카카오] 에러 타입: ${e.runtimeType}');
+      Logger.error('[Firebase 카카오] 스택 트레이스: $stackTrace');
+      return null;
+    }
   }
 
   /// 구글 로그인
@@ -2092,9 +2298,11 @@ class FirebaseService {
 
       // Firestore에 사용자 문서 생성/업데이트
       final userDoc = await _firestore.collection(_usersCollectionName).doc(user.uid).get();
+      bool isNewUser = false;
 
       if (!userDoc.exists) {
         // 신규 사용자 - 문서 생성
+        isNewUser = true;
         await _firestore.collection(_usersCollectionName).doc(user.uid).set({
           'name': user.displayName ?? '사용자',
           'email': user.email ?? '',
@@ -2125,6 +2333,7 @@ class FirebaseService {
         'photoUrl': user.photoURL,
         'userType': userData['userType'] ?? 'user',
         'provider': 'google',
+        'isNewUser': isNewUser,
       };
     } catch (e) {
       Logger.error('구글 로그인 오류: $e');
@@ -2132,10 +2341,104 @@ class FirebaseService {
     }
   }
 
-  /// 네이버 로그인 (임시 비활성화)
+  /// 네이버 로그인
   Future<Map<String, dynamic>?> signInWithNaver() async {
-    Logger.warning('네이버 로그인은 현재 비활성화되어 있습니다.');
-    return null;
+    try {
+      Logger.info('[Firebase 네이버] ========== signInWithNaver 시작 ==========');
+
+      // 플랫폼 지원 여부 확인
+      if (!NaverSignInService.isSupported) {
+        Logger.warning('네이버 로그인은 이 플랫폼에서 지원되지 않습니다.');
+        return null;
+      }
+
+      // 네이버 로그인 수행
+      final naverUser = await NaverSignInService.signIn();
+
+      if (naverUser == null) {
+        Logger.info('네이버 로그인 취소됨');
+        return null;
+      }
+
+      Logger.info('[Firebase 네이버] 네이버 로그인 성공: ${naverUser['id']}');
+
+      // 네이버 ID를 기반으로 Firebase Custom Token 또는 익명 로그인 후 연동
+      // 네이버는 Firebase와 직접 연동이 안되므로 커스텀 인증 또는 이메일 기반 처리
+      final naverId = naverUser['id'] ?? '';
+      final naverEmail = naverUser['email'] ?? 'naver_$naverId@naver.placeholder';
+      final naverName = naverUser['name'] ?? naverUser['nickname'] ?? '네이버 사용자';
+
+      // 이메일이 있으면 해당 이메일로 사용자 찾기/생성
+      String finalUserId;
+      bool isNewUser = false;
+
+      // 기존 네이버 연동 사용자 찾기
+      final existingUsers = await _firestore
+          .collection(_usersCollectionName)
+          .where('naverId', isEqualTo: naverId)
+          .limit(1)
+          .get();
+
+      if (existingUsers.docs.isNotEmpty) {
+        // 기존 사용자 발견
+        finalUserId = existingUsers.docs.first.id;
+        Logger.info('[Firebase 네이버] 기존 네이버 연동 사용자 발견: $finalUserId');
+
+        // 마지막 로그인 시간 업데이트
+        await _firestore.collection(_usersCollectionName).doc(finalUserId).update({
+          'updatedAt': FieldValue.serverTimestamp(),
+          'lastLoginAt': FieldValue.serverTimestamp(),
+        });
+      } else {
+        // 신규 사용자 - Firebase 익명 로그인 후 네이버 정보 연동
+        isNewUser = true;
+        UserCredential? credential;
+
+        if (_auth.currentUser == null) {
+          credential = await _auth.signInAnonymously();
+          finalUserId = credential.user!.uid;
+        } else {
+          finalUserId = _auth.currentUser!.uid;
+        }
+
+        // 사용자 문서 생성
+        await _firestore.collection(_usersCollectionName).doc(finalUserId).set({
+          'name': naverName,
+          'email': naverEmail,
+          'naverId': naverId,
+          'photoUrl': naverUser['profileImageUrl'],
+          'phone': naverUser['mobile'],
+          'gender': naverUser['gender'],
+          'birthday': naverUser['birthday'],
+          'userType': 'user',
+          'createdAt': FieldValue.serverTimestamp(),
+          'updatedAt': FieldValue.serverTimestamp(),
+          'provider': 'naver',
+        });
+
+        Logger.info('[Firebase 네이버] 신규 네이버 사용자 생성: $finalUserId');
+      }
+
+      // 최신 사용자 정보 가져오기
+      final updatedDoc = await _firestore.collection(_usersCollectionName).doc(finalUserId).get();
+      final userData = updatedDoc.data() ?? {};
+
+      Logger.info('[Firebase 네이버] ========== signInWithNaver 완료 ==========');
+
+      return {
+        'uid': finalUserId,
+        'name': userData['name'] ?? naverName,
+        'email': userData['email'] ?? naverEmail,
+        'photoUrl': naverUser['profileImageUrl'],
+        'userType': userData['userType'] ?? 'user',
+        'provider': 'naver',
+        'naverId': naverId,
+        'isNewUser': isNewUser,
+      };
+    } catch (e) {
+      Logger.error('[Firebase 네이버] 네이버 로그인 오류: $e');
+      return null;
+    }
   }
 
   // ============================================================

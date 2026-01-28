@@ -174,6 +174,47 @@ class _LoginPageState extends State<LoginPage> {
       final userType = result['userType'] ?? 'user';
       final userId = result['uid'] ?? result['id'] ?? '';
       final userName = result['name'] ?? '사용자';
+      final isNewUser = result['isNewUser'] == true;
+
+      // 신규 사용자면 간단 회원가입 폼 표시
+      if (isNewUser && mounted) {
+        final registrationResult = await _showSimpleRegistrationForm(
+          userId: userId,
+          initialName: userName,
+          provider: provider,
+        );
+
+        if (registrationResult == null) {
+          // 회원가입 취소 시 계정 삭제하지 않고 그냥 로그인 처리
+          // 다음 로그인 시 다시 폼이 표시되지 않도록 isNewUser는 false가 됨
+        }
+
+        final finalName = registrationResult?['name'] ?? userName;
+
+        if (widget.returnResult) {
+          if (mounted) {
+            Navigator.of(context).pop({
+              'userId': userId,
+              'userName': finalName,
+              'userType': userType,
+              'authProvider': provider,
+            });
+          }
+        } else {
+          if (mounted) {
+            Navigator.of(context).pushReplacement(
+              MaterialPageRoute(
+                builder: (context) => MainPage(
+                  userId: userId,
+                  userName: finalName,
+                  initialTabIndex: 0,
+                ),
+              ),
+            );
+          }
+        }
+        return;
+      }
 
       if (widget.returnResult) {
         Navigator.of(context).pop({
@@ -201,6 +242,258 @@ class _LoginPageState extends State<LoginPage> {
         ),
       );
     }
+  }
+
+  /// 간단 회원가입 폼 (이름, 전화번호만 입력)
+  Future<Map<String, String>?> _showSimpleRegistrationForm({
+    required String userId,
+    required String initialName,
+    required String provider,
+  }) async {
+    // 소셜 로그인에서 가져온 이름은 사용하지 않고 사용자가 직접 입력하도록 함
+    final nameController = TextEditingController();
+    final phoneController = TextEditingController();
+    final formKey = GlobalKey<FormState>();
+    bool isSubmitting = false;
+
+    return await showModalBottomSheet<Map<String, String>>(
+      context: context,
+      isScrollControlled: true,
+      isDismissible: false,
+      enableDrag: false,
+      backgroundColor: Colors.transparent,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setModalState) => Container(
+          padding: EdgeInsets.only(
+            bottom: MediaQuery.of(context).viewInsets.bottom,
+          ),
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+          ),
+          child: SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Form(
+                key: formKey,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // 헤더
+                    Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(10),
+                          decoration: BoxDecoration(
+                            color: AppleColors.systemBlue.withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: const Icon(
+                            Icons.person_add_rounded,
+                            color: AppleColors.systemBlue,
+                            size: 24,
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                '환영합니다!',
+                                style: AppTypography.h2.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                '서비스 이용을 위해 정보를 입력해주세요',
+                                style: AppTypography.caption.copyWith(
+                                  color: AppleColors.secondaryLabel,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 24),
+
+                    // 이름 입력
+                    Text(
+                      '이름 *',
+                      style: AppTypography.bodySmall.copyWith(
+                        fontWeight: FontWeight.w600,
+                        color: AppleColors.label,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    TextFormField(
+                      controller: nameController,
+                      decoration: InputDecoration(
+                        hintText: '실명을 입력해주세요',
+                        prefixIcon: const Icon(Icons.person_outline, size: 20),
+                        filled: true,
+                        fillColor: AppleColors.tertiarySystemFill,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide.none,
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: const BorderSide(
+                            color: AppleColors.systemBlue,
+                            width: 2,
+                          ),
+                        ),
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 14,
+                        ),
+                      ),
+                      validator: (value) {
+                        if (value == null || value.trim().isEmpty) {
+                          return '이름을 입력해주세요';
+                        }
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 16),
+
+                    // 전화번호 입력
+                    Text(
+                      '전화번호 *',
+                      style: AppTypography.bodySmall.copyWith(
+                        fontWeight: FontWeight.w600,
+                        color: AppleColors.label,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    TextFormField(
+                      controller: phoneController,
+                      keyboardType: TextInputType.phone,
+                      decoration: InputDecoration(
+                        hintText: '010-0000-0000',
+                        prefixIcon: const Icon(Icons.phone_outlined, size: 20),
+                        filled: true,
+                        fillColor: AppleColors.tertiarySystemFill,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide.none,
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: const BorderSide(
+                            color: AppleColors.systemBlue,
+                            width: 2,
+                          ),
+                        ),
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 14,
+                        ),
+                      ),
+                      validator: (value) {
+                        if (value == null || value.trim().isEmpty) {
+                          return '전화번호를 입력해주세요';
+                        }
+                        // 간단한 전화번호 형식 검증
+                        final phoneRegex = RegExp(r'^01[0-9]-?[0-9]{3,4}-?[0-9]{4}$');
+                        if (!phoneRegex.hasMatch(value.replaceAll('-', ''))) {
+                          return '올바른 전화번호 형식이 아닙니다';
+                        }
+                        return null;
+                      },
+                    ),
+                    const SizedBox(height: 24),
+
+                    // 확인 버튼
+                    SizedBox(
+                      width: double.infinity,
+                      height: 52,
+                      child: ElevatedButton(
+                        onPressed: isSubmitting
+                            ? null
+                            : () async {
+                                if (formKey.currentState!.validate()) {
+                                  setModalState(() => isSubmitting = true);
+
+                                  try {
+                                    // Firebase에 사용자 정보 업데이트
+                                    await _firebaseService.updateUserName(
+                                      userId,
+                                      nameController.text.trim(),
+                                    );
+                                    await _firebaseService.updateUserPhone(
+                                      userId,
+                                      phoneController.text.trim(),
+                                    );
+
+                                    if (context.mounted) {
+                                      Navigator.of(context).pop({
+                                        'name': nameController.text.trim(),
+                                        'phone': phoneController.text.trim(),
+                                      });
+                                    }
+                                  } catch (e) {
+                                    setModalState(() => isSubmitting = false);
+                                    if (context.mounted) {
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        SnackBar(
+                                          content: Text('정보 저장 중 오류가 발생했습니다: $e'),
+                                          backgroundColor: AppleColors.systemRed,
+                                        ),
+                                      );
+                                    }
+                                  }
+                                }
+                              },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppleColors.systemBlue,
+                          foregroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          elevation: 0,
+                        ),
+                        child: isSubmitting
+                            ? const SizedBox(
+                                width: 20,
+                                height: 20,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                ),
+                              )
+                            : Text(
+                                '시작하기',
+                                style: AppTypography.button.copyWith(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+
+                    // 안내 문구
+                    Center(
+                      child: Text(
+                        '입력하신 정보는 서비스 이용에만 사용됩니다',
+                        style: AppTypography.caption.copyWith(
+                          color: AppleColors.tertiaryLabel,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
   }
 
   // Google 로그인

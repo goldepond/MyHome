@@ -1,0 +1,382 @@
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:property/constants/apple_design_system.dart';
+import 'package:property/api_request/firebase_service.dart';
+import 'package:property/utils/logger.dart';
+
+/// 소셜 로그인 후 필수 정보 입력 페이지
+/// 이름과 전화번호를 입력받아 프로필을 완성합니다.
+class ProfileCompletionPage extends StatefulWidget {
+  final String userId;
+  final String? currentName;
+  final VoidCallback onComplete;
+
+  const ProfileCompletionPage({
+    required this.userId,
+    this.currentName,
+    required this.onComplete,
+    super.key,
+  });
+
+  @override
+  State<ProfileCompletionPage> createState() => _ProfileCompletionPageState();
+}
+
+class _ProfileCompletionPageState extends State<ProfileCompletionPage> {
+  final _formKey = GlobalKey<FormState>();
+  final _nameController = TextEditingController();
+  final _phoneController = TextEditingController();
+  final FirebaseService _firebaseService = FirebaseService();
+  bool _isLoading = false;
+
+  @override
+  void initState() {
+    super.initState();
+    // 기존 이름이 기본값이 아니면 미리 채움
+    if (widget.currentName != null &&
+        !_isDefaultName(widget.currentName!)) {
+      _nameController.text = widget.currentName!;
+    }
+  }
+
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _phoneController.dispose();
+    super.dispose();
+  }
+
+  /// 기본 이름인지 확인 (소셜 로그인 기본값)
+  bool _isDefaultName(String name) {
+    const defaultNames = [
+      '카카오 사용자',
+      '구글 사용자',
+      '네이버 사용자',
+      '사용자',
+      'Google 사용자',
+      'Kakao 사용자',
+      'Naver 사용자',
+    ];
+    if (defaultNames.contains(name)) return true;
+
+    // 소셜 로그인 ID 형식 체크 (예: kakao_4719204516, google_xxx, naver_xxx)
+    final lowerName = name.toLowerCase();
+    if (lowerName.startsWith('kakao_') ||
+        lowerName.startsWith('google_') ||
+        lowerName.startsWith('naver_')) {
+      return true;
+    }
+
+    return false;
+  }
+
+  /// 전화번호 유효성 검사
+  String? _validatePhone(String? value) {
+    if (value == null || value.isEmpty) {
+      return '전화번호를 입력해주세요';
+    }
+    // 숫자만 추출
+    final digits = value.replaceAll(RegExp(r'[^0-9]'), '');
+    if (digits.length < 10 || digits.length > 11) {
+      return '올바른 전화번호를 입력해주세요';
+    }
+    if (!digits.startsWith('01')) {
+      return '휴대폰 번호를 입력해주세요';
+    }
+    return null;
+  }
+
+  /// 이름 유효성 검사
+  String? _validateName(String? value) {
+    if (value == null || value.trim().isEmpty) {
+      return '이름을 입력해주세요';
+    }
+    if (value.trim().length < 2) {
+      return '이름은 2글자 이상 입력해주세요';
+    }
+    if (_isDefaultName(value.trim())) {
+      return '실제 이름을 입력해주세요';
+    }
+    return null;
+  }
+
+  /// 전화번호 포맷팅 (010-1234-5678 형식)
+  String _formatPhoneNumber(String phone) {
+    final digits = phone.replaceAll(RegExp(r'[^0-9]'), '');
+    if (digits.length == 11) {
+      return '${digits.substring(0, 3)}-${digits.substring(3, 7)}-${digits.substring(7)}';
+    } else if (digits.length == 10) {
+      return '${digits.substring(0, 3)}-${digits.substring(3, 6)}-${digits.substring(6)}';
+    }
+    return phone;
+  }
+
+  /// 프로필 저장
+  Future<void> _saveProfile() async {
+    if (!_formKey.currentState!.validate()) return;
+
+    setState(() => _isLoading = true);
+
+    try {
+      final name = _nameController.text.trim();
+      final phone = _formatPhoneNumber(_phoneController.text.trim());
+
+      Logger.info('[프로필 완성] 저장 시도 - userId: ${widget.userId}, name: $name, phone: $phone');
+
+      // Firestore 업데이트
+      await _firebaseService.updateUser(widget.userId, {
+        'name': name,
+        'phone': phone,
+        'profileCompleted': true,
+        'updatedAt': DateTime.now().toIso8601String(),
+      });
+
+      Logger.info('[프로필 완성] 저장 성공');
+
+      if (mounted) {
+        // 성공 메시지 표시
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('프로필이 저장되었습니다'),
+            backgroundColor: AppleColors.systemGreen,
+          ),
+        );
+
+        // 완료 콜백 호출
+        widget.onComplete();
+      }
+    } catch (e) {
+      Logger.error('[프로필 완성] 저장 실패: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('저장에 실패했습니다: $e'),
+            backgroundColor: AppleColors.systemRed,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: AppleColors.systemBackground,
+      appBar: AppBar(
+        backgroundColor: AppleColors.systemBackground,
+        elevation: 0,
+        automaticallyImplyLeading: false,
+        title: const Text(
+          '프로필 완성',
+          style: AppleTypography.headline,
+        ),
+        centerTitle: true,
+      ),
+      body: SafeArea(
+        child: Center(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(AppleSpacing.xl),
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 400),
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    // 안내 텍스트
+                    _buildHeader(),
+                    const SizedBox(height: AppleSpacing.section),
+
+                    // 이름 입력
+                    _buildNameField(),
+                    const SizedBox(height: AppleSpacing.lg),
+
+                    // 전화번호 입력
+                    _buildPhoneField(),
+                    const SizedBox(height: AppleSpacing.section),
+
+                    // 저장 버튼
+                    _buildSaveButton(),
+                    const SizedBox(height: AppleSpacing.lg),
+
+                    // 개인정보 안내
+                    _buildPrivacyNotice(),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildHeader() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        Container(
+          width: 80,
+          height: 80,
+          decoration: BoxDecoration(
+            color: AppleColors.systemBlue.withValues(alpha: 0.1),
+            shape: BoxShape.circle,
+          ),
+          child: const Icon(
+            Icons.person_outline,
+            size: 40,
+            color: AppleColors.systemBlue,
+          ),
+        ),
+        const SizedBox(height: AppleSpacing.lg),
+        Text(
+          '마지막 단계입니다!',
+          style: AppleTypography.title1.copyWith(
+            fontWeight: FontWeight.w700,
+          ),
+          textAlign: TextAlign.center,
+        ),
+        const SizedBox(height: AppleSpacing.sm),
+        Text(
+          '서비스 이용을 위해\n이름과 연락처를 입력해주세요',
+          style: AppleTypography.body.copyWith(
+            color: AppleColors.secondaryLabel,
+          ),
+          textAlign: TextAlign.center,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildNameField() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          '이름',
+          style: AppleTypography.subheadline.copyWith(
+            fontWeight: FontWeight.w600,
+            color: AppleColors.label,
+          ),
+        ),
+        const SizedBox(height: AppleSpacing.xs),
+        TextFormField(
+          controller: _nameController,
+          validator: _validateName,
+          textInputAction: TextInputAction.next,
+          decoration: InputDecoration(
+            hintText: '실명을 입력해주세요',
+            hintStyle: AppleTypography.body.copyWith(
+              color: AppleColors.tertiaryLabel,
+            ),
+            filled: true,
+            fillColor: AppleColors.tertiarySystemFill,
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(AppleRadius.md),
+              borderSide: BorderSide.none,
+            ),
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: AppleSpacing.md,
+              vertical: AppleSpacing.md,
+            ),
+            prefixIcon: const Icon(
+              Icons.badge_outlined,
+              color: AppleColors.secondaryLabel,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildPhoneField() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          '전화번호',
+          style: AppleTypography.subheadline.copyWith(
+            fontWeight: FontWeight.w600,
+            color: AppleColors.label,
+          ),
+        ),
+        const SizedBox(height: AppleSpacing.xs),
+        TextFormField(
+          controller: _phoneController,
+          validator: _validatePhone,
+          keyboardType: TextInputType.phone,
+          textInputAction: TextInputAction.done,
+          inputFormatters: [
+            FilteringTextInputFormatter.digitsOnly,
+            LengthLimitingTextInputFormatter(11),
+          ],
+          decoration: InputDecoration(
+            hintText: '01012345678',
+            hintStyle: AppleTypography.body.copyWith(
+              color: AppleColors.tertiaryLabel,
+            ),
+            filled: true,
+            fillColor: AppleColors.tertiarySystemFill,
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(AppleRadius.md),
+              borderSide: BorderSide.none,
+            ),
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: AppleSpacing.md,
+              vertical: AppleSpacing.md,
+            ),
+            prefixIcon: const Icon(
+              Icons.phone_outlined,
+              color: AppleColors.secondaryLabel,
+            ),
+          ),
+          onFieldSubmitted: (_) => _saveProfile(),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSaveButton() {
+    return SizedBox(
+      height: 50,
+      child: ElevatedButton(
+        onPressed: _isLoading ? null : _saveProfile,
+        style: ElevatedButton.styleFrom(
+          backgroundColor: AppleColors.systemBlue,
+          foregroundColor: Colors.white,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(AppleRadius.md),
+          ),
+          elevation: 0,
+        ),
+        child: _isLoading
+            ? const SizedBox(
+                width: 24,
+                height: 24,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  color: Colors.white,
+                ),
+              )
+            : Text(
+                '시작하기',
+                style: AppleTypography.headline.copyWith(
+                  color: Colors.white,
+                ),
+              ),
+      ),
+    );
+  }
+
+  Widget _buildPrivacyNotice() {
+    return Text(
+      '입력하신 정보는 서비스 제공 목적으로만 사용되며,\n제3자에게 제공되지 않습니다.',
+      style: AppleTypography.caption1.copyWith(
+        color: AppleColors.tertiaryLabel,
+      ),
+      textAlign: TextAlign.center,
+    );
+  }
+}
