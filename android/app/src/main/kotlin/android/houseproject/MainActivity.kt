@@ -1,4 +1,4 @@
-package com.example.property
+package android.houseproject
 
 import io.flutter.embedding.android.FlutterActivity
 
