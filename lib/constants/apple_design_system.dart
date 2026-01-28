@@ -10,10 +10,10 @@ import 'package:flutter/material.dart';
 class AppleColors {
   AppleColors._();
 
-  // ========== 시스템 색상 (iOS/macOS 표준) ==========
+  // ========== 시스템 색상 (MyHome 브랜드 + iOS 표준) ==========
 
-  /// Apple Blue - 주요 액션, 링크, 선택 상태
-  static const Color systemBlue = Color(0xFF007AFF);
+  /// MyHome Coral - 주요 액션, 링크, 선택 상태 (브랜드 색상)
+  static const Color systemBlue = Color(0xFFE07A5F);
 
   /// Apple Green - 성공, 완료, 활성 상태
   static const Color systemGreen = Color(0xFF34C759);

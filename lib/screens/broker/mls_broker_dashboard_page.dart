@@ -84,12 +84,39 @@ class _MLSBrokerDashboardPageState extends State<MLSBrokerDashboardPage>
   void initState() {
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
+    _tabController.addListener(_onTabChanged);
+    // 첫 번째 탭(매물)만 먼저 로드 - 빠른 초기 렌더링
+    _subscribeToMainProperties();
+    // 지역 목록은 비동기로 로드 (캐시된 값 먼저 사용)
     _loadRegions();
-    _subscribeToProperties();
+  }
+
+  void _onTabChanged() {
+    if (!_tabController.indexIsChanging) {
+      // 탭 전환 시 해당 탭 데이터 로드
+      _loadTabData(_tabController.index);
+      setState(() {});
+    }
+  }
+
+  void _loadTabData(int tabIndex) {
+    switch (tabIndex) {
+      case 1: // 내 참여
+        if (_myPropertiesSubscription == null) {
+          _subscribeToMyProperties();
+        }
+        break;
+      case 2: // 성과
+        if (_completedSubscription == null) {
+          _subscribeToCompletedProperties();
+        }
+        break;
+    }
   }
 
   @override
   void dispose() {
+    _tabController.removeListener(_onTabChanged);
     _tabController.dispose();
     _allPropertiesSubscription?.cancel();
     _myPropertiesSubscription?.cancel();
@@ -104,13 +131,12 @@ class _MLSBrokerDashboardPageState extends State<MLSBrokerDashboardPage>
     }
   }
 
-  void _subscribeToProperties({bool forceReload = false}) {
-    // 지역 변경 시에만 캐시 초기화
+  /// 메인 매물 탭 구독 (첫 번째 탭)
+  void _subscribeToMainProperties({bool forceReload = false}) {
     if (forceReload) {
       _mlsService.clearBrowsableCache();
     }
 
-    // 최초 로딩 시에만 로딩 상태 표시
     if (_allProperties.isEmpty) {
       setState(() {
         _isLoading = true;
@@ -118,14 +144,12 @@ class _MLSBrokerDashboardPageState extends State<MLSBrokerDashboardPage>
       });
     }
 
-    // 1. 전체 활성 매물 구독 (캐싱된 스트림 재사용)
     _allPropertiesSubscription?.cancel();
     _allPropertiesSubscription = _mlsService
-        .getAllBrowsableProperties(region: _selectedRegion)
+        .getAllBrowsableProperties(region: _selectedRegion, limit: 30)
         .listen(
       (properties) {
         if (mounted) {
-          // 데이터가 변경되었을 때만 setState 호출
           final filtered = _filterByStatus(properties);
           if (_shouldUpdateList(_allProperties, filtered) || _isLoading) {
             setState(() {
@@ -146,8 +170,10 @@ class _MLSBrokerDashboardPageState extends State<MLSBrokerDashboardPage>
         }
       },
     );
+  }
 
-    // 2. 내가 참여 중인 매물 구독 (캐싱된 스트림 재사용)
+  /// 내 참여 매물 구독 (두 번째 탭)
+  void _subscribeToMyProperties() {
     _myPropertiesSubscription?.cancel();
     _myPropertiesSubscription = _mlsService
         .getPropertiesBroadcastedToBrokerStream(widget.brokerId)
@@ -169,8 +195,10 @@ class _MLSBrokerDashboardPageState extends State<MLSBrokerDashboardPage>
       },
       onError: (e) => Logger.error('내 참여 매물 로드 실패', error: e),
     );
+  }
 
-    // 3. 성과 매물 구독 (캐싱된 스트림 재사용)
+  /// 성과 매물 구독 (세 번째 탭)
+  void _subscribeToCompletedProperties() {
     _completedSubscription?.cancel();
     _completedSubscription = _mlsService
         .getCompletedPropertiesByBroker(widget.brokerId)
@@ -190,6 +218,11 @@ class _MLSBrokerDashboardPageState extends State<MLSBrokerDashboardPage>
       },
       onError: (e) => Logger.error('성과 매물 로드 실패', error: e),
     );
+  }
+
+  /// 지역 변경 시 호출 (기존 메서드 호환성 유지)
+  void _subscribeToProperties({bool forceReload = false}) {
+    _subscribeToMainProperties(forceReload: forceReload);
   }
 
   /// 리스트가 실제로 변경되었는지 확인
@@ -275,14 +308,14 @@ class _MLSBrokerDashboardPageState extends State<MLSBrokerDashboardPage>
   /// 순서: [알림] [설정] [모드전환(primary)] [로그아웃]
   Widget _buildHeader() {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       color: AppleColors.systemBackground,
       child: Row(
         children: [
           // 로고
           Text(
             'MyHome',
-            style: AppleTypography.title2.copyWith(
+            style: AppleTypography.headline.copyWith(
               fontWeight: FontWeight.w700,
               color: AppleColors.systemBlue,
             ),
@@ -301,7 +334,7 @@ class _MLSBrokerDashboardPageState extends State<MLSBrokerDashboardPage>
               );
             },
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: 4),
           // 2. 전체 메뉴 (설정/마이페이지)
           _buildHeaderActionButton(
             icon: Icons.menu,
@@ -318,7 +351,7 @@ class _MLSBrokerDashboardPageState extends State<MLSBrokerDashboardPage>
               );
             },
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: 4),
           // 3. 일반 모드로 전환 (Primary 스타일)
           _buildHeaderActionButton(
             icon: Icons.swap_horiz_rounded,
@@ -335,7 +368,7 @@ class _MLSBrokerDashboardPageState extends State<MLSBrokerDashboardPage>
               );
             },
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: 4),
           // 4. 로그아웃
           _buildHeaderActionButton(
             icon: Icons.logout_rounded,
@@ -393,13 +426,13 @@ class _MLSBrokerDashboardPageState extends State<MLSBrokerDashboardPage>
         color: Colors.transparent,
         child: InkWell(
           onTap: onPressed,
-          borderRadius: BorderRadius.circular(20),
+          borderRadius: BorderRadius.circular(16),
           child: Container(
-            height: 36,
-            padding: const EdgeInsets.symmetric(horizontal: 10),
+            height: 32,
+            width: 32,
             decoration: BoxDecoration(
               color: isPrimary ? AppleColors.systemBlue.withValues(alpha: 0.1) : Colors.transparent,
-              borderRadius: BorderRadius.circular(20),
+              borderRadius: BorderRadius.circular(16),
               border: Border.all(
                 color: isPrimary ? AppleColors.systemBlue.withValues(alpha: 0.3) : AppleColors.separator,
                 width: 1,
@@ -407,7 +440,7 @@ class _MLSBrokerDashboardPageState extends State<MLSBrokerDashboardPage>
             ),
             child: Icon(
               icon,
-              size: 20,
+              size: 18,
               color: isPrimary ? AppleColors.systemBlue : AppleColors.secondaryLabel,
             ),
           ),

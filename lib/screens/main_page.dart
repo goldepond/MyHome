@@ -217,6 +217,23 @@ class MainPageState extends State<MainPage> {
       toolbarHeight: isMobile ? 56 : 64,
       shadowColor: AppleColors.separator.withValues(alpha: 0.08),
       surfaceTintColor: Colors.transparent,
+      centerTitle: isMobile,
+      leadingWidth: isMobile ? 90 : null,
+      leading: isMobile ? Padding(
+        padding: const EdgeInsets.only(left: 12),
+        child: Align(
+          alignment: Alignment.centerLeft,
+          child: Text(
+            'MyHome',
+            style: AppleTypography.subheadline.copyWith(
+              fontWeight: FontWeight.w700,
+              color: AppleColors.systemBlue,
+            ),
+            overflow: TextOverflow.visible,
+            softWrap: false,
+          ),
+        ),
+      ) : null,
       title: isMobile ? _buildMobileHeader() : _buildDesktopHeader(),
       actions: isMobile ? _buildMobileActions() : null,
     );
@@ -271,9 +288,9 @@ class MainPageState extends State<MainPage> {
       // 중개사 대시보드 (중개사만)
       if (_isBroker)
         IconButton(
-          icon: const Icon(Icons.business_rounded, size: 24),
+          icon: const Icon(Icons.swap_horiz_rounded, size: 24),
           color: AppleColors.systemBlue,
-          tooltip: '중개사 대시보드',
+          tooltip: '중개사 모드로 전환',
           onPressed: () {
             final brokerId = _brokerData?['brokerId'] as String? ?? widget.userId;
             final brokerName = _brokerData?['ownerName'] as String? ??
@@ -315,32 +332,13 @@ class MainPageState extends State<MainPage> {
   }
 
   Widget _buildMobileHeader() {
+    // 모바일: 탭 버튼만 중앙에 표시 (로고는 간소화)
     return Row(
+      mainAxisSize: MainAxisSize.min,
       children: [
-        // 로고
-        GestureDetector(
-          onTap: () => setState(() => _currentIndex = 0),
-          child: Text(
-            'MyHome',
-            style: AppleTypography.title2.copyWith(
-              fontWeight: FontWeight.w700,
-              color: AppleColors.systemBlue,
-            ),
-          ),
-        ),
-        // 중앙 탭 버튼 (헤이딜러 스타일)
-        Expanded(
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              _buildCompactNavButton('등록', 0, Icons.sell_outlined),
-              const SizedBox(width: 8),
-              _buildCompactNavButton('내 매물', 1, Icons.home_outlined),
-            ],
-          ),
-        ),
-        // 우측 여백 (actions와 균형)
-        const SizedBox(width: 40),
+        _buildCompactNavButton('등록', 0, Icons.sell_outlined),
+        const SizedBox(width: 8),
+        _buildCompactNavButton('내 매물', 1, Icons.home_outlined),
       ],
     );
   }
@@ -662,7 +660,7 @@ class MainPageState extends State<MainPage> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('로그인에 실패했습니다. 이메일/전화번호를 확인해주세요.', style: AppleTypography.body.copyWith(color: Colors.white)),
+            content: Text('로그인에 실패했습니다. 이메일과 비밀번호를 확인해주세요.', style: AppleTypography.body.copyWith(color: Colors.white)),
             backgroundColor: AppleColors.systemRed,
           ),
         );

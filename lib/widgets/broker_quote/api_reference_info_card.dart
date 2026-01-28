@@ -24,7 +24,7 @@ class ApiReferenceInfoCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: AirbnbColors.background,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.blue.withValues(alpha: 0.3), width: 2),
+        border: Border.all(color: AirbnbColors.info.withValues(alpha: 0.3), width: 2),
         boxShadow: [
           BoxShadow(
             color: AirbnbColors.textPrimary.withValues(alpha: 0.06),
@@ -38,7 +38,7 @@ class ApiReferenceInfoCard extends StatelessWidget {
         children: [
           Row(
             children: [
-              Icon(Icons.info_outline, color: Colors.blue[700], size: 24),
+              Icon(Icons.info_outline, color: AirbnbColors.blueDark, size: 24),
               const SizedBox(width: 12),
               const Text(
                 '매물 정보 참조',
@@ -71,20 +71,20 @@ class ApiReferenceInfoCard extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: Colors.orange.withValues(alpha: 0.1),
+                color: AirbnbColors.warning.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: Colors.orange.withValues(alpha: 0.3)),
+                border: Border.all(color: AirbnbColors.warning.withValues(alpha: 0.3)),
               ),
               child: Row(
                 children: [
-                  Icon(Icons.error_outline, color: Colors.orange[700], size: 20),
+                  Icon(Icons.error_outline, color: AirbnbColors.orangeDark, size: 20),
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
                       apiError!,
                       style: TextStyle(
                         fontSize: 13,
-                        color: Colors.orange[900],
+                        color: AirbnbColors.orangeDark,
                       ),
                     ),
                   ),
@@ -255,14 +255,14 @@ class ApiReferenceInfoCard extends StatelessWidget {
         children: [
           Row(
             children: [
-              Icon(icon, size: 18, color: Colors.blue[700]),
+              Icon(icon, size: 18, color: AirbnbColors.blueDark),
               const SizedBox(width: 8),
               Text(
                 title,
                 style: TextStyle(
                   fontSize: 15,
                   fontWeight: FontWeight.bold,
-                  color: Colors.blue[900],
+                  color: AirbnbColors.blueDark,
                 ),
               ),
             ],

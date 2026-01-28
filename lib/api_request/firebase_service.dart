@@ -15,8 +15,9 @@ class FirebaseService {
   factory FirebaseService() => _instance;
   FirebaseService._internal();
 
-  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  final FirebaseAuth _auth = FirebaseAuth.instance;
+  // Lazy initialization - Firebase 초기화 이후에 접근
+  FirebaseFirestore get _firestore => FirebaseFirestore.instance;
+  FirebaseAuth get _auth => FirebaseAuth.instance;
   static const String _collectionName = 'properties';
   static const String _usersCollectionName = 'users';
   static const String _brokersCollectionName = 'brokers';

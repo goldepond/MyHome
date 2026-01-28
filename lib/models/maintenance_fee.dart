@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:property/constants/app_constants.dart';
 
 class MaintenanceFee {
   final double amount; // 관리비 금액
@@ -184,11 +185,11 @@ extension MaintenanceFeeLevelExtension on MaintenanceFeeLevel {
   Color get color {
     switch (this) {
       case MaintenanceFeeLevel.low:
-        return Colors.green;
+        return AirbnbColors.success;
       case MaintenanceFeeLevel.normal:
-        return Colors.orange;
+        return AirbnbColors.warning;
       case MaintenanceFeeLevel.high:
-        return Colors.red;
+        return AirbnbColors.error;
     }
   }
 

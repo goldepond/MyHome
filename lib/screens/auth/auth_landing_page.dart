@@ -118,6 +118,10 @@ class _AuthLandingPageState extends State<AuthLandingPage> {
               _buildHeader(),
               const SizedBox(height: AppleSpacing.section),
 
+              // 이용 방법 3단계
+              _buildHowItWorks(),
+              const SizedBox(height: AppleSpacing.section),
+
               // 소셜 로그인 버튼들
               _buildSocialButtons(),
               const SizedBox(height: AppleSpacing.xxl),
@@ -200,6 +204,64 @@ class _AuthLandingPageState extends State<AuthLandingPage> {
           hasBorder: true,
         ),
       ],
+    );
+  }
+
+  Widget _buildHowItWorks() {
+    return Column(
+      children: [
+        // 섹션 타이틀
+        Text(
+          '이렇게 이용하세요',
+          style: AppleTypography.headline.copyWith(
+            color: AppleColors.label,
+          ),
+        ),
+        const SizedBox(height: AppleSpacing.lg),
+
+        // 3단계 프로세스
+        Row(
+          children: [
+            Expanded(
+              child: _StepItem(
+                step: 1,
+                icon: Icons.home_outlined,
+                title: '주소 입력',
+                description: '팔고 싶은 집\n주소만 입력',
+              ),
+            ),
+            _buildArrow(),
+            Expanded(
+              child: _StepItem(
+                step: 2,
+                icon: Icons.people_outline,
+                title: '중개사 매칭',
+                description: '주변 중개사\n자동 연결',
+              ),
+            ),
+            _buildArrow(),
+            Expanded(
+              child: _StepItem(
+                step: 3,
+                icon: Icons.chat_bubble_outline,
+                title: '상담 받기',
+                description: '견적 비교 후\n선택',
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildArrow() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 4),
+      child: Icon(
+        Icons.arrow_forward_ios,
+        size: 12,
+        color: AppleColors.tertiaryLabel,
+      ),
     );
   }
 
@@ -364,3 +426,61 @@ class _SocialLoginButton extends StatelessWidget {
     return const SizedBox(width: 24, height: 24);
   }
 }
+
+/// 이용 방법 단계 아이템
+class _StepItem extends StatelessWidget {
+  final int step;
+  final IconData icon;
+  final String title;
+  final String description;
+
+  const _StepItem({
+    required this.step,
+    required this.icon,
+    required this.title,
+    required this.description,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        // 아이콘 원
+        Container(
+          width: 48,
+          height: 48,
+          decoration: BoxDecoration(
+            color: AppleColors.systemBlue.withValues(alpha: 0.1),
+            shape: BoxShape.circle,
+          ),
+          child: Icon(
+            icon,
+            color: AppleColors.systemBlue,
+            size: 24,
+          ),
+        ),
+        const SizedBox(height: AppleSpacing.xs),
+        // 제목
+        Text(
+          title,
+          style: AppleTypography.footnote.copyWith(
+            fontWeight: FontWeight.w600,
+            color: AppleColors.label,
+          ),
+          textAlign: TextAlign.center,
+        ),
+        const SizedBox(height: 2),
+        // 설명
+        Text(
+          description,
+          style: AppleTypography.caption2.copyWith(
+            color: AppleColors.secondaryLabel,
+            height: 1.3,
+          ),
+          textAlign: TextAlign.center,
+        ),
+      ],
+    );
+  }
+}
+

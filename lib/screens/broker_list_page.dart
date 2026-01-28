@@ -937,7 +937,7 @@ class _BrokerListPageState extends State<BrokerListPage> {
                     } else if (mounted) {
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(
-                          content: Text('로그인에 실패했습니다. 이메일/전화번호를 확인해주세요.'),
+                          content: Text('로그인에 실패했습니다. 이메일과 비밀번호를 확인해주세요.'),
                           backgroundColor: AirbnbColors.error,
                         ),
                       );
@@ -2031,16 +2031,16 @@ class _BrokerListPageState extends State<BrokerListPage> {
     return Container(
                           padding: const EdgeInsets.all(AppSpacing.sm),
       decoration: BoxDecoration(
-        color: Colors.blue.withValues(alpha: 0.05),
+        color: AirbnbColors.info.withValues(alpha: 0.05),
         borderRadius: BorderRadius.circular(10),
         border: Border.all(
-          color: Colors.blue.withValues(alpha: 0.15),
+          color: AirbnbColors.info.withValues(alpha: 0.15),
         ),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(Icons.location_on, size: 16, color: Colors.blue[700]),
+          Icon(Icons.location_on, size: 16, color: AirbnbColors.blueDark),
           const SizedBox(width: AppSpacing.sm),
           Expanded(
             child: Text(
@@ -3052,7 +3052,7 @@ class _QuoteRequestFormPageState extends State<_QuoteRequestFormPage> {
             const SizedBox(height: AppSpacing.xl),
             
             // ========== 1️⃣ 매물 정보 (자동 입력) ==========
-            _buildSectionTitle('매물 정보', '자동 입력됨', Colors.blue),
+            _buildSectionTitle('매물 정보', '자동 입력됨', AirbnbColors.info),
             const SizedBox(height: AppSpacing.md + AppSpacing.xs),
             _buildCard([
               _buildInfoRow('주소', propertyAddress),
@@ -3850,7 +3850,7 @@ class _MultipleQuoteRequestDialogState extends State<_MultipleQuoteRequestDialog
             const SizedBox(height: AppSpacing.xl),
             
             // ========== 1️⃣ 매물 정보 (자동 입력) ==========
-            _buildSectionTitle('매물 정보', '자동 입력됨', Colors.blue),
+            _buildSectionTitle('매물 정보', '자동 입력됨', AirbnbColors.info),
             const SizedBox(height: AppSpacing.md),
             _buildCard([
               _buildInfoRow('주소', widget.address),
@@ -4814,19 +4814,19 @@ class _GuestContactDialogState extends State<_GuestContactDialog> {
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: Colors.blue[50],
+                  color: AirbnbColors.info.withValues(alpha: 0.08),
                   borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: Colors.blue[200]!),
+                  border: Border.all(color: AirbnbColors.info.withValues(alpha: 0.3)),
                 ),
-                child: const Row(
+                child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Icon(Icons.info_outline, size: 20, color: Colors.blue),
-                    SizedBox(width: 8),
+                    Icon(Icons.info_outline, size: 20, color: AirbnbColors.info),
+                    const SizedBox(width: 8),
                     Expanded(
                       child: Text(
                         '공인중개사의 상담 응답을 받을 연락처를 적어주세요.\n상담 이후 응답은 내집관리에서 확인 가능합니다.',
-                        style: TextStyle(fontSize: 12, color: Colors.blue, height: 1.4),
+                        style: TextStyle(fontSize: 12, color: AirbnbColors.info, height: 1.4),
                       ),
                     ),
                   ],

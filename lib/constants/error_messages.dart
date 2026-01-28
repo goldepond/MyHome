@@ -12,11 +12,11 @@ class ErrorMessages {
 
   // 인증 관련 에러
   static const String authRequired = '로그인이 필요합니다.';
-  static const String authFailed = '로그인에 실패했습니다.\n이메일과 전화번호를 확인해주세요.';
+  static const String authFailed = '로그인에 실패했습니다.\n이메일과 비밀번호를 확인해주세요.';
   static const String authExpired = '로그인 세션이 만료되었습니다.\n다시 로그인해주세요.';
   static const String userNotFound = '등록되지 않은 사용자입니다.\n회원가입을 먼저 진행해주세요.';
-  static const String wrongPassword = '전화번호가 올바르지 않습니다.';
-  static const String weakPassword = '전화번호 형식이 올바르지 않습니다.\n01012345678 형식으로 입력해주세요.';
+  static const String wrongPassword = '비밀번호가 올바르지 않습니다.';
+  static const String weakPassword = '비밀번호가 너무 약합니다.\n6자리 이상 입력해주세요.';
   static const String emailAlreadyInUse = '이미 사용 중인 이메일입니다.\n다른 이메일을 사용하거나 로그인해주세요.';
   static const String invalidEmail = '올바른 이메일 형식을 입력해주세요.';
   static const String requiresRecentLogin = '보안을 위해 다시 로그인한 후 시도해주세요.';

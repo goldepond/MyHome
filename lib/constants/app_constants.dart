@@ -2,23 +2,23 @@ import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
-// 색상 상수 - HouseMVP 통합 디자인
+// 색상 상수 - MyHome 브랜드 디자인 (코랄/테라코타)
 class AppColors {
-  // 메인 컬러 (보라+남색 조합 - 신뢰감 & 독창성)
-  static const Color kPrimary = Color(0xFF8b5cf6);      // 메인 보라색
-  static const Color kSecondary = Color(0xFF1e3a8a);    // 신뢰감 있는 남색 (navy blue)
-  static const Color kAccent = Color(0xFF7c3aed);       // 진한 보라색
-  
+  // 메인 컬러 (코랄/테라코타 - 따뜻한 집의 느낌)
+  static const Color kPrimary = Color(0xFFE07A5F);      // 메인 코랄
+  static const Color kSecondary = Color(0xFFC9654D);    // 진한 코랄 (다크)
+  static const Color kAccent = Color(0xFFD4715A);       // 코랄 호버
+
   // 배경 및 텍스트
-  static const Color kBackground = Color(0xFFE8EAF0);   // 진한 회색 배경 (가시성 개선)
+  static const Color kBackground = Color(0xFFFDF8F6);   // 따뜻한 크림 배경
   static const Color kSurface = Color(0xFFFFFFFF);      // 흰색
   static const Color kTextPrimary = Color(0xFF1F2937);  // 더 진한 텍스트 (가시성 개선)
   static const Color kTextSecondary = Color(0xFF4B5563);// 진한 보통 텍스트
   static const Color kTextLight = Color(0xFF6B7280);    // 진한 밝은 텍스트
-  
-  // 그라데이션 (브랜드 기본: 딥 퍼플 → 딥 네이비)
-  static const Color kGradientStart = Color(0xFF5B21B6); // purple-800
-  static const Color kGradientEnd = Color(0xFF1E3A8A);   // blue-900
+
+  // 그라데이션 (브랜드 기본: 코랄 → 진한 코랄)
+  static const Color kGradientStart = Color(0xFFE07A5F); // coral
+  static const Color kGradientEnd = Color(0xFFC9654D);   // coral-dark
   
   // 상태 컬러
   static const Color kSuccess = Color(0xFF10b981);      // 성공 (녹색)
@@ -50,13 +50,13 @@ class AppGradients {
   );
 }
 
-/// 에어비엔비 스타일 색상 시스템 (보라색 계열 + 다양한 조화 색상)
+/// 에어비엔비 스타일 색상 시스템 (코랄/테라코타 + 다양한 조화 색상)
 class AirbnbColors {
-  // ========== 주력 색상 (보라색 계열) ==========
-  static const Color primary = Color(0xFF8b5cf6);      // 메인 보라색 (주력색)
-  static const Color primaryHover = Color(0xFF7c3aed); // 진한 보라색
-  static const Color primaryLight = Color(0xFFa78bfa); // 연한 보라색
-  static const Color primaryDark = Color(0xFF6d28d9);  // 더 진한 보라색
+  // ========== 주력 색상 (코랄/테라코타 계열) ==========
+  static const Color primary = Color(0xFFE07A5F);      // 메인 코랄 (주력색)
+  static const Color primaryHover = Color(0xFFD4715A); // 호버 코랄
+  static const Color primaryLight = Color(0xFFF4A593); // 연한 코랄
+  static const Color primaryDark = Color(0xFFC9654D);  // 진한 코랄
   
   // ========== 중성 색상 ==========
   static const Color background = Color(0xFFFFFFFF);

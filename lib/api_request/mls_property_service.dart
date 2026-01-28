@@ -26,6 +26,10 @@ class MLSPropertyService {
   // 스트림 캐싱용 변수 (재구독 방지)
   final Map<String, Stream<List<MLSProperty>>> _broadcastStreams = {};
 
+  // 지역 목록 캐시
+  List<String>? _cachedRegions;
+  DateTime? _regionsCacheTime;
+
   /// 매물 생성
   Future<String> createProperty(MLSProperty property) async {
     try {
@@ -98,8 +102,8 @@ class MLSPropertyService {
   /// 중개사가 영업할 매물 목록 조회 (모든 활성 매물)
   /// whereIn 대신 클라이언트 필터링 사용하여 인덱스 제약 회피
   /// 스트림 캐싱으로 재구독 방지
-  Stream<List<MLSProperty>> getAllBrowsableProperties({String? region}) {
-    final cacheKey = 'browsable_${region ?? 'all'}';
+  Stream<List<MLSProperty>> getAllBrowsableProperties({String? region, int limit = 50}) {
+    final cacheKey = 'browsable_${region ?? 'all'}_$limit';
 
     // 이미 캐싱된 스트림이 있으면 재사용
     if (_broadcastStreams.containsKey(cacheKey)) {
@@ -110,7 +114,8 @@ class MLSPropertyService {
       .collection(_collectionName)
       .where('isActive', isEqualTo: true)
       .where('isDeleted', isEqualTo: false)
-      .orderBy('createdAt', descending: true);
+      .orderBy('createdAt', descending: true)
+      .limit(limit);
 
     if (region != null && region.isNotEmpty) {
       query = query.where('region', isEqualTo: region);
@@ -135,13 +140,23 @@ class MLSPropertyService {
     _broadcastStreams.removeWhere((key, _) => key.startsWith('browsable_'));
   }
 
-  /// 전체 매물의 지역 목록 조회 (필터용)
-  Future<List<String>> getAvailableRegions() async {
+  /// 전체 매물의 지역 목록 조회 (필터용) - 5분 캐싱
+  Future<List<String>> getAvailableRegions({bool forceRefresh = false}) async {
+    // 캐시가 유효하면 바로 반환 (5분)
+    if (!forceRefresh &&
+        _cachedRegions != null &&
+        _regionsCacheTime != null &&
+        DateTime.now().difference(_regionsCacheTime!).inMinutes < 5) {
+      return _cachedRegions!;
+    }
+
     try {
+      // 필요한 필드만 가져오기 (region만)
       final snapshot = await _firestore
         .collection(_collectionName)
         .where('isActive', isEqualTo: true)
         .where('isDeleted', isEqualTo: false)
+        .limit(200) // 최대 200개만 조회
         .get();
 
       final regions = snapshot.docs
@@ -152,10 +167,15 @@ class MLSPropertyService {
         .toList();
 
       regions.sort();
+
+      // 캐시 저장
+      _cachedRegions = regions;
+      _regionsCacheTime = DateTime.now();
+
       return regions;
     } catch (e) {
       Logger.error('Failed to get available regions', error: e);
-      return [];
+      return _cachedRegions ?? [];
     }
   }
 
