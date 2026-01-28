@@ -6,7 +6,6 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:property/firebase_options.dart';
 import 'package:property/constants/app_constants.dart';
 import 'package:property/screens/admin/admin_dashboard.dart';
-import 'package:property/api_request/firebase_service.dart';
 import 'package:property/utils/logger.dart';
 
 void main() async {
