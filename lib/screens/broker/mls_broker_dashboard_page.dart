@@ -106,9 +106,6 @@ class _MLSBrokerDashboardPageState extends State<MLSBrokerDashboardPage>
   bool _isLoadingCompleted = true;
   String? _errorMessage;
 
-  // 레거시 호환성 (기존 코드와 호환)
-  bool get _isLoading => _isLoadingMain;
-
   // 데이터 캐시용 (이전 값과 비교하여 불필요한 setState 방지)
   List<MLSProperty>? _cachedRawProperties;
 
@@ -119,17 +116,62 @@ class _MLSBrokerDashboardPageState extends State<MLSBrokerDashboardPage>
     _tabController.addListener(_onTabChanged);
     // 첫 프레임 렌더링 후 데이터 로드 (UI 먼저 표시)
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      _subscribeToMainProperties();
-      // 다른 탭은 약간 지연 후 로드 (초기 렌더링 우선)
-      Future.delayed(const Duration(milliseconds: 100), () {
-        if (mounted) {
-          _subscribeToMyProperties();
-          _subscribeToCompletedProperties();
-        }
-      });
+      // 빠른 초기 로딩: Future로 먼저 데이터 가져온 후 스트림 구독
+      _loadInitialDataFast();
     });
     // 지역 목록은 비동기로 로드 (캐시된 값 먼저 사용)
     _loadRegions();
+  }
+
+  /// 빠른 초기 데이터 로딩 (Future 사용)
+  Future<void> _loadInitialDataFast() async {
+    // 세 개의 데이터를 병렬로 빠르게 로드
+    final futures = await Future.wait([
+      _mlsService.getAllBrowsablePropertiesFast(region: _selectedRegion, limit: 30),
+      _mlsService.getPropertiesBroadcastedToBrokerFast(widget.brokerId),
+      _mlsService.getCompletedPropertiesByBrokerFast(widget.brokerId),
+    ]);
+
+    if (!mounted) return;
+
+    // 1. 메인 매물 탭
+    final mainProperties = futures[0];
+    final filteredMain = _filterByStatus(mainProperties);
+
+    // 2. 내 참여 매물 탭
+    final broadcastedProperties = futures[1];
+    final competing = broadcastedProperties.where((p) {
+      final response = p.brokerResponses[widget.brokerId];
+      return response != null &&
+          response.hasViewed &&
+          p.status != PropertyStatus.sold &&
+          p.status != PropertyStatus.depositTaken;
+    }).toList();
+    competing.sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
+
+    // 3. 성과 탭
+    final completedProperties = futures[2];
+    final won = completedProperties.where((p) => p.status == PropertyStatus.depositTaken).toList();
+    final completed = completedProperties.where((p) => p.status == PropertyStatus.sold).toList();
+
+    // 한 번에 setState (렌더링 최소화)
+    setState(() {
+      _cachedRawProperties = mainProperties;
+      _allProperties = filteredMain;
+      _isLoadingMain = false;
+
+      _myCompetingProperties = competing;
+      _isLoadingMy = false;
+
+      _wonProperties = won;
+      _completedProperties = completed;
+      _isLoadingCompleted = false;
+    });
+
+    // 초기 데이터 로드 후 스트림 구독 (실시간 업데이트용)
+    _subscribeToMainProperties();
+    _subscribeToMyProperties();
+    _subscribeToCompletedProperties();
   }
 
   void _onTabChanged() {

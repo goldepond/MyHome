@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
@@ -287,8 +288,8 @@ class _MLSPropertyEditPageState extends State<MLSPropertyEditPage> {
             child: ClipRRect(
               borderRadius: BorderRadius.circular(AppleRadius.sm - 1),
               child: item.newFile != null
-                  ? Image.network(
-                      item.newFile!.path,
+                  ? Image.file(
+                      File(item.newFile!.path),
                       fit: BoxFit.cover,
                       width: double.infinity,
                       height: double.infinity,
@@ -598,7 +599,7 @@ class _MLSPropertyEditPageState extends State<MLSPropertyEditPage> {
                           width: 60,
                           height: 60,
                           child: item.newFile != null
-                              ? Image.network(item.newFile!.path, fit: BoxFit.cover)
+                              ? Image.file(File(item.newFile!.path), fit: BoxFit.cover)
                               : Image.network(item.existingUrl!, fit: BoxFit.cover),
                         ),
                       ),

@@ -99,6 +99,31 @@ class MLSPropertyService {
         .toList());
   }
 
+  /// 전체 활성 매물 빠른 조회 (마켓플레이스 초기 로딩용)
+  Future<List<MLSProperty>> getAllActivePropertiesFast({int limit = 100}) async {
+    try {
+      final snapshot = await _firestore
+        .collection(_collectionName)
+        .where('isActive', isEqualTo: true)
+        .where('isDeleted', isEqualTo: false)
+        .where('status', whereIn: [
+          PropertyStatus.active.toString().split('.').last,
+          PropertyStatus.inquiry.toString().split('.').last,
+          PropertyStatus.underOffer.toString().split('.').last,
+        ])
+        .orderBy('createdAt', descending: true)
+        .limit(limit)
+        .get();
+
+      return snapshot.docs
+        .map((doc) => MLSProperty.fromMap(doc.data()))
+        .toList();
+    } catch (e) {
+      Logger.error('Failed to get active properties fast', error: e);
+      return [];
+    }
+  }
+
   /// 중개사가 영업할 매물 목록 조회 (모든 활성 매물)
   /// whereIn 대신 클라이언트 필터링 사용하여 인덱스 제약 회피
   /// 스트림 캐싱으로 재구독 방지
@@ -290,6 +315,82 @@ class MLSPropertyService {
 
     _broadcastStreams[cacheKey] = stream;
     return stream;
+  }
+
+  // ========================================
+  // 빠른 초기 로딩용 Future 메서드 (대시보드 최적화)
+  // ========================================
+
+  /// 전체 활성 매물 빠른 조회 (초기 로딩용)
+  Future<List<MLSProperty>> getAllBrowsablePropertiesFast({String? region, int limit = 30}) async {
+    try {
+      Query<Map<String, dynamic>> query = _firestore
+        .collection(_collectionName)
+        .where('isActive', isEqualTo: true)
+        .where('isDeleted', isEqualTo: false)
+        .orderBy('createdAt', descending: true)
+        .limit(limit);
+
+      if (region != null && region.isNotEmpty) {
+        query = query.where('region', isEqualTo: region);
+      }
+
+      final snapshot = await query.get();
+      return snapshot.docs
+        .map((doc) => MLSProperty.fromMap(doc.data()))
+        .where((p) =>
+          p.status == PropertyStatus.active ||
+          p.status == PropertyStatus.inquiry ||
+          p.status == PropertyStatus.underOffer)
+        .toList();
+    } catch (e) {
+      Logger.error('Failed to get browsable properties fast', error: e);
+      return [];
+    }
+  }
+
+  /// 중개사에게 배포된 매물 빠른 조회 (초기 로딩용)
+  Future<List<MLSProperty>> getPropertiesBroadcastedToBrokerFast(String brokerId) async {
+    try {
+      final snapshot = await _firestore
+        .collection(_collectionName)
+        .where('targetBrokerIds', arrayContains: brokerId)
+        .where('isDeleted', isEqualTo: false)
+        .where('isActive', isEqualTo: true)
+        .orderBy('broadcastedAt', descending: true)
+        .limit(50)
+        .get();
+
+      return snapshot.docs
+        .map((doc) => MLSProperty.fromMap(doc.data()))
+        .toList();
+    } catch (e) {
+      Logger.error('Failed to get broadcasted properties fast', error: e);
+      return [];
+    }
+  }
+
+  /// 중개사 성과 매물 빠른 조회 (초기 로딩용)
+  Future<List<MLSProperty>> getCompletedPropertiesByBrokerFast(String brokerId) async {
+    try {
+      final snapshot = await _firestore
+        .collection(_collectionName)
+        .where('finalBrokerId', isEqualTo: brokerId)
+        .where('isDeleted', isEqualTo: false)
+        .orderBy('depositTakenAt', descending: true)
+        .limit(50)
+        .get();
+
+      return snapshot.docs
+        .map((doc) => MLSProperty.fromMap(doc.data()))
+        .where((property) =>
+          property.status == PropertyStatus.depositTaken ||
+          property.status == PropertyStatus.sold)
+        .toList();
+    } catch (e) {
+      Logger.error('Failed to get completed properties fast', error: e);
+      return [];
+    }
   }
 
   /// 중개사 관련 캐시 초기화 (로그아웃 시 호출)

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../../models/mls_property.dart';
@@ -36,6 +37,9 @@ class _MLSMarketplacePageState extends State<MLSMarketplacePage> {
   String? _selectedPriceRange;
   String? _selectedStatus;
 
+  // 스트림 구독 관리
+  StreamSubscription<List<MLSProperty>>? _subscription;
+
   // 지역 목록
   final List<Map<String, String>> _regions = [
     {'value': '', 'label': '전체 지역'},
@@ -62,26 +66,59 @@ class _MLSMarketplacePageState extends State<MLSMarketplacePage> {
   @override
   void initState() {
     super.initState();
-    _loadProperties();
+    // 빠른 초기 로딩: Future로 먼저 데이터 가져온 후 스트림 구독
+    _loadInitialDataFast();
   }
 
-  void _loadProperties() {
-    setState(() => _isLoading = true);
+  @override
+  void dispose() {
+    _subscription?.cancel();
+    super.dispose();
+  }
 
-    _mlsService.getAllActiveProperties(limit: 100).listen(
+  /// 빠른 초기 데이터 로딩 (Future 사용)
+  Future<void> _loadInitialDataFast() async {
+    // Future로 빠르게 초기 데이터 로드
+    final properties = await _mlsService.getAllActivePropertiesFast(limit: 100);
+
+    if (!mounted) return;
+
+    setState(() {
+      _properties = properties;
+      _isLoading = false;
+    });
+
+    // 초기 데이터 로드 후 스트림 구독 (실시간 업데이트용)
+    _subscribeToProperties();
+  }
+
+  /// 실시간 업데이트를 위한 스트림 구독
+  void _subscribeToProperties() {
+    _subscription?.cancel();
+    _subscription = _mlsService.getAllActiveProperties(limit: 100).listen(
       (properties) {
-        if (mounted) {
+        if (mounted && _shouldUpdate(properties)) {
           setState(() {
             _properties = properties;
-            _isLoading = false;
           });
         }
       },
       onError: (error) {
         Logger.error('Failed to load marketplace properties', error: error);
-        if (mounted) setState(() => _isLoading = false);
       },
     );
+  }
+
+  /// 리스트가 실제로 변경되었는지 확인
+  bool _shouldUpdate(List<MLSProperty> newList) {
+    if (_properties.length != newList.length) return true;
+    for (int i = 0; i < _properties.length; i++) {
+      if (_properties[i].id != newList[i].id ||
+          _properties[i].updatedAt != newList[i].updatedAt) {
+        return true;
+      }
+    }
+    return false;
   }
 
   List<MLSProperty> get _filteredProperties {
@@ -229,7 +266,7 @@ class _MLSMarketplacePageState extends State<MLSMarketplacePage> {
 
     // 등록 완료 시 목록 새로고침
     if (result == true && context.mounted) {
-      _loadProperties();
+      _loadInitialDataFast();
     }
   }
 

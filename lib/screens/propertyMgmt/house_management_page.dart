@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:property/constants/app_constants.dart';
 import 'package:property/constants/typography.dart';
@@ -39,6 +40,9 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
   bool isLoading = true;
   String? error;
 
+  // Stream 구독 관리
+  StreamSubscription<List<QuoteRequest>>? _subscription;
+
   // 필터 상태
   String selectedStatus = 'all'; // all, pending, completed
 
@@ -72,9 +76,18 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
     _loadQuotes();
   }
 
+  @override
+  void dispose() {
+    _subscription?.cancel();
+    super.dispose();
+  }
+
   /// 견적문의 목록 로드
   Future<void> _loadQuotes() async {
     if (!mounted) return;
+
+    // 기존 구독 취소
+    await _subscription?.cancel();
 
     setState(() {
       isLoading = true;
@@ -88,7 +101,7 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
           : widget.userName;
 
       // Stream으로 실시간 데이터 수신
-      _firebaseService.getQuoteRequestsByUser(queryId).listen((loadedQuotes) {
+      _subscription = _firebaseService.getQuoteRequestsByUser(queryId).listen((loadedQuotes) {
         if (mounted) {
           setState(() {
             quotes = loadedQuotes;
