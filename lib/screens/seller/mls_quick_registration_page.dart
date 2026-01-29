@@ -163,19 +163,7 @@ class _MLSQuickRegistrationPageState extends State<MLSQuickRegistrationPage>
 
     return Scaffold(
       backgroundColor: AppleColors.systemBackground,
-      appBar: AppBar(
-        backgroundColor: AppleColors.systemBackground,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios, color: AppleColors.label),
-          onPressed: () => Navigator.of(context).pop(),
-        ),
-        title: Text(
-          _currentStep == 0 ? '매물 등록' : '${_currentStep + 1}/3 단계',
-          style: AppleTypography.headline.copyWith(color: AppleColors.label),
-        ),
-        centerTitle: true,
-      ),
+      // MainPage에서 AppBar를 제공하므로 여기서는 제거
       body: SafeArea(
         child: Center(
           child: ConstrainedBox(

@@ -32,7 +32,7 @@ void main() async {
   // 이미지 캐시 최적화 (메모리 사용량 제한)
   PaintingBinding.instance.imageCache.maximumSize = 100;
   PaintingBinding.instance.imageCache.maximumSizeBytes = 50 * 1024 * 1024; // 50MB
-  
+
   // 전역 에러 핸들러 설정
   FlutterError.onError = (FlutterErrorDetails details) {
     FlutterError.presentError(details);
@@ -43,7 +43,7 @@ void main() async {
       context: 'flutter_error_handler',
     );
   };
-  
+
   // 비동기 에러 핸들러 설정
   PlatformDispatcher.instance.onError = (error, stack) {
     Logger.error(
@@ -54,7 +54,7 @@ void main() async {
     );
     return true;
   };
-  
+
   // .env 파일이 있으면 로드, 없으면 무시 (웹에서는 건너뜀)
   if (!kIsWeb) {
     try {
@@ -67,106 +67,28 @@ void main() async {
       );
     }
   }
-  
-  // 앱을 먼저 실행하여 초기 렌더링 지연 방지
+
+  // Firebase 초기화 (앱 실행 전에 완료)
+  try {
+    if (Firebase.apps.isEmpty) {
+      await Firebase.initializeApp(
+        options: DefaultFirebaseOptions.currentPlatform,
+      );
+      Logger.info('Firebase 초기화 성공');
+    }
+  } catch (e) {
+    Logger.error('Firebase 초기화 실패', error: e);
+  }
+
+  // 앱 실행
   runApp(const MyApp());
-  
+
   // 웹에서 Flutter 첫 프레임 렌더링 완료 후 로딩 화면 제거 신호 전송
   if (kIsWeb) {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       // 첫 프레임 렌더링 완료 후 JavaScript에 신호 전송
       web.dispatchFlutterAppReady();
     });
-  }
-  
-  // 백그라운드에서 Firebase 초기화 (웹에서는 지연 로딩)
-  _initializeFirebaseInBackground();
-}
-
-  /// Firebase를 백그라운드에서 초기화하여 앱 시작 속도 향상
-Future<void> _initializeFirebaseInBackground() async {
-  try {
-    // 웹에서는 Firebase SDK가 완전히 로드될 때까지 대기
-    if (kIsWeb) {
-      // 초기 대기 시간 제거 (즉시 시도하여 최초 접속 성능 개선)
-      // await Future.delayed(const Duration(milliseconds: 300)); // 제거
-      
-      // Firebase 초기화 시도 (최대 1초로 단축)
-      var initAttempts = 0;
-      Object? lastError;
-      
-      // 재시도 횟수 대폭 감소: 30 -> 10 (최대 1초)
-      while (initAttempts < 10) {
-        try {
-          // Firebase 초기화 시도
-          if (Firebase.apps.isEmpty) {
-            await Firebase.initializeApp(
-              options: DefaultFirebaseOptions.currentPlatform,
-            );
-            Logger.info('Firebase 초기화 성공');
-            return;
-          } else {
-            Logger.info('Firebase가 이미 초기화되어 있습니다');
-            return;
-          }
-        } catch (e) {
-          lastError = e;
-          
-          // 타입 변환 에러인 경우 대기 시간 단축
-          final errorString = e.toString();
-          if (errorString.contains('subtype') || 
-              errorString.contains('minified') ||
-              errorString.contains('JavaScriptObject')) {
-            // SDK가 아직 완전히 로드되지 않은 경우로 판단
-            await Future.delayed(const Duration(milliseconds: 50)); // 100 -> 50
-          } else {
-            // 다른 에러인 경우 더 짧은 대기 후 재시도
-            await Future.delayed(const Duration(milliseconds: 20)); // 50 -> 20
-          }
-          
-          initAttempts++;
-        }
-      }
-      
-      // 최대 시도 횟수 초과 시 최종 시도 (대기 시간 단축)
-      if (Firebase.apps.isEmpty) {
-        try {
-          await Future.delayed(const Duration(milliseconds: 100)); // 300 -> 100
-          await Firebase.initializeApp(
-            options: DefaultFirebaseOptions.currentPlatform,
-          );
-          Logger.info('Firebase 초기화 성공 (지연 로딩)');
-        } catch (e) {
-          // 최종 시도 실패 시 마지막 에러 또는 현재 에러 사용
-          final errorToLog = lastError ?? e;
-          Logger.error(
-            'Firebase 초기화 최종 실패',
-            error: errorToLog,
-            context: 'firebase_initialization_final',
-          );
-          // 실패해도 앱은 계속 실행
-        }
-      }
-    } else {
-      // 모바일/데스크톱에서는 즉시 초기화
-      if (Firebase.apps.isEmpty) {
-        await Firebase.initializeApp(
-          options: DefaultFirebaseOptions.currentPlatform,
-        );
-        Logger.info('Firebase 초기화 성공');
-      } else {
-        Logger.info('Firebase가 이미 초기화되어 있습니다');
-      }
-    }
-  } catch (e, stackTrace) {
-    // Firebase 초기화 실패 시 에러 로깅
-    Logger.error(
-      'Firebase 초기화 실패',
-      error: e,
-      stackTrace: stackTrace,
-      context: 'firebase_initialization',
-    );
-    // Firebase 초기화 실패 시에도 앱은 계속 실행
   }
 }
 
@@ -306,7 +228,6 @@ class _AuthGate extends StatefulWidget {
 
 class _AuthGateState extends State<_AuthGate> {
   Map<String, dynamic>? _cachedUserData;
-  bool _firebaseReady = false;
 
   /// 기본 이름인지 확인 (소셜 로그인 기본값)
   bool _isDefaultName(String? name) {
@@ -347,54 +268,10 @@ class _AuthGateState extends State<_AuthGate> {
     // 이름이 기본값이거나 전화번호가 없으면 프로필 완성 필요
     return _isDefaultName(name) || phone == null || phone.isEmpty;
   }
-  bool _showLoading = true;
-  
-  @override
-  void initState() {
-    super.initState();
-    // 즉시 UI를 표시하고, Firebase는 백그라운드에서 초기화
-    _initializeFirebaseAsync();
-    // 최대 0.5초 후에는 로딩 화면 제거 (최초 접속 성능 개선)
-    Future.delayed(const Duration(milliseconds: 500), () {
-      if (mounted) {
-        setState(() {
-          _showLoading = false;
-        });
-      }
-    });
-  }
 
-  /// Firebase를 백그라운드에서 비동기로 초기화
-  Future<void> _initializeFirebaseAsync() async {
-    // Firebase가 준비될 때까지 대기 (최대 1초로 단축)
-    var attempts = 0;
-    while (Firebase.apps.isEmpty && attempts < 10) { // 30 -> 10
-      await Future.delayed(const Duration(milliseconds: 100));
-      attempts++;
-    }
-
-    if (mounted) {
-      setState(() {
-        _firebaseReady = true;
-      });
-      // 익명 로그인 제거 - 로그인 필수로 변경
-    }
-  }
-  
   @override
   Widget build(BuildContext context) {
-    // 최대 2초까지만 로딩 화면 표시, 그 이후에는 Firebase 준비 여부와 무관하게 UI 표시
-    if (_showLoading && !_firebaseReady) {
-      return const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
-      );
-    }
-
-    // Firebase가 준비되지 않았어도 랜딩 페이지 표시
-    if (!_firebaseReady) {
-      return const AuthLandingPage();
-    }
-
+    // Firebase는 main()에서 이미 초기화됨
     return StreamBuilder<User?>(
       stream: FirebaseAuth.instance.authStateChanges(),
       builder: (context, snapshot) {

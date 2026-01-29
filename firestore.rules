@@ -135,10 +135,17 @@ service cloud.firestore {
 
     // === 알림 컬렉션 ===
     match /notifications/{notificationId} {
-      allow read: if isAnonymousUser() || (isAuthenticated() && resource.data.userId == request.auth.uid);
+      // userId가 email 또는 uid일 수 있으므로 둘 다 체크
+      allow read: if isAnonymousUser() || (isAuthenticated() && (
+        resource.data.userId == request.auth.uid ||
+        resource.data.userId == request.auth.token.email
+      ));
       // 시스템이나 다른 사용자가 알림 생성 가능
       allow create: if isAuthenticated();
-      allow update, delete: if isAuthenticated() && resource.data.userId == request.auth.uid;
+      allow update, delete: if isAuthenticated() && (
+        resource.data.userId == request.auth.uid ||
+        resource.data.userId == request.auth.token.email
+      );
     }
 
     // === 채팅방 컬렉션 ===

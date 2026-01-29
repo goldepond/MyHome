@@ -6,6 +6,7 @@ import '../../api_request/firebase_service.dart';
 import '../../constants/apple_design_system.dart';
 import '../../utils/logger.dart';
 import '../../utils/commission_calculator.dart';
+import '../../widgets/home_logo_button.dart';
 import '../main_page.dart';
 import '../auth/auth_landing_page.dart';
 import '../notification/notification_page.dart';
@@ -60,6 +61,31 @@ class _MLSBrokerDashboardPageState extends State<MLSBrokerDashboardPage>
     '기타',
   ];
 
+  // 지역 영문 → 한글 매핑
+  static const Map<String, String> regionNameMap = {
+    'SEOUL': '서울',
+    'GYEONGGI': '경기',
+    'INCHEON': '인천',
+    'BUSAN': '부산',
+    'DAEGU': '대구',
+    'DAEJEON': '대전',
+    'GWANGJU': '광주',
+    'ULSAN': '울산',
+    'SEJONG': '세종',
+    'GANGWON': '강원',
+    'CHUNGBUK': '충북',
+    'CHUNGNAM': '충남',
+    'JEONBUK': '전북',
+    'JEONNAM': '전남',
+    'GYEONGBUK': '경북',
+    'GYEONGNAM': '경남',
+    'JEJU': '제주',
+  };
+
+  String _getRegionDisplayName(String region) {
+    return regionNameMap[region.toUpperCase()] ?? region;
+  }
+
   static const List<Map<String, dynamic>> pricePresets = [
     {'label': '전체', 'min': 0.0, 'max': 500000.0},
     {'label': '1억 이하', 'min': 0.0, 'max': 10000.0},
@@ -74,8 +100,14 @@ class _MLSBrokerDashboardPageState extends State<MLSBrokerDashboardPage>
   StreamSubscription? _myPropertiesSubscription;
   StreamSubscription? _completedSubscription;
 
-  bool _isLoading = true;
+  // 각 탭별 로딩 상태 (병렬 로딩 지원)
+  bool _isLoadingMain = true;
+  bool _isLoadingMy = true;
+  bool _isLoadingCompleted = true;
   String? _errorMessage;
+
+  // 레거시 호환성 (기존 코드와 호환)
+  bool get _isLoading => _isLoadingMain;
 
   // 데이터 캐시용 (이전 값과 비교하여 불필요한 setState 방지)
   List<MLSProperty>? _cachedRawProperties;
@@ -85,8 +117,17 @@ class _MLSBrokerDashboardPageState extends State<MLSBrokerDashboardPage>
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
     _tabController.addListener(_onTabChanged);
-    // 첫 번째 탭(매물)만 먼저 로드 - 빠른 초기 렌더링
-    _subscribeToMainProperties();
+    // 첫 프레임 렌더링 후 데이터 로드 (UI 먼저 표시)
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _subscribeToMainProperties();
+      // 다른 탭은 약간 지연 후 로드 (초기 렌더링 우선)
+      Future.delayed(const Duration(milliseconds: 100), () {
+        if (mounted) {
+          _subscribeToMyProperties();
+          _subscribeToCompletedProperties();
+        }
+      });
+    });
     // 지역 목록은 비동기로 로드 (캐시된 값 먼저 사용)
     _loadRegions();
   }
@@ -100,7 +141,14 @@ class _MLSBrokerDashboardPageState extends State<MLSBrokerDashboardPage>
   }
 
   void _loadTabData(int tabIndex) {
+    // 이미 initState에서 모든 탭 데이터를 병렬 로드하므로
+    // 여기서는 필요시 새로고침만 처리
     switch (tabIndex) {
+      case 0: // 매물
+        if (_allPropertiesSubscription == null) {
+          _subscribeToMainProperties();
+        }
+        break;
       case 1: // 내 참여
         if (_myPropertiesSubscription == null) {
           _subscribeToMyProperties();
@@ -137,9 +185,8 @@ class _MLSBrokerDashboardPageState extends State<MLSBrokerDashboardPage>
       _mlsService.clearBrowsableCache();
     }
 
-    if (_allProperties.isEmpty) {
+    if (_allProperties.isEmpty && _isLoadingMain) {
       setState(() {
-        _isLoading = true;
         _errorMessage = null;
       });
     }
@@ -151,21 +198,21 @@ class _MLSBrokerDashboardPageState extends State<MLSBrokerDashboardPage>
       (properties) {
         if (mounted) {
           final filtered = _filterByStatus(properties);
-          if (_shouldUpdateList(_allProperties, filtered) || _isLoading) {
+          if (_shouldUpdateList(_allProperties, filtered) || _isLoadingMain) {
             setState(() {
               _cachedRawProperties = properties;
               _allProperties = filtered;
-              _isLoading = false;
+              _isLoadingMain = false;
             });
           }
         }
       },
       onError: (e) {
         Logger.error('전체 매물 로드 실패', error: e);
-        if (mounted && _isLoading) {
+        if (mounted && _isLoadingMain) {
           setState(() {
             _errorMessage = '매물을 불러오는데 실패했습니다.';
-            _isLoading = false;
+            _isLoadingMain = false;
           });
         }
       },
@@ -188,12 +235,20 @@ class _MLSBrokerDashboardPageState extends State<MLSBrokerDashboardPage>
                 p.status != PropertyStatus.depositTaken;
           }).toList();
           competing.sort((a, b) => b.updatedAt.compareTo(a.updatedAt));
-          if (_shouldUpdateList(_myCompetingProperties, competing)) {
-            setState(() => _myCompetingProperties = competing);
+          if (_shouldUpdateList(_myCompetingProperties, competing) || _isLoadingMy) {
+            setState(() {
+              _myCompetingProperties = competing;
+              _isLoadingMy = false;
+            });
           }
         }
       },
-      onError: (e) => Logger.error('내 참여 매물 로드 실패', error: e),
+      onError: (e) {
+        Logger.error('내 참여 매물 로드 실패', error: e);
+        if (mounted && _isLoadingMy) {
+          setState(() => _isLoadingMy = false);
+        }
+      },
     );
   }
 
@@ -208,15 +263,22 @@ class _MLSBrokerDashboardPageState extends State<MLSBrokerDashboardPage>
           final won = properties.where((p) => p.status == PropertyStatus.depositTaken).toList();
           final completed = properties.where((p) => p.status == PropertyStatus.sold).toList();
           if (_shouldUpdateList(_wonProperties, won) ||
-              _shouldUpdateList(_completedProperties, completed)) {
+              _shouldUpdateList(_completedProperties, completed) ||
+              _isLoadingCompleted) {
             setState(() {
               _wonProperties = won;
               _completedProperties = completed;
+              _isLoadingCompleted = false;
             });
           }
         }
       },
-      onError: (e) => Logger.error('성과 매물 로드 실패', error: e),
+      onError: (e) {
+        Logger.error('성과 매물 로드 실패', error: e);
+        if (mounted && _isLoadingCompleted) {
+          setState(() => _isLoadingCompleted = false);
+        }
+      },
     );
   }
 
@@ -313,13 +375,7 @@ class _MLSBrokerDashboardPageState extends State<MLSBrokerDashboardPage>
       child: Row(
         children: [
           // 로고
-          Text(
-            'MyHome',
-            style: AppleTypography.headline.copyWith(
-              fontWeight: FontWeight.w700,
-              color: AppleColors.systemBlue,
-            ),
-          ),
+          LogoImage(height: 36),
           const Spacer(),
           // 1. 알림
           _buildHeaderActionButton(
@@ -539,11 +595,19 @@ class _MLSBrokerDashboardPageState extends State<MLSBrokerDashboardPage>
   }
 
   Widget _buildBody() {
-    if (_isLoading) {
+    // 현재 탭에 따른 로딩 상태 확인
+    final currentTabLoading = switch (_tabController.index) {
+      0 => _isLoadingMain,
+      1 => _isLoadingMy,
+      2 => _isLoadingCompleted,
+      _ => false,
+    };
+
+    if (currentTabLoading) {
       return const Center(child: CircularProgressIndicator.adaptive());
     }
 
-    if (_errorMessage != null) {
+    if (_errorMessage != null && _tabController.index == 0) {
       return _buildErrorState();
     }
 
@@ -551,9 +615,9 @@ class _MLSBrokerDashboardPageState extends State<MLSBrokerDashboardPage>
       controller: _tabController,
       physics: const NeverScrollableScrollPhysics(),
       children: [
-        _buildBrowseTab(),
-        _buildMyCompetingTab(),
-        _buildResultsTab(),
+        _isLoadingMain ? const Center(child: CircularProgressIndicator.adaptive()) : _buildBrowseTab(),
+        _isLoadingMy ? const Center(child: CircularProgressIndicator.adaptive()) : _buildMyCompetingTab(),
+        _isLoadingCompleted ? const Center(child: CircularProgressIndicator.adaptive()) : _buildResultsTab(),
       ],
     );
   }
@@ -616,7 +680,7 @@ class _MLSBrokerDashboardPageState extends State<MLSBrokerDashboardPage>
               children: [
                 // 지역 선택 버튼
                 _buildDropdownButton(
-                  label: _selectedRegion ?? '전체 지역',
+                  label: _selectedRegion != null ? _getRegionDisplayName(_selectedRegion!) : '전체 지역',
                   onTap: () => _showRegionPicker(),
                 ),
                 const SizedBox(width: 12),
@@ -960,7 +1024,7 @@ class _MLSBrokerDashboardPageState extends State<MLSBrokerDashboardPage>
                 shrinkWrap: true,
                 children: [
                   _buildRegionOption(null, '전체 지역'),
-                  ..._availableRegions.map((r) => _buildRegionOption(r, r)),
+                  ..._availableRegions.map((r) => _buildRegionOption(r, _getRegionDisplayName(r))),
                 ],
               ),
             ),

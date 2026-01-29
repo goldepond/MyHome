@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../constants/apple_design_system.dart';
 import '../../api_request/firebase_service.dart';
+import '../../widgets/home_logo_button.dart';
 import '../login_page.dart';
 
 /// 로그인/회원가입 랜딩페이지 (헤이딜러 스타일)
@@ -139,6 +140,9 @@ class _AuthLandingPageState extends State<AuthLandingPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.center,
       children: [
+        // 로고
+        LogoImage(height: 60),
+        const SizedBox(height: AppleSpacing.xl),
         // 메인 카피
         RichText(
           textAlign: TextAlign.center,

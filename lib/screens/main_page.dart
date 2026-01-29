@@ -1,10 +1,10 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:property/constants/apple_design_system.dart';
-import 'package:property/constants/responsive_constants.dart';
 import 'package:property/api_request/firebase_service.dart';
 import 'package:property/api_request/log_service.dart';
 import 'package:property/utils/logger.dart';
+import 'package:property/widgets/home_logo_button.dart';
 import 'login_page.dart';
 import 'auth/auth_landing_page.dart';
 import 'broker/mls_broker_dashboard_page.dart';
@@ -42,13 +42,6 @@ class MainPageState extends State<MainPage> {
   int _unreadNotificationCount = 0;
   StreamSubscription<int>? _notificationSubscription;
 
-  // AppBar 캐싱을 위한 변수
-  PreferredSizeWidget? _cachedAppBar;
-  bool? _lastIsMobile;
-  bool? _lastIsBroker;
-  bool? _lastHasUserId;
-  int? _lastUnreadCount;
-
   // 로드된 페이지 캐시 (상태 유지)
   final Map<int, Widget> _pageCache = {};
 
@@ -57,11 +50,45 @@ class MainPageState extends State<MainPage> {
     super.initState();
     // 컨텍스트 기반 초기 탭 설정
     _currentIndex = _getContextBasedInitialTab();
-    // 사용자 정보는 백그라운드에서 로드 (UI 블로킹 없음)
-    _loadUserData();
-    _checkBrokerRole();
-    // 알림 배지 업데이트를 위한 스트림 구독
-    _subscribeToNotifications();
+
+    // 첫 프레임 렌더링 후 데이터 로드 (UI 먼저 표시)
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      // 사용자 정보는 백그라운드에서 로드 (UI 블로킹 없음)
+      _loadUserData();
+      _checkBrokerRole();
+      // 알림 배지 업데이트를 위한 스트림 구독
+      _subscribeToNotifications();
+      // 다른 탭 페이지 미리 초기화 (현재 탭은 이미 로드됨)
+      _preloadOtherPages();
+    });
+  }
+
+  /// 다른 탭 페이지를 지연 초기화하여 탭 전환 시 즉시 표시
+  /// 현재 탭은 _getPage에서 즉시 로드됨
+  void _preloadOtherPages() {
+    if (!mounted) return;
+
+    // 현재 선택되지 않은 탭만 백그라운드에서 사전 로드
+    Future.delayed(const Duration(milliseconds: 200), () {
+      if (!mounted) return;
+
+      // 등록 페이지 (현재 탭이 아닌 경우만)
+      if (_currentIndex != 0 && !_pageCache.containsKey(0)) {
+        _pageCache[0] = MLSQuickRegistrationPage(
+          key: const ValueKey('mls_quick_registration'),
+          onRegistrationComplete: () {
+            setCurrentTab(1);
+          },
+        );
+      }
+
+      // 내 매물 페이지 (현재 탭이 아닌 경우만)
+      if (_currentIndex != 1 && !_pageCache.containsKey(1)) {
+        _pageCache[1] = const MLSSellerDashboardPage(
+          key: ValueKey('mls_seller_dashboard'),
+        );
+      }
+    });
   }
 
   /// 알림 개수 스트림 구독
@@ -92,8 +119,6 @@ class MainPageState extends State<MainPage> {
   /// 외부에서 탭 전환을 위한 메서드
   void setCurrentTab(int index) {
     if (index >= 0 && index < 2) {
-      // AppBar 캐시 무효화하여 탭 변경 반영
-      _cachedAppBar = null;
       setState(() {
         _currentIndex = index;
       });
@@ -167,7 +192,7 @@ class MainPageState extends State<MainPage> {
     if (widget.userId.isEmpty) {
       return;
     }
-    
+
     try {
       // 백그라운드에서 사용자 정보 로드 (에러는 무시)
       await _firebaseService.getUser(widget.userId);
@@ -183,75 +208,36 @@ class MainPageState extends State<MainPage> {
 
   @override
   Widget build(BuildContext context) {
-    // UI를 즉시 표시 (사용자 정보 로드는 백그라운드에서 처리)
     return Scaffold(
       backgroundColor: AppleColors.systemGroupedBackground,
-      appBar: _buildTopNavigationBar(),
-      // 지연 로딩: 현재 탭만 렌더링 (메모리 최적화)
-      body: _getPage(_currentIndex),
-    );
-  }
-
-  PreferredSizeWidget _buildTopNavigationBar() {
-    final isMobile = ResponsiveHelper.isMobile(context);
-    final hasUserId = widget.userId.isNotEmpty;
-
-    // AppBar 캐싱: 조건이 같으면 재사용
-    if (_cachedAppBar != null &&
-        _lastIsMobile == isMobile &&
-        _lastIsBroker == _isBroker &&
-        _lastHasUserId == hasUserId &&
-        _lastUnreadCount == _unreadNotificationCount) {
-      return _cachedAppBar!;
-    }
-
-    _lastIsMobile = isMobile;
-    _lastIsBroker = _isBroker;
-    _lastHasUserId = hasUserId;
-    _lastUnreadCount = _unreadNotificationCount;
-
-    _cachedAppBar = AppBar(
-      backgroundColor: AppleColors.systemBackground,
-      foregroundColor: AppleColors.label,
-      elevation: 0,
-      toolbarHeight: isMobile ? 56 : 64,
-      shadowColor: AppleColors.separator.withValues(alpha: 0.08),
-      surfaceTintColor: Colors.transparent,
-      centerTitle: isMobile,
-      leadingWidth: isMobile ? 90 : null,
-      leading: isMobile ? Padding(
-        padding: const EdgeInsets.only(left: 12),
-        child: Align(
-          alignment: Alignment.centerLeft,
-          child: Text(
-            'MyHome',
-            style: AppleTypography.subheadline.copyWith(
-              fontWeight: FontWeight.w700,
-              color: AppleColors.systemBlue,
-            ),
-            overflow: TextOverflow.visible,
-            softWrap: false,
-          ),
-        ),
-      ) : null,
-      title: isMobile ? _buildMobileHeader() : _buildDesktopHeader(),
-      actions: isMobile ? _buildMobileActions() : null,
-    );
-
-    return _cachedAppBar!;
-  }
-
-  List<Widget> _buildMobileActions() {
-    return [
-      // 알림 (뱃지 포함)
-      if (widget.userId.isNotEmpty)
-        Stack(
-          clipBehavior: Clip.none,
+      body: SafeArea(
+        child: Column(
           children: [
-            IconButton(
-              icon: const Icon(Icons.notifications_outlined, size: 24),
-              color: AppleColors.label,
+            _buildHeader(),
+            _buildSegmentedControl(),
+            Expanded(child: _getPage(_currentIndex)),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// 상단 헤더 (로고 + 액션 버튼) - 공인중개사 대시보드와 통일
+  Widget _buildHeader() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      color: AppleColors.systemBackground,
+      child: Row(
+        children: [
+          // 로고
+          LogoImage(height: 36),
+          const Spacer(),
+          // 1. 알림 (로그인 시에만)
+          if (widget.userId.isNotEmpty)
+            _buildHeaderActionButton(
+              icon: Icons.notifications_outlined,
               tooltip: '알림',
+              badgeCount: _unreadNotificationCount,
               onPressed: () {
                 Navigator.push(
                   context,
@@ -261,101 +247,163 @@ class MainPageState extends State<MainPage> {
                 );
               },
             ),
-            if (_unreadNotificationCount > 0)
-              Positioned(
-                right: 8,
-                top: 8,
-                child: Container(
-                  padding: const EdgeInsets.all(4),
-                  decoration: BoxDecoration(
-                    color: AppleColors.systemRed,
-                    shape: BoxShape.circle,
-                  ),
-                  constraints: const BoxConstraints(minWidth: 16, minHeight: 16),
-                  child: Text(
-                    _unreadNotificationCount > 9 ? '9+' : '$_unreadNotificationCount',
-                    style: AppleTypography.caption2.copyWith(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w600,
-                      fontSize: 10,
+          if (widget.userId.isNotEmpty) const SizedBox(width: 4),
+          // 2. 전체 메뉴 (설정/마이페이지)
+          if (widget.userId.isNotEmpty)
+            _buildHeaderActionButton(
+              icon: Icons.menu,
+              tooltip: '전체',
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => PersonalInfoPage(
+                      userId: widget.userId,
+                      userName: widget.userName,
                     ),
-                    textAlign: TextAlign.center,
                   ),
-                ),
-              ),
-          ],
-        ),
-      // 중개사 대시보드 (중개사만)
-      if (_isBroker)
-        IconButton(
-          icon: const Icon(Icons.swap_horiz_rounded, size: 24),
-          color: AppleColors.systemBlue,
-          tooltip: '중개사 모드로 전환',
-          onPressed: () {
-            final brokerId = _brokerData?['brokerId'] as String? ?? widget.userId;
-            final brokerName = _brokerData?['ownerName'] as String? ??
-                _brokerData?['businessName'] as String? ?? widget.userName;
-            Navigator.of(context).pushReplacement(
-              MaterialPageRoute(
-                builder: (context) => MLSBrokerDashboardPage(
-                  brokerId: brokerId,
-                  brokerName: brokerName,
-                  brokerData: {
-                    ...?_brokerData,
-                    'uid': widget.userId,
-                    'brokerId': brokerId,
-                  },
-                ),
-              ),
-            );
-          },
-        ),
-      // 전체 메뉴 (설정/마이페이지)
-      IconButton(
-        icon: const Icon(Icons.menu, size: 24),
-        color: AppleColors.label,
-        tooltip: '전체',
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => PersonalInfoPage(
-                userId: widget.userId,
-                userName: widget.userName,
-              ),
+                );
+              },
             ),
-          );
-        },
+          if (widget.userId.isNotEmpty) const SizedBox(width: 4),
+          // 3. 중개사 모드로 전환 (중개사만, Primary 스타일)
+          if (_isBroker)
+            _buildHeaderActionButton(
+              icon: Icons.swap_horiz_rounded,
+              tooltip: '중개사 모드로 전환',
+              isPrimary: true,
+              onPressed: () {
+                final brokerId = _brokerData?['brokerId'] as String? ?? widget.userId;
+                final brokerName = _brokerData?['ownerName'] as String? ??
+                    _brokerData?['businessName'] as String? ?? widget.userName;
+                Navigator.of(context).pushReplacement(
+                  MaterialPageRoute(
+                    builder: (context) => MLSBrokerDashboardPage(
+                      brokerId: brokerId,
+                      brokerName: brokerName,
+                      brokerData: {
+                        ...?_brokerData,
+                        'uid': widget.userId,
+                        'brokerId': brokerId,
+                      },
+                    ),
+                  ),
+                );
+              },
+            ),
+          if (_isBroker) const SizedBox(width: 4),
+          // 4. 로그인/로그아웃
+          _buildHeaderActionButton(
+            icon: widget.userName.isNotEmpty ? Icons.logout_rounded : Icons.login_rounded,
+            tooltip: widget.userName.isNotEmpty ? '로그아웃' : '로그인',
+            onPressed: () {
+              if (widget.userName.isNotEmpty) {
+                _logout();
+              } else {
+                _login();
+              }
+            },
+          ),
+        ],
       ),
-      const SizedBox(width: 4),
-    ];
-  }
-
-  Widget _buildMobileHeader() {
-    // 모바일: 탭 버튼만 중앙에 표시 (로고는 간소화)
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        _buildCompactNavButton('등록', 0, Icons.sell_outlined),
-        const SizedBox(width: 8),
-        _buildCompactNavButton('내 매물', 1, Icons.home_outlined),
-      ],
     );
   }
 
-  Widget _buildCompactNavButton(String label, int index, IconData icon) {
-    final isSelected = _currentIndex == index;
-    final isLoggedIn = widget.userName.isNotEmpty;
-    // 모든 탭이 로그인 필요 (2탭 구조: 등록, 내 매물)
-    const requiresLogin = true;
-    // "내 매물" 탭(index 1)에 배지 표시
-    final showBadge = index == 1 && _unreadNotificationCount > 0;
+  /// 통일된 헤더 액션 버튼 (공인중개사 대시보드와 동일한 스타일)
+  Widget _buildHeaderActionButton({
+    required IconData icon,
+    String? tooltip,
+    bool isPrimary = false,
+    int badgeCount = 0,
+    required VoidCallback onPressed,
+  }) {
+    return Tooltip(
+      message: tooltip ?? '',
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onPressed,
+          borderRadius: BorderRadius.circular(16),
+          child: Stack(
+            clipBehavior: Clip.none,
+            children: [
+              Container(
+                height: 32,
+                width: 32,
+                decoration: BoxDecoration(
+                  color: isPrimary ? AppleColors.systemBlue.withValues(alpha: 0.1) : Colors.transparent,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                    color: isPrimary ? AppleColors.systemBlue.withValues(alpha: 0.3) : AppleColors.separator,
+                    width: 1,
+                  ),
+                ),
+                child: Icon(
+                  icon,
+                  size: 18,
+                  color: isPrimary ? AppleColors.systemBlue : AppleColors.secondaryLabel,
+                ),
+              ),
+              // 알림 배지
+              if (badgeCount > 0)
+                Positioned(
+                  right: -4,
+                  top: -4,
+                  child: Container(
+                    padding: const EdgeInsets.all(4),
+                    decoration: BoxDecoration(
+                      color: AppleColors.systemRed,
+                      shape: BoxShape.circle,
+                    ),
+                    constraints: const BoxConstraints(minWidth: 16, minHeight: 16),
+                    child: Text(
+                      badgeCount > 9 ? '9+' : '$badgeCount',
+                      style: AppleTypography.caption2.copyWith(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w600,
+                        fontSize: 10,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
+  /// iOS 스타일 세그먼트 컨트롤
+  Widget _buildSegmentedControl() {
+    final isLoggedIn = widget.userName.isNotEmpty;
+
+    return Container(
+      color: AppleColors.systemBackground,
+      padding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
+      child: Container(
+        height: 36,
+        decoration: BoxDecoration(
+          color: AppleColors.secondarySystemFill,
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Row(
+          children: [
+            _buildSegment(0, '등록', isLoggedIn: isLoggedIn),
+            _buildSegment(1, '내 매물', isLoggedIn: isLoggedIn),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSegment(int index, String label, {required bool isLoggedIn}) {
+    final isSelected = _currentIndex == index;
+
+    return Expanded(
+      child: GestureDetector(
         onTap: () {
-          if (!isLoggedIn && requiresLogin) {
+          if (!isLoggedIn) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Text('로그인이 필요합니다.', style: AppleTypography.body.copyWith(color: Colors.white)),
@@ -367,230 +415,38 @@ class MainPageState extends State<MainPage> {
             _login(targetIndex: index);
             return;
           }
-          // AppBar 캐시 무효화하여 탭 변경 반영
-          _cachedAppBar = null;
           setState(() => _currentIndex = index);
           final screenNames = ['MLSQuickRegistrationPage', 'MLSSellerDashboardPage'];
           _logService.logScreenView(screenNames[index], screenClass: 'MainPageTab');
         },
-        borderRadius: BorderRadius.circular(AppleRadius.sm),
-        child: Stack(
-          clipBehavior: Clip.none,
-          children: [
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-              decoration: BoxDecoration(
-                // 선택됨: 파란 배경 / 미선택: 투명
-                color: isSelected ? AppleColors.systemBlue : Colors.transparent,
-                borderRadius: BorderRadius.circular(20),
-                // 미선택 시 테두리 표시
-                border: isSelected ? null : Border.all(
-                  color: AppleColors.separator,
-                  width: 1,
-                ),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(
-                    icon,
-                    size: 16,
-                    color: isSelected ? Colors.white : AppleColors.secondaryLabel,
-                  ),
-                  const SizedBox(width: 4),
-                  Text(
-                    label,
-                    style: AppleTypography.subheadline.copyWith(
-                      fontWeight: FontWeight.w600,
-                      color: isSelected ? Colors.white : AppleColors.secondaryLabel,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          margin: const EdgeInsets.all(2),
+          decoration: BoxDecoration(
+            color: isSelected ? AppleColors.systemBackground : Colors.transparent,
+            borderRadius: BorderRadius.circular(7),
+            boxShadow: isSelected
+                ? [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.04),
+                      blurRadius: 1,
+                      offset: const Offset(0, 1),
                     ),
-                  ),
-                ],
-              ),
-            ),
-            // 배지 (읽지 않은 알림 개수)
-            if (showBadge)
-              Positioned(
-                right: -4,
-                top: -4,
-                child: _buildBadge(_unreadNotificationCount),
-              ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildDesktopHeader() {
-    final isLoggedIn = widget.userName.isNotEmpty;
-
-    // Stack으로 진짜 중앙 배치
-    return Stack(
-      alignment: Alignment.center,
-      children: [
-        // 중앙 탭 버튼 (절대 중앙)
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            _buildNavButton('빠른 등록', 0, Icons.sell_outlined),
-            const SizedBox(width: 12),
-            _buildNavButton('내 매물', 1, Icons.home_outlined),
-          ],
-        ),
-
-        // 좌우 요소들 (Row로 양쪽 배치)
-        Row(
-          children: [
-            // 왼쪽: 로고
-            GestureDetector(
-              onTap: () => setState(() => _currentIndex = 0),
-              child: Text(
-                'MyHome',
-                style: AppleTypography.title2.copyWith(
-                  fontWeight: FontWeight.w700,
-                  color: AppleColors.systemBlue,
-                ),
-              ),
-            ),
-
-            const Spacer(),
-
-            // 오른쪽 액션 버튼들
-            // 순서: [알림] [설정] [모드전환(primary)] [로그아웃]
-            // 1. 알림 버튼
-            if (widget.userId.isNotEmpty)
-              _buildHeaderActionButton(
-                icon: Icons.notifications_outlined,
-                tooltip: '알림',
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => NotificationPage(userId: widget.userId),
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.12),
+                      blurRadius: 4,
+                      offset: const Offset(0, 1),
                     ),
-                  );
-                },
+                  ]
+                : null,
+          ),
+          child: Center(
+            child: Text(
+              label,
+              style: AppleTypography.subheadline.copyWith(
+                fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                color: isSelected ? AppleColors.label : AppleColors.secondaryLabel,
               ),
-
-            // 2. 전체 메뉴 버튼
-            if (widget.userId.isNotEmpty) ...[
-              const SizedBox(width: 8),
-              _buildHeaderActionButton(
-                icon: Icons.menu,
-                tooltip: '전체',
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => PersonalInfoPage(
-                        userId: widget.userId,
-                        userName: widget.userName,
-                      ),
-                    ),
-                  );
-                },
-              ),
-            ],
-
-            // 3. 중개사 모드로 전환 (모드 전환 - primary)
-            if (_isBroker) ...[
-              const SizedBox(width: 8),
-              _buildHeaderActionButton(
-                icon: Icons.swap_horiz_rounded,
-                tooltip: '중개사 모드로 전환',
-                isPrimary: true,
-                onPressed: () {
-                  final brokerId = _brokerData?['brokerId'] as String? ?? widget.userId;
-                  final brokerName = _brokerData?['ownerName'] as String? ??
-                      _brokerData?['businessName'] as String? ?? widget.userName;
-                  Navigator.of(context).pushReplacement(
-                    MaterialPageRoute(
-                      builder: (context) => MLSBrokerDashboardPage(
-                        brokerId: brokerId,
-                        brokerName: brokerName,
-                        brokerData: {
-                          ...?_brokerData,
-                          'uid': widget.userId,
-                          'brokerId': brokerId,
-                        },
-                      ),
-                    ),
-                  );
-                },
-              ),
-            ],
-
-            const SizedBox(width: 8),
-
-            // 4. 로그인/로그아웃 버튼
-            _buildHeaderActionButton(
-              icon: isLoggedIn ? Icons.logout_rounded : Icons.login_rounded,
-              tooltip: isLoggedIn ? '로그아웃' : '로그인',
-              onPressed: () {
-                if (isLoggedIn) {
-                  _logout();
-                } else {
-                  _login();
-                }
-              },
-            ),
-          ],
-        ),
-      ],
-    );
-  }
-
-  /// 통일된 헤더 액션 버튼
-  Widget _buildHeaderActionButton({
-    required IconData icon,
-    String? label,
-    String? tooltip,
-    bool isPrimary = false,
-    required VoidCallback onPressed,
-  }) {
-    final hasLabel = label != null && label.isNotEmpty;
-
-    return Tooltip(
-      message: tooltip ?? label ?? '',
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: onPressed,
-          borderRadius: BorderRadius.circular(20),
-          child: Container(
-            height: 36,
-            padding: EdgeInsets.symmetric(
-              horizontal: hasLabel ? 14 : 10,
-            ),
-            decoration: BoxDecoration(
-              color: isPrimary ? AppleColors.systemBlue.withValues(alpha: 0.1) : Colors.transparent,
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(
-                color: isPrimary ? AppleColors.systemBlue.withValues(alpha: 0.3) : AppleColors.separator,
-                width: 1,
-              ),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
-                  icon,
-                  size: 20,
-                  color: isPrimary ? AppleColors.systemBlue : AppleColors.secondaryLabel,
-                ),
-                if (hasLabel) ...[
-                  const SizedBox(width: 6),
-                  Text(
-                    label,
-                    style: AppleTypography.subheadline.copyWith(
-                      fontWeight: FontWeight.w600,
-                      color: isPrimary ? AppleColors.systemBlue : AppleColors.label,
-                    ),
-                  ),
-                ],
-              ],
             ),
           ),
         ),
@@ -606,7 +462,6 @@ class MainPageState extends State<MainPage> {
 
     // 사용자가 뒤로가기로 취소한 경우 (result가 null)
     if (result == null) {
-      // 취소한 경우는 아무 메시지도 표시하지 않음
       return;
     }
 
@@ -694,119 +549,12 @@ class MainPageState extends State<MainPage> {
                 );
               }
             },
-            child: const Text('로그아웃'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildNavButton(String label, int index, IconData icon) {
-    final isSelected = _currentIndex == index;
-    final isLoggedIn = widget.userName.isNotEmpty;
-    // 모든 탭이 로그인 필요 (2탭 구조: 등록, 내 매물)
-    const requiresLogin = true;
-    // "내 매물" 탭(index 1)에 배지 표시
-    final showBadge = index == 1 && _unreadNotificationCount > 0;
-
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: () {
-          if (!isLoggedIn && requiresLogin) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text('로그인이 필요합니다.', style: AppleTypography.body.copyWith(color: Colors.white)),
-                backgroundColor: AppleColors.systemOrange,
-                duration: const Duration(seconds: 2),
-                behavior: SnackBarBehavior.floating,
-              ),
-            );
-            _login(targetIndex: index);
-            return;
-          }
-          // AppBar 캐시 무효화하여 탭 변경 반영
-          _cachedAppBar = null;
-          setState(() => _currentIndex = index);
-          final screenNames = ['MLSQuickRegistrationPage', 'MLSSellerDashboardPage'];
-          _logService.logScreenView(screenNames[index], screenClass: 'MainPageTab');
-        },
-        borderRadius: BorderRadius.circular(24),
-        child: Stack(
-          clipBehavior: Clip.none,
-          children: [
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-              decoration: BoxDecoration(
-                // 선택됨: 파란 배경 / 미선택: 투명
-                color: isSelected ? AppleColors.systemBlue : Colors.transparent,
-                borderRadius: BorderRadius.circular(24),
-                // 미선택 시 테두리 표시
-                border: isSelected ? null : Border.all(
-                  color: AppleColors.separator,
-                  width: 1,
-                ),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(
-                    icon,
-                    size: 20,
-                    color: isSelected ? Colors.white : AppleColors.secondaryLabel,
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    label,
-                    style: AppleTypography.body.copyWith(
-                      fontWeight: FontWeight.w600,
-                      color: isSelected ? Colors.white : AppleColors.label,
-                    ),
-                  ),
-                ],
-              ),
+            child: Text(
+              '로그아웃',
+              style: TextStyle(color: AppleColors.systemRed),
             ),
-            // 배지 (읽지 않은 알림 개수)
-            if (showBadge)
-              Positioned(
-                right: -4,
-                top: -4,
-                child: _buildBadge(_unreadNotificationCount),
-              ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  /// 알림 배지 위젯
-  Widget _buildBadge(int count) {
-    final displayCount = count > 99 ? '99+' : count.toString();
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-      decoration: BoxDecoration(
-        color: AppleColors.systemRed,
-        borderRadius: BorderRadius.circular(10),
-        boxShadow: [
-          BoxShadow(
-            color: AppleColors.systemRed.withValues(alpha: 0.3),
-            blurRadius: 4,
-            offset: const Offset(0, 2),
           ),
         ],
-      ),
-      constraints: const BoxConstraints(
-        minWidth: 18,
-        minHeight: 18,
-      ),
-      child: Text(
-        displayCount,
-        style: AppleTypography.caption2.copyWith(
-          color: Colors.white,
-          fontWeight: FontWeight.w600,
-          fontSize: 11,
-        ),
-        textAlign: TextAlign.center,
       ),
     );
   }

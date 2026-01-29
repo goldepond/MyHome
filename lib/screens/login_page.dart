@@ -4,6 +4,7 @@ import 'package:property/constants/apple_design_system.dart';
 import 'package:property/constants/typography.dart';
 import 'package:property/constants/spacing.dart';
 import 'package:property/widgets/common_design_system.dart';
+import 'package:property/widgets/home_logo_button.dart';
 import 'package:property/api_request/firebase_service.dart';
 import 'forgot_password_page.dart';
 import 'main_page.dart';
@@ -663,13 +664,7 @@ class _LoginPageState extends State<LoginPage> {
           semanticLabel: '뒤로가기',
         ),
         centerTitle: true,
-        title: Text(
-          'MyHome',
-          style: AppTypography.withColor(
-            AppTypography.h2.copyWith(fontWeight: FontWeight.bold),
-            AppleColors.systemBlue,
-          ),
-        ),
+        title: LogoImage(height: 40),
       ),
       body: Container(
         decoration: const BoxDecoration(

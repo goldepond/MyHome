@@ -32,7 +32,12 @@ class _MLSSellerDashboardPageState extends State<MLSSellerDashboardPage> {
   @override
   void initState() {
     super.initState();
-    _loadProperties();
+    // 첫 프레임 렌더링 후 데이터 로드 (UI 먼저 표시)
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        _loadProperties();
+      }
+    });
   }
 
   @override
@@ -88,24 +93,7 @@ class _MLSSellerDashboardPageState extends State<MLSSellerDashboardPage> {
 
     return Scaffold(
       backgroundColor: AppleColors.systemGroupedBackground,
-      appBar: AppBar(
-        backgroundColor: AppleColors.systemBackground,
-        elevation: 0,
-        centerTitle: true,
-        title: const Text(
-          '내 매물',
-          style: TextStyle(
-            fontSize: 17,
-            fontWeight: FontWeight.w600,
-            color: AppleColors.label,
-          ),
-        ),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios, size: 20),
-          color: AppleColors.label,
-          onPressed: () => Navigator.pop(context),
-        ),
-      ),
+      // MainPage에서 AppBar를 제공하므로 여기서는 제거
       body: SafeArea(
         top: false,
         child: _isLoading

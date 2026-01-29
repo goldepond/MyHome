@@ -71,9 +71,9 @@ class _HomeLogoButtonState extends State<HomeLogoButton> with SingleTickerProvid
 
   Widget _buildLogo(double height) {
     // 로고 이미지 파일 존재 여부 확인 후 표시
-    // assets/logo.jpg 우선 사용 (사용자가 제공한 로고)
+    // assets/Big_Logo.png 우선 사용 (사용자가 제공한 로고)
     return Image.asset(
-      'assets/logo.jpg',
+      'assets/Big_Logo.png',
       height: height,
       fit: BoxFit.contain,
       errorBuilder: (context, error, stackTrace) {
@@ -120,7 +120,7 @@ class LogoImage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Image.asset(
-      'assets/logo.jpg',
+      'assets/Big_Logo.png',
       height: height,
       width: width,
       fit: BoxFit.contain,
