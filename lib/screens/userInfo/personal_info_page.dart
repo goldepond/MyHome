@@ -613,7 +613,8 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
             titleColor: AppleColors.systemRed,
             onTap: () => _deleteAccount(),
           ),
-          const SizedBox(height: 8),
+          // 하단 여유 공간
+          const SizedBox(height: 40),
         ],
       ),
     );

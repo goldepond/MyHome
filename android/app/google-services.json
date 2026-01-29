@@ -22,7 +22,15 @@
           }
         },
         {
-          "client_id": "1018586798653-h3dt91muv5r1c41oi14ofv40rl5u900v.apps.googleusercontent.com",
+          "client_id": "1018586798653-mok65dqt24631rs7aa91gcljfu2f97bh.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "android.houseproject",
+            "certificate_hash": "9757f83cdeea2a415c59ee47bac6dd89be601e14"
+          }
+        },
+        {
+          "client_id": "1018586798653-nr1i1kl3eejtjmpebfiol2bkfd83ulmj.apps.googleusercontent.com",
           "client_type": 3
         }
       ],

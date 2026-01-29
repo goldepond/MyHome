@@ -315,10 +315,10 @@ class _MLSSellerDashboardPageState extends State<MLSSellerDashboardPage> {
         Container(
           padding: const EdgeInsets.all(AppleSpacing.md),
           decoration: BoxDecoration(
-            gradient: LinearGradient(
+            gradient: const LinearGradient(
               colors: [
-                AppleColors.systemBlue,
-                AppleColors.systemIndigo,
+                Color(0xFFCD6B55), // 진한 코랄
+                Color(0xFFB55A45), // 더 진한 코랄
               ],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
