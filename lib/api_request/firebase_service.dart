@@ -469,8 +469,23 @@ class FirebaseService {
   User? get currentUser => _auth.currentUser;
   
   /// 로그아웃
+  /// 소셜 로그인 세션도 함께 클리어하여 다음 로그인 시 계정 선택 가능
   Future<void> signOut() async {
+    // 소셜 로그인 세션 클리어
+    try {
+      await GoogleSignInService.signOut();
+    } catch (e) {
+      Logger.warning('Google 로그아웃 실패 (무시): $e');
+    }
+    try {
+      await KakaoSignInService.signOut();
+    } catch (e) {
+      Logger.warning('Kakao 로그아웃 실패 (무시): $e');
+    }
+
+    // Firebase 로그아웃
     await _auth.signOut();
+    Logger.info('로그아웃 완료 (소셜 세션 포함)');
   }
 
   /// 회원탈퇴
@@ -2337,6 +2352,154 @@ class FirebaseService {
       };
     } catch (e) {
       Logger.error('구글 로그인 오류: $e');
+      return null;
+    }
+  }
+
+  /// 다른 구글 계정으로 로그인 (계정 선택 UI 강제 표시)
+  Future<Map<String, dynamic>?> signInWithNewGoogleAccount() async {
+    try {
+      if (!GoogleSignInService.isSupported) {
+        Logger.warning('구글 로그인은 이 플랫폼에서 지원되지 않습니다.');
+        return null;
+      }
+
+      final userCredential = await GoogleSignInService.signInWithNewAccount();
+
+      if (userCredential == null) {
+        Logger.info('구글 계정 선택 취소됨');
+        return null;
+      }
+
+      final user = userCredential.user;
+      if (user == null) {
+        Logger.error('구글 로그인 실패: Firebase 사용자 없음');
+        return null;
+      }
+
+      // Firestore에 사용자 문서 생성/업데이트 (signInWithGoogle과 동일한 로직)
+      final userDoc = await _firestore.collection(_usersCollectionName).doc(user.uid).get();
+      bool isNewUser = false;
+
+      if (!userDoc.exists) {
+        isNewUser = true;
+        await _firestore.collection(_usersCollectionName).doc(user.uid).set({
+          'name': user.displayName ?? '사용자',
+          'email': user.email ?? '',
+          'photoUrl': user.photoURL,
+          'userType': 'user',
+          'createdAt': FieldValue.serverTimestamp(),
+          'updatedAt': FieldValue.serverTimestamp(),
+          'provider': 'google',
+        });
+      } else {
+        await _firestore.collection(_usersCollectionName).doc(user.uid).update({
+          'updatedAt': FieldValue.serverTimestamp(),
+          'lastLoginAt': FieldValue.serverTimestamp(),
+        });
+      }
+
+      final updatedDoc = await _firestore.collection(_usersCollectionName).doc(user.uid).get();
+      final userData = updatedDoc.data() ?? {};
+
+      return {
+        'uid': user.uid,
+        'name': userData['name'] ?? user.displayName ?? '사용자',
+        'email': user.email ?? '',
+        'photoUrl': user.photoURL,
+        'userType': userData['userType'] ?? 'user',
+        'provider': 'google',
+        'isNewUser': isNewUser,
+      };
+    } catch (e) {
+      Logger.error('다른 구글 계정 로그인 오류: $e');
+      return null;
+    }
+  }
+
+  /// 다른 카카오 계정으로 로그인 (계정 선택 강제)
+  Future<Map<String, dynamic>?> signInWithNewKakaoAccount() async {
+    try {
+      if (!KakaoSignInService.isSupported) {
+        Logger.warning('카카오 로그인은 이 플랫폼에서 지원되지 않습니다.');
+        return null;
+      }
+
+      final kakaoUser = await KakaoSignInService.signInWithNewAccount();
+
+      if (kakaoUser == null) {
+        Logger.info('카카오 계정 선택 취소됨');
+        return null;
+      }
+
+      // signInWithKakao와 동일한 Firebase 연동 로직
+      final kakaoId = kakaoUser['id'] as String;
+      final nickname = kakaoUser['nickname'] as String? ?? '카카오 사용자';
+      final email = kakaoUser['email'] as String?;
+      final profileImageUrl = kakaoUser['profileImageUrl'] as String?;
+
+      final kakaoEmail = email ?? 'kakao_$kakaoId@myhome.com';
+
+      User? firebaseUser;
+
+      try {
+        final credential = await _auth.signInWithEmailAndPassword(
+          email: kakaoEmail,
+          password: 'kakao_oauth_$kakaoId',
+        );
+        firebaseUser = credential.user;
+      } on FirebaseAuthException catch (e) {
+        if (e.code == 'user-not-found' || e.code == 'wrong-password' || e.code == 'invalid-credential') {
+          final credential = await _auth.createUserWithEmailAndPassword(
+            email: kakaoEmail,
+            password: 'kakao_oauth_$kakaoId',
+          );
+          firebaseUser = credential.user;
+        } else {
+          rethrow;
+        }
+      }
+
+      if (firebaseUser == null) {
+        return null;
+      }
+
+      final userDoc = await _firestore.collection(_usersCollectionName).doc(firebaseUser.uid).get();
+      bool isNewUser = !userDoc.exists;
+
+      if (isNewUser) {
+        await _firestore.collection(_usersCollectionName).doc(firebaseUser.uid).set({
+          'name': nickname,
+          'email': email ?? kakaoEmail,
+          'photoUrl': profileImageUrl,
+          'kakaoId': kakaoId,
+          'userType': 'user',
+          'createdAt': FieldValue.serverTimestamp(),
+          'updatedAt': FieldValue.serverTimestamp(),
+          'provider': 'kakao',
+        });
+      } else {
+        await _firestore.collection(_usersCollectionName).doc(firebaseUser.uid).update({
+          'updatedAt': FieldValue.serverTimestamp(),
+          'lastLoginAt': FieldValue.serverTimestamp(),
+        });
+      }
+
+      final updatedDoc = await _firestore.collection(_usersCollectionName).doc(firebaseUser.uid).get();
+      final userData = updatedDoc.data() ?? {};
+
+      return {
+        'uid': firebaseUser.uid,
+        'name': userData['name'] ?? nickname,
+        'email': userData['email'] ?? email ?? kakaoEmail,
+        'photoUrl': profileImageUrl,
+        'kakaoId': kakaoId,
+        'userType': userData['userType'] ?? 'user',
+        'provider': 'kakao',
+        'isNewUser': isNewUser,
+      };
+    } catch (e) {
+      Logger.error('다른 카카오 계정 로그인 오류: $e');
       return null;
     }
   }

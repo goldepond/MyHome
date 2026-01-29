@@ -7,6 +7,7 @@ import '../../constants/apple_design_system.dart';
 import '../../utils/logger.dart';
 import '../../utils/commission_calculator.dart';
 import '../../widgets/home_logo_button.dart';
+import '../../widgets/offline_banner.dart';
 import '../main_page.dart';
 import '../auth/auth_landing_page.dart';
 import '../notification/notification_page.dart';
@@ -397,12 +398,14 @@ class _MLSBrokerDashboardPageState extends State<MLSBrokerDashboardPage>
     return Scaffold(
       backgroundColor: AppleColors.systemGroupedBackground,
       body: SafeArea(
-        child: Column(
-          children: [
-            _buildHeader(),
-            _buildSegmentedControl(),
-            Expanded(child: _buildBody()),
-          ],
+        child: OfflineBanner(
+          child: Column(
+            children: [
+              _buildHeader(),
+              _buildSegmentedControl(),
+              Expanded(child: _buildBody()),
+            ],
+          ),
         ),
       ),
     );

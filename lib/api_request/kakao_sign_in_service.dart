@@ -19,27 +19,54 @@ class KakaoSignInService {
         Logger.error('[카카오 웹] - SDK 초기화 안됨: $e');
       }
 
-      // 카카오톡 설치 여부와 무관하게 웹에서는 카카오 계정 로그인 사용
+      // 1. 이미 저장된 토큰이 있는지 확인
+      Logger.info('[카카오 웹] 2. 기존 토큰 확인 중...');
+      if (await AuthApi.instance.hasToken()) {
+        Logger.info('[카카오 웹] - 기존 토큰 발견, 유효성 검사 중...');
+        try {
+          await UserApi.instance.accessTokenInfo();
+          Logger.info('[카카오 웹] - 토큰 유효함');
+
+          // 토큰이 유효하면 바로 사용자 정보 가져오기
+          final user = await UserApi.instance.me();
+          final token = await TokenManagerProvider.instance.manager.getToken();
+
+          Logger.info('[카카오 웹] - 기존 세션으로 로그인 성공: ${user.id}');
+          return {
+            'id': user.id.toString(),
+            'nickname': user.kakaoAccount?.profile?.nickname ?? '카카오 사용자',
+            'email': user.kakaoAccount?.email,
+            'profileImageUrl': user.kakaoAccount?.profile?.profileImageUrl,
+            'thumbnailImageUrl': user.kakaoAccount?.profile?.thumbnailImageUrl,
+            'accessToken': token?.accessToken,
+            'refreshToken': token?.refreshToken,
+          };
+        } catch (e) {
+          Logger.info('[카카오 웹] - 토큰 만료됨, 새로 로그인 진행');
+        }
+      }
+
+      // 2. 새로 로그인 필요
       OAuthToken token;
 
-      Logger.info('[카카오 웹] 2. 카카오 계정 로그인 시도...');
+      Logger.info('[카카오 웹] 3. 카카오 계정 로그인 시도...');
       try {
         // 카카오 계정으로 로그인 (웹에서는 이 방식만 사용)
         token = await UserApi.instance.loginWithKakaoAccount();
-        Logger.info('[카카오 웹] 3. 로그인 성공!');
+        Logger.info('[카카오 웹] 4. 로그인 성공!');
         Logger.info('[카카오 웹] - Access Token: ${token.accessToken.substring(0, 20)}...');
         Logger.info('[카카오 웹] - Token 만료: ${token.expiresAt}');
       } catch (e) {
-        Logger.error('[카카오 웹] 3. 로그인 실패: $e');
+        Logger.error('[카카오 웹] 4. 로그인 실패: $e');
         Logger.error('[카카오 웹] - 에러 타입: ${e.runtimeType}');
         return null;
       }
 
       // 사용자 정보 요청
-      Logger.info('[카카오 웹] 4. 사용자 정보 요청 중...');
+      Logger.info('[카카오 웹] 5. 사용자 정보 요청 중...');
       try {
         final user = await UserApi.instance.me();
-        Logger.info('[카카오 웹] 5. 사용자 정보 획득 성공!');
+        Logger.info('[카카오 웹] 6. 사용자 정보 획득 성공!');
         Logger.info('[카카오 웹] - 사용자 ID: ${user.id}');
         Logger.info('[카카오 웹] - 닉네임: ${user.kakaoAccount?.profile?.nickname}');
         Logger.info('[카카오 웹] - 이메일: ${user.kakaoAccount?.email}');
@@ -55,11 +82,11 @@ class KakaoSignInService {
           'refreshToken': token.refreshToken,
         };
 
-        Logger.info('[카카오 웹] 6. 반환 데이터 준비 완료');
+        Logger.info('[카카오 웹] 7. 반환 데이터 준비 완료');
         Logger.info('[카카오 웹] ========== 로그인 완료 ==========');
         return result;
       } catch (e) {
-        Logger.error('[카카오 웹] 5. 사용자 정보 요청 실패: $e');
+        Logger.error('[카카오 웹] 6. 사용자 정보 요청 실패: $e');
         return null;
       }
     } catch (e) {
@@ -86,6 +113,41 @@ class KakaoSignInService {
       Logger.info('카카오 로그아웃 성공');
     } catch (e) {
       Logger.error('카카오 로그아웃 실패: $e');
+    }
+  }
+
+  /// 다른 계정으로 로그인 (기존 세션 클리어 후 계정 선택 강제)
+  static Future<Map<String, dynamic>?> signInWithNewAccount() async {
+    try {
+      Logger.info('[카카오 웹] 다른 계정으로 로그인 시작');
+
+      // 기존 세션 클리어
+      try {
+        await UserApi.instance.logout();
+        Logger.info('[카카오 웹] 기존 세션 클리어 완료');
+      } catch (e) {
+        Logger.warning('[카카오 웹] 기존 세션 클리어 실패 (무시): $e');
+      }
+
+      // 새로 로그인
+      final token = await UserApi.instance.loginWithKakaoAccount();
+      Logger.info('[카카오 웹] 새 계정 로그인 성공');
+
+      final user = await UserApi.instance.me();
+      Logger.info('[카카오 웹] 새 계정 사용자 정보: ${user.id}');
+
+      return {
+        'id': user.id.toString(),
+        'nickname': user.kakaoAccount?.profile?.nickname ?? '카카오 사용자',
+        'email': user.kakaoAccount?.email,
+        'profileImageUrl': user.kakaoAccount?.profile?.profileImageUrl,
+        'thumbnailImageUrl': user.kakaoAccount?.profile?.thumbnailImageUrl,
+        'accessToken': token.accessToken,
+        'refreshToken': token.refreshToken,
+      };
+    } catch (e) {
+      Logger.error('[카카오 웹] 다른 계정 로그인 오류: $e');
+      return null;
     }
   }
 

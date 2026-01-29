@@ -18,6 +18,11 @@ class GoogleSignInService {
   /// Google 로그아웃 - no-op
   static Future<void> signOut() async {}
 
+  /// 다른 계정으로 로그인 - 데스크톱에서는 항상 null 반환
+  static Future<UserCredential?> signInWithNewAccount() async {
+    return null;
+  }
+
   /// 플랫폼 지원 여부 - 데스크톱은 미지원
   static bool get isSupported => false;
 }

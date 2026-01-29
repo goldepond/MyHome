@@ -75,9 +75,16 @@ void main() async {
         options: DefaultFirebaseOptions.currentPlatform,
       );
       Logger.info('Firebase 초기화 성공');
+    } else {
+      Logger.info('Firebase 이미 초기화됨 (${Firebase.apps.length}개 앱)');
     }
   } catch (e) {
-    Logger.error('Firebase 초기화 실패', error: e);
+    // duplicate-app 에러는 무시 (이미 초기화된 경우)
+    if (e.toString().contains('duplicate-app')) {
+      Logger.info('Firebase 이미 초기화됨 (duplicate-app)');
+    } else {
+      Logger.error('Firebase 초기화 실패', error: e);
+    }
   }
 
   // 앱 실행
@@ -92,11 +99,63 @@ void main() async {
   }
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
   const MyApp({super.key});
 
   @override
+  State<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
+  bool _firebaseInitialized = false;
+  String? _initError;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkFirebaseInit();
+  }
+
+  Future<void> _checkFirebaseInit() async {
+    try {
+      // Firebase 초기화 상태 확인
+      if (Firebase.apps.isNotEmpty) {
+        setState(() {
+          _firebaseInitialized = true;
+          _initError = null;
+        });
+      } else {
+        // 재시도
+        await Firebase.initializeApp(
+          options: DefaultFirebaseOptions.currentPlatform,
+        );
+        setState(() {
+          _firebaseInitialized = true;
+          _initError = null;
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _firebaseInitialized = false;
+        _initError = e.toString();
+      });
+      Logger.error('Firebase 초기화 실패', error: e);
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
+    // Firebase 초기화 실패 시 에러 화면 표시
+    if (!_firebaseInitialized || _initError != null) {
+      return MaterialApp(
+        debugShowCheckedModeBanner: false,
+        home: _NetworkErrorScreen(
+          message: '서버에 연결할 수 없습니다.\n네트워크 연결을 확인해주세요.',
+          onRetry: _checkFirebaseInit,
+        ),
+      );
+    }
+
     return MaterialApp(
       title: 'MyHome - 쉽고 빠른 부동산 상담', 
       debugShowCheckedModeBanner: false,
@@ -218,6 +277,71 @@ class MyApp extends StatelessWidget {
   }
 }
 
+/// 네트워크 오류 화면
+class _NetworkErrorScreen extends StatelessWidget {
+  final String message;
+  final VoidCallback onRetry;
+
+  const _NetworkErrorScreen({
+    required this.message,
+    required this.onRetry,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: SafeArea(
+        child: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(32),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  Icons.wifi_off_rounded,
+                  size: 80,
+                  color: Colors.grey[400],
+                ),
+                const SizedBox(height: 24),
+                Text(
+                  '연결 오류',
+                  style: TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.grey[800],
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  message,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontSize: 16,
+                    color: Colors.grey[600],
+                    height: 1.5,
+                  ),
+                ),
+                const SizedBox(height: 32),
+                ElevatedButton.icon(
+                  onPressed: onRetry,
+                  icon: const Icon(Icons.refresh),
+                  label: const Text('다시 시도'),
+                  style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 32,
+                      vertical: 16,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
 /// Firebase Auth 상태를 구독하여 새로고침 시에도 로그인 유지
 class _AuthGate extends StatefulWidget {
   const _AuthGate();
@@ -228,6 +352,14 @@ class _AuthGate extends StatefulWidget {
 
 class _AuthGateState extends State<_AuthGate> {
   Map<String, dynamic>? _cachedUserData;
+  User? _lastKnownUser;
+
+  @override
+  void initState() {
+    super.initState();
+    // 현재 사용자 상태 저장
+    _lastKnownUser = FirebaseAuth.instance.currentUser;
+  }
 
   /// 기본 이름인지 확인 (소셜 로그인 기본값)
   bool _isDefaultName(String? name) {
@@ -284,11 +416,53 @@ class _AuthGateState extends State<_AuthGate> {
           );
         }
 
+        // Firebase 서버 오류 시 에러 화면 표시
+        if (snapshot.hasError) {
+          Logger.error('Firebase Auth 스트림 오류', error: snapshot.error);
+          return _NetworkErrorScreen(
+            message: '서버에 연결할 수 없습니다.\n잠시 후 다시 시도해주세요.',
+            onRetry: () {
+              setState(() {});
+            },
+          );
+        }
+
         // 비로그인 상태 또는 익명 사용자: 랜딩 페이지로 이동
         if (user == null || user.isAnonymous) {
+          // 이전에 로그인한 사용자가 있었고 캐시 데이터가 있으면
+          // 일시적인 sign-out일 수 있으므로 잠시 대기
+          if (_lastKnownUser != null && _cachedUserData != null) {
+            Logger.info('임시 로그아웃 감지 - 재인증 대기 중...');
+            // 짧은 시간 후 실제로 로그아웃된 것인지 확인
+            Future.delayed(const Duration(milliseconds: 500), () {
+              if (mounted && FirebaseAuth.instance.currentUser == null) {
+                setState(() {
+                  _cachedUserData = null;
+                  _lastKnownUser = null;
+                });
+              }
+            });
+            // 로딩 화면 표시하면서 대기
+            return const Scaffold(
+              body: Center(
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    CircularProgressIndicator(),
+                    SizedBox(height: 16),
+                    Text('인증 정보 확인 중...'),
+                  ],
+                ),
+              ),
+            );
+          }
           _cachedUserData = null;
+          _lastKnownUser = null;
           return const AuthLandingPage();
         }
+
+        // 사용자 상태 업데이트
+        _lastKnownUser = user;
         
         // 캐시된 데이터가 있고 같은 사용자면 즉시 반환
         if (_cachedUserData != null && _cachedUserData!['uid'] == user.uid) {
@@ -369,12 +543,12 @@ class _AuthGateState extends State<_AuthGate> {
             };
           }(),
           builder: (context, userSnap) {
-            // 에러 발생 시 프로필 완성 페이지 표시 (재시도 가능)
+            // 에러 발생 시 네트워크 오류 화면 표시 (재시도 가능)
             if (userSnap.hasError) {
-              return ProfileCompletionPage(
-                userId: user.uid,
-                currentName: user.email?.split('@').first,
-                onComplete: () {
+              Logger.error('사용자 정보 로드 실패', error: userSnap.error);
+              return _NetworkErrorScreen(
+                message: '사용자 정보를 불러올 수 없습니다.\n네트워크 연결을 확인하고 다시 시도해주세요.',
+                onRetry: () {
                   setState(() {
                     _cachedUserData = null;
                   });

@@ -55,36 +55,45 @@ class _OfflineBannerState extends State<OfflineBanner> {
       children: [
         // 오프라인 배너 (오프라인일 때만 표시)
         if (_isOnline == false)
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          Material(
             color: Colors.orange,
-            child: Row(
-              children: [
-                const Icon(Icons.wifi_off, color: AirbnbColors.background, size: 20),
-                const SizedBox(width: 8),
-                const Expanded(
-                  child: Text(
-                    '인터넷 연결이 없습니다. 일부 기능이 제한될 수 있습니다.',
-                    style: TextStyle(
-                      color: AirbnbColors.background,
-                      fontSize: 13,
-                      fontWeight: FontWeight.w500,
+            child: InkWell(
+              onTap: _checkNetworkStatus,
+              child: Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                child: Row(
+                  children: [
+                    const Icon(Icons.wifi_off, color: AirbnbColors.background, size: 18),
+                    const SizedBox(width: 8),
+                    const Expanded(
+                      child: Text(
+                        '인터넷 연결 끊김 - 탭하여 재시도',
+                        style: TextStyle(
+                          color: AirbnbColors.background,
+                          fontSize: 13,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
                     ),
-                  ),
+                    if (_isChecking)
+                      const SizedBox(
+                        width: 16,
+                        height: 16,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          valueColor: AlwaysStoppedAnimation<Color>(AirbnbColors.background),
+                        ),
+                      )
+                    else
+                      const Icon(Icons.refresh, color: AirbnbColors.background, size: 18),
+                  ],
                 ),
-                IconButton(
-                  icon: const Icon(Icons.refresh, color: AirbnbColors.background, size: 18),
-                  onPressed: _checkNetworkStatus,
-                  tooltip: '연결 확인',
-                  padding: EdgeInsets.zero,
-                  constraints: const BoxConstraints(),
-                ),
-              ],
+              ),
             ),
           ),
-        // 메인 콘텐츠
-        widget.child,
+        // 메인 콘텐츠 (Expanded로 나머지 공간 차지)
+        Expanded(child: widget.child),
       ],
     );
   }

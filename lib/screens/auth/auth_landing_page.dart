@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../constants/apple_design_system.dart';
 import '../../api_request/firebase_service.dart';
 import '../../widgets/home_logo_button.dart';
+import '../../utils/logger.dart';
 import '../login_page.dart';
 
 /// 로그인/회원가입 랜딩페이지 (헤이딜러 스타일)
@@ -16,6 +18,36 @@ class AuthLandingPage extends StatefulWidget {
 class _AuthLandingPageState extends State<AuthLandingPage> {
   final FirebaseService _firebaseService = FirebaseService();
   bool _isLoading = false;
+  String? _lastLoginMethod; // 'kakao', 'google', 'email' 중 하나
+
+  static const String _lastLoginKey = 'last_login_method';
+
+  @override
+  void initState() {
+    super.initState();
+    _loadLastLoginMethod();
+  }
+
+  Future<void> _loadLastLoginMethod() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final method = prefs.getString(_lastLoginKey);
+      if (mounted && method != null) {
+        setState(() => _lastLoginMethod = method);
+      }
+    } catch (e) {
+      Logger.warning('마지막 로그인 방식 로드 실패: $e');
+    }
+  }
+
+  Future<void> _saveLastLoginMethod(String method) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString(_lastLoginKey, method);
+    } catch (e) {
+      Logger.warning('마지막 로그인 방식 저장 실패: $e');
+    }
+  }
 
   // 카카오 로그인
   Future<void> _signInWithKakao() async {
@@ -23,7 +55,9 @@ class _AuthLandingPageState extends State<AuthLandingPage> {
     try {
       final result = await _firebaseService.signInWithKakao();
       if (result != null && mounted) {
-        // 로그인 성공 - AuthGate가 자동으로 MainPage로 이동
+        // 로그인 성공 - 마지막 로그인 방식 저장
+        await _saveLastLoginMethod('kakao');
+        // AuthGate가 자동으로 MainPage로 이동
       } else if (mounted) {
         _showError('카카오 로그인에 실패했습니다.');
       }
@@ -38,19 +72,27 @@ class _AuthLandingPageState extends State<AuthLandingPage> {
 
   // Google 로그인
   Future<void> _signInWithGoogle() async {
+    Logger.info('[AuthLanding] Google 로그인 시작');
     setState(() => _isLoading = true);
     try {
       final result = await _firebaseService.signInWithGoogle();
+      Logger.info('[AuthLanding] Google 로그인 결과: ${result != null ? "성공" : "null"}');
       if (result != null && mounted) {
-        // 로그인 성공 - AuthGate가 자동으로 MainPage로 이동
+        Logger.info('[AuthLanding] Google 로그인 성공 - AuthGate가 처리할 예정');
+        // 로그인 성공 - 마지막 로그인 방식 저장
+        await _saveLastLoginMethod('google');
+        // AuthGate가 자동으로 MainPage로 이동
       } else if (mounted) {
+        Logger.warning('[AuthLanding] Google 로그인 실패 또는 취소');
         _showError('Google 로그인에 실패했습니다.');
       }
     } catch (e) {
+      Logger.error('[AuthLanding] Google 로그인 오류', error: e);
       if (mounted) {
         _showError('Google 로그인 중 오류가 발생했습니다.');
       }
     } finally {
+      Logger.info('[AuthLanding] Google 로그인 프로세스 종료');
       if (mounted) setState(() => _isLoading = false);
     }
   }
@@ -117,10 +159,6 @@ class _AuthLandingPageState extends State<AuthLandingPage> {
             children: [
               // 헤더 텍스트
               _buildHeader(),
-              const SizedBox(height: AppleSpacing.section),
-
-              // 이용 방법 3단계
-              _buildHowItWorks(),
               const SizedBox(height: AppleSpacing.section),
 
               // 소셜 로그인 버튼들
@@ -195,6 +233,7 @@ class _AuthLandingPageState extends State<AuthLandingPage> {
           textColor: const Color(0xFF191919),
           iconPath: 'kakao',
           onPressed: _signInWithKakao,
+          isLastUsed: _lastLoginMethod == 'kakao',
         ),
         const SizedBox(height: AppleSpacing.sm),
 
@@ -206,66 +245,9 @@ class _AuthLandingPageState extends State<AuthLandingPage> {
           iconPath: 'google',
           onPressed: _signInWithGoogle,
           hasBorder: true,
+          isLastUsed: _lastLoginMethod == 'google',
         ),
       ],
-    );
-  }
-
-  Widget _buildHowItWorks() {
-    return Column(
-      children: [
-        // 섹션 타이틀
-        Text(
-          '이렇게 이용하세요',
-          style: AppleTypography.headline.copyWith(
-            color: AppleColors.label,
-          ),
-        ),
-        const SizedBox(height: AppleSpacing.lg),
-
-        // 3단계 프로세스
-        Row(
-          children: [
-            Expanded(
-              child: _StepItem(
-                step: 1,
-                icon: Icons.home_outlined,
-                title: '주소 입력',
-                description: '팔고 싶은 집\n주소만 입력',
-              ),
-            ),
-            _buildArrow(),
-            Expanded(
-              child: _StepItem(
-                step: 2,
-                icon: Icons.people_outline,
-                title: '중개사 매칭',
-                description: '주변 중개사\n자동 연결',
-              ),
-            ),
-            _buildArrow(),
-            Expanded(
-              child: _StepItem(
-                step: 3,
-                icon: Icons.chat_bubble_outline,
-                title: '상담 받기',
-                description: '견적 비교 후\n선택',
-              ),
-            ),
-          ],
-        ),
-      ],
-    );
-  }
-
-  Widget _buildArrow() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 4),
-      child: Icon(
-        Icons.arrow_forward_ios,
-        size: 12,
-        color: AppleColors.tertiaryLabel,
-      ),
     );
   }
 
@@ -334,6 +316,7 @@ class _SocialLoginButton extends StatelessWidget {
   final String? iconPath;
   final VoidCallback onPressed;
   final bool hasBorder;
+  final bool isLastUsed;
 
   const _SocialLoginButton({
     required this.text,
@@ -342,43 +325,60 @@ class _SocialLoginButton extends StatelessWidget {
     this.iconPath,
     required this.onPressed,
     this.hasBorder = false,
+    this.isLastUsed = false,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      color: backgroundColor,
-      borderRadius: BorderRadius.circular(AppleRadius.md),
-      child: InkWell(
-        onTap: onPressed,
-        borderRadius: BorderRadius.circular(AppleRadius.md),
-        child: Container(
-          padding: const EdgeInsets.symmetric(
-            horizontal: AppleSpacing.lg,
-            vertical: AppleSpacing.md,
-          ),
-          decoration: BoxDecoration(
+    return Column(
+      children: [
+        Material(
+          color: backgroundColor,
+          borderRadius: BorderRadius.circular(AppleRadius.md),
+          child: InkWell(
+            onTap: onPressed,
             borderRadius: BorderRadius.circular(AppleRadius.md),
-            border: hasBorder
-                ? Border.all(color: AppleColors.separator, width: 1)
-                : null,
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              _buildIcon(),
-              const SizedBox(width: AppleSpacing.sm),
-              Text(
-                text,
-                style: AppleTypography.body.copyWith(
-                  color: textColor,
-                  fontWeight: FontWeight.w600,
-                ),
+            child: Container(
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppleSpacing.lg,
+                vertical: AppleSpacing.md,
               ),
-            ],
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(AppleRadius.md),
+                border: hasBorder
+                    ? Border.all(color: AppleColors.separator, width: 1)
+                    : null,
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  _buildIcon(),
+                  const SizedBox(width: AppleSpacing.sm),
+                  Text(
+                    text,
+                    style: AppleTypography.body.copyWith(
+                      color: textColor,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+              ),
+            ),
           ),
         ),
-      ),
+        // 이전 로그인 방식 힌트
+        if (isLastUsed)
+          Padding(
+            padding: const EdgeInsets.only(top: 4),
+            child: Text(
+              '이전에 사용한 로그인',
+              style: AppleTypography.caption1.copyWith(
+                color: AppleColors.systemBlue,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+      ],
     );
   }
 
@@ -431,60 +431,4 @@ class _SocialLoginButton extends StatelessWidget {
   }
 }
 
-/// 이용 방법 단계 아이템
-class _StepItem extends StatelessWidget {
-  final int step;
-  final IconData icon;
-  final String title;
-  final String description;
-
-  const _StepItem({
-    required this.step,
-    required this.icon,
-    required this.title,
-    required this.description,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        // 아이콘 원
-        Container(
-          width: 48,
-          height: 48,
-          decoration: BoxDecoration(
-            color: AppleColors.systemBlue.withValues(alpha: 0.1),
-            shape: BoxShape.circle,
-          ),
-          child: Icon(
-            icon,
-            color: AppleColors.systemBlue,
-            size: 24,
-          ),
-        ),
-        const SizedBox(height: AppleSpacing.xs),
-        // 제목
-        Text(
-          title,
-          style: AppleTypography.footnote.copyWith(
-            fontWeight: FontWeight.w600,
-            color: AppleColors.label,
-          ),
-          textAlign: TextAlign.center,
-        ),
-        const SizedBox(height: 2),
-        // 설명
-        Text(
-          description,
-          style: AppleTypography.caption2.copyWith(
-            color: AppleColors.secondaryLabel,
-            height: 1.3,
-          ),
-          textAlign: TextAlign.center,
-        ),
-      ],
-    );
-  }
-}
 

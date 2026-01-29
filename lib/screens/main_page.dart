@@ -5,6 +5,7 @@ import 'package:property/api_request/firebase_service.dart';
 import 'package:property/api_request/log_service.dart';
 import 'package:property/utils/logger.dart';
 import 'package:property/widgets/home_logo_button.dart';
+import 'package:property/widgets/offline_banner.dart';
 import 'login_page.dart';
 import 'auth/auth_landing_page.dart';
 import 'broker/mls_broker_dashboard_page.dart';
@@ -211,12 +212,14 @@ class MainPageState extends State<MainPage> {
     return Scaffold(
       backgroundColor: AppleColors.systemGroupedBackground,
       body: SafeArea(
-        child: Column(
-          children: [
-            _buildHeader(),
-            _buildSegmentedControl(),
-            Expanded(child: _getPage(_currentIndex)),
-          ],
+        child: OfflineBanner(
+          child: Column(
+            children: [
+              _buildHeader(),
+              _buildSegmentedControl(),
+              Expanded(child: _getPage(_currentIndex)),
+            ],
+          ),
         ),
       ),
     );
