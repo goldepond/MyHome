@@ -212,7 +212,7 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
     final userName = _userData?['name'] ?? widget.userName;
     final userEmail = _userData?['email'] ?? '';
 
-    Widget content = Container(
+    final Widget content = Container(
       color: AppleColors.systemBackground,
       padding: EdgeInsets.all(isWide ? 24 : 20),
       child: Row(
@@ -274,7 +274,7 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
                   const SizedBox(height: 4),
                   Text(
                     userEmail,
-                    style: TextStyle(
+                    style: const TextStyle(
                       fontSize: 14,
                       color: AppleColors.secondaryLabel,
                     ),
@@ -371,7 +371,7 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
 
     if (quickMenuItems.isEmpty) return const SizedBox.shrink();
 
-    Widget content = Container(
+    final Widget content = Container(
       color: AppleColors.systemBackground,
       padding: const EdgeInsets.all(16),
       child: Column(
@@ -670,7 +670,7 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
                 Flexible(
                   child: Text(
                     value,
-                    style: TextStyle(
+                    style: const TextStyle(
                       fontSize: 15,
                       color: AppleColors.secondaryLabel,
                     ),
@@ -678,8 +678,8 @@ class _PersonalInfoPageState extends State<PersonalInfoPage> {
                   ),
                 ),
               if (showArrow || onTap != null)
-                Padding(
-                  padding: const EdgeInsets.only(left: 8),
+                const Padding(
+                  padding: EdgeInsets.only(left: 8),
                   child: Icon(
                     Icons.chevron_right,
                     size: 20,

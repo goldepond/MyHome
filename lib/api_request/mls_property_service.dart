@@ -417,7 +417,6 @@ class MLSPropertyService {
         brokerResponses[brokerId] = BrokerResponse(
           brokerId: brokerId,
           brokerName: '', // 실제로는 중개사 정보 조회 필요
-          stage: BrokerStage.received,
           receivedAt: now,
         );
       }
@@ -738,7 +737,7 @@ class MLSPropertyService {
       final billions = (price / 10000).floor();
       final remainder = (price % 10000).floor();
       if (remainder > 0) {
-        return '$billions억 ${remainder}만원';
+        return '$billions억 $remainder만원';
       }
       return '$billions억원';
     }
@@ -1101,11 +1100,11 @@ class MLSPropertyService {
     required String propertyId,
     required String brokerId,
     required String brokerName,
+    required double proposedPrice,
+    required DateTime requestedDateTime,
     String? brokerCompany,
     String? brokerPhone,
     String? brokerUid, // Firebase UID (Firestore 규칙용)
-    required double proposedPrice,
-    required DateTime requestedDateTime,
     String? message,
   }) async {
     try {
@@ -1136,7 +1135,6 @@ class MLSPropertyService {
         proposedPrice: proposedPrice,
         requestedDateTime: requestedDateTime,
         message: message,
-        status: VisitRequestStatus.pending,
         createdAt: now,
       );
 
@@ -1478,9 +1476,6 @@ class MLSPropertyService {
       final updatedRequest = request.copyWith(
         requestedDateTime: request.alternativeDateTime,
         status: VisitRequestStatus.pending,
-        alternativeDateTime: null,
-        sellerResponse: null,
-        respondedAt: null,
       );
       visitRequests[index] = updatedRequest;
 

@@ -99,7 +99,6 @@ class _AdminDashboardState extends State<AdminDashboard> {
             Row(
               children: [
                 LogoWithText(
-                  fontSize: 24,
                   logoHeight: 60,
                   textColor: AirbnbColors.primary,
                   onTap: _goToHome,
@@ -112,7 +111,6 @@ class _AdminDashboardState extends State<AdminDashboard> {
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(
                       color: AirbnbColors.primary.withValues(alpha: 0.3),
-                      width: 1,
                     ),
                   ),
                   child: const Row(
@@ -293,7 +291,6 @@ class _AdminDashboardState extends State<AdminDashboard> {
               borderRadius: BorderRadius.circular(16),
             ),
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Text(

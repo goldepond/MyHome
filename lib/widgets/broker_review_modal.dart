@@ -17,24 +17,18 @@ class BrokerReviewModal extends StatefulWidget {
   final VoidCallback? onReviewSubmitted;
 
   const BrokerReviewModal({
-    Key? key,
-    required this.brokerRegistrationNumber,
-    required this.brokerName,
+    required this.brokerRegistrationNumber, required this.brokerName, required this.userId, required this.userName, super.key,
     this.brokerCompany,
-    required this.userId,
-    required this.userName,
     this.relatedId,
     this.onReviewSubmitted,
-  }) : super(key: key);
+  });
 
   /// 리뷰 모달을 표시합니다.
   static Future<void> show(
     BuildContext context, {
     required String brokerRegistrationNumber,
     required String brokerName,
-    String? brokerCompany,
-    required String userId,
-    required String userName,
+    required String userId, required String userName, String? brokerCompany,
     String? relatedId,
     VoidCallback? onReviewSubmitted,
   }) {

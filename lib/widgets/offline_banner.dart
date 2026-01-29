@@ -7,8 +7,7 @@ class OfflineBanner extends StatefulWidget {
   final Widget child;
 
   const OfflineBanner({
-    super.key,
-    required this.child,
+    required this.child, super.key,
   });
 
   @override

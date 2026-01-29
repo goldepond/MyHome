@@ -67,7 +67,6 @@ class _HeroBannerState extends State<HeroBanner> {
         ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             // 매우 큰 헤드라인 (Stripe/Vercel 스타일)
             Text(
@@ -128,7 +127,6 @@ class _HeroBannerState extends State<HeroBanner> {
             color: AirbnbColors.primary.withValues(alpha: 0.08),
             offset: const Offset(0, 4),
             blurRadius: 16,
-            spreadRadius: 0,
           ),
         ],
       ),
@@ -138,7 +136,6 @@ class _HeroBannerState extends State<HeroBanner> {
           controller: widget.searchController,
           onChanged: widget.onSearchChanged,
           onSubmitted: (_) => widget.onSearchSubmitted?.call(),
-          autofocus: false,
           style: AppTypography.withColor(
             AppTypography.h4,
             AirbnbColors.textPrimary,

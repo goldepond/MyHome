@@ -348,29 +348,6 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
       etcAddress: '',
       employeeCount: '-',
       registrationDate: '',
-      latitude: null,
-      longitude: null,
-      distance: null,
-      systemRegNo: null,
-      ownerName: null,
-      businessName: null,
-      phoneNumber: null,
-      businessStatus: null,
-      seoulAddress: null,
-      district: null,
-      legalDong: null,
-      sggCode: null,
-      stdgCode: null,
-      lotnoSe: null,
-      mno: null,
-      sno: null,
-      roadCode: null,
-      bldg: null,
-      bmno: null,
-      bsno: null,
-      penaltyStartDate: null,
-      penaltyEndDate: null,
-      inqCount: null,
     );
 
     Navigator.push(
@@ -918,7 +895,6 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
           // 헤더
           SliverAppBar(
             expandedHeight: 180,
-            floating: false,
             pinned: true,
             backgroundColor: AirbnbColors.background,
             foregroundColor: AirbnbColors.primary,
@@ -1007,7 +983,6 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
                     ),
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
                         // 매우 큰 헤드라인 (Stripe/Vercel 스타일)
                         Text(

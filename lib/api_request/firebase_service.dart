@@ -2060,7 +2060,6 @@ class FirebaseService {
         createdAt: DateTime.now(),
         lastMessageAt: DateTime.now(),
         lastMessage: '대화가 시작되었습니다.',
-        isClosed: false,
       );
 
       final docRef = await _firestore.collection(_chatRoomsCollectionName).add(chatRoom.toMap());
@@ -2172,11 +2171,13 @@ class FirebaseService {
 
       // 먼저 기존 계정이 있는지 확인
       Logger.info('[Firebase 카카오] 5. Firebase 기존 계정 로그인 시도...');
+      final kakaoPassword = 'kakao_oauth_$kakaoId';
+
       try {
         // 카카오 ID로 생성한 이메일로 로그인 시도
         final credential = await _auth.signInWithEmailAndPassword(
           email: kakaoEmail,
-          password: 'kakao_oauth_$kakaoId', // 카카오 ID 기반 고정 비밀번호
+          password: kakaoPassword,
         );
         firebaseUser = credential.user;
         Logger.info('[Firebase 카카오] - 기존 계정 로그인 성공: ${firebaseUser?.uid}');
@@ -2188,7 +2189,7 @@ class FirebaseService {
           try {
             final credential = await _auth.createUserWithEmailAndPassword(
               email: kakaoEmail,
-              password: 'kakao_oauth_$kakaoId',
+              password: kakaoPassword,
             );
             firebaseUser = credential.user;
             Logger.info('[Firebase 카카오] - 계정 생성 성공: ${firebaseUser?.uid}');
@@ -2200,8 +2201,35 @@ class FirebaseService {
               await firebaseUser?.updatePhotoURL(profileImageUrl);
             }
             Logger.info('[Firebase 카카오] - 프로필 업데이트 완료');
+          } on FirebaseAuthException catch (createError) {
+            Logger.error('[Firebase 카카오] - 계정 생성 실패: ${createError.code}');
+            // email-already-in-use: 이미 계정이 있는데 로그인이 안 됐다면 비밀번호 문제
+            // 이 경우 비밀번호를 재설정하거나 다른 처리 필요
+            if (createError.code == 'email-already-in-use') {
+              Logger.info('[Firebase 카카오] - 이메일이 이미 존재함, 다시 로그인 시도...');
+              // 이미 계정이 있다면 혹시 이전에 다른 카카오 ID로 만들어진 것일 수 있음
+              // 카카오 이메일이 실제 이메일이면 그걸로 다시 시도
+              if (email != null && email != kakaoEmail) {
+                try {
+                  final retryCredential = await _auth.signInWithEmailAndPassword(
+                    email: email,
+                    password: kakaoPassword,
+                  );
+                  firebaseUser = retryCredential.user;
+                  Logger.info('[Firebase 카카오] - 실제 이메일로 재로그인 성공');
+                } catch (retryError) {
+                  Logger.error('[Firebase 카카오] - 재로그인도 실패: $retryError');
+                  return null;
+                }
+              } else {
+                return null;
+              }
+            } else {
+              Logger.error('[Firebase 카카오] - 에러 타입: ${createError.runtimeType}');
+              return null;
+            }
           } catch (createError) {
-            Logger.error('[Firebase 카카오] - 계정 생성 실패: $createError');
+            Logger.error('[Firebase 카카오] - 계정 생성 실패 (일반): $createError');
             Logger.error('[Firebase 카카오] - 에러 타입: ${createError.runtimeType}');
             return null;
           }
@@ -2210,6 +2238,11 @@ class FirebaseService {
           Logger.error('[Firebase 카카오] - 에러 메시지: ${e.message}');
           return null;
         }
+      } catch (e) {
+        // FirebaseAuthException이 아닌 다른 예외 처리
+        Logger.error('[Firebase 카카오] - 예상치 못한 예외: $e');
+        Logger.error('[Firebase 카카오] - 예외 타입: ${e.runtimeType}');
+        return null;
       }
 
       if (firebaseUser == null) {
@@ -2465,7 +2498,7 @@ class FirebaseService {
       }
 
       final userDoc = await _firestore.collection(_usersCollectionName).doc(firebaseUser.uid).get();
-      bool isNewUser = !userDoc.exists;
+      final bool isNewUser = !userDoc.exists;
 
       if (isNewUser) {
         await _firestore.collection(_usersCollectionName).doc(firebaseUser.uid).set({

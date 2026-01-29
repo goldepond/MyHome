@@ -21,8 +21,7 @@ class BrokerReview {
     required this.quoteRequestId,
     required this.rating,
     required this.recommend,
-    this.comment,
-    required this.createdAt,
+    required this.createdAt, this.comment,
     this.updatedAt,
   });
 

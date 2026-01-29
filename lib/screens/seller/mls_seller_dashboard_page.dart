@@ -97,7 +97,7 @@ class _MLSSellerDashboardPageState extends State<MLSSellerDashboardPage> {
       body: SafeArea(
         top: false,
         child: _isLoading
-            ? Center(
+            ? const Center(
                 child: CircularProgressIndicator(
                   valueColor: AlwaysStoppedAnimation<Color>(AppleColors.systemBlue),
                 ),
@@ -130,7 +130,7 @@ class _MLSSellerDashboardPageState extends State<MLSSellerDashboardPage> {
                 ),
                 borderRadius: BorderRadius.circular(70),
               ),
-              child: Icon(
+              child: const Icon(
                 Icons.rocket_launch_rounded,
                 size: 72,
                 color: AppleColors.systemBlue,
@@ -223,7 +223,7 @@ class _MLSSellerDashboardPageState extends State<MLSSellerDashboardPage> {
   _OverallStats _calculateOverallStats() {
     int pendingRequests = 0; // 대기 중인 방문 요청
     int approvedRequests = 0; // 승인된 방문 요청
-    int completedRequests = 0; // 완료된 방문 (연락처 교환 완료)
+    const int completedRequests = 0; // 완료된 방문 (연락처 교환 완료)
     double? highestOffer;
     int activeProperties = 0;
     int completedProperties = 0;
@@ -539,13 +539,13 @@ class _MLSSellerDashboardPageState extends State<MLSSellerDashboardPage> {
                 else
                   Container(
                     height: 180,
-                    decoration: BoxDecoration(
+                    decoration: const BoxDecoration(
                       color: AppleColors.tertiarySystemFill,
-                      borderRadius: const BorderRadius.vertical(
+                      borderRadius: BorderRadius.vertical(
                         top: Radius.circular(AppleRadius.lg),
                       ),
                     ),
-                    child: Center(
+                    child: const Center(
                       child: Icon(Icons.home_outlined,
                         color: AppleColors.tertiaryLabel, size: 64),
                     ),
@@ -671,10 +671,10 @@ class _MLSSellerDashboardPageState extends State<MLSSellerDashboardPage> {
                         padding: const EdgeInsets.only(top: 4),
                         child: Row(
                           children: [
-                            Icon(Icons.info_outline, size: 14, color: AppleColors.tertiaryLabel),
+                            const Icon(Icons.info_outline, size: 14, color: AppleColors.tertiaryLabel),
                             const SizedBox(width: 4),
                             Text(
-                              '중개 수수료 최대 ${CommissionCalculator.formatCommission(maxCommission)} (${maxRate}%)',
+                              '중개 수수료 최대 ${CommissionCalculator.formatCommission(maxCommission)} ($maxRate%)',
                               style: AppleTypography.caption1.copyWith(
                                 color: AppleColors.tertiaryLabel,
                               ),
@@ -690,7 +690,7 @@ class _MLSSellerDashboardPageState extends State<MLSSellerDashboardPage> {
                     const SizedBox(height: 4),
                     Row(
                       children: [
-                        Icon(Icons.trending_up,
+                        const Icon(Icons.trending_up,
                           size: 16, color: AppleColors.systemGreen),
                         const SizedBox(width: 4),
                         Text(
@@ -754,7 +754,7 @@ class _MLSSellerDashboardPageState extends State<MLSSellerDashboardPage> {
 
   /// 방문 요청 현황 계산
   _VisitRequestSummary _calculateVisitRequestSummary(MLSProperty property) {
-    int totalBrokers = property.brokerResponses.length;
+    final int totalBrokers = property.brokerResponses.length;
     int viewedBrokers = 0;
     int pendingRequests = 0;
     int approvedRequests = 0;
@@ -938,7 +938,7 @@ class _MLSSellerDashboardPageState extends State<MLSSellerDashboardPage> {
       final billions = (price / 10000).floor();
       final remainder = (price % 10000).floor();
       if (remainder > 0) {
-        return '$billions억 ${remainder}만원';
+        return '$billions억 $remainder만원';
       }
       return '$billions억';
     }

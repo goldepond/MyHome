@@ -15,7 +15,7 @@ import 'mls_property_edit_page.dart';
 class MLSPropertyDetailPage extends StatefulWidget {
   final MLSProperty property;
 
-  const MLSPropertyDetailPage({Key? key, required this.property}) : super(key: key);
+  const MLSPropertyDetailPage({required this.property, super.key});
 
   @override
   State<MLSPropertyDetailPage> createState() => _MLSPropertyDetailPageState();
@@ -158,7 +158,7 @@ class _MLSPropertyDetailPageState extends State<MLSPropertyDetailPage> {
               )
             : Container(
                 color: AppleColors.tertiarySystemFill,
-                child: Center(
+                child: const Center(
                   child: Icon(Icons.home_outlined, color: AppleColors.tertiaryLabel, size: 64),
                 ),
               ),
@@ -312,7 +312,7 @@ class _MLSPropertyDetailPageState extends State<MLSPropertyDetailPage> {
           // 가격
           Row(
             children: [
-              Icon(Icons.sell_outlined, size: 20, color: AppleColors.secondaryLabel),
+              const Icon(Icons.sell_outlined, size: 20, color: AppleColors.secondaryLabel),
               const SizedBox(width: 8),
               Text('희망가', style: AppleTypography.subheadline.copyWith(color: AppleColors.secondaryLabel)),
               const Spacer(),
@@ -468,7 +468,7 @@ class _MLSPropertyDetailPageState extends State<MLSPropertyDetailPage> {
           const SizedBox(height: AppleSpacing.sm),
           Row(
             children: [
-              Icon(Icons.access_time, size: 16, color: AppleColors.tertiaryLabel),
+              const Icon(Icons.access_time, size: 16, color: AppleColors.tertiaryLabel),
               const SizedBox(width: 4),
               Text(
                 '등록 ${_formatTimeAgo(_property.createdAt)}',
@@ -742,7 +742,7 @@ class _MLSPropertyDetailPageState extends State<MLSPropertyDetailPage> {
               child: Center(
                 child: Column(
                   children: [
-                    Icon(Icons.schedule_outlined, size: 48, color: AppleColors.tertiaryLabel),
+                    const Icon(Icons.schedule_outlined, size: 48, color: AppleColors.tertiaryLabel),
                     const SizedBox(height: AppleSpacing.sm),
                     Text(
                       _requestFilter == 'pending'
@@ -824,7 +824,7 @@ class _MLSPropertyDetailPageState extends State<MLSPropertyDetailPage> {
         ),
         child: Column(
           children: [
-            Icon(Icons.home_work_outlined, size: 48, color: AppleColors.systemBlue),
+            const Icon(Icons.home_work_outlined, size: 48, color: AppleColors.systemBlue),
             const SizedBox(height: AppleSpacing.sm),
             Text(
               '매물 상세 정보',
@@ -925,7 +925,7 @@ class _MLSPropertyDetailPageState extends State<MLSPropertyDetailPage> {
                 ),
                 child: Row(
                   children: [
-                    Icon(Icons.phone, color: AppleColors.systemGreen, size: 20),
+                    const Icon(Icons.phone, color: AppleColors.systemGreen, size: 20),
                     const SizedBox(width: AppleSpacing.sm),
                     Expanded(
                       child: Column(
@@ -953,7 +953,7 @@ class _MLSPropertyDetailPageState extends State<MLSPropertyDetailPage> {
                         color: AppleColors.systemGreen,
                         borderRadius: BorderRadius.circular(AppleRadius.sm),
                       ),
-                      child: Icon(Icons.call, color: Colors.white, size: 20),
+                      child: const Icon(Icons.call, color: Colors.white, size: 20),
                     ),
                   ],
                 ),
@@ -1123,7 +1123,7 @@ class _MLSPropertyDetailPageState extends State<MLSPropertyDetailPage> {
                         color: AppleColors.systemBlue.withValues(alpha: 0.1),
                         shape: BoxShape.circle,
                       ),
-                      child: Icon(
+                      child: const Icon(
                         Icons.person_outline,
                         color: AppleColors.systemBlue,
                         size: 24,
@@ -1142,7 +1142,7 @@ class _MLSPropertyDetailPageState extends State<MLSPropertyDetailPage> {
                               style: AppleTypography.headline.copyWith(fontWeight: FontWeight.w600),
                             ),
                             const SizedBox(width: 4),
-                            Icon(Icons.info_outline, size: 16, color: AppleColors.systemBlue),
+                            const Icon(Icons.info_outline, size: 16, color: AppleColors.systemBlue),
                           ],
                         ),
                         if (request.brokerCompany != null)
@@ -1182,7 +1182,7 @@ class _MLSPropertyDetailPageState extends State<MLSPropertyDetailPage> {
           // 희망가
           Row(
             children: [
-              Icon(Icons.attach_money, size: 18, color: AppleColors.secondaryLabel),
+              const Icon(Icons.attach_money, size: 18, color: AppleColors.secondaryLabel),
               const SizedBox(width: 4),
               Text('희망가', style: AppleTypography.caption1.copyWith(color: AppleColors.secondaryLabel)),
               const Spacer(),
@@ -1201,7 +1201,7 @@ class _MLSPropertyDetailPageState extends State<MLSPropertyDetailPage> {
           // 방문 희망 일시
           Row(
             children: [
-              Icon(Icons.calendar_today, size: 18, color: AppleColors.secondaryLabel),
+              const Icon(Icons.calendar_today, size: 18, color: AppleColors.secondaryLabel),
               const SizedBox(width: 4),
               Text('희망일시', style: AppleTypography.caption1.copyWith(color: AppleColors.secondaryLabel)),
               const Spacer(),
@@ -1228,7 +1228,7 @@ class _MLSPropertyDetailPageState extends State<MLSPropertyDetailPage> {
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Icon(Icons.chat_bubble_outline, size: 16, color: AppleColors.systemBlue),
+                  const Icon(Icons.chat_bubble_outline, size: 16, color: AppleColors.systemBlue),
                   const SizedBox(width: 6),
                   Expanded(
                     child: Text(
@@ -1259,7 +1259,7 @@ class _MLSPropertyDetailPageState extends State<MLSPropertyDetailPage> {
                 ),
                 child: Row(
                   children: [
-                    Icon(Icons.phone, size: 20, color: AppleColors.systemGreen),
+                    const Icon(Icons.phone, size: 20, color: AppleColors.systemGreen),
                     const SizedBox(width: AppleSpacing.sm),
                     Expanded(
                       child: Column(
@@ -1287,7 +1287,7 @@ class _MLSPropertyDetailPageState extends State<MLSPropertyDetailPage> {
                         color: AppleColors.systemGreen,
                         borderRadius: BorderRadius.circular(AppleRadius.sm),
                       ),
-                      child: Icon(Icons.call, color: Colors.white, size: 20),
+                      child: const Icon(Icons.call, color: Colors.white, size: 20),
                     ),
                   ],
                 ),
@@ -1307,7 +1307,7 @@ class _MLSPropertyDetailPageState extends State<MLSPropertyDetailPage> {
               ),
               child: Row(
                 children: [
-                  Icon(Icons.schedule, size: 16, color: AppleColors.systemBlue),
+                  const Icon(Icons.schedule, size: 16, color: AppleColors.systemBlue),
                   const SizedBox(width: 6),
                   Text(
                     '제안 시간: ${_formatDateTime(request.alternativeDateTime!)}',
@@ -1411,17 +1411,17 @@ class _MLSPropertyDetailPageState extends State<MLSPropertyDetailPage> {
                   children: [
                     Row(
                       children: [
-                        Text('희망가: ', style: TextStyle(color: AppleColors.secondaryLabel, fontSize: 13)),
+                        const Text('희망가: ', style: TextStyle(color: AppleColors.secondaryLabel, fontSize: 13)),
                         Text(
                           _formatPrice(request.proposedPrice),
-                          style: TextStyle(fontWeight: FontWeight.w600, color: AppleColors.systemGreen),
+                          style: const TextStyle(fontWeight: FontWeight.w600, color: AppleColors.systemGreen),
                         ),
                       ],
                     ),
                     const SizedBox(height: 4),
                     Row(
                       children: [
-                        Text('방문일시: ', style: TextStyle(color: AppleColors.secondaryLabel, fontSize: 13)),
+                        const Text('방문일시: ', style: TextStyle(color: AppleColors.secondaryLabel, fontSize: 13)),
                         Text(
                           _formatDateTime(request.requestedDateTime),
                           style: const TextStyle(fontWeight: FontWeight.w500),
@@ -1440,10 +1440,10 @@ class _MLSPropertyDetailPageState extends State<MLSPropertyDetailPage> {
                   color: AppleColors.systemGreen.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: Row(
+                child: const Row(
                   children: [
                     Icon(Icons.info_outline, size: 20, color: AppleColors.systemGreen),
-                    const SizedBox(width: 8),
+                    SizedBox(width: 8),
                     Expanded(
                       child: Text(
                         '승인 시 연락처가 상호 교환됩니다',
@@ -1702,7 +1702,7 @@ class _MLSPropertyDetailPageState extends State<MLSPropertyDetailPage> {
                     ),
                     child: Row(
                       children: [
-                        Icon(Icons.schedule, size: 20, color: AppleColors.secondaryLabel),
+                        const Icon(Icons.schedule, size: 20, color: AppleColors.secondaryLabel),
                         const SizedBox(width: 8),
                         Text('기존 요청: ', style: AppleTypography.subheadline.copyWith(color: AppleColors.secondaryLabel)),
                         Text(
@@ -1716,7 +1716,7 @@ class _MLSPropertyDetailPageState extends State<MLSPropertyDetailPage> {
                   const SizedBox(height: AppleSpacing.lg),
 
                   // 새로운 일시 선택
-                  Text('제안할 일시 *', style: AppleTypography.headline),
+                  const Text('제안할 일시 *', style: AppleTypography.headline),
                   const SizedBox(height: AppleSpacing.sm),
                   Row(
                     children: [
@@ -1819,7 +1819,7 @@ class _MLSPropertyDetailPageState extends State<MLSPropertyDetailPage> {
                   const SizedBox(height: AppleSpacing.lg),
 
                   // 메시지
-                  Text('메시지 (선택)', style: AppleTypography.headline),
+                  const Text('메시지 (선택)', style: AppleTypography.headline),
                   const SizedBox(height: AppleSpacing.sm),
                   TextField(
                     controller: messageController,
@@ -1987,7 +1987,7 @@ class _MLSPropertyDetailPageState extends State<MLSPropertyDetailPage> {
         AppleSpacing.md,
         MediaQuery.of(context).padding.bottom + AppleSpacing.sm,
       ),
-      decoration: BoxDecoration(
+      decoration: const BoxDecoration(
         color: AppleColors.systemBackground,
         border: Border(top: BorderSide(color: AppleColors.separator)),
       ),
@@ -2067,7 +2067,7 @@ class _MLSPropertyDetailPageState extends State<MLSPropertyDetailPage> {
                 ),
                 child: Row(
                   children: [
-                    Icon(Icons.check_circle, color: AppleColors.systemGreen, size: 20),
+                    const Icon(Icons.check_circle, color: AppleColors.systemGreen, size: 20),
                     const SizedBox(width: 8),
                     Expanded(
                       child: Column(
@@ -2101,7 +2101,7 @@ class _MLSPropertyDetailPageState extends State<MLSPropertyDetailPage> {
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            Icon(Icons.call, color: Colors.white, size: 18),
+                            const Icon(Icons.call, color: Colors.white, size: 18),
                             const SizedBox(width: 4),
                             Text(
                               '전화하기',
@@ -2136,7 +2136,7 @@ class _MLSPropertyDetailPageState extends State<MLSPropertyDetailPage> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.schedule, color: AppleColors.systemOrange, size: 20),
+                  const Icon(Icons.schedule, color: AppleColors.systemOrange, size: 20),
                   const SizedBox(width: 8),
                   Text(
                     '판매자 승인 대기 중',
@@ -2249,7 +2249,7 @@ class _MLSPropertyDetailPageState extends State<MLSPropertyDetailPage> {
       final billions = (price / 10000).floor();
       final remainder = (price % 10000).floor();
       if (remainder > 0) {
-        return '$billions억 ${remainder}만';
+        return '$billions억 $remainder만';
       }
       return '$billions억';
     }

@@ -116,7 +116,6 @@ class _AuthLandingPageState extends State<AuthLandingPage> {
       context,
       MaterialPageRoute(
         builder: (context) => const LoginPage(
-          initialMode: LoginMode.login,
           returnResult: false, // AuthGate가 자동으로 라우팅하도록 함
         ),
       ),
@@ -176,10 +175,9 @@ class _AuthLandingPageState extends State<AuthLandingPage> {
 
   Widget _buildHeader() {
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         // 로고
-        LogoImage(height: 60),
+        const LogoImage(height: 60),
         const SizedBox(height: AppleSpacing.xl),
         // 메인 카피
         RichText(
@@ -322,8 +320,7 @@ class _SocialLoginButton extends StatelessWidget {
     required this.text,
     required this.backgroundColor,
     required this.textColor,
-    this.iconPath,
-    required this.onPressed,
+    required this.onPressed, this.iconPath,
     this.hasBorder = false,
     this.isLastUsed = false,
   });
@@ -346,7 +343,7 @@ class _SocialLoginButton extends StatelessWidget {
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(AppleRadius.md),
                 border: hasBorder
-                    ? Border.all(color: AppleColors.separator, width: 1)
+                    ? Border.all(color: AppleColors.separator)
                     : null,
               ),
               child: Row(

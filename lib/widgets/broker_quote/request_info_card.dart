@@ -7,8 +7,7 @@ class RequestInfoCard extends StatelessWidget {
   final QuoteRequest quote;
 
   const RequestInfoCard({
-    super.key,
-    required this.quote,
+    required this.quote, super.key,
   });
 
   @override

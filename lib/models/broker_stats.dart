@@ -33,7 +33,7 @@ class BrokerStats {
   BrokerStats({
     required this.brokerId,
     required this.brokerRegistrationNumber,
-    this.totalDeals = 0,
+    required this.lastUpdatedAt, this.totalDeals = 0,
     this.depositTakenCount = 0,
     this.soldCount = 0,
     this.successRate = 0.0,
@@ -47,7 +47,6 @@ class BrokerStats {
     this.respondedCount = 0,
     this.specialties = const [],
     this.primaryRegion,
-    required this.lastUpdatedAt,
   });
 
   Map<String, dynamic> toMap() {

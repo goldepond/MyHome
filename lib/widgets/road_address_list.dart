@@ -25,7 +25,7 @@ class RoadAddressList extends StatelessWidget {
     final itemPadding = isMobile ? 14.0 : 12.0;
     final fontSize = isMobile ? 17.0 : 15.0;
 
-    List<Widget> listItems = [];
+    final List<Widget> listItems = [];
     for (int i = 0; i < addresses.length; i++) {
       final addr = addresses[i];
       final fullData = fullAddrAPIDatas[i];
@@ -158,7 +158,6 @@ class _AddressListItemState extends State<_AddressListItem> {
                       ),
                       blurRadius: _isPressed ? 16 : 12,
                       offset: const Offset(0, 2),
-                      spreadRadius: 0,
                     ),
                   ]
                 : null,

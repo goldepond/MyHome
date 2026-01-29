@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:math';
 import 'package:http/http.dart' as http;
 import 'package:property/constants/app_constants.dart';
+import 'package:property/utils/api_helper.dart';
 import 'package:property/utils/logger.dart';
 
 class BrokerSearchResult {
@@ -98,15 +99,12 @@ class BrokerService {
       //'domain' : VWorldApiConstants.domainCORSParam,
     });
 
+    // 플랫폼에 따라 프록시 사용 여부 결정
+    final requestUri = ApiHelper.getRequestUri(uri);
 
-    final proxyUri = Uri.parse(
-      '${ApiConstants.proxyRequstAddr}?q=${Uri.encodeComponent(uri.toString())}',
-    );
-    
-    
     http.Response response;
     try {
-      response = await http.get(proxyUri).timeout(
+      response = await http.get(requestUri).timeout(
         const Duration(seconds: ApiConstants.requestTimeoutSeconds),
         onTimeout: () {
           throw Exception('API 타임아웃');
@@ -264,12 +262,11 @@ class BrokerService {
       
       // 먼저 전체 데이터 개수 조회
       final countUrl = '${ApiConstants.seoulGlobalBrokerBaseUrl}/$apiKey/json/brkPgGlobal/1/1/';
-      
-      final proxyUri = Uri.parse(
-        '${ApiConstants.proxyRequstAddr}?q=${Uri.encodeComponent(countUrl)}',
-      );
-      
-      final countResponse = await http.get(proxyUri).timeout(
+
+      // 플랫폼에 따라 프록시 사용 여부 결정
+      final countRequestUri = ApiHelper.getRequestUriFromString(countUrl);
+
+      final countResponse = await http.get(countRequestUri).timeout(
         const Duration(seconds: ApiConstants.requestTimeoutSeconds),
         onTimeout: () => throw Exception('API 타임아웃'),
       );
@@ -289,13 +286,11 @@ class BrokerService {
       // 한 번에 최대 1000건까지만 조회 가능
       final maxIndex = totalCount > 1000 ? 1000 : totalCount;
       final dataUrl = '${ApiConstants.seoulGlobalBrokerBaseUrl}/$apiKey/json/brkPgGlobal/1/$maxIndex/';
-      
-      final dataProxyUri = Uri.parse(
-        '${ApiConstants.proxyRequstAddr}?q=${Uri.encodeComponent(dataUrl)}',
-      );
-      
-      
-      final dataResponse = await http.get(dataProxyUri).timeout(
+
+      // 플랫폼에 따라 프록시 사용 여부 결정
+      final dataRequestUri = ApiHelper.getRequestUriFromString(dataUrl);
+
+      final dataResponse = await http.get(dataRequestUri).timeout(
         const Duration(seconds: ApiConstants.requestTimeoutSeconds),
         onTimeout: () => throw Exception('API 타임아웃'),
       );
@@ -349,13 +344,11 @@ class BrokerService {
       
       // 먼저 전체 데이터 개수 조회
       final countUrl = '${ApiConstants.seoulGlobalBrokerBaseUrl}/$apiKey/json/landBizInfo/1/1/';
-      
-      final proxyUri = Uri.parse(
-        '${ApiConstants.proxyRequstAddr}?q=${Uri.encodeComponent(countUrl)}',
-      );
-      
-      
-      final countResponse = await http.get(proxyUri).timeout(
+
+      // 플랫폼에 따라 프록시 사용 여부 결정
+      final countRequestUri = ApiHelper.getRequestUriFromString(countUrl);
+
+      final countResponse = await http.get(countRequestUri).timeout(
         const Duration(seconds: ApiConstants.requestTimeoutSeconds),
         onTimeout: () => throw Exception('API 타임아웃'),
       );
@@ -377,7 +370,7 @@ class BrokerService {
       
       // 한 번에 최대 1000건까지만 조회 가능
       // 병렬 처리로 성능 향상 (200건씩, 동시 10개 요청)
-      List<Map<String, dynamic>> allBrokerList = [];
+      final List<Map<String, dynamic>> allBrokerList = [];
       const int pageSize = 200; // 200건씩 조회
       const int concurrentRequests = 10; // 동시에 10개 요청 (병렬 처리)
       final maxRequests = (totalCount / pageSize).ceil();
@@ -462,11 +455,11 @@ class BrokerService {
   ) async {
     try {
       final dataUrl = '${ApiConstants.seoulGlobalBrokerBaseUrl}/$apiKey/json/landBizInfo/$startIndex/$endIndex/';
-      final dataProxyUri = Uri.parse(
-        '${ApiConstants.proxyRequstAddr}?q=${Uri.encodeComponent(dataUrl)}',
-      );
-      
-      final dataResponse = await http.get(dataProxyUri).timeout(
+
+      // 플랫폼에 따라 프록시 사용 여부 결정
+      final dataRequestUri = ApiHelper.getRequestUriFromString(dataUrl);
+
+      final dataResponse = await http.get(dataRequestUri).timeout(
         const Duration(seconds: ApiConstants.requestTimeoutSeconds),
         onTimeout: () => throw Exception('API 타임아웃'),
       );

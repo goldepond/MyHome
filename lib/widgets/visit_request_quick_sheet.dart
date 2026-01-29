@@ -11,8 +11,7 @@ class VisitRequestQuickSheet extends StatefulWidget {
   final VoidCallback? onUpdated;
 
   const VisitRequestQuickSheet({
-    super.key,
-    required this.property,
+    required this.property, super.key,
     this.onUpdated,
   });
 
@@ -101,7 +100,7 @@ class _VisitRequestQuickSheetState extends State<VisitRequestQuickSheet> {
                 ),
                 IconButton(
                   onPressed: () => Navigator.pop(context),
-                  icon: Icon(Icons.close, color: AppleColors.secondaryLabel),
+                  icon: const Icon(Icons.close, color: AppleColors.secondaryLabel),
                 ),
               ],
             ),
@@ -137,7 +136,7 @@ class _VisitRequestQuickSheetState extends State<VisitRequestQuickSheet> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(Icons.inbox_outlined, size: 48, color: AppleColors.tertiaryLabel),
+          const Icon(Icons.inbox_outlined, size: 48, color: AppleColors.tertiaryLabel),
           const SizedBox(height: AppleSpacing.md),
           Text(
             '대기 중인 방문 요청이 없습니다',
@@ -180,7 +179,7 @@ class _VisitRequestQuickSheetState extends State<VisitRequestQuickSheet> {
                         color: AppleColors.systemBlue.withValues(alpha: 0.1),
                         shape: BoxShape.circle,
                       ),
-                      child: Icon(Icons.person, color: AppleColors.systemBlue, size: 20),
+                      child: const Icon(Icons.person, color: AppleColors.systemBlue, size: 20),
                     ),
                     const SizedBox(width: AppleSpacing.sm),
                     Column(
@@ -193,7 +192,7 @@ class _VisitRequestQuickSheetState extends State<VisitRequestQuickSheet> {
                               style: AppleTypography.headline.copyWith(fontWeight: FontWeight.w600),
                             ),
                             const SizedBox(width: 4),
-                            Icon(Icons.info_outline, size: 14, color: AppleColors.systemBlue),
+                            const Icon(Icons.info_outline, size: 14, color: AppleColors.systemBlue),
                           ],
                         ),
                         if (request.brokerCompany != null)
@@ -246,7 +245,7 @@ class _VisitRequestQuickSheetState extends State<VisitRequestQuickSheet> {
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(Icons.calendar_today, size: 14, color: AppleColors.secondaryLabel),
+                const Icon(Icons.calendar_today, size: 14, color: AppleColors.secondaryLabel),
                 const SizedBox(width: 4),
                 Text(
                   _formatDateTime(request.requestedDateTime),
@@ -322,7 +321,7 @@ class _VisitRequestQuickSheetState extends State<VisitRequestQuickSheet> {
                     padding: const EdgeInsets.symmetric(vertical: 12),
                   ),
                   child: _isLoading
-                      ? SizedBox(
+                      ? const SizedBox(
                           width: 20,
                           height: 20,
                           child: CircularProgressIndicator(
@@ -476,7 +475,7 @@ class _VisitRequestQuickSheetState extends State<VisitRequestQuickSheet> {
       final billions = (price / 10000).floor();
       final remainder = (price % 10000).floor();
       if (remainder > 0) {
-        return '$billions억 ${remainder}만';
+        return '$billions억 $remainder만';
       }
       return '$billions억';
     }

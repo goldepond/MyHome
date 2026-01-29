@@ -14,7 +14,7 @@ import '../../utils/logger.dart';
 /// 매물 핵심 정보를 입력하여 표준 매물 카드(마스터 카드)를 생성합니다.
 /// 중개사 배포 전, 매도인이 미리보기로 품질을 확인할 수 있습니다.
 class MLSPropertyRegistrationPage extends StatefulWidget {
-  const MLSPropertyRegistrationPage({Key? key}) : super(key: key);
+  const MLSPropertyRegistrationPage({super.key});
 
   @override
   State<MLSPropertyRegistrationPage> createState() => _MLSPropertyRegistrationPageState();
@@ -307,7 +307,7 @@ class _MLSPropertyRegistrationPageState extends State<MLSPropertyRegistrationPag
       child: Column(
         children: [
           DropdownButtonFormField<String>(
-            value: _moveInFlexibility,
+            initialValue: _moveInFlexibility,
             decoration: const InputDecoration(
               labelText: '이사 가능 시기',
               border: OutlineInputBorder(),
@@ -345,7 +345,7 @@ class _MLSPropertyRegistrationPageState extends State<MLSPropertyRegistrationPag
       child: Column(
         children: [
           DropdownButtonFormField<String>(
-            value: _repairStatus,
+            initialValue: _repairStatus,
             decoration: const InputDecoration(
               labelText: '수리 상태',
               border: OutlineInputBorder(),

@@ -15,9 +15,7 @@ class CompleteButtonWidget extends StatelessWidget {
   final VoidCallback onComplete;
 
   const CompleteButtonWidget({
-    super.key,
-    required this.hasAddress,
-    required this.onComplete,
+    required this.hasAddress, required this.onComplete, super.key,
   });
 
   @override

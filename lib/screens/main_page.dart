@@ -233,7 +233,7 @@ class MainPageState extends State<MainPage> {
       child: Row(
         children: [
           // 로고
-          LogoImage(height: 36),
+          const LogoImage(height: 36),
           const Spacer(),
           // 1. 알림 (로그인 시에만)
           if (widget.userId.isNotEmpty)
@@ -315,10 +315,9 @@ class MainPageState extends State<MainPage> {
   /// 통일된 헤더 액션 버튼 (공인중개사 대시보드와 동일한 스타일)
   Widget _buildHeaderActionButton({
     required IconData icon,
-    String? tooltip,
+    required VoidCallback onPressed, String? tooltip,
     bool isPrimary = false,
     int badgeCount = 0,
-    required VoidCallback onPressed,
   }) {
     return Tooltip(
       message: tooltip ?? '',
@@ -338,7 +337,6 @@ class MainPageState extends State<MainPage> {
                   borderRadius: BorderRadius.circular(16),
                   border: Border.all(
                     color: isPrimary ? AppleColors.systemBlue.withValues(alpha: 0.3) : AppleColors.separator,
-                    width: 1,
                   ),
                 ),
                 child: Icon(
@@ -354,7 +352,7 @@ class MainPageState extends State<MainPage> {
                   top: -4,
                   child: Container(
                     padding: const EdgeInsets.all(4),
-                    decoration: BoxDecoration(
+                    decoration: const BoxDecoration(
                       color: AppleColors.systemRed,
                       shape: BoxShape.circle,
                     ),
@@ -552,7 +550,7 @@ class MainPageState extends State<MainPage> {
                 );
               }
             },
-            child: Text(
+            child: const Text(
               '로그아웃',
               style: TextStyle(color: AppleColors.systemRed),
             ),

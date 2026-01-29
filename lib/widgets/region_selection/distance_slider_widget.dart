@@ -15,9 +15,7 @@ class DistanceSliderWidget extends StatefulWidget {
   final ValueChanged<double> onDistanceChanged;
 
   const DistanceSliderWidget({
-    super.key,
-    required this.distanceMeters,
-    required this.onDistanceChanged,
+    required this.distanceMeters, required this.onDistanceChanged, super.key,
   });
 
   @override
@@ -51,7 +49,7 @@ class _DistanceSliderWidgetState extends State<DistanceSliderWidget> {
     double closest = allowedValues[0];
     double minDiff = (value - allowedValues[0]).abs();
     
-    for (var allowedValue in allowedValues) {
+    for (final allowedValue in allowedValues) {
       final diff = (value - allowedValue).abs();
       if (diff < minDiff) {
         minDiff = diff;
@@ -84,7 +82,6 @@ class _DistanceSliderWidgetState extends State<DistanceSliderWidget> {
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
           color: AirbnbColors.borderLight,
-          width: 1,
         ),
       ),
       child: Column(

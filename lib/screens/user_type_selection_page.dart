@@ -147,7 +147,6 @@ class _UserTypeCard extends StatelessWidget {
               color: color.withValues(alpha: 0.1),
               blurRadius: 20,
               offset: const Offset(0, 8),
-              spreadRadius: 0,
             ),
           ],
         ),

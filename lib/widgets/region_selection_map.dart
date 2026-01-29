@@ -178,7 +178,7 @@ class _RegionSelectionMapState extends State<RegionSelectionMap> {
       }
 
       // 위치 서비스 활성화 확인
-      bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      final bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
       
       if (!serviceEnabled) {
         _setDefaultLocation();
@@ -186,7 +186,7 @@ class _RegionSelectionMapState extends State<RegionSelectionMap> {
       }
 
       // 현재 위치 가져오기
-      Position position = await Geolocator.getCurrentPosition(
+      final Position position = await Geolocator.getCurrentPosition(
         locationSettings: const LocationSettings(
           accuracy: LocationAccuracy.high,
           timeLimit: Duration(seconds: 10),
@@ -736,7 +736,6 @@ class _RegionSelectionMapState extends State<RegionSelectionMap> {
         decoration: BoxDecoration(
           border: Border.all(
             color: AirbnbColors.border,
-            width: 1,
           ),
           borderRadius: BorderRadius.circular(8),
         ),
@@ -755,7 +754,6 @@ class _RegionSelectionMapState extends State<RegionSelectionMap> {
         decoration: BoxDecoration(
           border: Border.all(
             color: AirbnbColors.border,
-            width: 1,
           ),
           borderRadius: BorderRadius.circular(8),
         ),
@@ -783,7 +781,6 @@ class _RegionSelectionMapState extends State<RegionSelectionMap> {
       decoration: BoxDecoration(
         border: Border.all(
           color: AirbnbColors.borderLight,
-          width: 1,
         ),
         borderRadius: BorderRadius.circular(12),
         boxShadow: [

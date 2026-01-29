@@ -33,7 +33,6 @@ class AddressDisplayWidget extends StatelessWidget {
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
           color: AirbnbColors.borderLight,
-          width: 1,
         ),
       ),
       child: Column(

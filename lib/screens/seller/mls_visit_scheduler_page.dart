@@ -14,9 +14,8 @@ class MLSVisitSchedulerPage extends StatefulWidget {
   final String propertyId;
 
   const MLSVisitSchedulerPage({
-    Key? key,
-    required this.propertyId,
-  }) : super(key: key);
+    required this.propertyId, super.key,
+  });
 
   @override
   State<MLSVisitSchedulerPage> createState() => _MLSVisitSchedulerPageState();
@@ -129,8 +128,6 @@ class _MLSVisitSchedulerPageState extends State<MLSVisitSchedulerPage> {
         lastDay: DateTime.now().add(const Duration(days: 365)),
         focusedDay: _focusedDay,
         selectedDayPredicate: (day) => isSameDay(_selectedDay, day),
-        calendarFormat: CalendarFormat.month,
-        startingDayOfWeek: StartingDayOfWeek.sunday,
         headerStyle: const HeaderStyle(
           formatButtonVisible: false,
           titleCentered: true,
@@ -479,7 +476,6 @@ class _MLSVisitSchedulerPageState extends State<MLSVisitSchedulerPage> {
           _availableSlots[dateKey]!.add(TimeSlot(
             startTime: '${startTime.hour.toString().padLeft(2, '0')}:${startTime.minute.toString().padLeft(2, '0')}',
             endTime: '${endTime.hour.toString().padLeft(2, '0')}:${endTime.minute.toString().padLeft(2, '0')}',
-            isAvailable: true,
           ));
         });
       });

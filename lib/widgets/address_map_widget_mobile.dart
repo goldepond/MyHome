@@ -252,7 +252,7 @@ class _AddressMapWidgetMobileState extends State<AddressMapWidgetMobile> {
             if (_hasError)
               Container(
                 color: AppleColors.secondarySystemGroupedBackground,
-                child: Center(
+                child: const Center(
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
@@ -261,7 +261,7 @@ class _AddressMapWidgetMobileState extends State<AddressMapWidgetMobile> {
                         color: AppleColors.tertiaryLabel,
                         size: 32,
                       ),
-                      const SizedBox(height: 8),
+                      SizedBox(height: 8),
                       Text(
                         '지도를 불러올 수 없습니다',
                         style: TextStyle(

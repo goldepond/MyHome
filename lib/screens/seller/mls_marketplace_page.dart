@@ -22,7 +22,7 @@ import '../login_page.dart';
 /// - 미니멀한 필터링 및 정렬
 /// - "매물 등록" 버튼 (로그인 필요)
 class MLSMarketplacePage extends StatefulWidget {
-  const MLSMarketplacePage({Key? key}) : super(key: key);
+  const MLSMarketplacePage({super.key});
 
   @override
   State<MLSMarketplacePage> createState() => _MLSMarketplacePageState();
@@ -79,7 +79,7 @@ class _MLSMarketplacePageState extends State<MLSMarketplacePage> {
   /// 빠른 초기 데이터 로딩 (Future 사용)
   Future<void> _loadInitialDataFast() async {
     // Future로 빠르게 초기 데이터 로드
-    final properties = await _mlsService.getAllActivePropertiesFast(limit: 100);
+    final properties = await _mlsService.getAllActivePropertiesFast();
 
     if (!mounted) return;
 
@@ -161,7 +161,7 @@ class _MLSMarketplacePageState extends State<MLSMarketplacePage> {
       backgroundColor: AppleColors.systemGroupedBackground,
       body: SafeArea(
         child: _isLoading
-            ? Center(
+            ? const Center(
                 child: CircularProgressIndicator(
                   valueColor: AlwaysStoppedAnimation<Color>(AppleColors.systemBlue),
                 ),
@@ -285,7 +285,7 @@ class _MLSMarketplacePageState extends State<MLSMarketplacePage> {
                 color: AppleColors.secondarySystemFill,
                 borderRadius: BorderRadius.circular(60),
               ),
-              child: Icon(
+              child: const Icon(
                 Icons.home_work_outlined,
                 size: 64,
                 color: AppleColors.tertiaryLabel,
@@ -422,7 +422,7 @@ class _MLSMarketplacePageState extends State<MLSMarketplacePage> {
               ),
               child: Container(
                 width: double.infinity,
-                decoration: BoxDecoration(
+                decoration: const BoxDecoration(
                   color: AppleColors.tertiarySystemFill,
                 ),
                 child: property.thumbnailUrl != null
@@ -437,7 +437,7 @@ class _MLSMarketplacePageState extends State<MLSMarketplacePage> {
                                   ? loadingProgress.cumulativeBytesLoaded /
                                       loadingProgress.expectedTotalBytes!
                                   : null,
-                              valueColor: AlwaysStoppedAnimation<Color>(
+                              valueColor: const AlwaysStoppedAnimation<Color>(
                                 AppleColors.systemBlue,
                               ),
                             ),
@@ -496,7 +496,7 @@ class _MLSMarketplacePageState extends State<MLSMarketplacePage> {
   }
 
   Widget _buildPlaceholderImage() {
-    return Center(
+    return const Center(
       child: Icon(
         Icons.home_outlined,
         size: 48,
@@ -653,7 +653,6 @@ class _MLSMarketplacePageState extends State<MLSMarketplacePage> {
             borderRadius: BorderRadius.circular(AppleRadius.full),
             border: Border.all(
               color: isActive ? AppleColors.systemBlue : Colors.transparent,
-              width: 1,
             ),
           ),
           child: Row(
@@ -728,7 +727,7 @@ class _MLSMarketplacePageState extends State<MLSMarketplacePage> {
                     ),
                   ),
                   trailing: isSelected
-                      ? Icon(Icons.check_rounded, color: AppleColors.systemBlue)
+                      ? const Icon(Icons.check_rounded, color: AppleColors.systemBlue)
                       : null,
                   onTap: () {
                     onSelect(option['value']!.isEmpty ? null : option['value']);
@@ -753,7 +752,6 @@ class _MLSMarketplacePageState extends State<MLSMarketplacePage> {
       ),
       child: AppleCard(
         padding: EdgeInsets.all(isMobile ? AppleSpacing.md : AppleSpacing.lg),
-        hasShadow: true,
         onTap: () => _navigateToQuickRegistration(context, false),
         child: Row(
           children: [
@@ -772,7 +770,7 @@ class _MLSMarketplacePageState extends State<MLSMarketplacePage> {
                 ),
                 borderRadius: BorderRadius.circular(28),
               ),
-              child: Icon(
+              child: const Icon(
                 Icons.add_home_work_rounded,
                 color: Colors.white,
                 size: 28,
@@ -804,7 +802,7 @@ class _MLSMarketplacePageState extends State<MLSMarketplacePage> {
             ),
 
             // 화살표 아이콘
-            Icon(
+            const Icon(
               Icons.arrow_forward_ios_rounded,
               size: 16,
               color: AppleColors.tertiaryLabel,

@@ -277,7 +277,6 @@ class _BrokerSignupPageState extends State<BrokerSignupPage> {
           SnackBar(
             content: Text(errorMessage ?? '회원가입에 실패했습니다. 다시 시도해주세요.'),
             backgroundColor: AirbnbColors.error,
-            duration: const Duration(seconds: 4),
           ),
         );
       }
@@ -299,7 +298,6 @@ class _BrokerSignupPageState extends State<BrokerSignupPage> {
   @override
   Widget build(BuildContext context) {
     return PopScope(
-      canPop: true,
       onPopInvokedWithResult: (didPop, result) async {
         if (!didPop && FocusScope.of(context).hasFocus) {
           FocusScope.of(context).unfocus();

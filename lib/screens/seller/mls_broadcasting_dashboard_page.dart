@@ -14,9 +14,8 @@ class MLSBroadcastingDashboardPage extends StatefulWidget {
   final String propertyId;
 
   const MLSBroadcastingDashboardPage({
-    Key? key,
-    required this.propertyId,
-  }) : super(key: key);
+    required this.propertyId, super.key,
+  });
 
   @override
   State<MLSBroadcastingDashboardPage> createState() => _MLSBroadcastingDashboardPageState();
@@ -209,8 +208,8 @@ class _MLSBroadcastingDashboardPageState extends State<MLSBroadcastingDashboardP
                     color: AppColors.success.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  child: Row(
-                    children: const [
+                  child: const Row(
+                    children: [
                       Icon(Icons.check_circle, color: AppColors.success),
                       SizedBox(width: 12),
                       Expanded(

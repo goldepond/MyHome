@@ -10,7 +10,7 @@ class QuoteUtils {
     // "억" 처리
     if (cleanStr.contains('억')) {
       final parts = cleanStr.split('억');
-      double? eok = double.tryParse(parts[0].replaceAll(RegExp(r'[^0-9\.]'), ''));
+      final double? eok = double.tryParse(parts[0].replaceAll(RegExp(r'[^0-9\.]'), ''));
       if (eok == null) return null;
       
       int total = (eok * 100000000).toInt();

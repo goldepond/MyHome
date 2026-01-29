@@ -40,7 +40,7 @@ class RegisterService {
   String rsaEncrypt(String plainText, String publicKeyPem) {
     final parser = RSAKeyParser();
     final RSAPublicKey publicKey = parser.parse(publicKeyPem) as RSAPublicKey;
-    final encrypter = Encrypter(RSA(publicKey: publicKey, encoding: RSAEncoding.PKCS1));
+    final encrypter = Encrypter(RSA(publicKey: publicKey));
     final encrypted = encrypter.encrypt(plainText);
     return base64.encode(encrypted.bytes);
   }

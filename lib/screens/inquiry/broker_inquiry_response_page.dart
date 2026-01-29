@@ -64,12 +64,12 @@ class _BrokerInquiryResponsePageState extends State<BrokerInquiryResponsePage> {
       if (!hadAll) {
         final addressService = AddressService();
         bool hasAnyData = false;
-        List<String> errors = [];
+        final List<String> errors = [];
 
         // 1. 주소 상세 정보 조회 (AddressService) - 없는 경우에만
         if (!hadFullAddr) {
           try {
-            final addrResult = await addressService.searchRoadAddress(address, page: 1);
+            final addrResult = await addressService.searchRoadAddress(address);
             if (addrResult.fullData.isNotEmpty) {
               _fullAddrAPIData = addrResult.fullData.first;
               hasAnyData = true;

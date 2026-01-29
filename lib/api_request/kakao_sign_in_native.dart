@@ -47,28 +47,37 @@ class KakaoSignInService {
       }
 
       // 2. 새로 로그인 필요
+      Logger.info('[카카오 네이티브] 새로 로그인 시작...');
       OAuthToken token;
 
       // 카카오톡 설치 여부 확인 (모바일에서만 의미 있음)
-      if (await isKakaoTalkInstalled()) {
+      final isKakaoTalkAvailable = await isKakaoTalkInstalled();
+      Logger.info('[카카오 네이티브] 카카오톡 설치 여부: $isKakaoTalkAvailable');
+
+      if (isKakaoTalkAvailable) {
         try {
           // 카카오톡으로 로그인
+          Logger.info('[카카오 네이티브] 카카오톡 앱 로그인 시도...');
           token = await UserApi.instance.loginWithKakaoTalk();
-          Logger.info('[카카오 네이티브] 카카오톡 로그인 성공');
+          Logger.info('[카카오 네이티브] 카카오톡 로그인 성공 - accessToken 존재: ${token.accessToken.isNotEmpty}');
         } catch (e) {
-          Logger.warning('[카카오 네이티브] 카카오톡 로그인 실패, 카카오 계정으로 시도: $e');
+          Logger.warning('[카카오 네이티브] 카카오톡 로그인 실패: $e');
+          Logger.info('[카카오 네이티브] 카카오 계정(웹)으로 시도...');
           // 카카오톡 로그인 실패 시 카카오 계정으로 로그인 시도
           token = await UserApi.instance.loginWithKakaoAccount();
+          Logger.info('[카카오 네이티브] 카카오 계정 로그인 성공');
         }
       } else {
         // 카카오톡 미설치 시 카카오 계정으로 로그인
+        Logger.info('[카카오 네이티브] 카카오 계정(웹)으로 로그인 시도...');
         token = await UserApi.instance.loginWithKakaoAccount();
         Logger.info('[카카오 네이티브] 카카오 계정 로그인 성공');
       }
 
       // 사용자 정보 요청
+      Logger.info('[카카오 네이티브] 사용자 정보 요청 중...');
       final user = await UserApi.instance.me();
-      Logger.info('[카카오 네이티브] 사용자 정보: ${user.id}');
+      Logger.info('[카카오 네이티브] 사용자 정보 수신: id=${user.id}, email=${user.kakaoAccount?.email}');
 
       return {
         'id': user.id.toString(),
@@ -79,8 +88,10 @@ class KakaoSignInService {
         'accessToken': token.accessToken,
         'refreshToken': token.refreshToken,
       };
-    } catch (e) {
+    } catch (e, stackTrace) {
       Logger.error('[카카오 네이티브] 로그인 오류: $e');
+      Logger.error('[카카오 네이티브] 오류 타입: ${e.runtimeType}');
+      Logger.error('[카카오 네이티브] 스택: $stackTrace');
       return null;
     }
   }

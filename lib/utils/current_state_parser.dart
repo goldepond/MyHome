@@ -173,7 +173,7 @@ CurrentState parseCurrentState(String rawJson) {
   // ownership (최종 소유자 정보는 sumList에서 추출)
   String purpose = '', receipt = '', cause = '', ownerRaw = '';
   final sumList = safeMapList(entry['resRegistrationSumList']);
-  List<String> ownerLines = [];
+  final List<String> ownerLines = [];
   for (final item in sumList) {
     if ((item['resType'] ?? '').contains('소유지분현황')) {
       for (final owner in safeMapList(item['resContentsList'])) {
@@ -244,7 +244,7 @@ CurrentState parseCurrentState(String rawJson) {
 
   // areas.building
   String structure = '';
-  List<FloorInfo> floors = [];
+  final List<FloorInfo> floors = [];
   final bldgSection = (entry['resRegistrationHisList'] as List?)?.firstWhere(
     (e) => e['resType'] == '표제부' && (e['resType1']?.toString() ?? '').contains('건물'),
     orElse: () => null,
@@ -258,7 +258,7 @@ CurrentState parseCurrentState(String rawJson) {
   }
   if (bldgSection != null) {
     for (final block in (bldgSection['resContentsList'] as List?) ?? []) {
-      String blockText = ((block['resDetailList'] as List?) ?? []).map((d) => d['resContents']?.toString() ?? '').join('\n');
+      final String blockText = ((block['resDetailList'] as List?) ?? []).map((d) => d['resContents']?.toString() ?? '').join('\n');
       // 구조
       for (final d in (block['resDetailList'] as List?) ?? []) {
         final text = d['resContents']?.toString() ?? '';
@@ -281,7 +281,7 @@ CurrentState parseCurrentState(String rawJson) {
   final building = BuildingArea(structure, floors);
 
   // liens
-  List<Lien> liens = [];
+  final List<Lien> liens = [];
   final eulGu = (entry['resRegistrationHisList'] as List?)?.firstWhere(
     (e) => e['resType'] == '을구',
     orElse: () => null,

@@ -10,11 +10,8 @@ class ElectronicChecklistScreen extends StatefulWidget {
   final String currentUserId;
 
   const ElectronicChecklistScreen({
-    Key? key,
-    required this.property,
-    required this.userName,
-    required this.currentUserId,
-  }) : super(key: key);
+    required this.property, required this.userName, required this.currentUserId, super.key,
+  });
 
   @override
   State<ElectronicChecklistScreen> createState() => _ElectronicChecklistScreenState();
@@ -94,10 +91,9 @@ class _ElectronicChecklistScreenState extends State<ElectronicChecklistScreen> {
 
   Future<void> _uploadFile(ChecklistItem item) async {
     try {
-      FilePickerResult? result = await FilePicker.platform.pickFiles(
+      final FilePickerResult? result = await FilePicker.platform.pickFiles(
         type: FileType.custom,
         allowedExtensions: ['jpg', 'jpeg', 'png', 'pdf'],
-        allowMultiple: false,
       );
 
       if (result != null) {

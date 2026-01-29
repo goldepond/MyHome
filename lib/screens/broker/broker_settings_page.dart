@@ -9,9 +9,7 @@ class BrokerSettingsPage extends StatefulWidget {
   final String brokerName;
 
   const BrokerSettingsPage({
-    super.key,
-    required this.brokerId,
-    required this.brokerName,
+    required this.brokerId, required this.brokerName, super.key,
   });
 
   @override

@@ -285,13 +285,13 @@ class _RegionSelectionSectionState extends State<RegionSelectionSection> {
       }
       
       // 위치 서비스 활성화 확인
-      bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      final bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
       if (!serviceEnabled) {
         return;
       }
       
       // 현재 GPS 위치 가져오기
-      Position position = await Geolocator.getCurrentPosition(
+      final Position position = await Geolocator.getCurrentPosition(
         locationSettings: const LocationSettings(
           accuracy: LocationAccuracy.high,
           timeLimit: Duration(seconds: 10),
@@ -329,7 +329,6 @@ class _RegionSelectionSectionState extends State<RegionSelectionSection> {
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
           color: AirbnbColors.borderLight,
-          width: 1,
         ),
         boxShadow: [
           BoxShadow(
@@ -351,7 +350,6 @@ class _RegionSelectionSectionState extends State<RegionSelectionSection> {
               border: Border(
                 bottom: BorderSide(
                   color: AirbnbColors.borderLight,
-                  width: 1,
                 ),
               ),
             ),
@@ -408,7 +406,6 @@ class _RegionSelectionSectionState extends State<RegionSelectionSection> {
                     // 지도 (고정 높이, 작은 화면에서도 적절)
                     RegionSelectionMap(
                       height: 300,
-                      fixedRadiusMeters: _fixedRadiusMeters, // 실제 원의 반경 (고정)
                       displayRadiusMeters: _displayRadiusMeters, // 표시할 반경 (슬라이더 값)
                       onLocationChanged: (location) => _updateLocation(location.$1, location.$2),
                     ),

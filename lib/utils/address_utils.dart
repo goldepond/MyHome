@@ -9,7 +9,7 @@ class AddressUtils {
       final sido = entry.key;
       if (address.startsWith(sido)) {
         // 시/도 이후 문자열
-        String remain = address.substring(sido.length).trim();
+        final String remain = address.substring(sido.length).trim();
         // 시군구 목록 중 가장 긴(2단계 포함) sigungu를 먼저 찾음
         final sortedSigungu = List<String>.from(entry.value)
           ..sort((a, b) => b.length.compareTo(a.length));
@@ -21,7 +21,7 @@ class AddressUtils {
           }
         }
         if (foundSigungu != null) {
-          String roadRemain = remain.substring(foundSigungu.length).trim();
+          final String roadRemain = remain.substring(foundSigungu.length).trim();
           // 도로명과 건물번호 분리
           // 예: '덕릉로 138'
           final reg = RegExp(r'^(.*?)(\d+)(?=\s|\(|$)');
@@ -105,7 +105,7 @@ class AddressUtils {
       '광주광역시', '대전광역시', '울산광역시', '세종특별자치시'
     ];
     
-    for (String city in specialCities) {
+    for (final String city in specialCities) {
       if (address.contains(city)) {
         return city;
       }
@@ -117,7 +117,7 @@ class AddressUtils {
       '전라남도', '전라북도', '제주특별자치도', '충청남도', '충청북도'
     ];
     
-    for (String province in provinces) {
+    for (final String province in provinces) {
       if (address.contains(province)) {
         return province;
       }
@@ -157,7 +157,7 @@ class AddressUtils {
       '제천시', '청주시', '충주시',
     ];
     
-    for (String city in cityPatterns) {
+    for (final String city in cityPatterns) {
       if (address.contains(city)) {
         return city;
       }

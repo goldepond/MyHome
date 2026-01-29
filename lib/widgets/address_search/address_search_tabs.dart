@@ -167,7 +167,6 @@ class _AddressSearchTabsState extends State<AddressSearchTabs>
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
           color: AirbnbColors.borderLight,
-          width: 1,
         ),
         boxShadow: [
           BoxShadow(
@@ -187,7 +186,6 @@ class _AddressSearchTabsState extends State<AddressSearchTabs>
               border: Border(
                 bottom: BorderSide(
                   color: AirbnbColors.borderLight,
-                  width: 1,
                 ),
               ),
             ),
@@ -237,7 +235,7 @@ class _AddressSearchTabsState extends State<AddressSearchTabs>
               // maxHeight 제한을 완전히 제거하여 가변 높이를 허용
               // 측정된 높이를 그대로 사용하여 콘텐츠에 맞게 자동 확장
               // 최소 높이만 보장 (너무 작은 값 방지)
-              final minHeight = 500.0;
+              const minHeight = 500.0;
               
               // 측정된 높이를 그대로 사용 (가변 높이 허용, 스크롤 없이 자동 확장)
               // 최소값만 보장하여 너무 작은 값 방지

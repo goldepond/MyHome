@@ -13,12 +13,10 @@ class CategoryPropertyListPage extends StatefulWidget {
   final String? selectedRegion;
 
   const CategoryPropertyListPage({
-    Key? key,
-    required this.categoryTitle,
-    required this.buildingTypes,
+    required this.categoryTitle, required this.buildingTypes, super.key,
     this.userName,
     this.selectedRegion,
-  }) : super(key: key);
+  });
 
   @override
   State<CategoryPropertyListPage> createState() => _CategoryPropertyListPageState();

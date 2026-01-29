@@ -6,8 +6,7 @@ class PropertyInfoCard extends StatelessWidget {
   final QuoteRequest quote;
 
   const PropertyInfoCard({
-    super.key,
-    required this.quote,
+    required this.quote, super.key,
   });
 
   @override

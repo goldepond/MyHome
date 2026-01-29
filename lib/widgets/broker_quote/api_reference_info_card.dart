@@ -9,8 +9,7 @@ class ApiReferenceInfoCard extends StatelessWidget {
   final Map<String, dynamic>? aptInfo;
 
   const ApiReferenceInfoCard({
-    super.key,
-    required this.isLoading,
+    required this.isLoading, super.key,
     this.apiError,
     this.fullAddrAPIData,
     this.vworldCoordinates,
@@ -36,11 +35,11 @@ class ApiReferenceInfoCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
+          const Row(
             children: [
               Icon(Icons.info_outline, color: AirbnbColors.blueDark, size: 24),
-              const SizedBox(width: 12),
-              const Text(
+              SizedBox(width: 12),
+              Text(
                 '매물 정보 참조',
                 style: TextStyle(
                   fontSize: 18,
@@ -77,12 +76,12 @@ class ApiReferenceInfoCard extends StatelessWidget {
               ),
               child: Row(
                 children: [
-                  Icon(Icons.error_outline, color: AirbnbColors.orangeDark, size: 20),
+                  const Icon(Icons.error_outline, color: AirbnbColors.orangeDark, size: 20),
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
                       apiError!,
-                      style: TextStyle(
+                      style: const TextStyle(
                         fontSize: 13,
                         color: AirbnbColors.orangeDark,
                       ),
@@ -259,7 +258,7 @@ class ApiReferenceInfoCard extends StatelessWidget {
               const SizedBox(width: 8),
               Text(
                 title,
-                style: TextStyle(
+                style: const TextStyle(
                   fontSize: 15,
                   fontWeight: FontWeight.bold,
                   color: AirbnbColors.blueDark,

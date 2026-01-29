@@ -8,9 +8,7 @@ class AdminBrokerManagement extends StatefulWidget {
   final String userName;
 
   const AdminBrokerManagement({
-    super.key,
-    required this.userId,
-    required this.userName,
+    required this.userId, required this.userName, super.key,
   });
 
   @override

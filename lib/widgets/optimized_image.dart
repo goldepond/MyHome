@@ -17,8 +17,7 @@ class OptimizedNetworkImage extends StatelessWidget {
   final Widget? errorWidget;
 
   const OptimizedNetworkImage({
-    super.key,
-    required this.imageUrl,
+    required this.imageUrl, super.key,
     this.width,
     this.height,
     this.fit = BoxFit.cover,
@@ -93,8 +92,7 @@ class OptimizedImageGallery extends StatelessWidget {
   final BorderRadius? borderRadius;
 
   const OptimizedImageGallery({
-    super.key,
-    required this.imageUrls,
+    required this.imageUrls, super.key,
     this.height = 300,
     this.borderRadius,
   });
@@ -125,7 +123,6 @@ class OptimizedImageGallery extends StatelessWidget {
         itemBuilder: (context, index) {
           return OptimizedNetworkImage(
             imageUrl: imageUrls[index],
-            fit: BoxFit.cover,
             height: height,
             borderRadius: borderRadius ?? BorderRadius.circular(12),
           );

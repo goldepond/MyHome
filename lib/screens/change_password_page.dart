@@ -109,7 +109,6 @@ class _ChangePasswordPageState extends State<ChangePasswordPage> {
   @override
   Widget build(BuildContext context) {
     return PopScope(
-      canPop: true,
       onPopInvokedWithResult: (didPop, result) async {
         if (!didPop && FocusScope.of(context).hasFocus) {
           FocusScope.of(context).unfocus();

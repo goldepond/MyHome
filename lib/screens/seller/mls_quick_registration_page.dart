@@ -28,9 +28,9 @@ class MLSQuickRegistrationPage extends StatefulWidget {
   final VoidCallback? onRegistrationComplete;
 
   const MLSQuickRegistrationPage({
-    Key? key,
+    super.key,
     this.onRegistrationComplete,
-  }) : super(key: key);
+  });
 
   @override
   State<MLSQuickRegistrationPage> createState() => _MLSQuickRegistrationPageState();
@@ -56,7 +56,7 @@ class _MLSQuickRegistrationPageState extends State<MLSQuickRegistrationPage>
   final _priceController = TextEditingController();
   final _depositController = TextEditingController(); // 월세 보증금
   final _priceFocusNode = FocusNode();
-  List<XFile> _selectedImages = []; // 선택된 이미지 파일들 (최대 5장)
+  final List<XFile> _selectedImages = []; // 선택된 이미지 파일들 (최대 5장)
   static const int _maxImages = 5;
   bool _isSubmitting = false;
 
@@ -95,7 +95,7 @@ class _MLSQuickRegistrationPageState extends State<MLSQuickRegistrationPage>
 
 
   // 방문 가능 시간 (요일별)
-  Map<String, List<TimeSlot>> _availableSlots = {};
+  final Map<String, List<TimeSlot>> _availableSlots = {};
 
   // 주소 검색
   Timer? _debounceTimer;
@@ -503,7 +503,6 @@ class _MLSQuickRegistrationPageState extends State<MLSQuickRegistrationPage>
             borderRadius: BorderRadius.circular(AppleRadius.md),
             border: Border.all(
               color: AppleColors.systemBlue.withValues(alpha: 0.3),
-              width: 1,
             ),
           ),
           child: Row(
@@ -590,7 +589,7 @@ class _MLSQuickRegistrationPageState extends State<MLSQuickRegistrationPage>
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(
+              const Icon(
                 Icons.map_outlined,
                 color: AppleColors.tertiaryLabel,
                 size: 32,
@@ -896,7 +895,7 @@ class _MLSQuickRegistrationPageState extends State<MLSQuickRegistrationPage>
               ),
               child: Row(
                 children: [
-                  Icon(
+                  const Icon(
                     Icons.info_outline,
                     size: 18,
                     color: AppleColors.systemBlue,
@@ -949,7 +948,6 @@ class _MLSQuickRegistrationPageState extends State<MLSQuickRegistrationPage>
           borderRadius: BorderRadius.circular(AppleRadius.sm),
           border: Border.all(
             color: isSelected ? AppleColors.systemBlue : AppleColors.separator,
-            width: 1,
           ),
         ),
         child: Text(
@@ -983,7 +981,6 @@ class _MLSQuickRegistrationPageState extends State<MLSQuickRegistrationPage>
           borderRadius: BorderRadius.circular(AppleRadius.sm),
           border: Border.all(
             color: isSelected ? AppleColors.systemBlue : AppleColors.separator,
-            width: 1,
           ),
         ),
         child: Text(
@@ -1005,11 +1002,11 @@ class _MLSQuickRegistrationPageState extends State<MLSQuickRegistrationPage>
       final uk = number ~/ 10000;
       final remainder = number % 10000;
       if (remainder > 0) {
-        return '$uk억 ${remainder}만원';
+        return '$uk억 $remainder만원';
       }
       return '$uk억원';
     }
-    return '${number}만원';
+    return '$number만원';
   }
 
   void _validateAndGoToPhoto() {
@@ -1070,7 +1067,6 @@ class _MLSQuickRegistrationPageState extends State<MLSQuickRegistrationPage>
               crossAxisCount: 3,
               crossAxisSpacing: AppleSpacing.sm,
               mainAxisSpacing: AppleSpacing.sm,
-              childAspectRatio: 1,
             ),
             itemCount: _selectedImages.length < _maxImages
                 ? _selectedImages.length + 1
@@ -1098,13 +1094,12 @@ class _MLSQuickRegistrationPageState extends State<MLSQuickRegistrationPage>
           borderRadius: BorderRadius.circular(AppleRadius.md),
           border: Border.all(
             color: AppleColors.separator,
-            width: 1,
           ),
         ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
+            const Icon(
               Icons.add_photo_alternate_outlined,
               size: 32,
               color: AppleColors.systemBlue,
@@ -1410,7 +1405,7 @@ class _MLSQuickRegistrationPageState extends State<MLSQuickRegistrationPage>
       {'start': '19:00', 'end': '21:00', 'label': '야간 (19-21시)'},
     ];
 
-    Set<String> selectedTimes = {};
+    final Set<String> selectedTimes = {};
     for (final slot in existingSlots) {
       selectedTimes.add('${slot.startTime}-${slot.endTime}');
     }
@@ -1444,7 +1439,7 @@ class _MLSQuickRegistrationPageState extends State<MLSQuickRegistrationPage>
                     children: [
                       // 헤더
                       Text(
-                        '매주 ${dayName}요일 방문 가능 시간',
+                        '매주 $dayName요일 방문 가능 시간',
                         style: AppleTypography.title3.copyWith(fontWeight: FontWeight.w600),
                       ),
                       const SizedBox(height: AppleSpacing.lg),
@@ -1791,7 +1786,7 @@ class _MLSQuickRegistrationPageState extends State<MLSQuickRegistrationPage>
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     if (isSelected) ...[
-                      Icon(Icons.check, size: 14, color: AppleColors.systemGreen),
+                      const Icon(Icons.check, size: 14, color: AppleColors.systemGreen),
                       const SizedBox(width: 4),
                     ],
                     Text(
@@ -1836,15 +1831,15 @@ class _MLSQuickRegistrationPageState extends State<MLSQuickRegistrationPage>
             fillColor: AppleColors.systemBackground,
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(AppleRadius.sm),
-              borderSide: BorderSide(color: AppleColors.separator),
+              borderSide: const BorderSide(color: AppleColors.separator),
             ),
             enabledBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(AppleRadius.sm),
-              borderSide: BorderSide(color: AppleColors.separator),
+              borderSide: const BorderSide(color: AppleColors.separator),
             ),
             focusedBorder: OutlineInputBorder(
               borderRadius: BorderRadius.circular(AppleRadius.sm),
-              borderSide: BorderSide(color: AppleColors.systemBlue, width: 1.5),
+              borderSide: const BorderSide(color: AppleColors.systemBlue, width: 1.5),
             ),
             contentPadding: const EdgeInsets.all(AppleSpacing.md),
             counterStyle: AppleTypography.caption2.copyWith(
@@ -1863,7 +1858,7 @@ class _MLSQuickRegistrationPageState extends State<MLSQuickRegistrationPage>
         Container(
           width: 24,
           height: 24,
-          decoration: BoxDecoration(
+          decoration: const BoxDecoration(
             color: AppleColors.systemBlue,
             shape: BoxShape.circle,
           ),
@@ -1901,12 +1896,11 @@ class _MLSQuickRegistrationPageState extends State<MLSQuickRegistrationPage>
         borderRadius: BorderRadius.circular(AppleRadius.md),
         border: Border.all(
           color: AppleColors.systemGreen.withValues(alpha: 0.3),
-          width: 1,
         ),
       ),
       child: Row(
         children: [
-          Icon(
+          const Icon(
             Icons.check_circle,
             color: AppleColors.systemGreen,
             size: 20,
@@ -2013,7 +2007,7 @@ class _MLSQuickRegistrationPageState extends State<MLSQuickRegistrationPage>
               ),
               child: Row(
                 children: [
-                  Icon(
+                  const Icon(
                     Icons.info_outline,
                     color: AppleColors.secondaryLabel,
                     size: 18,
@@ -2286,7 +2280,7 @@ class _MLSQuickRegistrationPageState extends State<MLSQuickRegistrationPage>
   Future<void> _submitQuickRegistration() async {
     if (_addressController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
+        const SnackBar(
           content: Text('주소를 입력해주세요'),
           backgroundColor: AppleColors.systemOrange,
         ),
@@ -2297,7 +2291,7 @@ class _MLSQuickRegistrationPageState extends State<MLSQuickRegistrationPage>
     final price = double.tryParse(_priceController.text);
     if (price == null || price <= 0) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
+        const SnackBar(
           content: Text('올바른 가격을 입력해주세요'),
           backgroundColor: AppleColors.systemOrange,
         ),
@@ -2307,7 +2301,7 @@ class _MLSQuickRegistrationPageState extends State<MLSQuickRegistrationPage>
 
     if (_selectedImages.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
+        const SnackBar(
           content: Text('사진을 1장 이상 선택해주세요'),
           backgroundColor: AppleColors.systemOrange,
         ),
@@ -2324,7 +2318,7 @@ class _MLSQuickRegistrationPageState extends State<MLSQuickRegistrationPage>
       }
 
       // 1. 다중 이미지 업로드
-      List<String> uploadedImageUrls = [];
+      final List<String> uploadedImageUrls = [];
       final timestamp = DateTime.now().millisecondsSinceEpoch;
 
       for (int i = 0; i < _selectedImages.length; i++) {
@@ -2395,7 +2389,6 @@ class _MLSQuickRegistrationPageState extends State<MLSQuickRegistrationPage>
         transactionType: _transactionType,
         desiredPrice: price,
         deposit: _transactionType == '월세' ? double.tryParse(_depositController.text) : null,
-        negotiable: true,
         imageUrls: uploadedImageUrls,
         thumbnailUrl: thumbnailUrl,
         region: region,

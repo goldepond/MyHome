@@ -6,9 +6,7 @@ class RetryView extends StatelessWidget {
   final VoidCallback onRetry;
 
   const RetryView({
-    super.key,
-    required this.message,
-    required this.onRetry,
+    required this.message, required this.onRetry, super.key,
   });
 
   @override

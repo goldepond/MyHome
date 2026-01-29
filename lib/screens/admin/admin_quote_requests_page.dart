@@ -16,9 +16,7 @@ class AdminQuoteRequestsPage extends StatefulWidget {
   final String userName;
 
   const AdminQuoteRequestsPage({
-    super.key,
-    required this.userId,
-    required this.userName,
+    required this.userId, required this.userName, super.key,
   });
 
   @override
@@ -951,7 +949,7 @@ class _AdminQuoteRequestsPageState extends State<AdminQuoteRequestsPage> {
   /// 이메일 보내기 (mailto 링크)
   Future<void> _sendInquiryEmail(QuoteRequest request) async {
     // 고유 링크 ID 생성 (이미 있으면 재사용)
-    String linkId = request.inquiryLinkId ?? _generateLinkId();
+    final String linkId = request.inquiryLinkId ?? _generateLinkId();
     
     // 링크 ID가 없으면 Firestore에 저장
     if (request.inquiryLinkId == null || request.inquiryLinkId!.isEmpty) {
@@ -1036,7 +1034,7 @@ $inquiryUrl
   Future<void> _copyInquiryLink(QuoteRequest request) async {
     try {
       // 링크 ID 생성 또는 재사용
-      String linkId = request.inquiryLinkId ?? _generateLinkId();
+      final String linkId = request.inquiryLinkId ?? _generateLinkId();
       if (request.inquiryLinkId == null || request.inquiryLinkId!.isEmpty) {
         await _firebaseService.updateQuoteRequestLinkId(request.id, linkId);
       }

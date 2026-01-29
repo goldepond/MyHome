@@ -178,7 +178,6 @@ class _QuoteComparisonPageState extends State<QuoteComparisonPage> {
               '곧 중개사에게서 연락이 올 거예요.',
             ),
             backgroundColor: AirbnbColors.success,
-            duration: const Duration(seconds: 4),
           ),
         );
       } else {
@@ -217,7 +216,7 @@ class _QuoteComparisonPageState extends State<QuoteComparisonPage> {
     // "억" 처리
     if (cleanStr.contains('억')) {
       final parts = cleanStr.split('억');
-      double? eok = double.tryParse(parts[0].replaceAll(RegExp(r'[^0-9\.]'), ''));
+      final double? eok = double.tryParse(parts[0].replaceAll(RegExp(r'[^0-9\.]'), ''));
       if (eok == null) return null;
       
       int total = (eok * 100000000).toInt();
@@ -607,7 +606,6 @@ class _QuoteComparisonPageState extends State<QuoteComparisonPage> {
                             borderRadius: BorderRadius.circular(12),
                             border: Border.all(
                               color: AirbnbColors.success.withValues(alpha: 0.3),
-                              width: 1,
                             ),
                           ),
                           child: Column(
@@ -1057,7 +1055,6 @@ class _QuoteComparisonPageState extends State<QuoteComparisonPage> {
                                 return Wrap(
                                   spacing: cardSpacing,
                                   runSpacing: cardSpacing,
-                                  alignment: WrapAlignment.start,
                                   children: quotePrices.map((item) {
                                     final quote = item['quote'] as QuoteRequest;
                                     final isAlreadySelected = quote.isSelectedByUser == true;

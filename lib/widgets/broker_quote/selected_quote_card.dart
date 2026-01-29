@@ -10,11 +10,7 @@ class SelectedQuoteCard extends StatelessWidget {
   final VoidCallback onRegisterPressed;
 
   const SelectedQuoteCard({
-    super.key,
-    required this.quote,
-    required this.isSubmitting,
-    required this.isRegistered,
-    required this.onRegisterPressed,
+    required this.quote, required this.isSubmitting, required this.isRegistered, required this.onRegisterPressed, super.key,
   });
 
   @override

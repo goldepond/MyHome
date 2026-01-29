@@ -135,14 +135,12 @@ class AirbnbColors {
     color: textPrimary.withValues(alpha: 0.06),
     blurRadius: 20,
     offset: const Offset(0, 2),
-    spreadRadius: 0,
   );
   
   static BoxShadow get cardShadowHover => BoxShadow(
     color: textPrimary.withValues(alpha: 0.12),
     blurRadius: 24,
     offset: const Offset(0, 4),
-    spreadRadius: 0,
   );
   
   // 더 부드러운 그림자 (히어로 섹션 등 큰 카드용)
@@ -150,7 +148,6 @@ class AirbnbColors {
     color: textPrimary.withValues(alpha: 0.08),
     blurRadius: 32,
     offset: const Offset(0, 4),
-    spreadRadius: 0,
   );
   
   // 미세한 그림자 (작은 요소용)
@@ -158,7 +155,6 @@ class AirbnbColors {
     color: textPrimary.withValues(alpha: 0.04),
     blurRadius: 8,
     offset: const Offset(0, 1),
-    spreadRadius: 0,
   );
   
   // ========== 헬퍼 메서드 ==========
@@ -260,16 +256,16 @@ String _getEnv(String key) {
   if (kIsWeb) {
     // 웹 빌드 시 --dart-define으로 주입된 환경 변수 사용
     const webApiKeys = {
-      'JUSO_API_KEY': String.fromEnvironment('JUSO_API_KEY', defaultValue: ''),
-      'VWORLD_API_KEY': String.fromEnvironment('VWORLD_API_KEY', defaultValue: ''),
-      'VWORLD_GEOCODER_API_KEY': String.fromEnvironment('VWORLD_GEOCODER_API_KEY', defaultValue: ''),
-      'DATA_GO_KR_SERVICE_KEY': String.fromEnvironment('DATA_GO_KR_SERVICE_KEY', defaultValue: ''),
-      'NAVER_MAP_CLIENT_ID': String.fromEnvironment('NAVER_MAP_CLIENT_ID', defaultValue: ''),
-      'CODEF_CLIENT_ID': String.fromEnvironment('CODEF_CLIENT_ID', defaultValue: ''),
-      'CODEF_CLIENT_SECRET': String.fromEnvironment('CODEF_CLIENT_SECRET', defaultValue: ''),
-      'CODEF_PUBLIC_KEY': String.fromEnvironment('CODEF_PUBLIC_KEY', defaultValue: ''),
-      'REGISTER_API_KEY': String.fromEnvironment('REGISTER_API_KEY', defaultValue: ''),
-      'SEOUL_OPEN_API_KEY': String.fromEnvironment('SEOUL_OPEN_API_KEY', defaultValue: ''),
+      'JUSO_API_KEY': String.fromEnvironment('JUSO_API_KEY'),
+      'VWORLD_API_KEY': String.fromEnvironment('VWORLD_API_KEY'),
+      'VWORLD_GEOCODER_API_KEY': String.fromEnvironment('VWORLD_GEOCODER_API_KEY'),
+      'DATA_GO_KR_SERVICE_KEY': String.fromEnvironment('DATA_GO_KR_SERVICE_KEY'),
+      'NAVER_MAP_CLIENT_ID': String.fromEnvironment('NAVER_MAP_CLIENT_ID'),
+      'CODEF_CLIENT_ID': String.fromEnvironment('CODEF_CLIENT_ID'),
+      'CODEF_CLIENT_SECRET': String.fromEnvironment('CODEF_CLIENT_SECRET'),
+      'CODEF_PUBLIC_KEY': String.fromEnvironment('CODEF_PUBLIC_KEY'),
+      'REGISTER_API_KEY': String.fromEnvironment('REGISTER_API_KEY'),
+      'SEOUL_OPEN_API_KEY': String.fromEnvironment('SEOUL_OPEN_API_KEY'),
     };
     
     final value = webApiKeys[key] ?? '';

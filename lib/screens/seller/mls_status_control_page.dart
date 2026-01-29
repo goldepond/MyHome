@@ -12,9 +12,8 @@ class MLSStatusControlPage extends StatefulWidget {
   final String propertyId;
 
   const MLSStatusControlPage({
-    Key? key,
-    required this.propertyId,
-  }) : super(key: key);
+    required this.propertyId, super.key,
+  });
 
   @override
   State<MLSStatusControlPage> createState() => _MLSStatusControlPageState();
@@ -454,8 +453,8 @@ class _MLSStatusControlPageState extends State<MLSStatusControlPage> {
                   color: AppColors.warning.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(8),
                 ),
-                child: Row(
-                  children: const [
+                child: const Row(
+                  children: [
                     Icon(Icons.warning, color: AppColors.warning, size: 20),
                     SizedBox(width: 12),
                     Expanded(

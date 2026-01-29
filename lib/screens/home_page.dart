@@ -23,7 +23,7 @@ import 'package:property/widgets/address_search/address_search_tabs.dart';
 class HomePage extends StatefulWidget {
   final String userId;
   final String userName;
-  const HomePage({super.key, required this.userId, required this.userName});
+  const HomePage({required this.userId, required this.userName, super.key});
 
   @override
   State<HomePage> createState() => _HomePageState();
@@ -151,7 +151,6 @@ class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin 
           radiusMeters: selectedRadiusMeters ?? 1000.0, // 선택된 반경 전달 (기본값 1km)
           userName: widget.userName,
           userId: widget.userId,
-          propertyArea: null,
           // transactionType은 상담요청 단계에서 선택
         ),
       ),
@@ -355,11 +354,8 @@ class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin 
         address: selectedFullAddress,
         transactionType: '매매', // 기본값 (나중에 사용자가 선택한 값으로 업데이트 가능)
         price: 0, // 실제 입력값
-        description: '',
         registerData: rawJson,
         registerSummary: json.encode(summaryMap),
-        mainContractor: '', // 등기부등본 데이터는 수정하지 않음
-        contractor: '', // 등기부등본 데이터는 수정하지 않음
         registeredBy: widget.userName, // 등록자 ID
         registeredByName: widget.userName, // 등록자 이름
         registeredByInfo: userInfo, // 등록자 상세 정보
@@ -424,10 +420,7 @@ class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin 
         totalLienAmount: registerLiens['totalAmount']?.toString(),
         buildingNumber: registerBuilding['buildingNumber']?.toString(),
         exclusiveArea: registerBuilding['exclusiveArea']?.toString(),
-        commonArea: null,
-        parkingArea: null,
         buildingYear: '1991',
-        buildingPermit: null,
         landNumber: registerLand['landNumber'],
         landRatio: registerLand['landRatio'],
         landUse: registerLand['purpose'],
@@ -694,7 +687,6 @@ class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin 
     final isLoggedIn = widget.userName.isNotEmpty;
     
     return PopScope(
-      canPop: true,
       onPopInvokedWithResult: (didPop, result) async {
         if (!didPop && FocusScope.of(context).hasFocus) {
           FocusScope.of(context).unfocus();
@@ -823,7 +815,6 @@ class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin 
   // 콘텐츠 섹션 빌드 (메서드 분리)
   Widget _buildContentSection(bool isLoggedIn) {
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.center,
       mainAxisSize: MainAxisSize.min,
       children: [
               if (selectedRoadAddress.isNotEmpty && !selectedRoadAddress.startsWith('API 오류') && !selectedRoadAddress.startsWith('검색 결과 없음')) ...[
@@ -846,12 +837,10 @@ class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin 
                           color: AirbnbColors.textPrimary.withValues(alpha: 0.06),
                           blurRadius: 8,
                           offset: const Offset(0, 2),
-                          spreadRadius: 0,
                         ),
                       ],
                     ),
                     child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
                         // 체크 아이콘과 레이블
                         Row(
@@ -966,7 +955,7 @@ class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin 
                     decoration: BoxDecoration(
                       color: AirbnbColors.warning.withValues(alpha: 0.05),
                       borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: AirbnbColors.warning.withValues(alpha: 0.2), width: 1),
+                      border: Border.all(color: AirbnbColors.warning.withValues(alpha: 0.2)),
                       boxShadow: [
                         BoxShadow(
                           color: AirbnbColors.warning.withValues(alpha:0.1),
@@ -1079,7 +1068,7 @@ class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin 
       decoration: BoxDecoration(
         color: AirbnbColors.surface,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AirbnbColors.borderLight, width: 1),
+        border: Border.all(color: AirbnbColors.borderLight),
       ),
       child: Row(
         children: [
@@ -1274,7 +1263,7 @@ class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin 
       decoration: BoxDecoration(
         color: AirbnbColors.background,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AirbnbColors.borderLight, width: 1),
+        border: Border.all(color: AirbnbColors.borderLight),
         boxShadow: [
           BoxShadow(
             color: AirbnbColors.textPrimary.withValues(alpha: 0.02),
@@ -1844,7 +1833,6 @@ class DetailAddressInput extends StatelessWidget {
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
           color: AirbnbColors.borderLight,  // primary.withValues(alpha: 0.3) → borderLight (더 자연스럽게)
-          width: 1,
         ),
         // 미세한 그림자 추가 (깊이감)
         boxShadow: [
@@ -1852,7 +1840,6 @@ class DetailAddressInput extends StatelessWidget {
             color: AirbnbColors.textPrimary.withValues(alpha: 0.04),
             blurRadius: 6,
             offset: const Offset(0, 2),
-            spreadRadius: 0,
           ),
         ],
       ),
@@ -2027,7 +2014,7 @@ class VWorldDataWidget extends StatelessWidget {
       decoration: BoxDecoration(
         color: AirbnbColors.surface,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AirbnbColors.borderLight, width: 1),
+        border: Border.all(color: AirbnbColors.borderLight),
       ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,

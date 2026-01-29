@@ -13,8 +13,7 @@ class BrokerProfileSheet extends StatefulWidget {
   final String? brokerPhone;
 
   const BrokerProfileSheet({
-    super.key,
-    required this.brokerId,
+    required this.brokerId, super.key,
     this.brokerName,
     this.brokerCompany,
     this.brokerPhone,
@@ -111,7 +110,7 @@ class _BrokerProfileSheetState extends State<BrokerProfileSheet> {
                 const Spacer(),
                 IconButton(
                   onPressed: () => Navigator.pop(context),
-                  icon: Icon(Icons.close, color: AppleColors.secondaryLabel),
+                  icon: const Icon(Icons.close, color: AppleColors.secondaryLabel),
                 ),
               ],
             ),
@@ -182,7 +181,7 @@ class _BrokerProfileSheetState extends State<BrokerProfileSheet> {
                       color: AppleColors.systemBlue.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(28),
                     ),
-                    child: Icon(
+                    child: const Icon(
                       Icons.store_rounded,
                       color: AppleColors.systemBlue,
                       size: 28,
@@ -216,7 +215,7 @@ class _BrokerProfileSheetState extends State<BrokerProfileSheet> {
                                 child: Row(
                                   mainAxisSize: MainAxisSize.min,
                                   children: [
-                                    Icon(Icons.verified, size: 14, color: AppleColors.systemGreen),
+                                    const Icon(Icons.verified, size: 14, color: AppleColors.systemGreen),
                                     const SizedBox(width: 4),
                                     Text(
                                       '인증',
@@ -273,7 +272,7 @@ class _BrokerProfileSheetState extends State<BrokerProfileSheet> {
           Container(
             padding: const EdgeInsets.all(AppleSpacing.md),
             decoration: BoxDecoration(
-              gradient: LinearGradient(
+              gradient: const LinearGradient(
                 colors: [AppleColors.systemBlue, AppleColors.systemIndigo],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,

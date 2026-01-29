@@ -431,7 +431,6 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
               '곧 중개사에게서 연락이 올 거예요.',
             ),
             backgroundColor: AirbnbColors.success,
-            duration: const Duration(seconds: 4),
           ),
         );
       } else {
@@ -475,29 +474,6 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
       etcAddress: '',
       employeeCount: '-',
       registrationDate: '',
-      latitude: null,
-      longitude: null,
-      distance: null,
-      systemRegNo: null,
-      ownerName: null,
-      businessName: null,
-      phoneNumber: null,
-      businessStatus: null,
-      seoulAddress: null,
-      district: null,
-      legalDong: null,
-      sggCode: null,
-      stdgCode: null,
-      lotnoSe: null,
-      mno: null,
-      sno: null,
-      roadCode: null,
-      bldg: null,
-      bmno: null,
-      bsno: null,
-      penaltyStartDate: null,
-      penaltyEndDate: null,
-      inqCount: null,
     );
 
     Navigator.push(
@@ -1174,7 +1150,6 @@ class _HouseManagementPageState extends State<HouseManagementPage> {
                 constraints: const BoxConstraints(maxWidth: 1200),
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
                     // 매우 큰 헤드라인 (Stripe/Vercel 스타일)
                     Text(

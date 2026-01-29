@@ -79,9 +79,7 @@ class _ReviewDialogState extends State<ReviewDialog> {
           RatingBar.builder(
             initialRating: 5,
             minRating: 1,
-            direction: Axis.horizontal,
             allowHalfRating: true,
-            itemCount: 5,
             itemPadding: const EdgeInsets.symmetric(horizontal: 2.0),
             itemBuilder: (context, _) => const Icon(
               Icons.star,

@@ -257,7 +257,6 @@ class AppleShadows {
       color: AppleColors.label.withValues(alpha: 0.04),
       blurRadius: 8,
       offset: const Offset(0, 2),
-      spreadRadius: 0,
     ),
   ];
 
@@ -267,7 +266,6 @@ class AppleShadows {
       color: AppleColors.label.withValues(alpha: 0.08),
       blurRadius: 16,
       offset: const Offset(0, 4),
-      spreadRadius: 0,
     ),
   ];
 
@@ -277,7 +275,6 @@ class AppleShadows {
       color: AppleColors.label.withValues(alpha: 0.12),
       blurRadius: 24,
       offset: const Offset(0, 8),
-      spreadRadius: 0,
     ),
   ];
 }
@@ -293,15 +290,14 @@ class AppleButton extends StatelessWidget {
   final bool isSmall;
 
   const AppleButton({
-    Key? key,
-    required this.text,
+    required this.text, super.key,
     this.onPressed,
     this.backgroundColor,
     this.textColor,
     this.icon,
     this.isSecondary = false,
     this.isSmall = false,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -329,7 +325,7 @@ class AppleButton extends StatelessWidget {
             children: [
               if (icon != null) ...[
                 Icon(icon, size: isSmall ? 16 : 20, color: fgColor),
-                SizedBox(width: AppleSpacing.xs),
+                const SizedBox(width: AppleSpacing.xs),
               ],
               Text(
                 text,
@@ -354,12 +350,11 @@ class AppleCard extends StatelessWidget {
   final bool hasShadow;
 
   const AppleCard({
-    Key? key,
-    required this.child,
+    required this.child, super.key,
     this.onTap,
     this.padding,
     this.hasShadow = true,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

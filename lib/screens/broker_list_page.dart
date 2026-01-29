@@ -119,14 +119,12 @@ class _BrokerListPageState extends State<BrokerListPage> {
             borderRadius: BorderRadius.circular(20),
             border: Border.all(
               color: AirbnbColors.borderLight,
-              width: 1,
             ),
             boxShadow: [
               BoxShadow(
                 color: AirbnbColors.textPrimary.withValues(alpha: 0.06),
                 blurRadius: 20,
                 offset: const Offset(0, 4),
-                spreadRadius: 0,
               ),
             ],
           ),
@@ -252,7 +250,6 @@ class _BrokerListPageState extends State<BrokerListPage> {
                   color: AirbnbColors.primary.withValues(alpha: 0.3),
                   blurRadius: 20,
                   offset: const Offset(0, 8),
-                  spreadRadius: 0,
                 ),
               ]
             : [
@@ -260,7 +257,6 @@ class _BrokerListPageState extends State<BrokerListPage> {
                   color: AirbnbColors.textPrimary.withValues(alpha: 0.06),
                   blurRadius: 8,
                   offset: const Offset(0, 2),
-                  spreadRadius: 0,
                 ),
               ],
       ),
@@ -276,7 +272,7 @@ class _BrokerListPageState extends State<BrokerListPage> {
             ),
             decoration: BoxDecoration(
               gradient: enabled
-                  ? LinearGradient(
+                  ? const LinearGradient(
                       colors: [AirbnbColors.primary, AirbnbColors.primaryDark],
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
@@ -288,7 +284,6 @@ class _BrokerListPageState extends State<BrokerListPage> {
                 color: enabled
                     ? Colors.transparent
                     : AirbnbColors.borderLight,
-                width: 1,
               ),
             ),
             child: Row(
@@ -473,7 +468,7 @@ class _BrokerListPageState extends State<BrokerListPage> {
       );
 
       // 기본 결과 복사
-      List<Broker> mergedBrokers = List<Broker>.from(response.brokers);
+      final List<Broker> mergedBrokers = List<Broker>.from(response.brokers);
 
       // ===================== 테스트 전용 중개사 주입 =====================
       if (_enableTestBroker) {
@@ -512,20 +507,6 @@ class _BrokerListPageState extends State<BrokerListPage> {
                   phoneNumber: phone,
                   businessStatus: testData['businessStatus'] as String?,
                   seoulAddress: address,
-                  district: null,
-                  legalDong: null,
-                  sggCode: null,
-                  stdgCode: null,
-                  lotnoSe: null,
-                  mno: null,
-                  sno: null,
-                  roadCode: null,
-                  bldg: null,
-                  bmno: null,
-                  bsno: null,
-                  penaltyStartDate: null,
-                  penaltyEndDate: null,
-                  inqCount: null,
                   introduction: testData['introduction'] as String?,
                 ),
               );
@@ -883,7 +864,6 @@ class _BrokerListPageState extends State<BrokerListPage> {
           // 깔끔한 헤더 (메인페이지 스타일)
           SliverAppBar(
             expandedHeight: 120,
-            floating: false,
             pinned: true,
             backgroundColor: AirbnbColors.background,
             foregroundColor: AirbnbColors.primary,
@@ -970,7 +950,7 @@ class _BrokerListPageState extends State<BrokerListPage> {
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
                   child: Padding(
-                    padding: const EdgeInsets.only(top: AppSpacing.lg, bottom: 0),
+                    padding: const EdgeInsets.only(top: AppSpacing.lg),
                     child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -987,14 +967,12 @@ class _BrokerListPageState extends State<BrokerListPage> {
                             borderRadius: BorderRadius.circular(20),
                             border: Border.all(
                               color: AirbnbColors.borderLight,
-                              width: 1,
                             ),
                             boxShadow: [
                               BoxShadow(
                                 color: AirbnbColors.textPrimary.withValues(alpha: 0.04),
                                 blurRadius: 16,
                                 offset: const Offset(0, 2),
-                                spreadRadius: 0,
                               ),
                             ],
                           ),
@@ -1095,7 +1073,6 @@ class _BrokerListPageState extends State<BrokerListPage> {
                                     borderRadius: BorderRadius.circular(16),
                                     borderSide: const BorderSide(
                                       color: AirbnbColors.borderLight,
-                                      width: 1,
                                     ),
                                   ),
                                   focusedBorder: OutlineInputBorder(
@@ -1377,7 +1354,6 @@ class _BrokerListPageState extends State<BrokerListPage> {
                                               backgroundColor: AirbnbColors.error.withValues(alpha: 0.1),
                                               side: BorderSide(
                                                 color: AirbnbColors.error.withValues(alpha: 0.3),
-                                                width: 1,
                                               ),
                                               labelStyle: AppTypography.withColor(
                                                 AppTypography.caption.copyWith(
@@ -1437,7 +1413,6 @@ class _BrokerListPageState extends State<BrokerListPage> {
                 horizontal: ResponsiveHelper.getMaxWidth(context) < double.infinity && ResponsiveHelper.getMaxWidth(context) < MediaQuery.of(context).size.width
                     ? (MediaQuery.of(context).size.width - ResponsiveHelper.getMaxWidth(context)) / 2 + AppSpacing.lg
                     : AppSpacing.lg,
-                vertical: 0,
               ),
               sliver: SliverMasonryGrid.count(
                 crossAxisCount: ResponsiveHelper.isWeb(context) ? 2 : 1,
@@ -1824,7 +1799,6 @@ class _BrokerListPageState extends State<BrokerListPage> {
                 border: Border(
                   top: BorderSide(
                     color: AirbnbColors.borderLight,
-                    width: 1,
                   ),
                 ),
               ),
@@ -2040,7 +2014,7 @@ class _BrokerListPageState extends State<BrokerListPage> {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(Icons.location_on, size: 16, color: AirbnbColors.blueDark),
+          const Icon(Icons.location_on, size: 16, color: AirbnbColors.blueDark),
           const SizedBox(width: AppSpacing.sm),
           Expanded(
             child: Text(
@@ -2109,7 +2083,7 @@ class _BrokerListPageState extends State<BrokerListPage> {
       decoration: BoxDecoration(
         color: AirbnbColors.background,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AirbnbColors.borderLight, width: 1),
+        border: Border.all(color: AirbnbColors.borderLight),
         boxShadow: [
           AirbnbColors.cardShadow,
         ],
@@ -2155,7 +2129,7 @@ class _BrokerListPageState extends State<BrokerListPage> {
       decoration: BoxDecoration(
         color: AirbnbColors.background,
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AirbnbColors.borderLight, width: 1),
+        border: Border.all(color: AirbnbColors.borderLight),
         boxShadow: [
           AirbnbColors.cardShadow,
         ],
@@ -2520,7 +2494,6 @@ class _BrokerListPageState extends State<BrokerListPage> {
                       SnackBar(
                         content: Text('📞 ${broker.phoneNumber}\n\n위 번호로 직접 전화해주세요.'),
                         backgroundColor: AirbnbColors.success,
-                        duration: const Duration(seconds: 4),
                         action: SnackBarAction(
                           label: '복사',
                           textColor: AirbnbColors.textWhite,
@@ -2612,7 +2585,6 @@ class _BrokerListPageState extends State<BrokerListPage> {
         id, // name
         email: email,
         phone: phone,
-        role: 'user',
       );
       
       if (success) {
@@ -2845,7 +2817,6 @@ class _BrokerListPageState extends State<BrokerListPage> {
           propertyArea: result['propertyArea'],
           hasTenant: result['hasTenant'] as bool?,
           desiredPrice: result['desiredPrice'] as String?,
-          targetPeriod: null,
           specialNotes: result['specialNotes'] as String?,
           // 확인할 견적 정보 (선택되지 않은 항목은 null)
           commissionRate: result['requestCommissionRate'] == true ? '' : null,
@@ -2908,9 +2879,8 @@ class _QuoteRequestFormPage extends StatefulWidget {
     required this.broker,
     required this.userName,
     required this.userId,
-    this.userEmail,
+    required this.propertyAddress, this.userEmail,
     this.userPhone,
-    required this.propertyAddress,
     this.propertyArea,
     this.transactionType,
   });
@@ -3478,7 +3448,7 @@ class _QuoteRequestFormPageState extends State<_QuoteRequestFormPage> {
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.grey[300]!, width: 1),
+        border: Border.all(color: Colors.grey[300]!),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.1),
@@ -3698,7 +3668,6 @@ class _QuoteRequestFormPageState extends State<_QuoteRequestFormPage> {
       // 3️⃣ 추가 정보
       hasTenant: hasTenant,
       desiredPrice: _desiredPriceController.text.trim().isNotEmpty ? _desiredPriceController.text.trim() : null,
-      targetPeriod: null, // 목표기간은 전자계약 이후 단계에서 사용
       specialNotes: _specialNotesController.text.trim().isNotEmpty ? _specialNotesController.text.trim() : null,
       // 확인할 견적 정보 (선택되지 않은 항목은 null)
       commissionRate: _requestCommissionRate ? '' : null,
@@ -4305,7 +4274,7 @@ class _MultipleQuoteRequestDialogState extends State<_MultipleQuoteRequestDialog
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.grey[300]!, width: 1),
+        border: Border.all(color: Colors.grey[300]!),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.1),
@@ -4627,11 +4596,9 @@ class _ActionCardState extends State<_ActionCard> {
                                   border: isDisabled
                                       ? Border.all(
                                           color: AirbnbColors.border,
-                                          width: 1,
                                         )
                                       : Border.all(
                                           color: Colors.white.withValues(alpha: 0.3),
-                                          width: 1,
                                         ),
                                 ),
                                 child: Text(
@@ -4818,11 +4785,11 @@ class _GuestContactDialogState extends State<_GuestContactDialog> {
                   borderRadius: BorderRadius.circular(8),
                   border: Border.all(color: AirbnbColors.info.withValues(alpha: 0.3)),
                 ),
-                child: Row(
+                child: const Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Icon(Icons.info_outline, size: 20, color: AirbnbColors.info),
-                    const SizedBox(width: 8),
+                    SizedBox(width: 8),
                     Expanded(
                       child: Text(
                         '공인중개사의 상담 응답을 받을 연락처를 적어주세요.\n상담 이후 응답은 내집관리에서 확인 가능합니다.',

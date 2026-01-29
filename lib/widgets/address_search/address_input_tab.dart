@@ -321,11 +321,9 @@ class _AddressInputTabState extends State<AddressInputTab> {
             height: 300,
             child: RegionSelectionMap(
               height: 300,
-              fixedRadiusMeters: _fixedRadiusMeters,
               displayRadiusMeters: _displayRadiusMeters,
               latitude: _selectedLatitude,
               longitude: _selectedLongitude,
-              onLocationChanged: null, // 주소 입력 탭에서는 지도 이동 이벤트 무시
             ),
           ),
 
@@ -353,7 +351,6 @@ class _AddressInputTabState extends State<AddressInputTab> {
                   color: AirbnbColors.primary.withValues(alpha: 0.08),
                   offset: const Offset(0, 4),
                   blurRadius: 16,
-                  spreadRadius: 0,
                 ),
               ],
             ),

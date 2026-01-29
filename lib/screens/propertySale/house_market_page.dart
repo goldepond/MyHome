@@ -55,7 +55,7 @@ class _HouseMarketPageState extends State<HouseMarketPage> {
       final allProperties = await _firebaseService.getAllPropertiesList();
 
       // 예약/보류 상태 제외만 먼저 적용
-      List<Property> baseProperties = allProperties.where((property) {
+      final List<Property> baseProperties = allProperties.where((property) {
         if (property.contractStatus == '예약' || property.contractStatus == '보류') {
           return false;
         }
@@ -220,7 +220,6 @@ class _HouseMarketPageState extends State<HouseMarketPage> {
         constraints: const BoxConstraints(maxWidth: 1200),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             // 매우 큰 헤드라인 (Stripe/Vercel 스타일)
             Text(
@@ -371,7 +370,6 @@ class _HouseMarketPageState extends State<HouseMarketPage> {
           categoryTitle: category['title'],
           buildingTypes: List<String>.from(category['buildingTypes']),
           userName: widget.userName,
-          selectedRegion: null, // 지역 선택 기능이 사라졌으므로 null 전달
         ),
       ),
     );
@@ -559,7 +557,6 @@ class _HouseMarketPageState extends State<HouseMarketPage> {
                           borderRadius: BorderRadius.circular(8),
                           border: Border.all(
                             color: AirbnbColors.blue.withValues(alpha: 0.2),
-                            width: 1,
                           ),
                         ),
                         child: Row(

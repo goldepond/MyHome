@@ -149,7 +149,6 @@ class _SignupPageState extends State<SignupPage> {
         name,
         email: _emailController.text,
         phone: phone,
-        role: 'user', // 모든 사용자는 일반 사용자로 등록
       );
 
       if (success && mounted) {
@@ -194,7 +193,6 @@ class _SignupPageState extends State<SignupPage> {
   @override
   Widget build(BuildContext context) {
     return PopScope(
-      canPop: true,
       onPopInvokedWithResult: (didPop, result) async {
         if (!didPop && FocusScope.of(context).hasFocus) {
           FocusScope.of(context).unfocus();

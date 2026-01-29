@@ -147,7 +147,6 @@ class _LoginPageState extends State<LoginPage> {
           SnackBar(
             content: Text(errorMessage),
             backgroundColor: AppleColors.systemRed,
-            duration: const Duration(seconds: 4),
           ),
         );
       }
@@ -635,7 +634,6 @@ class _LoginPageState extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
     return PopScope(
-      canPop: true,
       onPopInvokedWithResult: (didPop, result) async {
         if (!didPop && FocusScope.of(context).hasFocus) {
           FocusScope.of(context).unfocus();
@@ -664,7 +662,7 @@ class _LoginPageState extends State<LoginPage> {
           semanticLabel: '뒤로가기',
         ),
         centerTitle: true,
-        title: LogoImage(height: 40),
+        title: const LogoImage(height: 40),
       ),
       body: Container(
         decoration: const BoxDecoration(
@@ -919,7 +917,6 @@ class _LoginPageState extends State<LoginPage> {
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(
                           color: AppleColors.systemBlue.withValues(alpha: 0.2),
-                          width: 1,
                         ),
                       ),
                       child: Row(

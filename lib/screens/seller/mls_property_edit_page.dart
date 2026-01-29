@@ -12,7 +12,7 @@ import '../../utils/logger.dart';
 class MLSPropertyEditPage extends StatefulWidget {
   final MLSProperty property;
 
-  const MLSPropertyEditPage({Key? key, required this.property}) : super(key: key);
+  const MLSPropertyEditPage({required this.property, super.key});
 
   @override
   State<MLSPropertyEditPage> createState() => _MLSPropertyEditPageState();
@@ -241,7 +241,6 @@ class _MLSPropertyEditPageState extends State<MLSPropertyEditPage> {
               crossAxisCount: 3,
               crossAxisSpacing: 8,
               mainAxisSpacing: 8,
-              childAspectRatio: 1,
             ),
             itemCount: _images.length + (_images.length < _maxImages ? 1 : 0),
             itemBuilder: (context, index) {
@@ -361,13 +360,12 @@ class _MLSPropertyEditPageState extends State<MLSPropertyEditPage> {
           borderRadius: BorderRadius.circular(AppleRadius.sm),
           border: Border.all(
             color: AppleColors.separator,
-            style: BorderStyle.solid,
           ),
         ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
+            const Icon(
               Icons.add_photo_alternate_outlined,
               size: 32,
               color: AppleColors.secondaryLabel,
@@ -401,7 +399,7 @@ class _MLSPropertyEditPageState extends State<MLSPropertyEditPage> {
   Future<void> _addImages() async {
     if (_images.length >= _maxImages) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
+        const SnackBar(
           content: Text('최대 $_maxImages장까지 등록 가능합니다'),
           backgroundColor: AppleColors.systemOrange,
         ),
@@ -490,7 +488,7 @@ class _MLSPropertyEditPageState extends State<MLSPropertyEditPage> {
               if (_images.length > 1)
                 ListTile(
                   leading: const Icon(Icons.delete, color: AppleColors.systemRed),
-                  title: Text(
+                  title: const Text(
                     '삭제',
                     style: TextStyle(color: AppleColors.systemRed),
                   ),
@@ -812,7 +810,7 @@ class _MLSPropertyEditPageState extends State<MLSPropertyEditPage> {
     ];
 
     // 기존 선택된 시간대 확인
-    Set<String> selectedTimes = {};
+    final Set<String> selectedTimes = {};
     for (final slot in existingSlots) {
       selectedTimes.add('${slot.startTime}-${slot.endTime}');
     }
@@ -847,7 +845,7 @@ class _MLSPropertyEditPageState extends State<MLSPropertyEditPage> {
                     children: [
                       // 헤더
                       Text(
-                        '매주 ${dayName}요일 방문 가능 시간',
+                        '매주 $dayName요일 방문 가능 시간',
                         style: AppleTypography.title3.copyWith(fontWeight: FontWeight.w600),
                       ),
                       const SizedBox(height: AppleSpacing.lg),

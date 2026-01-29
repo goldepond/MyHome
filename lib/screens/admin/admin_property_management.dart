@@ -10,9 +10,7 @@ class AdminPropertyManagement extends StatefulWidget {
   final String userName;
 
   const AdminPropertyManagement({
-    super.key,
-    required this.userId,
-    required this.userName,
+    required this.userId, required this.userName, super.key,
   });
 
   @override

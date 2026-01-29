@@ -10,12 +10,8 @@ class ActionLog {
   final DateTime timestamp;
 
   ActionLog({
-    this.id,
-    required this.userId,
-    required this.actionType,
-    required this.target,
+    required this.userId, required this.actionType, required this.target, required this.timestamp, this.id,
     this.metadata = const {},
-    required this.timestamp,
   });
 
   factory ActionLog.fromFirestore(DocumentSnapshot doc) {

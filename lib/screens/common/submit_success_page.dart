@@ -11,10 +11,7 @@ class SubmitSuccessPage extends StatelessWidget {
   final String? userId;
 
   const SubmitSuccessPage({
-    super.key,
-    required this.title,
-    required this.description,
-    required this.userName,
+    required this.title, required this.description, required this.userName, super.key,
     this.userId,
   });
 

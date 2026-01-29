@@ -2,6 +2,7 @@
 ///
 /// 한국 부동산 중개 수수료 관련 법정 기준 및 계산 기능 제공
 /// 참고: 공인중개사법 시행규칙 별표 1 (중개보수 요율)
+library;
 
 class CommissionCalculator {
   /// 거래 유형
@@ -183,7 +184,7 @@ class CommissionCalculator {
       maxLegalCommission: maxCommission,
       isOverLegalMax: isOverMax,
       warningMessage: isOverMax
-          ? '법정 최고 수수료율(${maxRate}%)을 초과합니다.'
+          ? '법정 최고 수수료율($maxRate%)을 초과합니다.'
           : null,
     );
   }
@@ -196,7 +197,7 @@ class CommissionCalculator {
       if (remainder > 0) {
         final man = remainder ~/ 10000;
         if (man > 0) {
-          return '${eok.toStringAsFixed(0)}억 ${man}만원';
+          return '${eok.toStringAsFixed(0)}억 $man만원';
         }
       }
       return '${eok.toStringAsFixed(eok == eok.roundToDouble() ? 0 : 1)}억원';
@@ -219,7 +220,7 @@ class CommissionCalculator {
 
     if (cleanStr.contains('억')) {
       final parts = cleanStr.split('억');
-      double? eok = double.tryParse(parts[0].replaceAll(RegExp(r'[^0-9\.]'), ''));
+      final double? eok = double.tryParse(parts[0].replaceAll(RegExp(r'[^0-9\.]'), ''));
       if (eok == null) return null;
 
       int total = (eok * 100000000).toInt();

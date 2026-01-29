@@ -167,7 +167,7 @@ class _HouseDetailPageState extends State<HouseDetailPage> {
 
       
       // 위치 서비스가 활성화되어 있는지 확인
-      bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
+      final bool serviceEnabled = await Geolocator.isLocationServiceEnabled();
       
       if (!serviceEnabled) {
         // Windows에서 위치 서비스가 비활성화된 경우 테스트용 위치 사용
@@ -298,7 +298,6 @@ class _HouseDetailPageState extends State<HouseDetailPage> {
         borderRadius: BorderRadius.circular(12),
         border: Border.all(
           color: AirbnbColors.primary.withValues(alpha:0.2),
-          width: 1,
         ),
       ),
       child: Column(
@@ -796,7 +795,7 @@ class _HouseDetailPageState extends State<HouseDetailPage> {
                           : AirbnbColors.primary.withValues(alpha:0.1),
                       borderRadius: BorderRadius.circular(8),
                       border: isMyProperty 
-                          ? Border.all(color: AirbnbColors.primary, width: 1)
+                          ? Border.all(color: AirbnbColors.primary)
                           : null,
                     ),
                     child: Row(
@@ -1007,7 +1006,7 @@ class _HouseDetailPageState extends State<HouseDetailPage> {
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: color, width: 1),
+        border: Border.all(color: color),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -1041,7 +1040,7 @@ class _HouseDetailPageState extends State<HouseDetailPage> {
       region: '강남구',
       lastUpdated: DateTime.now(),
       monthlyHistory: [
-        MonthlyFee(date: DateTime(2024, 1), amount: 115000),
+        MonthlyFee(date: DateTime(2024), amount: 115000),
         MonthlyFee(date: DateTime(2024, 2), amount: 118000),
         MonthlyFee(date: DateTime(2024, 3), amount: 120000),
         MonthlyFee(date: DateTime(2024, 4), amount: 122000),
@@ -1058,7 +1057,6 @@ class _HouseDetailPageState extends State<HouseDetailPage> {
 
     return MaintenanceFeeCard(
       maintenanceFee: maintenanceFee,
-      isCompact: false,
     );
   }
 

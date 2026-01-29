@@ -13,8 +13,7 @@ class ProfileCompletionPage extends StatefulWidget {
 
   const ProfileCompletionPage({
     required this.userId,
-    this.currentName,
-    required this.onComplete,
+    required this.onComplete, this.currentName,
     super.key,
   });
 
@@ -215,7 +214,6 @@ class _ProfileCompletionPageState extends State<ProfileCompletionPage> {
 
   Widget _buildHeader() {
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.center,
       children: [
         Container(
           width: 80,

@@ -13,9 +13,8 @@ class MLSNegotiationLogPage extends StatefulWidget {
   final String propertyId;
 
   const MLSNegotiationLogPage({
-    Key? key,
-    required this.propertyId,
-  }) : super(key: key);
+    required this.propertyId, super.key,
+  });
 
   @override
   State<MLSNegotiationLogPage> createState() => _MLSNegotiationLogPageState();
@@ -316,8 +315,8 @@ class _MLSNegotiationLogPageState extends State<MLSNegotiationLogPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Row(
-                    children: const [
+                  const Row(
+                    children: [
                       Icon(Icons.comment, size: 16, color: Colors.blue),
                       SizedBox(width: 8),
                       Text(
@@ -439,7 +438,7 @@ class _MLSNegotiationLogPageState extends State<MLSNegotiationLogPage> {
                     ),
                   ],
                 );
-              }).toList(),
+              }),
             ],
           ),
         ],
@@ -471,8 +470,8 @@ class _MLSNegotiationLogPageState extends State<MLSNegotiationLogPage> {
               ),
               child: Column(
                 children: [
-                  Row(
-                    children: const [
+                  const Row(
+                    children: [
                       Icon(Icons.check_circle, color: AppColors.success),
                       SizedBox(width: 12),
                       Text(
@@ -533,7 +532,7 @@ class _MLSNegotiationLogPageState extends State<MLSNegotiationLogPage> {
                     labelText: '중개사 선택',
                     border: OutlineInputBorder(),
                   ),
-                  value: _selectedBrokerId,
+                  initialValue: _selectedBrokerId,
                   items: _property!.brokerResponses.values
                     .where((r) => r.hasViewed)
                     .map((r) => DropdownMenuItem(
@@ -691,7 +690,7 @@ class _MLSNegotiationLogPageState extends State<MLSNegotiationLogPage> {
                   labelText: '최종 거래 중개사',
                   border: OutlineInputBorder(),
                 ),
-                value: selectedBrokerId,
+                initialValue: selectedBrokerId,
                 items: _property!.brokerResponses.values
                   .where((r) => r.hasViewed)
                   .map((r) => DropdownMenuItem(

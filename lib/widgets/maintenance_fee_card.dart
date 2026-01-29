@@ -9,11 +9,10 @@ class MaintenanceFeeCard extends StatelessWidget {
   final VoidCallback? onTap; // 클릭 시 상세 화면으로 이동
 
   const MaintenanceFeeCard({
-    Key? key,
-    required this.maintenanceFee,
+    required this.maintenanceFee, super.key,
     this.isCompact = false,
     this.onTap,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -414,7 +413,6 @@ class MaintenanceFeeCard extends StatelessWidget {
                 height: 200,
                 child: LineChart(
                   LineChartData(
-                    gridData: const FlGridData(show: true),
                     titlesData: FlTitlesData(
                       leftTitles: AxisTitles(
                         sideTitles: SideTitles(
@@ -445,8 +443,8 @@ class MaintenanceFeeCard extends StatelessWidget {
                           },
                         ),
                       ),
-                      topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                      rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                      topTitles: const AxisTitles(),
+                      rightTitles: const AxisTitles(),
                     ),
                     borderData: FlBorderData(show: true),
                     lineBarsData: [
@@ -457,7 +455,6 @@ class MaintenanceFeeCard extends StatelessWidget {
                         isCurved: true,
                         color: AirbnbColors.primary,
                         barWidth: 3,
-                        dotData: const FlDotData(show: true),
                       ),
                     ],
                   ),

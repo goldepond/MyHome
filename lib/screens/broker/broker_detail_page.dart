@@ -21,8 +21,7 @@ class BrokerDetailPage extends StatelessWidget {
   final String? quoteStatus;     // 견적 상태 (completed 에서만 후기 허용)
 
   const BrokerDetailPage({
-    super.key,
-    required this.broker,
+    required this.broker, super.key,
     this.currentUserId,
     this.currentUserName,
     this.quoteRequestId,

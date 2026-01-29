@@ -291,7 +291,6 @@ class ErrorHandler {
       SnackBar(
         content: Text(message),
         backgroundColor: Colors.red,
-        duration: const Duration(seconds: 4),
         action: SnackBarAction(
           label: '확인',
           textColor: Colors.white,

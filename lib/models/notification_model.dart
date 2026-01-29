@@ -33,9 +33,8 @@ class NotificationModel {
     required this.title,
     required this.message,
     required this.type,
-    this.relatedId,
+    required this.createdAt, this.relatedId,
     this.isRead = false,
-    required this.createdAt,
   });
 
   factory NotificationModel.fromMap(String id, Map<String, dynamic> map) {

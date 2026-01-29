@@ -128,7 +128,7 @@ class _MLSBrokerDashboardPageState extends State<MLSBrokerDashboardPage>
   Future<void> _loadInitialDataFast() async {
     // 세 개의 데이터를 병렬로 빠르게 로드
     final futures = await Future.wait([
-      _mlsService.getAllBrowsablePropertiesFast(region: _selectedRegion, limit: 30),
+      _mlsService.getAllBrowsablePropertiesFast(region: _selectedRegion),
       _mlsService.getPropertiesBroadcastedToBrokerFast(widget.brokerId),
       _mlsService.getCompletedPropertiesByBrokerFast(widget.brokerId),
     ]);
@@ -420,7 +420,7 @@ class _MLSBrokerDashboardPageState extends State<MLSBrokerDashboardPage>
       child: Row(
         children: [
           // 로고
-          LogoImage(height: 36),
+          const LogoImage(height: 36),
           const Spacer(),
           // 1. 알림
           _buildHeaderActionButton(
@@ -504,7 +504,7 @@ class _MLSBrokerDashboardPageState extends State<MLSBrokerDashboardPage>
                 );
               }
             },
-            child: Text(
+            child: const Text(
               '로그아웃',
               style: TextStyle(color: AppleColors.systemRed),
             ),
@@ -517,9 +517,8 @@ class _MLSBrokerDashboardPageState extends State<MLSBrokerDashboardPage>
   /// 통일된 헤더 액션 버튼 (MainPage와 동일한 스타일)
   Widget _buildHeaderActionButton({
     required IconData icon,
-    String? tooltip,
+    required VoidCallback onPressed, String? tooltip,
     bool isPrimary = false,
-    required VoidCallback onPressed,
   }) {
     return Tooltip(
       message: tooltip ?? '',
@@ -536,7 +535,6 @@ class _MLSBrokerDashboardPageState extends State<MLSBrokerDashboardPage>
               borderRadius: BorderRadius.circular(16),
               border: Border.all(
                 color: isPrimary ? AppleColors.systemBlue.withValues(alpha: 0.3) : AppleColors.separator,
-                width: 1,
               ),
             ),
             child: Icon(
@@ -672,7 +670,7 @@ class _MLSBrokerDashboardPageState extends State<MLSBrokerDashboardPage>
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.error_outline, size: 48, color: AppleColors.systemRed),
+          const Icon(Icons.error_outline, size: 48, color: AppleColors.systemRed),
           const SizedBox(height: 16),
           Text(_errorMessage!, style: AppleTypography.body.copyWith(color: AppleColors.secondaryLabel)),
           const SizedBox(height: 24),
@@ -771,7 +769,7 @@ class _MLSBrokerDashboardPageState extends State<MLSBrokerDashboardPage>
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            Icon(Icons.close, size: 14, color: AppleColors.systemRed),
+                            const Icon(Icons.close, size: 14, color: AppleColors.systemRed),
                             const SizedBox(width: 4),
                             Text(
                               '초기화',
@@ -977,7 +975,7 @@ class _MLSBrokerDashboardPageState extends State<MLSBrokerDashboardPage>
         ),
       ),
       trailing: isSelected
-          ? Icon(Icons.check, color: AppleColors.systemBlue, size: 20)
+          ? const Icon(Icons.check, color: AppleColors.systemBlue, size: 20)
           : null,
     );
   }
@@ -1021,7 +1019,7 @@ class _MLSBrokerDashboardPageState extends State<MLSBrokerDashboardPage>
               ),
             ),
             const SizedBox(width: 4),
-            Icon(
+            const Icon(
               Icons.keyboard_arrow_down,
               size: 18,
               color: AppleColors.secondaryLabel,
@@ -1095,7 +1093,7 @@ class _MLSBrokerDashboardPageState extends State<MLSBrokerDashboardPage>
         ),
       ),
       trailing: isSelected
-          ? Icon(Icons.check, color: AppleColors.systemBlue, size: 20)
+          ? const Icon(Icons.check, color: AppleColors.systemBlue, size: 20)
           : null,
     );
   }
@@ -1211,10 +1209,10 @@ class _MLSBrokerDashboardPageState extends State<MLSBrokerDashboardPage>
                     );
                     return Row(
                       children: [
-                        Icon(Icons.percent, size: 12, color: AppleColors.tertiaryLabel),
+                        const Icon(Icons.percent, size: 12, color: AppleColors.tertiaryLabel),
                         const SizedBox(width: 4),
                         Text(
-                          '법정 최고 ${maxRate}% (${CommissionCalculator.formatCommission(maxCommission)})',
+                          '법정 최고 $maxRate% (${CommissionCalculator.formatCommission(maxCommission)})',
                           style: AppleTypography.caption2.copyWith(
                             color: AppleColors.tertiaryLabel,
                           ),
@@ -1228,14 +1226,14 @@ class _MLSBrokerDashboardPageState extends State<MLSBrokerDashboardPage>
                 // 하단: 판매자 + 등록일 + 버튼 (1:1 관계 강조)
                 Row(
                   children: [
-                    Icon(Icons.person_outline, size: 14, color: AppleColors.tertiaryLabel),
+                    const Icon(Icons.person_outline, size: 14, color: AppleColors.tertiaryLabel),
                     const SizedBox(width: 4),
                     Text(
                       property.userName.isNotEmpty ? property.userName : '매도인',
                       style: AppleTypography.caption1.copyWith(color: AppleColors.secondaryLabel),
                     ),
                     const SizedBox(width: 12),
-                    Icon(Icons.access_time, size: 14, color: AppleColors.tertiaryLabel),
+                    const Icon(Icons.access_time, size: 14, color: AppleColors.tertiaryLabel),
                     const SizedBox(width: 4),
                     Text(
                       _formatTimeAgo(property.createdAt),
@@ -1407,10 +1405,10 @@ class _MLSBrokerDashboardPageState extends State<MLSBrokerDashboardPage>
                     );
                     return Row(
                       children: [
-                        Icon(Icons.percent, size: 12, color: AppleColors.tertiaryLabel),
+                        const Icon(Icons.percent, size: 12, color: AppleColors.tertiaryLabel),
                         const SizedBox(width: 4),
                         Text(
-                          '법정 최고 ${maxRate}% (${CommissionCalculator.formatCommission(maxCommission)})',
+                          '법정 최고 $maxRate% (${CommissionCalculator.formatCommission(maxCommission)})',
                           style: AppleTypography.caption2.copyWith(
                             color: AppleColors.tertiaryLabel,
                           ),
@@ -1424,14 +1422,14 @@ class _MLSBrokerDashboardPageState extends State<MLSBrokerDashboardPage>
                 // 판매자 정보 + 등록일 (1:1 관계 강조)
                 Row(
                   children: [
-                    Icon(Icons.person_outline, size: 14, color: AppleColors.tertiaryLabel),
+                    const Icon(Icons.person_outline, size: 14, color: AppleColors.tertiaryLabel),
                     const SizedBox(width: 4),
                     Text(
                       property.userName.isNotEmpty ? property.userName : '매도인',
                       style: AppleTypography.caption1.copyWith(color: AppleColors.secondaryLabel),
                     ),
                     const SizedBox(width: 12),
-                    Icon(Icons.schedule_outlined, size: 14, color: AppleColors.tertiaryLabel),
+                    const Icon(Icons.schedule_outlined, size: 14, color: AppleColors.tertiaryLabel),
                     const SizedBox(width: 4),
                     Text(
                       _formatRelativeTime(property.createdAt),
@@ -1574,7 +1572,7 @@ class _MLSBrokerDashboardPageState extends State<MLSBrokerDashboardPage>
                   color: AppleColors.systemBlue.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(28),
                 ),
-                child: Icon(
+                child: const Icon(
                   Icons.store_rounded,
                   color: AppleColors.systemBlue,
                   size: 28,
@@ -1608,7 +1606,7 @@ class _MLSBrokerDashboardPageState extends State<MLSBrokerDashboardPage>
                             child: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                Icon(Icons.verified, size: 14, color: AppleColors.systemGreen),
+                                const Icon(Icons.verified, size: 14, color: AppleColors.systemGreen),
                                 const SizedBox(width: 4),
                                 Text(
                                   '인증',
@@ -1758,7 +1756,7 @@ class _MLSBrokerDashboardPageState extends State<MLSBrokerDashboardPage>
                 ),
                 const SizedBox(height: 2),
                 Text(
-                  '수수료 ${CommissionCalculator.formatCommission(estimatedCommission)} (${maxRate}%)',
+                  '수수료 ${CommissionCalculator.formatCommission(estimatedCommission)} ($maxRate%)',
                   style: AppleTypography.caption2.copyWith(color: AppleColors.tertiaryLabel),
                 ),
               ],
@@ -1775,7 +1773,7 @@ class _MLSBrokerDashboardPageState extends State<MLSBrokerDashboardPage>
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(Icons.inbox_outlined, size: 56, color: AppleColors.tertiaryLabel),
+          const Icon(Icons.inbox_outlined, size: 56, color: AppleColors.tertiaryLabel),
           const SizedBox(height: 16),
           Text(
             title,
@@ -1862,7 +1860,7 @@ class _MLSBrokerDashboardPageState extends State<MLSBrokerDashboardPage>
                               color: AppleColors.systemBlue.withValues(alpha: 0.1),
                               borderRadius: BorderRadius.circular(12),
                             ),
-                            child: Icon(
+                            child: const Icon(
                               Icons.calendar_today_rounded,
                               color: AppleColors.systemBlue,
                               size: 24,
@@ -1900,7 +1898,7 @@ class _MLSBrokerDashboardPageState extends State<MLSBrokerDashboardPage>
                         ),
                         child: Row(
                           children: [
-                            Icon(Icons.home_rounded, size: 20, color: AppleColors.secondaryLabel),
+                            const Icon(Icons.home_rounded, size: 20, color: AppleColors.secondaryLabel),
                             const SizedBox(width: AppleSpacing.sm),
                             Text(
                               '매도 희망가',
@@ -1921,7 +1919,7 @@ class _MLSBrokerDashboardPageState extends State<MLSBrokerDashboardPage>
                       const SizedBox(height: AppleSpacing.lg),
 
                       // 1. 희망가 (필수)
-                      Text('희망가 *', style: AppleTypography.headline),
+                      const Text('희망가 *', style: AppleTypography.headline),
                       const SizedBox(height: AppleSpacing.sm),
                       TextField(
                         controller: priceController,
@@ -1949,7 +1947,7 @@ class _MLSBrokerDashboardPageState extends State<MLSBrokerDashboardPage>
                       const SizedBox(height: AppleSpacing.lg),
 
                       // 3. 방문 희망 일시 (필수)
-                      Text('방문 희망 일시 *', style: AppleTypography.headline),
+                      const Text('방문 희망 일시 *', style: AppleTypography.headline),
                       const SizedBox(height: AppleSpacing.sm),
                       Row(
                         children: [
@@ -2052,7 +2050,7 @@ class _MLSBrokerDashboardPageState extends State<MLSBrokerDashboardPage>
                       const SizedBox(height: AppleSpacing.lg),
 
                       // 3. 추가 메시지 (선택)
-                      Text('추가 메시지', style: AppleTypography.headline),
+                      const Text('추가 메시지', style: AppleTypography.headline),
                       const SizedBox(height: AppleSpacing.sm),
                       TextField(
                         controller: messageController,
@@ -2154,8 +2152,8 @@ class _MLSBrokerDashboardPageState extends State<MLSBrokerDashboardPage>
 
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: const Text('방문 요청을 보냈습니다! 판매자 승인을 기다려주세요.'),
+            const SnackBar(
+              content: Text('방문 요청을 보냈습니다! 판매자 승인을 기다려주세요.'),
               backgroundColor: AppleColors.systemGreen,
               behavior: SnackBarBehavior.floating,
             ),
@@ -2183,8 +2181,8 @@ class _MLSBrokerDashboardPageState extends State<MLSBrokerDashboardPage>
     // requested, approved, completed는 판매자 승인 통해서만 변경
     if (myResponse.stage != BrokerStage.received) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text('다음 단계는 판매자 승인이 필요합니다'),
+        const SnackBar(
+          content: Text('다음 단계는 판매자 승인이 필요합니다'),
           behavior: SnackBarBehavior.floating,
         ),
       );
@@ -2202,8 +2200,8 @@ class _MLSBrokerDashboardPageState extends State<MLSBrokerDashboardPage>
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: const Text('매물 확인 완료'),
+          const SnackBar(
+            content: Text('매물 확인 완료'),
             backgroundColor: AppleColors.systemGreen,
             behavior: SnackBarBehavior.floating,
           ),

@@ -440,7 +440,7 @@ class _AddressMapState extends State<AddressMapWidget> {
     
     // address_map_을 포함하지만 region_map_은 포함하지 않는 iframe 찾기
     // (지도 선택 기능과 구분하기 위해)
-    for (var element in iframeList) {
+    for (final element in iframeList) {
       final srcdoc = element.srcdoc;
       if (srcdoc.isA<JSString>()) {
         final srcdocStr = (srcdoc as JSString).toDart;

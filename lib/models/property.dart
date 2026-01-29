@@ -108,12 +108,9 @@ class Property {
   Map<String,String> fullAddrAPIData;
 
   Property({
-    this.id,
+    required this.address, required this.transactionType, required this.price, this.id,
     this.firestoreId,
-    required this.address,
     this.addressCity,
-    required this.transactionType,
-    required this.price,
     this.deposit,
     this.monthlyRent,
     this.description = '',

@@ -58,7 +58,7 @@ void main() async {
   // .env 파일이 있으면 로드, 없으면 무시 (웹에서는 건너뜀)
   if (!kIsWeb) {
     try {
-      await dotenv.load(fileName: ".env");
+      await dotenv.load();
     } catch (e) {
       // .env 파일이 없어도 앱은 실행 가능
       Logger.warning(
@@ -212,7 +212,7 @@ class _MyAppState extends State<MyApp> {
           color: AirbnbColors.background,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
-            side: const BorderSide(color: AirbnbColors.border, width: 1),
+            side: const BorderSide(color: AirbnbColors.border),
           ),
           shadowColor: Colors.black.withValues(alpha: 0.08),
         ),

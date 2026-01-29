@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 
 import 'package:property/constants/app_constants.dart';
+import 'package:property/utils/api_helper.dart';
 import 'package:property/utils/logger.dart';
 
 enum KaptCodeFailureReason {
@@ -22,22 +23,19 @@ class KaptCodeExtractionResult {
   bool get isSuccess => code != null && code!.isNotEmpty;
 
   const KaptCodeExtractionResult._({
-    this.code,
+    required this.message, this.code,
     this.failure,
-    required this.message,
   });
 
   factory KaptCodeExtractionResult.success(String code) {
     return KaptCodeExtractionResult._(
       code: code,
-      failure: null,
       message: '단지코드 추출 성공',
     );
   }
 
   factory KaptCodeExtractionResult.failure(KaptCodeFailureReason reason, String message) {
     return KaptCodeExtractionResult._(
-      code: null,
       failure: reason,
       message: message,
     );
@@ -82,14 +80,12 @@ class AptInfoService {
       };
       final uri = Uri.parse(baseUrl).replace(queryParameters: queryParams);
 
-      final proxyUri = Uri.parse(
-        '${ApiConstants.proxyRequstAddr}?q=${Uri.encodeComponent(uri.toString())}',
-      );
-      
-      
+      // 플랫폼에 따라 프록시 사용 여부 결정
+      final requestUri = ApiHelper.getRequestUri(uri);
+
       http.Response response;
       try {
-        response = await http.get(proxyUri).timeout(
+        response = await http.get(requestUri).timeout(
           const Duration(seconds: ApiConstants.requestTimeoutSeconds),
           onTimeout: () {
             throw TimeoutException('아파트 정보 조회 시간이 초과되었습니다.');
@@ -365,12 +361,11 @@ class AptInfoService {
         'pageNo': '1',
       };
       final uri = Uri.parse('$baseUrl/getRoadnameAptList3').replace(queryParameters: queryParams);
-      
-      final proxyUri = Uri.parse(
-        '${ApiConstants.proxyRequstAddr}?q=${Uri.encodeComponent(uri.toString())}',
-      );
-      
-      final response = await http.get(proxyUri);
+
+      // 플랫폼에 따라 프록시 사용 여부 결정
+      final requestUri = ApiHelper.getRequestUri(uri);
+
+      final response = await http.get(requestUri);
       
       if (response.statusCode == 200) {
         final responseBody = utf8.decode(response.bodyBytes);
@@ -416,12 +411,11 @@ class AptInfoService {
         'pageNo': '1',
       };
       final uri = Uri.parse('$baseUrl/getLegaldongAptList3').replace(queryParameters: queryParams);
-      
-      final proxyUri = Uri.parse(
-        '${ApiConstants.proxyRequstAddr}?q=${Uri.encodeComponent(uri.toString())}',
-      );
-      
-      final response = await http.get(proxyUri);
+
+      // 플랫폼에 따라 프록시 사용 여부 결정
+      final requestUri = ApiHelper.getRequestUri(uri);
+
+      final response = await http.get(requestUri);
       if (response.statusCode == 200) {
         final responseBody = utf8.decode(response.bodyBytes);
         
@@ -584,9 +578,8 @@ class AptInfoService {
   static Future<KaptCodeExtractionResult> _extractKaptCodeInternal({
     required String trimmedAddress,
     required String complexName,
-    String? roadCode,
+    required Map<String, String> fullAddrAPIData, String? roadCode,
     String? bjdCode,
-    required Map<String, String> fullAddrAPIData,
   }) async {
     KaptCodeExtractionResult? failureCandidate;
 
@@ -648,11 +641,11 @@ class AptInfoService {
         'pageNo': '1',
       };
       final uri = Uri.parse('$baseUrl/getRoadnameAptList3').replace(queryParameters: queryParams);
-      final proxyUri = Uri.parse(
-        '${ApiConstants.proxyRequstAddr}?q=${Uri.encodeComponent(uri.toString())}',
-      );
 
-      final response = await http.get(proxyUri);
+      // 플랫폼에 따라 프록시 사용 여부 결정
+      final requestUri = ApiHelper.getRequestUri(uri);
+
+      final response = await http.get(requestUri);
       if (response.statusCode != 200) {
         return KaptCodeExtractionResult.failure(
           KaptCodeFailureReason.apiError,
@@ -736,11 +729,11 @@ class AptInfoService {
         'pageNo': '1',
       };
       final uri = Uri.parse('$baseUrl/getLegaldongAptList3').replace(queryParameters: queryParams);
-      final proxyUri = Uri.parse(
-        '${ApiConstants.proxyRequstAddr}?q=${Uri.encodeComponent(uri.toString())}',
-      );
 
-      final response = await http.get(proxyUri);
+      // 플랫폼에 따라 프록시 사용 여부 결정
+      final requestUri = ApiHelper.getRequestUri(uri);
+
+      final response = await http.get(requestUri);
       if (response.statusCode != 200) {
         return KaptCodeExtractionResult.failure(
           KaptCodeFailureReason.apiError,

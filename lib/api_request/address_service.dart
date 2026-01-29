@@ -3,6 +3,7 @@ import 'dart:async';
 import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:property/constants/app_constants.dart';
+import 'package:property/utils/api_helper.dart';
 import 'package:property/utils/logger.dart';
 
 // 도로명 주소 검색 결과 모델
@@ -88,15 +89,12 @@ class AddressService {
         '&resultType=json',
       );
 
+      // 플랫폼에 따라 프록시 사용 여부 결정 (웹: 프록시, 모바일: 직접 호출)
+      final requestUri = ApiHelper.getRequestUri(uri);
 
-      final proxyUri = Uri.parse(
-        '${ApiConstants.proxyRequstAddr}?q=${Uri.encodeComponent(uri.toString())}',
-      );
-      
-      
       http.Response response;
       try {
-        response = await http.get(proxyUri).timeout(
+        response = await http.get(requestUri).timeout(
         const Duration(seconds: ApiConstants.requestTimeoutSeconds),
         onTimeout: () {
           throw TimeoutException('주소 검색 시간이 초과되었습니다.');

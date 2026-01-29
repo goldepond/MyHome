@@ -94,10 +94,7 @@ class RetryHandler {
   
   /// 네트워크 오류에 대한 기본 재시도 설정
   static RetryConfig get networkRetryConfig => const RetryConfig(
-    maxAttempts: 3,
-    initialDelay: Duration(seconds: 1),
     maxDelay: Duration(seconds: 10),
-    backoffMultiplier: 2.0,
     shouldRetry: _isNetworkError,
   );
   
@@ -117,7 +114,6 @@ class RetryHandler {
     maxAttempts: 2,
     initialDelay: Duration(seconds: 2),
     maxDelay: Duration(seconds: 15),
-    backoffMultiplier: 2.0,
     shouldRetry: _isServerError,
   );
   
