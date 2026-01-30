@@ -58,7 +58,8 @@ void main() async {
   // .env 파일이 있으면 로드, 없으면 무시 (웹에서는 건너뜀)
   if (!kIsWeb) {
     try {
-      await dotenv.load();
+      await dotenv.load(fileName: ".env");
+      Logger.info('.env 파일 로드 성공 - JUSO_API_KEY 존재: ${dotenv.env['JUSO_API_KEY']?.isNotEmpty ?? false}');
     } catch (e) {
       // .env 파일이 없어도 앱은 실행 가능
       Logger.warning(

@@ -76,10 +76,18 @@ class AddressService {
     try {
       // API 키 확인
       final apiKey = ApiConstants.jusoApiKey;
+      Logger.info('[주소검색] API 키 존재: ${apiKey.isNotEmpty}, 길이: ${apiKey.length}');
+
       if (apiKey.isEmpty) {
-      } else {
+        Logger.error('[주소검색] API 키가 비어있습니다!');
+        return AddressSearchResult(
+          fullData: [],
+          addresses: [],
+          totalCount: 0,
+          errorMessage: 'API 키가 설정되지 않았습니다.',
+        );
       }
-      
+
       final uri = Uri.parse(
         '${ApiConstants.baseJusoUrl}'
         '?currentPage=$page'
@@ -89,8 +97,9 @@ class AddressService {
         '&resultType=json',
       );
 
-      // 플랫폼에 따라 프록시 사용 여부 결정 (웹: 프록시, 모바일: 직접 호출)
-      final requestUri = ApiHelper.getRequestUri(uri);
+      // JUSO API는 도메인 등록이 필요하므로 항상 프록시 사용
+      final requestUri = ApiHelper.getProxiedUri(uri);
+      Logger.info('[주소검색] 요청 URL (프록시): $requestUri');
 
       http.Response response;
       try {
@@ -100,8 +109,10 @@ class AddressService {
           throw TimeoutException('주소 검색 시간이 초과되었습니다.');
         },
       );
+        Logger.info('[주소검색] 응답 상태: ${response.statusCode}');
       } catch (e) {
         // HTTP 요청 자체가 실패한 경우
+        Logger.error('[주소검색] HTTP 요청 실패: $e');
         if (e is TimeoutException) {
           return AddressSearchResult(
             fullData: [],

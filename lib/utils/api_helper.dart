@@ -6,6 +6,8 @@ import 'package:property/constants/app_constants.dart';
 ///
 /// - 웹: CORS 제한으로 인해 프록시 서버 사용
 /// - 모바일(Android/iOS): 직접 API 호출 (CORS 제한 없음)
+///
+/// 일부 API (JUSO 등)는 도메인 등록이 필요하여 항상 프록시 사용
 class ApiHelper {
   /// 플랫폼에 맞는 URI 반환
   ///
@@ -21,6 +23,15 @@ class ApiHelper {
       // 모바일: 직접 호출
       return originalUri;
     }
+  }
+
+  /// 항상 프록시를 통해 호출 (도메인 등록이 필요한 API용)
+  ///
+  /// JUSO API 등 도메인 등록이 필요한 API는 모바일에서도 프록시 사용
+  static Uri getProxiedUri(Uri originalUri) {
+    return Uri.parse(
+      '${ApiConstants.proxyRequstAddr}?q=${Uri.encodeComponent(originalUri.toString())}',
+    );
   }
 
   /// 플랫폼에 맞는 URI 반환 (String URL 버전)
