@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:property/constants/apple_design_system.dart';
+import 'package:property/constants/responsive_constants.dart';
 import 'package:property/api_request/firebase_service.dart';
 import 'package:property/api_request/log_service.dart';
 import 'package:property/utils/logger.dart';
@@ -209,16 +210,23 @@ class MainPageState extends State<MainPage> {
 
   @override
   Widget build(BuildContext context) {
+    final maxWidth = ResponsiveHelper.getMaxWidth(context);
+
     return Scaffold(
       backgroundColor: AppleColors.systemGroupedBackground,
       body: SafeArea(
         child: OfflineBanner(
-          child: Column(
-            children: [
-              _buildHeader(),
-              _buildSegmentedControl(),
-              Expanded(child: _getPage(_currentIndex)),
-            ],
+          child: Center(
+            child: ConstrainedBox(
+              constraints: BoxConstraints(maxWidth: maxWidth),
+              child: Column(
+                children: [
+                  _buildHeader(),
+                  _buildSegmentedControl(),
+                  Expanded(child: _getPage(_currentIndex)),
+                ],
+              ),
+            ),
           ),
         ),
       ),
