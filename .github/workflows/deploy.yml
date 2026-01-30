@@ -32,6 +32,9 @@ jobs:
       - name: Flutter 버전 확인
         run: flutter --version
 
+      - name: .env 파일 생성
+        run: touch .env
+
       - name: 의존성 설치
         run: flutter pub get
 
