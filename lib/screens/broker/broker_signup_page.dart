@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:property/constants/app_constants.dart';
+import 'package:property/constants/responsive_constants.dart';
 import 'package:property/api_request/firebase_service.dart';
 import 'package:property/api_request/broker_verification_service.dart';
 import 'package:property/widgets/home_logo_button.dart';
@@ -319,10 +320,13 @@ class _BrokerSignupPageState extends State<BrokerSignupPage> {
         ),
       ),
         body: SafeArea(
-          child: SingleChildScrollView(
-            physics: const AlwaysScrollableScrollPhysics(),
-        padding: const EdgeInsets.all(24),
-        child: Form(
+          child: Center(
+            child: ConstrainedBox(
+              constraints: BoxConstraints(maxWidth: ResponsiveHelper.getMaxWidth(context)),
+              child: SingleChildScrollView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                padding: const EdgeInsets.all(24),
+                child: Form(
           key: _formKey,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -825,13 +829,15 @@ class _BrokerSignupPageState extends State<BrokerSignupPage> {
                   ),
                 ),
               ),
-            ],
+                    ],
+                  ),
+                ),
               ),
             ),
           ),
-          ),
         ),
       ),
+    ),
     );
   }
 }

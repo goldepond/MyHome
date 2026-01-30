@@ -4,6 +4,7 @@ import '../../models/mls_property.dart';
 import '../../api_request/mls_property_service.dart';
 import '../../api_request/firebase_service.dart';
 import '../../constants/apple_design_system.dart';
+import '../../constants/responsive_constants.dart';
 import '../../utils/logger.dart';
 import '../../utils/commission_calculator.dart';
 import '../../widgets/home_logo_button.dart';
@@ -395,16 +396,23 @@ class _MLSBrokerDashboardPageState extends State<MLSBrokerDashboardPage>
 
   @override
   Widget build(BuildContext context) {
+    final maxWidth = ResponsiveHelper.getMaxWidth(context);
+
     return Scaffold(
       backgroundColor: AppleColors.systemGroupedBackground,
       body: SafeArea(
         child: OfflineBanner(
-          child: Column(
-            children: [
-              _buildHeader(),
-              _buildSegmentedControl(),
-              Expanded(child: _buildBody()),
-            ],
+          child: Center(
+            child: ConstrainedBox(
+              constraints: BoxConstraints(maxWidth: maxWidth),
+              child: Column(
+                children: [
+                  _buildHeader(),
+                  _buildSegmentedControl(),
+                  Expanded(child: _buildBody()),
+                ],
+              ),
+            ),
           ),
         ),
       ),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:property/constants/app_constants.dart';
+import 'package:property/constants/responsive_constants.dart';
 import 'package:property/api_request/firebase_service.dart';
 
 /// 공인중개사 본인 정보 관리 페이지
@@ -167,24 +168,29 @@ class _BrokerSettingsPageState extends State<BrokerSettingsPage> {
       );
     }
 
+    final maxWidth = ResponsiveHelper.getMaxWidth(context);
+
     return GestureDetector(
       onTap: () => FocusScope.of(context).unfocus(),
       child: Scaffold(
       backgroundColor: AirbnbColors.surface,
         resizeToAvoidBottomInset: true,
         body: SafeArea(
-          child: LayoutBuilder(
-            builder: (context, constraints) {
-              final viewInsets = MediaQuery.of(context).viewInsets;
-              final actualHeight = constraints.maxHeight - viewInsets.bottom;
-              
-              return SingleChildScrollView(
-                physics: const ClampingScrollPhysics(),
-        padding: const EdgeInsets.all(16),
-                child: ConstrainedBox(
-                  constraints: BoxConstraints(
-                    minHeight: actualHeight - 32,
-                  ),
+          child: Center(
+            child: ConstrainedBox(
+              constraints: BoxConstraints(maxWidth: maxWidth),
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  final viewInsets = MediaQuery.of(context).viewInsets;
+                  final actualHeight = constraints.maxHeight - viewInsets.bottom;
+
+                  return SingleChildScrollView(
+                    physics: const ClampingScrollPhysics(),
+                    padding: const EdgeInsets.all(16),
+                    child: ConstrainedBox(
+                      constraints: BoxConstraints(
+                        minHeight: actualHeight - 32,
+                      ),
         child: Form(
           key: _formKey,
           child: Column(
@@ -385,7 +391,9 @@ class _BrokerSettingsPageState extends State<BrokerSettingsPage> {
                   ),
                 ),
               );
-            },
+                },
+              ),
+            ),
           ),
         ),
       ),
