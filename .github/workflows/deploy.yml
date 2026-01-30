@@ -36,7 +36,7 @@ jobs:
         run: flutter pub get
 
       - name: 웹 빌드
-        run: flutter build web --release --base-href "/TESTHOME/" --dart-define=DATA_GO_KR_SERVICE_KEY=${{ secrets.DATA_GO_KR_SERVICE_KEY }}
+        run: flutter build web --release --base-href "/MyHome/" --dart-define=DATA_GO_KR_SERVICE_KEY=${{ secrets.DATA_GO_KR_SERVICE_KEY }}
 
       - name: 404.html 추가 (SPA 라우팅용)
         run: cp build/web/index.html build/web/404.html

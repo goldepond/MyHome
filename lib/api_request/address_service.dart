@@ -76,7 +76,10 @@ class AddressService {
     try {
       // API 키 확인
       final apiKey = ApiConstants.jusoApiKey;
+      Logger.info('[주소검색] ========== 주소 검색 시작 ==========');
+      Logger.info('[주소검색] 검색 키워드: "$trimmedKeyword", 페이지: $page');
       Logger.info('[주소검색] API 키 존재: ${apiKey.isNotEmpty}, 길이: ${apiKey.length}');
+      Logger.info('[주소검색] API 키 앞 10자: ${apiKey.length > 10 ? apiKey.substring(0, 10) : apiKey}...');
 
       if (apiKey.isEmpty) {
         Logger.error('[주소검색] API 키가 비어있습니다!');
@@ -97,22 +100,31 @@ class AddressService {
         '&resultType=json',
       );
 
+      Logger.info('[주소검색] 원본 URI: $uri');
+
       // JUSO API는 도메인 등록이 필요하므로 항상 프록시 사용
       final requestUri = ApiHelper.getProxiedUri(uri);
-      Logger.info('[주소검색] 요청 URL (프록시): $requestUri');
+      Logger.info('[주소검색] 프록시 URI: $requestUri');
+      Logger.info('[주소검색] 프록시 주소: ${ApiConstants.proxyRequstAddr}');
 
       http.Response response;
       try {
+        Logger.info('[주소검색] HTTP GET 요청 시작...');
         response = await http.get(requestUri).timeout(
         const Duration(seconds: ApiConstants.requestTimeoutSeconds),
         onTimeout: () {
+          Logger.error('[주소검색] 타임아웃 발생! (${ApiConstants.requestTimeoutSeconds}초)');
           throw TimeoutException('주소 검색 시간이 초과되었습니다.');
         },
       );
-        Logger.info('[주소검색] 응답 상태: ${response.statusCode}');
-      } catch (e) {
+        Logger.info('[주소검색] 응답 상태 코드: ${response.statusCode}');
+        Logger.info('[주소검색] 응답 헤더: ${response.headers}');
+        Logger.info('[주소검색] 응답 본문 길이: ${response.body.length}');
+        Logger.info('[주소검색] 응답 본문 (처음 500자): ${response.body.length > 500 ? response.body.substring(0, 500) : response.body}');
+      } catch (e, stackTrace) {
         // HTTP 요청 자체가 실패한 경우
         Logger.error('[주소검색] HTTP 요청 실패: $e');
+        Logger.error('[주소검색] 스택 트레이스: $stackTrace');
         if (e is TimeoutException) {
           return AddressSearchResult(
             fullData: [],
@@ -141,8 +153,10 @@ class AddressService {
       }
       
       if (response.statusCode == 200) {
+        Logger.info('[주소검색] 200 OK - 응답 처리 시작');
         // 응답 본문이 비어있는지 확인
         if (response.body.isEmpty) {
+          Logger.error('[주소검색] 응답 본문이 비어있음!');
           return AddressSearchResult(
             fullData: [],
             addresses: [],
@@ -150,13 +164,16 @@ class AddressService {
             errorMessage: '서버에서 빈 응답을 받았습니다.',
           );
         }
-        
-        
+
+
         Map<String, dynamic> data;
         try {
+          Logger.info('[주소검색] JSON 파싱 시작...');
           final decoded = json.decode(response.body);
-          
+          Logger.info('[주소검색] JSON 파싱 성공, 타입: ${decoded.runtimeType}');
+
           if (decoded is! Map<String, dynamic>) {
+            Logger.error('[주소검색] 응답이 Map 형식이 아님: ${decoded.runtimeType}');
             return AddressSearchResult(
               fullData: [],
               addresses: [],
@@ -165,7 +182,10 @@ class AddressService {
             );
           }
           data = decoded;
-        } catch (e) {
+          Logger.info('[주소검색] data 키들: ${data.keys.toList()}');
+        } catch (e, stackTrace) {
+          Logger.error('[주소검색] JSON 파싱 실패: $e');
+          Logger.error('[주소검색] 파싱 실패 스택: $stackTrace');
           
           // minified 예외 처리
           final typeName = e.runtimeType.toString();
@@ -187,7 +207,9 @@ class AddressService {
         }
         
         // results 키가 없는 경우 처리
+        Logger.info('[주소검색] results 키 확인: ${data['results'] != null}, 타입: ${data['results']?.runtimeType}');
         if (data['results'] == null || data['results'] is! Map) {
+          Logger.error('[주소검색] results 키가 없거나 Map이 아님!');
           return AddressSearchResult(
             fullData: [],
             addresses: [],
@@ -195,19 +217,19 @@ class AddressService {
             errorMessage: '서버 응답 형식이 올바르지 않습니다.',
           );
         }
-        
+
         final results = data['results'] as Map<String, dynamic>;
-        
+        Logger.info('[주소검색] results 키들: ${results.keys.toList()}');
+
         final common = results['common'];
-        
-        if (common is Map) {
-        }
-        
+        Logger.info('[주소검색] common: $common');
+
         final errorCode = common is Map ? common['errorCode'] : null;
         final errorMsg = common is Map ? common['errorMessage'] : null;
-        
-        
+        Logger.info('[주소검색] API 에러코드: $errorCode, 메시지: $errorMsg');
+
         if (errorCode != '0') {
+          Logger.error('[주소검색] API 에러! 코드: $errorCode, 메시지: $errorMsg');
           return AddressSearchResult(
             fullData: [],
             addresses: [],
@@ -218,19 +240,21 @@ class AddressService {
         
         
         try {
+          Logger.info('[주소검색] 결과 처리 시작...');
           // results는 이미 위에서 선언됨
           final common = results['common'] as Map<String, dynamic>?;
           final juso = results['juso'];
-          
-          if (juso is List) {
-          }
-          
-          final total = common != null 
+
+          Logger.info('[주소검색] juso 타입: ${juso?.runtimeType}, 길이: ${juso is List ? juso.length : "N/A"}');
+
+          final total = common != null
               ? int.tryParse(common['totalCount']?.toString() ?? '0') ?? 0
               : 0;
-          
-          
+          Logger.info('[주소검색] 전체 결과 수: $total');
+
+
           if (juso != null && juso.length > 0) {
+            Logger.info('[주소검색] juso 첫번째 항목: ${juso[0]}');
             final List<dynamic> rawList = juso as List;
             
             final addressList = rawList
@@ -258,12 +282,15 @@ class AddressService {
                 .toList();
             
             
+            Logger.info('[주소검색] ========== 검색 성공! ==========');
+            Logger.info('[주소검색] 반환할 주소 수: ${addressList.length}, 총 결과: $total');
             return AddressSearchResult(
               fullData: convertedFullData,
               addresses: addressList,
               totalCount: total,
             );
           } else {
+            Logger.info('[주소검색] 검색 결과 없음 (juso가 null이거나 빈 배열)');
             return AddressSearchResult(
               fullData: [],
               addresses: [],

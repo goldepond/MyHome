@@ -14,7 +14,7 @@ class NetworkStatus {
   static const Duration _cacheDuration = Duration(seconds: 30);
   // 모바일에서 사용할 테스트 URL (웹에서는 CORS로 사용 불가)
   static const String _testUrl = 'https://www.google.com';
-  static const Duration _testTimeout = Duration(seconds: 3);
+  static const Duration _testTimeout = Duration(seconds: 5);
 
   /// 네트워크 연결 상태 확인 (캐시된 결과 반환)
   ///

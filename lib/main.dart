@@ -55,18 +55,16 @@ void main() async {
     return true;
   };
 
-  // .env 파일이 있으면 로드, 없으면 무시 (웹에서는 건너뜀)
-  if (!kIsWeb) {
-    try {
-      await dotenv.load(fileName: ".env");
-      Logger.info('.env 파일 로드 성공 - JUSO_API_KEY 존재: ${dotenv.env['JUSO_API_KEY']?.isNotEmpty ?? false}');
-    } catch (e) {
-      // .env 파일이 없어도 앱은 실행 가능
-      Logger.warning(
-        '.env 파일을 로드할 수 없습니다',
-        metadata: {'error': e.toString()},
-      );
-    }
+  // .env 파일 로드 (assets에서)
+  try {
+    await dotenv.load(fileName: ".env");
+    Logger.info('.env 파일 로드 성공 - JUSO_API_KEY 존재: ${dotenv.env['JUSO_API_KEY']?.isNotEmpty ?? false}');
+  } catch (e) {
+    // .env 파일이 없어도 앱은 실행 가능 (웹에서는 다른 방식으로 로드될 수 있음)
+    Logger.warning(
+      '.env 파일을 로드할 수 없습니다',
+      metadata: {'error': e.toString()},
+    );
   }
 
   // Firebase 초기화 (앱 실행 전에 완료)
@@ -108,51 +106,18 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
-  bool _firebaseInitialized = false;
-  String? _initError;
-
-  @override
-  void initState() {
-    super.initState();
-    _checkFirebaseInit();
-  }
-
-  Future<void> _checkFirebaseInit() async {
-    try {
-      // Firebase 초기화 상태 확인
-      if (Firebase.apps.isNotEmpty) {
-        setState(() {
-          _firebaseInitialized = true;
-          _initError = null;
-        });
-      } else {
-        // 재시도
-        await Firebase.initializeApp(
-          options: DefaultFirebaseOptions.currentPlatform,
-        );
-        setState(() {
-          _firebaseInitialized = true;
-          _initError = null;
-        });
-      }
-    } catch (e) {
-      setState(() {
-        _firebaseInitialized = false;
-        _initError = e.toString();
-      });
-      Logger.error('Firebase 초기화 실패', error: e);
-    }
-  }
+  // Firebase는 main()에서 이미 초기화됨 - 여기서는 상태만 확인
+  bool get _isFirebaseReady => Firebase.apps.isNotEmpty;
 
   @override
   Widget build(BuildContext context) {
     // Firebase 초기화 실패 시 에러 화면 표시
-    if (!_firebaseInitialized || _initError != null) {
+    if (!_isFirebaseReady) {
       return MaterialApp(
         debugShowCheckedModeBanner: false,
         home: _NetworkErrorScreen(
           message: '서버에 연결할 수 없습니다.\n네트워크 연결을 확인해주세요.',
-          onRetry: _checkFirebaseInit,
+          onRetry: () => setState(() {}),
         ),
       );
     }
