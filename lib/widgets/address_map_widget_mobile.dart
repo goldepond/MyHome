@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:webview_flutter/webview_flutter.dart';
+import 'package:webview_flutter_android/webview_flutter_android.dart';
 import '../constants/apple_design_system.dart';
 
 /// 모바일용 주소 지도 위젯 (WebView 사용)
@@ -43,8 +44,17 @@ class _AddressMapWidgetMobileState extends State<AddressMapWidgetMobile> {
 
     _controller = WebViewController()
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
-      ..setBackgroundColor(Colors.white)
-      ..setNavigationDelegate(
+      ..setBackgroundColor(Colors.white);
+
+    // Android WebView에서 mixed content (http + https) 허용
+    if (_controller.platform is AndroidWebViewController) {
+      (_controller.platform as AndroidWebViewController)
+          .setMediaPlaybackRequiresUserGesture(false);
+      // Mixed content 모드 설정 (MIXED_CONTENT_ALWAYS_ALLOW = 0)
+      AndroidWebViewController.enableDebugging(true);
+    }
+
+    _controller.setNavigationDelegate(
         NavigationDelegate(
           onPageStarted: (String url) {
             if (mounted) {
@@ -72,8 +82,9 @@ class _AddressMapWidgetMobileState extends State<AddressMapWidgetMobile> {
             }
           },
         ),
-      )
-      ..loadHtmlString(_buildHtmlContent(lat, lng));
+      );
+
+    _controller.loadHtmlString(_buildHtmlContent(lat, lng));
   }
 
   @override
@@ -104,6 +115,7 @@ class _AddressMapWidgetMobileState extends State<AddressMapWidgetMobile> {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
   <title>주소 지도</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }

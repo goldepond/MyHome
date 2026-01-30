@@ -9,6 +9,11 @@
         </trust-anchors>
     </domain-config>
 
+    <!-- VWorld 지도 SDK (http 사용) -->
+    <domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="true">vworld.kr</domain>
+    </domain-config>
+
     <!-- 기본 설정 -->
     <base-config cleartextTrafficPermitted="false">
         <trust-anchors>

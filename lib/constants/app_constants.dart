@@ -271,10 +271,10 @@ String _getEnv(String key) {
     final value = webApiKeys[key] ?? '';
     if (key == 'JUSO_API_KEY') {
       // 웹용 Juso API 키 (도로명주소 검색 API)
-      // 승인키: U01TX0FVVEgyMDI1MTEyNDE2NTAxMDExNjQ4Nzc=
-      // 시스템: https://goldepond.github.io/TESTHOME/
+      // 승인키: U01TX0FVVEgyMDI2MDEzMDE1NDgwMDExNzUyMjE=
+      // 시스템: https://goldepond.github.io/MyHome/
       if (value.isEmpty) {
-        return 'U01TX0FVVEgyMDI1MTEyNDE2NTAxMDExNjQ4Nzc=';
+        return 'U01TX0FVVEgyMDI2MDEzMDE1NDgwMDExNzUyMjE=';
       }
       return value;
     }
