@@ -4,6 +4,7 @@ import '../models/mls_property.dart';
 import '../models/notification_model.dart';
 import '../utils/logger.dart';
 import 'firebase_service.dart';
+import 'broker_stats_service.dart';
 
 /// MLS(Multiple Listing Service)형 매물 관리 서비스
 ///
@@ -39,6 +40,39 @@ class MLSPropertyService {
       return property.id;
     } catch (e) {
       Logger.error('Failed to create MLS property', error: e);
+      rethrow;
+    }
+  }
+
+  /// 매물 생성 (사용자 기본 시간 블록 자동 적용)
+  ///
+  /// 사용자가 설정한 기본 주간 시간 블록을 자동으로 적용합니다.
+  Future<String> createPropertyWithDefaults(
+    MLSProperty property,
+    String userId,
+  ) async {
+    try {
+      // 사용자의 기본 시간 블록 조회
+      final defaultBlocks = await FirebaseService().getDefaultWeeklyTimeBlocks(userId);
+      final blockedDates = await FirebaseService().getBlockedDates(userId);
+
+      // 기본 시간 블록이 있으면 적용
+      MLSProperty propertyWithDefaults = property;
+      if (defaultBlocks.isNotEmpty) {
+        propertyWithDefaults = property.copyWith(
+          weeklyTimeBlocks: defaultBlocks,
+        );
+        Logger.info('기본 주간 시간 블록 적용: ${defaultBlocks.keys.length}일');
+      }
+
+      // 매물 생성
+      final docRef = _firestore.collection(_collectionName).doc(propertyWithDefaults.id);
+      await docRef.set(propertyWithDefaults.toMap());
+      Logger.info('MLS Property created with defaults: ${propertyWithDefaults.id}');
+
+      return propertyWithDefaults.id;
+    } catch (e) {
+      Logger.error('Failed to create MLS property with defaults', error: e);
       rethrow;
     }
   }
@@ -744,6 +778,12 @@ class MLSPropertyService {
     return '${price.toStringAsFixed(0)}만원';
   }
 
+  /// 두 시간이 같은 시간대인지 확인 (1시간 이내면 충돌로 간주)
+  bool _isSameTimeSlot(DateTime time1, DateTime time2) {
+    final diff = time1.difference(time2).abs();
+    return diff.inMinutes < 60; // 1시간 이내면 같은 시간대로 간주
+  }
+
   /// 거래 완료 처리
   Future<void> completeTransaction({
     required String propertyId,
@@ -764,6 +804,42 @@ class MLSPropertyService {
       );
 
       Logger.info('Transaction completed: $propertyId');
+
+      // 중개사 통계 업데이트 (거래 완료)
+      // 제안가와 최종가 비교를 위해 매물 정보 조회
+      final updatedProperty = await getProperty(propertyId);
+      if (updatedProperty != null) {
+        // 해당 중개사의 제안가 찾기
+        final visitRequest = updatedProperty.visitRequests
+            .where((r) => r.brokerId == finalBrokerId)
+            .lastOrNull;
+        final proposedPrice = visitRequest?.proposedPrice ?? finalPrice;
+
+        // 지역 정보 추출 (시/도 단위)
+        final region = updatedProperty.address.split(' ').firstOrNull ?? '';
+
+        await BrokerStatsService().onDealCompleted(
+          brokerId: finalBrokerId,
+          dealAmount: finalPrice,
+          proposedPrice: proposedPrice,
+          finalPrice: finalPrice,
+          region: region,
+        );
+
+        // 판매자 히스토리 업데이트
+        await BrokerStatsService().onSellerDealCompleted(
+          sellerId: updatedProperty.userId,
+          propertyId: propertyId,
+          brokerId: finalBrokerId,
+          brokerName: visitRequest?.brokerName ?? '',
+          finalPrice: finalPrice,
+          proposedPrice: proposedPrice,
+          region: region,
+          brokerCompany: visitRequest?.brokerCompany,
+          address: updatedProperty.address,
+          transactionType: updatedProperty.transactionType,
+        );
+      }
     } catch (e) {
       Logger.error('Failed to complete transaction', error: e);
       rethrow;
@@ -892,6 +968,28 @@ class MLSPropertyService {
       Logger.info('Available slots updated for property: $propertyId');
     } catch (e) {
       Logger.error('Failed to set available slots', error: e);
+      rethrow;
+    }
+  }
+
+  /// 주간 시간 블록 설정 (요일별 오전/오후/저녁)
+  Future<void> setWeeklyTimeBlocks({
+    required String propertyId,
+    required Map<int, List<String>> weeklyBlocks,
+  }) async {
+    try {
+      // Firestore는 int 키를 지원하지 않으므로 문자열로 변환
+      final blocksMap = weeklyBlocks.map(
+        (weekday, blocks) => MapEntry(weekday.toString(), blocks),
+      );
+
+      await updateProperty(propertyId, {
+        'weeklyTimeBlocks': blocksMap,
+      });
+
+      Logger.info('Weekly time blocks updated for property: $propertyId');
+    } catch (e) {
+      Logger.error('Failed to set weekly time blocks', error: e);
       rethrow;
     }
   }
@@ -1183,6 +1281,14 @@ class MLSPropertyService {
       );
 
       Logger.info('Visit request created: $requestId for property: $propertyId');
+
+      // 중개사 통계 업데이트 (방문 요청 생성)
+      await BrokerStatsService().onVisitRequestCreated(
+        brokerId: brokerId,
+        brokerName: brokerName,
+        brokerCompany: brokerCompany,
+      );
+
       return visitRequest;
     } catch (e) {
       Logger.error('Failed to create visit request', error: e);
@@ -1239,6 +1345,33 @@ class MLSPropertyService {
         viewedAt: existingResponse?.viewedAt ?? now,
       );
 
+      // 같은 시간대 다른 요청 자동 reschedule 처리 (동시성 제어)
+      final approvedTime = request.requestedDateTime;
+      final conflictingBrokerIds = <String>[];
+
+      for (int i = 0; i < visitRequests.length; i++) {
+        final r = visitRequests[i];
+        if (r.id != requestId &&
+            r.status == VisitRequestStatus.pending &&
+            _isSameTimeSlot(r.requestedDateTime, approvedTime)) {
+          // 충돌하는 요청을 reschedule 상태로 변경
+          visitRequests[i] = r.copyWith(
+            status: VisitRequestStatus.reschedule,
+            respondedAt: now,
+            sellerResponse: '다른 중개사의 같은 시간 요청이 승인되었습니다. 다른 시간을 선택해 주세요.',
+          );
+          conflictingBrokerIds.add(r.brokerId);
+
+          // BrokerResponse stage를 viewed로 변경
+          if (brokerResponses.containsKey(r.brokerId) &&
+              brokerResponses[r.brokerId]!.stage == BrokerStage.requested) {
+            brokerResponses[r.brokerId] = brokerResponses[r.brokerId]!.copyWith(
+              stage: BrokerStage.viewed,
+            );
+          }
+        }
+      }
+
       // 매물 상태도 inquiry로 변경 (첫 승인인 경우)
       final newStatus = property.status == PropertyStatus.active
           ? PropertyStatus.inquiry
@@ -1259,7 +1392,26 @@ class MLSPropertyService {
         relatedId: propertyId,
       );
 
+      // 충돌하는 요청의 중개사들에게 알림 전송
+      for (final brokerId in conflictingBrokerIds) {
+        await FirebaseService().sendNotification(
+          userId: brokerId,
+          type: 'visit_reschedule_needed',
+          title: '시간 변경 필요',
+          message: '요청하신 시간에 다른 방문이 확정되었습니다. 다른 시간을 선택해 주세요.',
+          relatedId: propertyId,
+        );
+      }
+
       Logger.info('Visit request approved: $requestId, contact exchanged');
+
+      // 중개사 통계 업데이트 (승인됨 - 응답 시간 기록)
+      final responseTimeSeconds = now.difference(request.createdAt).inSeconds;
+      await BrokerStatsService().onVisitRequestResponded(
+        brokerId: request.brokerId,
+        approved: true,
+        responseTimeSeconds: responseTimeSeconds,
+      );
     } catch (e) {
       Logger.error('Failed to approve visit request', error: e);
       rethrow;
@@ -1323,6 +1475,14 @@ class MLSPropertyService {
       );
 
       Logger.info('Visit request rejected: $requestId');
+
+      // 중개사 통계 업데이트 (거절됨)
+      final responseTimeSeconds = now.difference(request.createdAt).inSeconds;
+      await BrokerStatsService().onVisitRequestResponded(
+        brokerId: request.brokerId,
+        approved: false,
+        responseTimeSeconds: responseTimeSeconds,
+      );
     } catch (e) {
       Logger.error('Failed to reject visit request', error: e);
       rethrow;
@@ -1439,6 +1599,11 @@ class MLSPropertyService {
       );
 
       Logger.info('Visit request cancelled: $requestId');
+
+      // 중개사 통계 업데이트 (취소됨)
+      await BrokerStatsService().onVisitRequestCancelled(
+        brokerId: request.brokerId,
+      );
     } catch (e) {
       Logger.error('Failed to cancel visit request', error: e);
       rethrow;
@@ -1507,6 +1672,123 @@ class MLSPropertyService {
       Logger.info('Alternative time accepted for visit request: $requestId');
     } catch (e) {
       Logger.error('Failed to accept alternative time', error: e);
+      rethrow;
+    }
+  }
+
+  // ========================================
+  // 방문 완료/노쇼 처리 (통계 수집용)
+  // ========================================
+
+  /// 방문 완료 처리 (판매자가 확인)
+  ///
+  /// 승인된 방문 요청에 대해 실제 방문이 완료되었음을 기록합니다.
+  Future<void> markVisitCompleted({
+    required String propertyId,
+    required String requestId,
+    String? feedback,
+  }) async {
+    try {
+      final property = await getProperty(propertyId);
+      if (property == null) {
+        throw Exception('Property not found: $propertyId');
+      }
+
+      final visitRequests = List<VisitRequest>.from(property.visitRequests);
+      final index = visitRequests.indexWhere((r) => r.id == requestId);
+      if (index == -1) {
+        throw Exception('Visit request not found: $requestId');
+      }
+
+      final request = visitRequests[index];
+
+      if (request.status != VisitRequestStatus.approved) {
+        throw Exception('승인된 요청만 방문 완료 처리할 수 있습니다');
+      }
+
+      final now = DateTime.now();
+
+      // 요청 상태 업데이트
+      final updatedRequest = request.copyWith(
+        visitCompletedAt: now,
+        noShow: false,
+        visitFeedback: feedback,
+      );
+      visitRequests[index] = updatedRequest;
+
+      await updateProperty(propertyId, {
+        'visitRequests': visitRequests.map((e) => e.toMap()).toList(),
+      });
+
+      // 중개사 통계 업데이트 (방문 완료)
+      await BrokerStatsService().onVisitCompleted(
+        brokerId: request.brokerId,
+      );
+
+      Logger.info('Visit completed: $requestId');
+    } catch (e) {
+      Logger.error('Failed to mark visit completed', error: e);
+      rethrow;
+    }
+  }
+
+  /// 노쇼 처리 (판매자가 확인)
+  ///
+  /// 승인된 방문 요청에 대해 중개사가 나타나지 않았음을 기록합니다.
+  Future<void> markVisitNoShow({
+    required String propertyId,
+    required String requestId,
+    String? feedback,
+  }) async {
+    try {
+      final property = await getProperty(propertyId);
+      if (property == null) {
+        throw Exception('Property not found: $propertyId');
+      }
+
+      final visitRequests = List<VisitRequest>.from(property.visitRequests);
+      final index = visitRequests.indexWhere((r) => r.id == requestId);
+      if (index == -1) {
+        throw Exception('Visit request not found: $requestId');
+      }
+
+      final request = visitRequests[index];
+
+      if (request.status != VisitRequestStatus.approved) {
+        throw Exception('승인된 요청만 노쇼 처리할 수 있습니다');
+      }
+
+      final now = DateTime.now();
+
+      // 요청 상태 업데이트
+      final updatedRequest = request.copyWith(
+        visitCompletedAt: now,
+        noShow: true,
+        visitFeedback: feedback,
+      );
+      visitRequests[index] = updatedRequest;
+
+      await updateProperty(propertyId, {
+        'visitRequests': visitRequests.map((e) => e.toMap()).toList(),
+      });
+
+      // 중개사 통계 업데이트 (노쇼)
+      await BrokerStatsService().onNoShow(
+        brokerId: request.brokerId,
+      );
+
+      // 판매자에게 알림 전송 (노쇼 기록됨)
+      await FirebaseService().sendNotification(
+        userId: request.brokerId,
+        type: 'no_show_recorded',
+        title: '노쇼 기록',
+        message: '${property.userName}님이 방문 미이행을 기록했습니다.',
+        relatedId: propertyId,
+      );
+
+      Logger.info('Visit marked as no-show: $requestId');
+    } catch (e) {
+      Logger.error('Failed to mark visit as no-show', error: e);
       rethrow;
     }
   }

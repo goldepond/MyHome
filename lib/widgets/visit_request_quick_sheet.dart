@@ -3,6 +3,7 @@ import '../models/mls_property.dart';
 import '../api_request/mls_property_service.dart';
 import '../constants/apple_design_system.dart';
 import 'broker_profile_sheet.dart';
+import 'report_dialog.dart';
 
 /// 방문 요청 관리 바텀시트 (판매자용)
 /// 매물 리스트에서 바로 승인/거절 가능 - 3클릭 룰 개선
@@ -223,6 +224,35 @@ class _VisitRequestQuickSheetState extends State<VisitRequestQuickSheet> {
                     '희망가',
                     style: AppleTypography.caption2.copyWith(
                       color: AppleColors.tertiaryLabel,
+                    ),
+                  ),
+                ],
+              ),
+              // 더보기 메뉴 (신고)
+              PopupMenuButton<String>(
+                icon: Icon(
+                  Icons.more_vert,
+                  color: AppleColors.secondaryLabel,
+                  size: 20,
+                ),
+                padding: EdgeInsets.zero,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(AppleRadius.md),
+                ),
+                onSelected: (value) {
+                  if (value == 'report') {
+                    _reportBroker(request);
+                  }
+                },
+                itemBuilder: (context) => [
+                  PopupMenuItem(
+                    value: 'report',
+                    child: Row(
+                      children: [
+                        Icon(Icons.flag_rounded, color: AppleColors.systemRed, size: 18),
+                        const SizedBox(width: 8),
+                        Text('중개사 신고', style: TextStyle(color: AppleColors.systemRed)),
+                      ],
                     ),
                   ),
                 ],
@@ -468,6 +498,18 @@ class _VisitRequestQuickSheetState extends State<VisitRequestQuickSheet> {
         );
       }
     }
+  }
+
+  /// 중개사 신고
+  Future<void> _reportBroker(VisitRequest request) async {
+    await showReportDialog(
+      context: context,
+      reporterId: widget.property.userId,
+      reporterName: widget.property.userName,
+      brokerId: request.brokerId,
+      brokerName: request.brokerName,
+      propertyId: widget.property.id,
+    );
   }
 
   String _formatPrice(double price) {

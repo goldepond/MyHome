@@ -1164,12 +1164,37 @@ class _MLSBrokerDashboardPageState extends State<MLSBrokerDashboardPage>
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // 상단: 상태 + 지역
+                // 상단: 상태 + 검증 + 지역
                 Row(
                   children: [
                     _buildStatusBadge(property.status),
+                    // 검증됨 뱃지
+                    if (property.verificationStatus == VerificationStatus.adminApproved) ...[
+                      const SizedBox(width: 6),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: AppleColors.systemTeal.withValues(alpha: 0.12),
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(Icons.verified, size: 12, color: AppleColors.systemTeal),
+                            const SizedBox(width: 2),
+                            Text(
+                              '검증됨',
+                              style: AppleTypography.caption2.copyWith(
+                                color: AppleColors.systemTeal,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
                     if (isMyCompeting) ...[
-                      const SizedBox(width: 8),
+                      const SizedBox(width: 6),
                       _buildBadge('참여중', AppleColors.systemGreen),
                     ],
                     const Spacer(),
@@ -1776,6 +1801,61 @@ class _MLSBrokerDashboardPageState extends State<MLSBrokerDashboardPage>
     );
   }
 
+  /// 주간 시간 블록 정보 표시 (판매자가 설정한 요일별 가능 시간)
+  Widget _buildWeeklyTimeBlocksInfo(Map<int, List<String>> weeklyBlocks) {
+    const weekdayNames = ['월', '화', '수', '목', '금', '토', '일'];
+    const blockLabels = {
+      'morning': '오전(9-12시)',
+      'afternoon': '오후(1-5시)',
+      'evening': '저녁(6-8시)',
+    };
+
+    // 요일별 시간 정보 생성
+    final scheduleInfo = <String>[];
+    weeklyBlocks.forEach((weekday, blocks) {
+      final dayName = weekdayNames[weekday - 1];
+      final blockNames = blocks.map((id) => blockLabels[id] ?? id).join(', ');
+      scheduleInfo.add('$dayName: $blockNames');
+    });
+
+    return Container(
+      padding: const EdgeInsets.all(AppleSpacing.sm),
+      decoration: BoxDecoration(
+        color: AppleColors.systemGreen.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(AppleRadius.sm),
+        border: Border.all(color: AppleColors.systemGreen.withValues(alpha: 0.3)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Icon(Icons.schedule, size: 16, color: AppleColors.systemGreen),
+              const SizedBox(width: AppleSpacing.xs),
+              Text(
+                '판매자 방문 가능 시간',
+                style: AppleTypography.caption1.copyWith(
+                  color: AppleColors.systemGreen,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: AppleSpacing.xs),
+          ...scheduleInfo.map((info) => Padding(
+            padding: const EdgeInsets.only(left: 24, top: 2),
+            child: Text(
+              info,
+              style: AppleTypography.caption2.copyWith(
+                color: AppleColors.systemGreen.withValues(alpha: 0.9),
+              ),
+            ),
+          )),
+        ],
+      ),
+    );
+  }
+
   Widget _buildEmptyState(String title, String subtitle) {
     return Center(
       child: Column(
@@ -1957,6 +2037,35 @@ class _MLSBrokerDashboardPageState extends State<MLSBrokerDashboardPage>
                       // 3. 방문 희망 일시 (필수)
                       const Text('방문 희망 일시 *', style: AppleTypography.headline),
                       const SizedBox(height: AppleSpacing.sm),
+
+                      // 판매자 가용 시간대 안내 (주간 블록 또는 날짜별)
+                      if (property.weeklyTimeBlocks.isNotEmpty) ...[
+                        _buildWeeklyTimeBlocksInfo(property.weeklyTimeBlocks),
+                        const SizedBox(height: AppleSpacing.sm),
+                      ] else if (property.availableSlots.isNotEmpty) ...[
+                        Container(
+                          padding: const EdgeInsets.all(AppleSpacing.sm),
+                          decoration: BoxDecoration(
+                            color: AppleColors.systemGreen.withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(AppleRadius.sm),
+                            border: Border.all(color: AppleColors.systemGreen.withValues(alpha: 0.3)),
+                          ),
+                          child: Row(
+                            children: [
+                              const Icon(Icons.schedule, size: 16, color: AppleColors.systemGreen),
+                              const SizedBox(width: AppleSpacing.xs),
+                              Expanded(
+                                child: Text(
+                                  '판매자가 설정한 방문 가능 시간이 있습니다',
+                                  style: AppleTypography.caption1.copyWith(color: AppleColors.systemGreen),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: AppleSpacing.sm),
+                      ],
+
                       Row(
                         children: [
                           Expanded(
@@ -2054,6 +2163,89 @@ class _MLSBrokerDashboardPageState extends State<MLSBrokerDashboardPage>
                           ),
                         ],
                       ),
+
+                      // 선택된 날짜의 가용 시간대 표시
+                      if (selectedDate != null) ...[
+                        const SizedBox(height: AppleSpacing.md),
+                        Builder(
+                          builder: (context) {
+                            final dateKey = '${selectedDate!.year}-${selectedDate!.month.toString().padLeft(2, '0')}-${selectedDate!.day.toString().padLeft(2, '0')}';
+                            final slots = property.availableSlots[dateKey] ?? [];
+                            final availableSlots = slots.where((s) => s.isAvailable).toList();
+
+                            if (availableSlots.isEmpty) {
+                              return Container(
+                                padding: const EdgeInsets.all(AppleSpacing.sm),
+                                decoration: BoxDecoration(
+                                  color: AppleColors.tertiarySystemFill,
+                                  borderRadius: BorderRadius.circular(AppleRadius.sm),
+                                ),
+                                child: Row(
+                                  children: [
+                                    const Icon(Icons.info_outline, size: 16, color: AppleColors.secondaryLabel),
+                                    const SizedBox(width: AppleSpacing.xs),
+                                    Expanded(
+                                      child: Text(
+                                        '이 날짜에 설정된 가능 시간대가 없습니다. 원하는 시간을 선택해주세요.',
+                                        style: AppleTypography.caption1.copyWith(color: AppleColors.secondaryLabel),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              );
+                            }
+
+                            return Container(
+                              padding: const EdgeInsets.all(AppleSpacing.sm),
+                              decoration: BoxDecoration(
+                                color: AppleColors.systemBlue.withValues(alpha: 0.08),
+                                borderRadius: BorderRadius.circular(AppleRadius.sm),
+                                border: Border.all(color: AppleColors.systemBlue.withValues(alpha: 0.2)),
+                              ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    children: [
+                                      const Icon(Icons.check_circle, size: 16, color: AppleColors.systemBlue),
+                                      const SizedBox(width: AppleSpacing.xs),
+                                      Text(
+                                        '판매자 가능 시간',
+                                        style: AppleTypography.caption1.copyWith(
+                                          color: AppleColors.systemBlue,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  const SizedBox(height: AppleSpacing.xs),
+                                  Wrap(
+                                    spacing: AppleSpacing.xs,
+                                    runSpacing: AppleSpacing.xs,
+                                    children: availableSlots.map((slot) => Container(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: AppleSpacing.sm,
+                                        vertical: AppleSpacing.xs,
+                                      ),
+                                      decoration: BoxDecoration(
+                                        color: AppleColors.systemBlue.withValues(alpha: 0.15),
+                                        borderRadius: BorderRadius.circular(AppleRadius.xs),
+                                      ),
+                                      child: Text(
+                                        '${slot.startTime} - ${slot.endTime}',
+                                        style: AppleTypography.caption2.copyWith(
+                                          color: AppleColors.systemBlue,
+                                          fontWeight: FontWeight.w500,
+                                        ),
+                                      ),
+                                    )).toList(),
+                                  ),
+                                ],
+                              ),
+                            );
+                          },
+                        ),
+                      ],
 
                       const SizedBox(height: AppleSpacing.lg),
 

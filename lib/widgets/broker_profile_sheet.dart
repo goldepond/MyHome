@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../constants/apple_design_system.dart';
 import '../api_request/firebase_service.dart';
+import 'report_dialog.dart';
 
 /// 공인중개사 프로필 바텀시트
 /// 판매자가 중개사 정보를 조회할 때 사용
@@ -108,6 +109,12 @@ class _BrokerProfileSheetState extends State<BrokerProfileSheet> {
                   style: AppleTypography.title2.copyWith(fontWeight: FontWeight.w700),
                 ),
                 const Spacer(),
+                // 신고 버튼
+                IconButton(
+                  onPressed: _reportBroker,
+                  icon: const Icon(Icons.flag_outlined, color: AppleColors.secondaryLabel),
+                  tooltip: '신고하기',
+                ),
                 IconButton(
                   onPressed: () => Navigator.pop(context),
                   icon: const Icon(Icons.close, color: AppleColors.secondaryLabel),
@@ -433,6 +440,38 @@ class _BrokerProfileSheetState extends State<BrokerProfileSheet> {
     final uri = Uri.parse('tel:$phone');
     if (await canLaunchUrl(uri)) {
       await launchUrl(uri);
+    }
+  }
+
+  Future<void> _reportBroker() async {
+    final currentUser = _firebaseService.currentUser;
+    if (currentUser == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('로그인이 필요합니다')),
+      );
+      return;
+    }
+
+    // 현재 사용자 정보 가져오기
+    final userData = await _firebaseService.getUser(currentUser.uid);
+    final reporterName = userData?['name'] as String? ?? currentUser.email ?? '익명';
+
+    // 중개사 정보
+    final brokerName = _brokerData?['businessName'] as String? ??
+                       _brokerData?['ownerName'] as String? ??
+                       widget.brokerName ??
+                       '알 수 없음';
+    final brokerRegNumber = _brokerData?['brokerRegistrationNumber'] as String?;
+
+    if (mounted) {
+      showReportDialog(
+        context: context,
+        reporterId: currentUser.uid,
+        reporterName: reporterName,
+        brokerId: widget.brokerId,
+        brokerName: brokerName,
+        brokerRegistrationNumber: brokerRegNumber,
+      );
     }
   }
 }

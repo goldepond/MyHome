@@ -3,8 +3,10 @@ import 'package:property/constants/app_constants.dart';
 import 'package:property/widgets/home_logo_button.dart';
 import 'admin_quote_requests_page.dart';
 import 'admin_broker_management.dart';
+import 'admin_broker_stats_page.dart';
 import 'admin_user_logs_page.dart';
 import 'admin_property_management.dart';
+import 'admin_property_verification_page.dart';
 import '../main_page.dart';
 
 class AdminDashboard extends StatefulWidget {
@@ -41,7 +43,15 @@ class _AdminDashboardState extends State<AdminDashboard> {
             userId: widget.userId,
             userName: widget.userName,
           ),
+          AdminBrokerStatsPage(
+            userId: widget.userId,
+            userName: widget.userName,
+          ),
           AdminPropertyManagement(
+            userId: widget.userId,
+            userName: widget.userName,
+          ),
+          AdminPropertyVerificationPage(
             userId: widget.userId,
             userName: widget.userName,
           ),
@@ -77,13 +87,17 @@ class _AdminDashboardState extends State<AdminDashboard> {
       children: [
         Expanded(child: _buildNavButton('대시보드', 0, Icons.dashboard_rounded, isMobile: true)),
         const SizedBox(width: 4),
-        Expanded(child: _buildNavButton('견적문의', 1, Icons.chat_bubble_outline, isMobile: true)),
+        Expanded(child: _buildNavButton('견적', 1, Icons.chat_bubble_outline, isMobile: true)),
         const SizedBox(width: 4),
         Expanded(child: _buildNavButton('중개사', 2, Icons.business_rounded, isMobile: true)),
         const SizedBox(width: 4),
-        Expanded(child: _buildNavButton('부동산', 3, Icons.home, isMobile: true)),
+        Expanded(child: _buildNavButton('통계', 3, Icons.bar_chart_rounded, isMobile: true)),
         const SizedBox(width: 4),
-        Expanded(child: _buildNavButton('로그', 4, Icons.analytics_outlined, isMobile: true)),
+        Expanded(child: _buildNavButton('부동산', 4, Icons.home, isMobile: true)),
+        const SizedBox(width: 4),
+        Expanded(child: _buildNavButton('검증', 5, Icons.verified_rounded, isMobile: true)),
+        const SizedBox(width: 4),
+        Expanded(child: _buildNavButton('로그', 6, Icons.analytics_outlined, isMobile: true)),
       ],
     );
   }
@@ -152,9 +166,13 @@ class _AdminDashboardState extends State<AdminDashboard> {
                   SizedBox(width: isNarrow ? 2 : 4),
                   Flexible(child: _buildNavButton('중개사', 2, Icons.business_rounded)),
                   SizedBox(width: isNarrow ? 2 : 4),
-                  Flexible(child: _buildNavButton('부동산', 3, Icons.home)),
+                  Flexible(child: _buildNavButton('통계', 3, Icons.bar_chart_rounded)),
                   SizedBox(width: isNarrow ? 2 : 4),
-                  Flexible(child: _buildNavButton('활동로그', 4, Icons.analytics_outlined)),
+                  Flexible(child: _buildNavButton('부동산', 4, Icons.home)),
+                  SizedBox(width: isNarrow ? 2 : 4),
+                  Flexible(child: _buildNavButton('검증', 5, Icons.verified_rounded)),
+                  SizedBox(width: isNarrow ? 2 : 4),
+                  Flexible(child: _buildNavButton('활동로그', 6, Icons.analytics_outlined)),
                 ],
               );
             },
@@ -356,17 +374,31 @@ class _AdminDashboardState extends State<AdminDashboard> {
         ),
         const SizedBox(height: 16),
         _buildCard(
+          icon: Icons.bar_chart_rounded,
+          title: '중개사 성과 통계',
+          description: '행동 데이터 기반 중개사 성과 지표를 모니터링합니다',
+          onTap: () => setState(() => _currentIndex = 3),
+        ),
+        const SizedBox(height: 16),
+        _buildCard(
           icon: Icons.home,
           title: '부동산 관리',
           description: '등록된 부동산 목록을 확인하고 관리합니다',
-          onTap: () => setState(() => _currentIndex = 3),
+          onTap: () => setState(() => _currentIndex = 4),
+        ),
+        const SizedBox(height: 16),
+        _buildCard(
+          icon: Icons.verified_rounded,
+          title: '매물 검증',
+          description: '신규 등록 매물의 등기를 확인하고 검증 승인합니다',
+          onTap: () => setState(() => _currentIndex = 5),
         ),
         const SizedBox(height: 16),
         _buildCard(
           icon: Icons.analytics_outlined,
           title: '사용자 행동 로그',
           description: '사용자들의 앱 내 활동 내역을 실시간으로 모니터링합니다',
-          onTap: () => setState(() => _currentIndex = 4),
+          onTap: () => setState(() => _currentIndex = 6),
         ),
       ],
     );

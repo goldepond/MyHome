@@ -626,22 +626,21 @@ class _MLSPropertyDetailPageState extends State<MLSPropertyDetailPage> {
       return b.createdAt.compareTo(a.createdAt);
     });
 
-    // 배포 현황 (소유자에게만 표시)
-    final totalBrokers = _property.brokerResponses.length;
+    // 중개사 현황 (소유자에게만 표시)
     final viewedBrokers = _property.brokerResponses.values
         .where((b) => b.hasViewed).length;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // 배포 현황 요약 - 소유자(판매자)에게만 표시
+        // 중개사 현황 요약 - 소유자(판매자)에게만 표시
         if (_isOwner) ...[
           AppleCard(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  '배포 현황',
+                  '중개사 현황',
                   style: AppleTypography.caption1.copyWith(
                     color: AppleColors.secondaryLabel,
                     fontWeight: FontWeight.w600,
@@ -650,14 +649,6 @@ class _MLSPropertyDetailPageState extends State<MLSPropertyDetailPage> {
                 const SizedBox(height: AppleSpacing.sm),
                 Row(
                   children: [
-                    Expanded(
-                      child: _buildStatColumn(
-                        icon: Icons.campaign_outlined,
-                        value: '$totalBrokers',
-                        label: '배포',
-                        color: AppleColors.systemBlue,
-                      ),
-                    ),
                     Expanded(
                       child: _buildStatColumn(
                         icon: Icons.visibility_outlined,

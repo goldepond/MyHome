@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart' show kIsWeb;
 import 'dart:ui' show PlatformDispatcher;
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:property/firebase_options.dart';
 import 'package:property/constants/app_constants.dart';
@@ -11,6 +12,7 @@ import 'package:property/screens/broker/mls_broker_dashboard_page.dart';
 import 'package:property/screens/auth/auth_landing_page.dart';
 import 'package:property/screens/auth/profile_completion_page.dart';
 import 'package:property/api_request/firebase_service.dart';
+import 'package:property/api_request/fcm_service.dart';
 import 'package:property/screens/inquiry/broker_inquiry_response_page.dart';
 import 'package:kakao_flutter_sdk_user/kakao_flutter_sdk_user.dart' as kakao;
 import 'package:property/utils/app_analytics_observer.dart';
@@ -77,6 +79,14 @@ void main() async {
     } else {
       Logger.info('Firebase 이미 초기화됨 (${Firebase.apps.length}개 앱)');
     }
+
+    // FCM 백그라운드 핸들러 등록 (Firebase 초기화 후)
+    if (!kIsWeb) {
+      FirebaseMessaging.onBackgroundMessage(firebaseMessagingBackgroundHandler);
+    }
+
+    // FCM 서비스 초기화
+    await FCMService().initialize();
   } catch (e) {
     // duplicate-app 에러는 무시 (이미 초기화된 경우)
     if (e.toString().contains('duplicate-app')) {
@@ -485,6 +495,9 @@ class _AuthGateState extends State<_AuthGate> {
               final brokerId =
                   (brokerData['brokerId'] as String?) ?? user.uid;
 
+              // FCM 토큰 저장 (푸시 알림용)
+              FCMService().getAndSaveToken(user.uid);
+
               return <String, dynamic>{
                 'uid': user.uid,
                 'name': brokerName,
@@ -502,6 +515,9 @@ class _AuthGateState extends State<_AuthGate> {
                     user.email?.split('@').first ??
                     '사용자')
                 : (user.email?.split('@').first ?? '사용자');
+
+            // FCM 토큰 저장 (푸시 알림용)
+            FCMService().getAndSaveToken(user.uid);
 
             return <String, dynamic>{
               'uid': user.uid,

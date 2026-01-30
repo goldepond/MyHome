@@ -85,6 +85,7 @@ class MLSProperty {
   final List<VisitRequest> visitRequests; // 방문 요청 리스트 (신규)
   final List<VisitSchedule> visitSchedules; // 방문 일정 리스트 (레거시 호환)
   final Map<String, List<TimeSlot>> availableSlots; // 날짜별 가용 시간대
+  final Map<int, List<String>> weeklyTimeBlocks; // 요일별 시간 블록 (1=월~7=일, 값: morning/afternoon/evening)
 
   // 네고 이력
   final List<NegotiationLog> negotiations; // 협의 이력
@@ -156,6 +157,7 @@ class MLSProperty {
     this.visitRequests = const [],
     this.visitSchedules = const [],
     this.availableSlots = const {},
+    this.weeklyTimeBlocks = const {},
     this.negotiations = const [],
     this.depositTakenAt,
     this.soldAt,
@@ -238,6 +240,9 @@ class MLSProperty {
       'availableSlots': availableSlots.map(
         (date, slots) => MapEntry(date, slots.map((s) => s.toMap()).toList()),
       ),
+      'weeklyTimeBlocks': weeklyTimeBlocks.map(
+        (weekday, blocks) => MapEntry(weekday.toString(), blocks),
+      ),
       'negotiations': negotiations.map((e) => e.toMap()).toList(),
       'depositTakenAt': depositTakenAt?.toIso8601String(),
       'soldAt': soldAt?.toIso8601String(),
@@ -317,6 +322,12 @@ class MLSProperty {
           (slots as List).map((s) => TimeSlot.fromMap(s)).toList(),
         ),
       ) ?? {},
+      weeklyTimeBlocks: (map['weeklyTimeBlocks'] as Map<String, dynamic>?)?.map(
+        (weekday, blocks) => MapEntry(
+          int.parse(weekday),
+          List<String>.from(blocks ?? []),
+        ),
+      ) ?? {},
       negotiations: (map['negotiations'] as List?)?.map((e) => NegotiationLog.fromMap(e)).toList() ?? [],
       depositTakenAt: map['depositTakenAt'] != null ? DateTime.parse(map['depositTakenAt']) : null,
       soldAt: map['soldAt'] != null ? DateTime.parse(map['soldAt']) : null,
@@ -392,6 +403,7 @@ class MLSProperty {
     List<VisitRequest>? visitRequests,
     List<VisitSchedule>? visitSchedules,
     Map<String, List<TimeSlot>>? availableSlots,
+    Map<int, List<String>>? weeklyTimeBlocks,
     List<NegotiationLog>? negotiations,
     DateTime? depositTakenAt,
     DateTime? soldAt,
@@ -458,6 +470,7 @@ class MLSProperty {
       visitRequests: visitRequests ?? this.visitRequests,
       visitSchedules: visitSchedules ?? this.visitSchedules,
       availableSlots: availableSlots ?? this.availableSlots,
+      weeklyTimeBlocks: weeklyTimeBlocks ?? this.weeklyTimeBlocks,
       negotiations: negotiations ?? this.negotiations,
       depositTakenAt: depositTakenAt ?? this.depositTakenAt,
       soldAt: soldAt ?? this.soldAt,
@@ -626,6 +639,11 @@ class VisitRequest {
   final String? sellerPhone; // 판매자 연락처 (승인 시 공개)
   final DateTime? contactExchangedAt; // 연락처 교환 시각
 
+  // 방문 완료 추적 (노쇼 측정용)
+  final DateTime? visitCompletedAt; // 실제 방문 완료 시각
+  final bool noShow; // 노쇼 여부 (승인 후 미방문)
+  final String? visitFeedback; // 방문 후 피드백
+
   VisitRequest({
     required this.id,
     required this.propertyId,
@@ -640,6 +658,9 @@ class VisitRequest {
     this.alternativeDateTime,
     this.sellerPhone,
     this.contactExchangedAt,
+    this.visitCompletedAt,
+    this.noShow = false,
+    this.visitFeedback,
   });
 
   Map<String, dynamic> toMap() {
@@ -660,6 +681,9 @@ class VisitRequest {
       'alternativeDateTime': alternativeDateTime?.toIso8601String(),
       'sellerPhone': sellerPhone,
       'contactExchangedAt': contactExchangedAt?.toIso8601String(),
+      'visitCompletedAt': visitCompletedAt?.toIso8601String(),
+      'noShow': noShow,
+      'visitFeedback': visitFeedback,
     };
   }
 
@@ -690,6 +714,11 @@ class VisitRequest {
       contactExchangedAt: map['contactExchangedAt'] != null
           ? DateTime.parse(map['contactExchangedAt'])
           : null,
+      visitCompletedAt: map['visitCompletedAt'] != null
+          ? DateTime.parse(map['visitCompletedAt'])
+          : null,
+      noShow: map['noShow'] ?? false,
+      visitFeedback: map['visitFeedback'],
     );
   }
 
@@ -710,6 +739,9 @@ class VisitRequest {
     DateTime? alternativeDateTime,
     String? sellerPhone,
     DateTime? contactExchangedAt,
+    DateTime? visitCompletedAt,
+    bool? noShow,
+    String? visitFeedback,
   }) {
     return VisitRequest(
       id: id ?? this.id,
@@ -728,6 +760,9 @@ class VisitRequest {
       alternativeDateTime: alternativeDateTime ?? this.alternativeDateTime,
       sellerPhone: sellerPhone ?? this.sellerPhone,
       contactExchangedAt: contactExchangedAt ?? this.contactExchangedAt,
+      visitCompletedAt: visitCompletedAt ?? this.visitCompletedAt,
+      noShow: noShow ?? this.noShow,
+      visitFeedback: visitFeedback ?? this.visitFeedback,
     );
   }
 

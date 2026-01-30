@@ -7,6 +7,7 @@ import 'package:property/models/quote_request.dart';
 import 'package:property/models/broker_review.dart';
 import 'package:property/models/notification_model.dart';
 import 'package:property/models/chat_model.dart';
+import 'package:property/models/report.dart';
 import 'package:property/utils/logger.dart';
 
 class FirebaseService {
@@ -26,6 +27,7 @@ class FirebaseService {
   static const String _notificationsCollectionName = 'notifications';
   static const String _chatRoomsCollectionName = 'chatRooms';
   static const String _chatMessagesCollectionName = 'chatMessages';
+  static const String _reportsCollectionName = 'reports';
 
   // 캐시: 자주 조회되는 데이터 캐싱
   final Map<String, Map<String, dynamic>?> _userCache = {};
@@ -560,15 +562,101 @@ class FirebaseService {
   // 사용자 전화번호 업데이트
   Future<bool> updateUserPhone(String id, String newPhone) async {
     try {
-      
+
       await _firestore.collection(_usersCollectionName).doc(id).update({
         'phone': newPhone,
         'updatedAt': DateTime.now().toIso8601String(),
       });
-      
+
       return true;
     } catch (e) {
       return false;
+    }
+  }
+
+  // ========== 기본 스케줄 설정 ==========
+
+  /// 기본 주간 시간 블록 저장
+  /// weeklyTimeBlocks: {1: ['morning', 'afternoon'], 2: ['evening'], ...}
+  /// 1=월요일, 7=일요일
+  Future<bool> updateDefaultWeeklyTimeBlocks(
+    String userId,
+    Map<int, List<String>> weeklyTimeBlocks,
+  ) async {
+    try {
+      // Firebase는 int key를 지원하지 않으므로 String으로 변환
+      final convertedBlocks = weeklyTimeBlocks.map(
+        (key, value) => MapEntry(key.toString(), value),
+      );
+
+      await _firestore.collection(_usersCollectionName).doc(userId).update({
+        'defaultWeeklyTimeBlocks': convertedBlocks,
+        'updatedAt': DateTime.now().toIso8601String(),
+      });
+
+      Logger.info('[Firebase] 기본 주간 시간 블록 저장 성공: $userId');
+      return true;
+    } catch (e) {
+      Logger.error('[Firebase] 기본 주간 시간 블록 저장 실패: $e');
+      return false;
+    }
+  }
+
+  /// 기본 주간 시간 블록 조회
+  Future<Map<int, List<String>>> getDefaultWeeklyTimeBlocks(String userId) async {
+    try {
+      final doc = await _firestore.collection(_usersCollectionName).doc(userId).get();
+      if (!doc.exists) return {};
+
+      final data = doc.data();
+      if (data == null || data['defaultWeeklyTimeBlocks'] == null) return {};
+
+      final blocks = data['defaultWeeklyTimeBlocks'] as Map<String, dynamic>;
+      return blocks.map(
+        (key, value) => MapEntry(
+          int.parse(key),
+          List<String>.from(value),
+        ),
+      );
+    } catch (e) {
+      Logger.error('[Firebase] 기본 주간 시간 블록 조회 실패: $e');
+      return {};
+    }
+  }
+
+  /// 방문 불가 날짜 저장 (Negative Selection)
+  Future<bool> updateBlockedDates(
+    String userId,
+    List<DateTime> blockedDates,
+  ) async {
+    try {
+      await _firestore.collection(_usersCollectionName).doc(userId).update({
+        'blockedDates': blockedDates.map((d) => d.toIso8601String()).toList(),
+        'updatedAt': DateTime.now().toIso8601String(),
+      });
+
+      Logger.info('[Firebase] 방문 불가 날짜 저장 성공: $userId');
+      return true;
+    } catch (e) {
+      Logger.error('[Firebase] 방문 불가 날짜 저장 실패: $e');
+      return false;
+    }
+  }
+
+  /// 방문 불가 날짜 조회
+  Future<List<DateTime>> getBlockedDates(String userId) async {
+    try {
+      final doc = await _firestore.collection(_usersCollectionName).doc(userId).get();
+      if (!doc.exists) return [];
+
+      final data = doc.data();
+      if (data == null || data['blockedDates'] == null) return [];
+
+      final dates = data['blockedDates'] as List<dynamic>;
+      return dates.map((d) => DateTime.parse(d as String)).toList();
+    } catch (e) {
+      Logger.error('[Firebase] 방문 불가 날짜 조회 실패: $e');
+      return [];
     }
   }
 
@@ -2124,6 +2212,20 @@ class FirebaseService {
     });
   }
 
+  /// 채팅방 정보 조회
+  Future<Map<String, dynamic>?> getChatRoom(String roomId) async {
+    try {
+      final doc = await _firestore.collection(_chatRoomsCollectionName).doc(roomId).get();
+      if (doc.exists) {
+        return doc.data();
+      }
+      return null;
+    } catch (e) {
+      Logger.error('채팅방 정보 조회 실패', error: e);
+      return null;
+    }
+  }
+
   // ============================================================
   // 소셜 로그인 (임시 비활성화 - 추후 구현)
   // ============================================================
@@ -2682,6 +2784,104 @@ class FirebaseService {
       }
     } catch (e) {
       Logger.error('평균 평점 업데이트 실패', error: e, context: '_updateBrokerAverageRating');
+    }
+  }
+
+  // ========== 신고 관련 메서드 ==========
+
+  /// 신고 제출
+  Future<String?> submitReport(Report report) async {
+    try {
+      final docRef = await _firestore
+          .collection(_reportsCollectionName)
+          .add(report.toMap());
+
+      Logger.info('신고 제출 완료', metadata: {
+        'reportId': docRef.id,
+        'brokerId': report.brokerId,
+        'reason': report.reason.value,
+      });
+
+      return docRef.id;
+    } catch (e) {
+      Logger.error('신고 제출 실패', error: e, context: 'submitReport');
+      return null;
+    }
+  }
+
+  /// 중개사별 신고 조회 (관리자용)
+  Stream<List<Report>> getReportsByBroker(String brokerId) {
+    return _firestore
+        .collection(_reportsCollectionName)
+        .where('brokerId', isEqualTo: brokerId)
+        .orderBy('createdAt', descending: true)
+        .snapshots()
+        .map((snapshot) {
+          return snapshot.docs
+              .map((doc) => Report.fromMap(doc.id, doc.data()))
+              .toList();
+        });
+  }
+
+  /// 상태별 신고 조회 (관리자용)
+  Stream<List<Report>> getReportsByStatus(String status) {
+    return _firestore
+        .collection(_reportsCollectionName)
+        .where('status', isEqualTo: status)
+        .orderBy('createdAt', descending: true)
+        .snapshots()
+        .map((snapshot) {
+          return snapshot.docs
+              .map((doc) => Report.fromMap(doc.id, doc.data()))
+              .toList();
+        });
+  }
+
+  /// 신고자별 신고 조회 (내 신고 내역)
+  Stream<List<Report>> getReportsByReporter(String reporterId) {
+    return _firestore
+        .collection(_reportsCollectionName)
+        .where('reporterId', isEqualTo: reporterId)
+        .orderBy('createdAt', descending: true)
+        .snapshots()
+        .map((snapshot) {
+          return snapshot.docs
+              .map((doc) => Report.fromMap(doc.id, doc.data()))
+              .toList();
+        });
+  }
+
+  /// 신고 상태 업데이트 (관리자용)
+  Future<bool> updateReportStatus({
+    required String reportId,
+    required String newStatus,
+    String? adminNotes,
+  }) async {
+    try {
+      await _firestore.collection(_reportsCollectionName).doc(reportId).update({
+        'status': newStatus,
+        'adminNotes': adminNotes,
+        'updatedAt': FieldValue.serverTimestamp(),
+      });
+      return true;
+    } catch (e) {
+      Logger.error('신고 상태 업데이트 실패', error: e, context: 'updateReportStatus');
+      return false;
+    }
+  }
+
+  /// 중개사의 총 신고 횟수 조회
+  Future<int> getReportCountForBroker(String brokerId) async {
+    try {
+      final snapshot = await _firestore
+          .collection(_reportsCollectionName)
+          .where('brokerId', isEqualTo: brokerId)
+          .count()
+          .get();
+      return snapshot.count ?? 0;
+    } catch (e) {
+      Logger.error('신고 횟수 조회 실패', error: e, context: 'getReportCountForBroker');
+      return 0;
     }
   }
 }

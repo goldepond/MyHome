@@ -1,161 +1,357 @@
-/// 중개사 통계 모델
+/// 중개사 성과 통계 모델
 ///
-/// 중개사의 실적을 정량화하여 신뢰도를 높이고 공정한 영업 환경을 조성
+/// 중개사의 행동 데이터 기반 성과 지표를 집계합니다.
+/// 별점/리뷰 없이 오직 행동 데이터만 사용하여 조작 불가능한 지표를 제공합니다.
 class BrokerStats {
   final String brokerId;
-  final String brokerRegistrationNumber;
+  final String brokerName;
+  final String? brokerCompany;
+  final String? brokerRegistrationNumber;
+
+  // 방문 요청 통계
+  final int totalRequests; // 총 방문 요청 수
+  final int approvedRequests; // 승인된 요청 수
+  final int rejectedRequests; // 거절된 요청 수
+  final int cancelledRequests; // 취소된 요청 수
+
+  // 방문 완료 통계 (노쇼 측정)
+  final int completedVisits; // 실제 방문 완료 수
+  final int noShowCount; // 노쇼 횟수
 
   // 거래 통계
-  final int totalDeals;           // 총 거래 성사 건수
-  final int depositTakenCount;    // 가계약 건수
-  final int soldCount;            // 거래 완료 건수
-  final double successRate;       // 성사율 (%)
+  final int completedDeals; // 거래 완료 건수
+  final double totalDealAmount; // 총 거래 금액
 
-  // 평점 통계
-  final double averageRating;     // 평균 평점 (1.0~5.0)
-  final int totalReviews;         // 총 리뷰 수
-  final int recommendCount;       // 추천 수
-  final int notRecommendCount;    // 비추천 수
+  // 제안가 통계
+  final double totalProposedAmount; // 총 제안 금액
+  final double totalFinalAmount; // 총 최종 거래 금액 (제안가 편차 계산용)
+  final int priceComparisonCount; // 제안가-최종가 비교 가능 건수
 
-  // 응답 통계
-  final double responseRate;      // 응답률 (%)
-  final int avgResponseTimeMinutes; // 평균 응답 시간 (분)
-  final int totalInquiries;       // 총 문의 수
-  final int respondedCount;       // 응답한 문의 수
+  // 응답 속도 통계
+  final int totalResponseTimeSeconds; // 총 응답 시간 (초)
+  final int responseCount; // 응답 횟수
 
-  // 전문 분야
-  final List<String> specialties; // ['아파트', '빌라', '오피스텔']
-  final String? primaryRegion;    // 주요 활동 지역
+  // 지역별 통계
+  final Map<String, int> dealsByRegion; // 지역별 거래 건수
+
+  // 전문 분야 (레거시 호환)
+  final List<String> specialties;
+  final String? primaryRegion;
 
   // 메타데이터
-  final DateTime lastUpdatedAt;
+  final DateTime createdAt;
+  final DateTime updatedAt;
 
   BrokerStats({
     required this.brokerId,
-    required this.brokerRegistrationNumber,
-    required this.lastUpdatedAt, this.totalDeals = 0,
-    this.depositTakenCount = 0,
-    this.soldCount = 0,
-    this.successRate = 0.0,
-    this.averageRating = 0.0,
-    this.totalReviews = 0,
-    this.recommendCount = 0,
-    this.notRecommendCount = 0,
-    this.responseRate = 0.0,
-    this.avgResponseTimeMinutes = 0,
-    this.totalInquiries = 0,
-    this.respondedCount = 0,
+    required this.brokerName,
+    this.brokerCompany,
+    this.brokerRegistrationNumber,
+    this.totalRequests = 0,
+    this.approvedRequests = 0,
+    this.rejectedRequests = 0,
+    this.cancelledRequests = 0,
+    this.completedVisits = 0,
+    this.noShowCount = 0,
+    this.completedDeals = 0,
+    this.totalDealAmount = 0,
+    this.totalProposedAmount = 0,
+    this.totalFinalAmount = 0,
+    this.priceComparisonCount = 0,
+    this.totalResponseTimeSeconds = 0,
+    this.responseCount = 0,
+    this.dealsByRegion = const {},
     this.specialties = const [],
     this.primaryRegion,
+    required this.createdAt,
+    required this.updatedAt,
   });
+
+  // ========== 계산된 지표 (판매자에게 표시) ==========
+
+  /// 방문 성사율: 승인 방문 ÷ 요청
+  /// "말만 많은지 실제 고객인지" 판단
+  double get visitSuccessRate {
+    if (totalRequests == 0) return 0;
+    return approvedRequests / totalRequests;
+  }
+
+  /// 노쇼 비율: 노쇼 ÷ 승인
+  /// "시간 낭비 리스크" 판단
+  double get noShowRate {
+    if (approvedRequests == 0) return 0;
+    return noShowCount / approvedRequests;
+  }
+
+  /// 평균 제안가 편차: 제안가 ÷ 최종가
+  /// "저가 압박형 중개사 여부" 판단
+  /// 1.0에 가까울수록 정직한 제안, 낮을수록 저가 압박
+  double get avgPriceDeviation {
+    if (priceComparisonCount == 0 || totalFinalAmount == 0) return 1.0;
+    return totalProposedAmount / totalFinalAmount;
+  }
+
+  /// 평균 응답 속도 (초)
+  /// "급한 상황에서 쓸 수 있는지" 판단
+  int get avgResponseTimeSeconds {
+    if (responseCount == 0) return 0;
+    return totalResponseTimeSeconds ~/ responseCount;
+  }
+
+  /// 평균 응답 속도 (시간 단위 문자열)
+  String get avgResponseTimeFormatted {
+    final seconds = avgResponseTimeSeconds;
+    if (seconds < 60) return '$seconds초';
+    if (seconds < 3600) return '${seconds ~/ 60}분';
+    if (seconds < 86400) return '${seconds ~/ 3600}시간';
+    return '${seconds ~/ 86400}일';
+  }
+
+  /// 거래 완료율: 거래 완료 ÷ 승인
+  double get dealCompletionRate {
+    if (approvedRequests == 0) return 0;
+    return completedDeals / approvedRequests;
+  }
+
+  /// 신뢰도 점수 (내부 계산용, UI에서 정렬 기준으로 사용)
+  /// 방문성사율 40% + (1-노쇼율) 30% + 제안가정직도 20% + 응답속도 10%
+  double get reliabilityScore {
+    final visitScore = visitSuccessRate * 0.4;
+    final noShowScore = (1 - noShowRate) * 0.3;
+    final priceScore = (avgPriceDeviation > 0.9 ? 1.0 : avgPriceDeviation) * 0.2;
+    final responseScore = (avgResponseTimeSeconds < 3600
+            ? 1.0
+            : avgResponseTimeSeconds < 86400
+                ? 0.7
+                : 0.3) *
+        0.1;
+    return visitScore + noShowScore + priceScore + responseScore;
+  }
+
+  // 레거시 호환 getter
+  int get totalDeals => completedDeals;
+  double get responseRate => responseCount > 0 ? 100.0 : 0.0;
+  int get avgResponseTimeMinutes => avgResponseTimeSeconds ~/ 60;
 
   Map<String, dynamic> toMap() {
     return {
       'brokerId': brokerId,
+      'brokerName': brokerName,
+      'brokerCompany': brokerCompany,
       'brokerRegistrationNumber': brokerRegistrationNumber,
-      'totalDeals': totalDeals,
-      'depositTakenCount': depositTakenCount,
-      'soldCount': soldCount,
-      'successRate': successRate,
-      'averageRating': averageRating,
-      'totalReviews': totalReviews,
-      'recommendCount': recommendCount,
-      'notRecommendCount': notRecommendCount,
-      'responseRate': responseRate,
-      'avgResponseTimeMinutes': avgResponseTimeMinutes,
-      'totalInquiries': totalInquiries,
-      'respondedCount': respondedCount,
+      'totalRequests': totalRequests,
+      'approvedRequests': approvedRequests,
+      'rejectedRequests': rejectedRequests,
+      'cancelledRequests': cancelledRequests,
+      'completedVisits': completedVisits,
+      'noShowCount': noShowCount,
+      'completedDeals': completedDeals,
+      'totalDealAmount': totalDealAmount,
+      'totalProposedAmount': totalProposedAmount,
+      'totalFinalAmount': totalFinalAmount,
+      'priceComparisonCount': priceComparisonCount,
+      'totalResponseTimeSeconds': totalResponseTimeSeconds,
+      'responseCount': responseCount,
+      'dealsByRegion': dealsByRegion,
       'specialties': specialties,
       'primaryRegion': primaryRegion,
-      'lastUpdatedAt': lastUpdatedAt.toIso8601String(),
+      'createdAt': createdAt.toIso8601String(),
+      'updatedAt': updatedAt.toIso8601String(),
     };
   }
 
   factory BrokerStats.fromMap(Map<String, dynamic> map) {
     return BrokerStats(
       brokerId: map['brokerId'] ?? '',
-      brokerRegistrationNumber: map['brokerRegistrationNumber'] ?? '',
-      totalDeals: map['totalDeals'] ?? 0,
-      depositTakenCount: map['depositTakenCount'] ?? 0,
-      soldCount: map['soldCount'] ?? 0,
-      successRate: (map['successRate'] ?? 0).toDouble(),
-      averageRating: (map['averageRating'] ?? 0).toDouble(),
-      totalReviews: map['totalReviews'] ?? 0,
-      recommendCount: map['recommendCount'] ?? 0,
-      notRecommendCount: map['notRecommendCount'] ?? 0,
-      responseRate: (map['responseRate'] ?? 0).toDouble(),
-      avgResponseTimeMinutes: map['avgResponseTimeMinutes'] ?? 0,
-      totalInquiries: map['totalInquiries'] ?? 0,
-      respondedCount: map['respondedCount'] ?? 0,
+      brokerName: map['brokerName'] ?? '',
+      brokerCompany: map['brokerCompany'],
+      brokerRegistrationNumber: map['brokerRegistrationNumber'],
+      totalRequests: map['totalRequests']?.toInt() ?? 0,
+      approvedRequests: map['approvedRequests']?.toInt() ?? 0,
+      rejectedRequests: map['rejectedRequests']?.toInt() ?? 0,
+      cancelledRequests: map['cancelledRequests']?.toInt() ?? 0,
+      completedVisits: map['completedVisits']?.toInt() ?? 0,
+      noShowCount: map['noShowCount']?.toInt() ?? 0,
+      completedDeals: map['completedDeals']?.toInt() ?? map['totalDeals']?.toInt() ?? 0,
+      totalDealAmount: map['totalDealAmount']?.toDouble() ?? 0,
+      totalProposedAmount: map['totalProposedAmount']?.toDouble() ?? 0,
+      totalFinalAmount: map['totalFinalAmount']?.toDouble() ?? 0,
+      priceComparisonCount: map['priceComparisonCount']?.toInt() ?? 0,
+      totalResponseTimeSeconds: map['totalResponseTimeSeconds']?.toInt() ?? 0,
+      responseCount: map['responseCount']?.toInt() ?? 0,
+      dealsByRegion: Map<String, int>.from(map['dealsByRegion'] ?? {}),
       specialties: List<String>.from(map['specialties'] ?? []),
       primaryRegion: map['primaryRegion'],
-      lastUpdatedAt: map['lastUpdatedAt'] != null
-        ? DateTime.parse(map['lastUpdatedAt'])
-        : DateTime.now(),
+      createdAt: map['createdAt'] != null
+          ? DateTime.parse(map['createdAt'])
+          : DateTime.now(),
+      updatedAt: map['updatedAt'] != null
+          ? DateTime.parse(map['updatedAt'])
+          : DateTime.now(),
     );
   }
 
   BrokerStats copyWith({
     String? brokerId,
+    String? brokerName,
+    String? brokerCompany,
     String? brokerRegistrationNumber,
-    int? totalDeals,
-    int? depositTakenCount,
-    int? soldCount,
-    double? successRate,
-    double? averageRating,
-    int? totalReviews,
-    int? recommendCount,
-    int? notRecommendCount,
-    double? responseRate,
-    int? avgResponseTimeMinutes,
-    int? totalInquiries,
-    int? respondedCount,
+    int? totalRequests,
+    int? approvedRequests,
+    int? rejectedRequests,
+    int? cancelledRequests,
+    int? completedVisits,
+    int? noShowCount,
+    int? completedDeals,
+    double? totalDealAmount,
+    double? totalProposedAmount,
+    double? totalFinalAmount,
+    int? priceComparisonCount,
+    int? totalResponseTimeSeconds,
+    int? responseCount,
+    Map<String, int>? dealsByRegion,
     List<String>? specialties,
     String? primaryRegion,
-    DateTime? lastUpdatedAt,
+    DateTime? createdAt,
+    DateTime? updatedAt,
   }) {
     return BrokerStats(
       brokerId: brokerId ?? this.brokerId,
-      brokerRegistrationNumber: brokerRegistrationNumber ?? this.brokerRegistrationNumber,
-      totalDeals: totalDeals ?? this.totalDeals,
-      depositTakenCount: depositTakenCount ?? this.depositTakenCount,
-      soldCount: soldCount ?? this.soldCount,
-      successRate: successRate ?? this.successRate,
-      averageRating: averageRating ?? this.averageRating,
-      totalReviews: totalReviews ?? this.totalReviews,
-      recommendCount: recommendCount ?? this.recommendCount,
-      notRecommendCount: notRecommendCount ?? this.notRecommendCount,
-      responseRate: responseRate ?? this.responseRate,
-      avgResponseTimeMinutes: avgResponseTimeMinutes ?? this.avgResponseTimeMinutes,
-      totalInquiries: totalInquiries ?? this.totalInquiries,
-      respondedCount: respondedCount ?? this.respondedCount,
+      brokerName: brokerName ?? this.brokerName,
+      brokerCompany: brokerCompany ?? this.brokerCompany,
+      brokerRegistrationNumber:
+          brokerRegistrationNumber ?? this.brokerRegistrationNumber,
+      totalRequests: totalRequests ?? this.totalRequests,
+      approvedRequests: approvedRequests ?? this.approvedRequests,
+      rejectedRequests: rejectedRequests ?? this.rejectedRequests,
+      cancelledRequests: cancelledRequests ?? this.cancelledRequests,
+      completedVisits: completedVisits ?? this.completedVisits,
+      noShowCount: noShowCount ?? this.noShowCount,
+      completedDeals: completedDeals ?? this.completedDeals,
+      totalDealAmount: totalDealAmount ?? this.totalDealAmount,
+      totalProposedAmount: totalProposedAmount ?? this.totalProposedAmount,
+      totalFinalAmount: totalFinalAmount ?? this.totalFinalAmount,
+      priceComparisonCount: priceComparisonCount ?? this.priceComparisonCount,
+      totalResponseTimeSeconds:
+          totalResponseTimeSeconds ?? this.totalResponseTimeSeconds,
+      responseCount: responseCount ?? this.responseCount,
+      dealsByRegion: dealsByRegion ?? this.dealsByRegion,
       specialties: specialties ?? this.specialties,
       primaryRegion: primaryRegion ?? this.primaryRegion,
-      lastUpdatedAt: lastUpdatedAt ?? this.lastUpdatedAt,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
     );
-  }
-
-  /// 추천 비율 계산 (%)
-  double get recommendRate {
-    if (totalReviews == 0) return 0;
-    return (recommendCount / totalReviews) * 100;
-  }
-
-  /// 거래 성사율 계산 (%)
-  double calculateSuccessRate(int totalParticipations) {
-    if (totalParticipations == 0) return 0;
-    return (totalDeals / totalParticipations) * 100;
   }
 
   /// 빈 통계 생성
-  factory BrokerStats.empty({
-    required String brokerId,
-    required String brokerRegistrationNumber,
-  }) {
+  factory BrokerStats.empty(String brokerId, String brokerName,
+      {String? brokerCompany, String? brokerRegistrationNumber}) {
+    final now = DateTime.now();
     return BrokerStats(
       brokerId: brokerId,
+      brokerName: brokerName,
+      brokerCompany: brokerCompany,
       brokerRegistrationNumber: brokerRegistrationNumber,
-      lastUpdatedAt: DateTime.now(),
+      createdAt: now,
+      updatedAt: now,
     );
+  }
+}
+
+/// 판매자에게 표시할 중개사 지표 요약
+class BrokerMetricsSummary {
+  final String brokerId;
+  final String brokerName;
+  final String? brokerCompany;
+
+  /// 방문 성사율 (0.0 ~ 1.0)
+  final double visitSuccessRate;
+
+  /// 노쇼 비율 (0.0 ~ 1.0)
+  final double noShowRate;
+
+  /// 평균 제안가 편차 (1.0에 가까울수록 좋음)
+  final double avgPriceDeviation;
+
+  /// 평균 응답 시간 (초)
+  final int avgResponseTimeSeconds;
+
+  /// 거래 완료 건수
+  final int completedDeals;
+
+  /// 총 요청 수 (신뢰도 판단용)
+  final int totalRequests;
+
+  BrokerMetricsSummary({
+    required this.brokerId,
+    required this.brokerName,
+    this.brokerCompany,
+    required this.visitSuccessRate,
+    required this.noShowRate,
+    required this.avgPriceDeviation,
+    required this.avgResponseTimeSeconds,
+    required this.completedDeals,
+    required this.totalRequests,
+  });
+
+  factory BrokerMetricsSummary.fromStats(BrokerStats stats) {
+    return BrokerMetricsSummary(
+      brokerId: stats.brokerId,
+      brokerName: stats.brokerName,
+      brokerCompany: stats.brokerCompany,
+      visitSuccessRate: stats.visitSuccessRate,
+      noShowRate: stats.noShowRate,
+      avgPriceDeviation: stats.avgPriceDeviation,
+      avgResponseTimeSeconds: stats.avgResponseTimeSeconds,
+      completedDeals: stats.completedDeals,
+      totalRequests: stats.totalRequests,
+    );
+  }
+
+  /// 평균 응답 시간 포맷
+  String get avgResponseTimeFormatted {
+    if (avgResponseTimeSeconds < 60) return '$avgResponseTimeSeconds초';
+    if (avgResponseTimeSeconds < 3600) {
+      return '${avgResponseTimeSeconds ~/ 60}분';
+    }
+    if (avgResponseTimeSeconds < 86400) {
+      return '${avgResponseTimeSeconds ~/ 3600}시간';
+    }
+    return '${avgResponseTimeSeconds ~/ 86400}일';
+  }
+
+  /// 데이터 충분성 (최소 5건 이상 요청이 있어야 신뢰할 수 있음)
+  bool get hasEnoughData => totalRequests >= 5;
+
+  /// 방문 성사율 등급
+  String get visitSuccessRateGrade {
+    if (visitSuccessRate >= 0.8) return '매우 높음';
+    if (visitSuccessRate >= 0.6) return '높음';
+    if (visitSuccessRate >= 0.4) return '보통';
+    return '낮음';
+  }
+
+  /// 노쇼 위험도
+  String get noShowRisk {
+    if (noShowRate <= 0.05) return '매우 낮음';
+    if (noShowRate <= 0.1) return '낮음';
+    if (noShowRate <= 0.2) return '보통';
+    return '높음';
+  }
+
+  /// 제안가 정직도
+  String get priceHonesty {
+    if (avgPriceDeviation >= 0.95) return '매우 정직';
+    if (avgPriceDeviation >= 0.9) return '정직';
+    if (avgPriceDeviation >= 0.8) return '보통';
+    return '저가 압박 경향';
+  }
+
+  /// 응답 속도 등급
+  String get responseSpeedGrade {
+    if (avgResponseTimeSeconds < 1800) return '매우 빠름'; // 30분 이내
+    if (avgResponseTimeSeconds < 3600) return '빠름'; // 1시간 이내
+    if (avgResponseTimeSeconds < 86400) return '보통'; // 24시간 이내
+    return '느림';
   }
 }

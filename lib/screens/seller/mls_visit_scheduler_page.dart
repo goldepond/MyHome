@@ -34,6 +34,19 @@ class _MLSVisitSchedulerPageState extends State<MLSVisitSchedulerPage> {
   final Map<String, List<TimeSlot>> _availableSlots = {};
   bool _isEditingSlots = false;
 
+  // 요일+시간 블록 단순 모드
+  bool _useSimpleMode = true; // 기본값: 단순 모드
+  final Map<int, List<String>> _weeklyTimeBlocks = {}; // 요일(1-7) -> 시간블록 리스트
+
+  // 시간 블록 정의
+  static const List<Map<String, String>> _timeBlockOptions = [
+    {'id': 'morning', 'label': '오전', 'time': '09:00-12:00'},
+    {'id': 'afternoon', 'label': '오후', 'time': '13:00-17:00'},
+    {'id': 'evening', 'label': '저녁', 'time': '18:00-20:00'},
+  ];
+
+  static const List<String> _weekdayNames = ['월', '화', '수', '목', '금', '토', '일'];
+
   @override
   void initState() {
     super.initState();
@@ -48,6 +61,8 @@ class _MLSVisitSchedulerPageState extends State<MLSVisitSchedulerPage> {
         setState(() {
           _property = property;
           _availableSlots.addAll(property.availableSlots);
+          _weeklyTimeBlocks.addAll(property.weeklyTimeBlocks);
+          _useSimpleMode = property.weeklyTimeBlocks.isNotEmpty;
           _selectedDay = DateTime.now();
           _updateSelectedDaySchedules();
         });
@@ -99,7 +114,7 @@ class _MLSVisitSchedulerPageState extends State<MLSVisitSchedulerPage> {
             icon: Icon(_isEditingSlots ? Icons.check : Icons.edit),
             onPressed: () {
               if (_isEditingSlots) {
-                _saveAvailableSlots();
+                _useSimpleMode ? _saveWeeklyTimeBlocks() : _saveAvailableSlots();
               }
               setState(() => _isEditingSlots = !_isEditingSlots);
             },
@@ -108,12 +123,24 @@ class _MLSVisitSchedulerPageState extends State<MLSVisitSchedulerPage> {
       ),
       body: ListView(
         children: [
-          _buildCalendar(),
-          const SizedBox(height: 16),
-          if (_isEditingSlots)
-            _buildTimeSlotsEditor()
-          else
+          // 모드 선택 토글
+          if (_isEditingSlots) _buildModeToggle(),
+
+          // 단순 모드: 요일+시간 블록
+          if (_isEditingSlots && _useSimpleMode)
+            _buildSimpleTimeBlocksEditor()
+          // 상세 모드: 캘린더 기반
+          else if (_isEditingSlots && !_useSimpleMode) ...[
+            _buildCalendar(),
+            const SizedBox(height: 16),
+            _buildTimeSlotsEditor(),
+          ]
+          // 보기 모드: 방문 요청 목록
+          else ...[
+            _buildCalendar(),
+            const SizedBox(height: 16),
             _buildVisitRequests(),
+          ],
         ],
       ),
     );
@@ -454,6 +481,336 @@ class _MLSVisitSchedulerPageState extends State<MLSVisitSchedulerPage> {
         ],
       ),
     );
+  }
+
+  /// 모드 전환 토글 UI
+  Widget _buildModeToggle() {
+    return Container(
+      margin: const EdgeInsets.all(16),
+      decoration: CommonDesignSystem.cardDecoration(),
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            '가용 시간 설정 방식',
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Expanded(
+                child: _buildModeButton(
+                  isSelected: _useSimpleMode,
+                  icon: Icons.view_week,
+                  label: '요일별 설정',
+                  description: '매주 반복',
+                  onTap: () => setState(() => _useSimpleMode = true),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: _buildModeButton(
+                  isSelected: !_useSimpleMode,
+                  icon: Icons.calendar_month,
+                  label: '날짜별 설정',
+                  description: '특정 날짜',
+                  onTap: () => setState(() => _useSimpleMode = false),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildModeButton({
+    required bool isSelected,
+    required IconData icon,
+    required String label,
+    required String description,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: isSelected
+              ? AppColors.primary.withValues(alpha: 0.1)
+              : Colors.grey.shade50,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: isSelected ? AppColors.primary : Colors.grey.shade300,
+            width: isSelected ? 2 : 1,
+          ),
+        ),
+        child: Column(
+          children: [
+            Icon(
+              icon,
+              color: isSelected ? AppColors.primary : Colors.grey,
+              size: 28,
+            ),
+            const SizedBox(height: 8),
+            Text(
+              label,
+              style: TextStyle(
+                fontWeight: FontWeight.w600,
+                color: isSelected ? AppColors.primary : AppColors.kTextPrimary,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              description,
+              style: TextStyle(
+                fontSize: 12,
+                color: isSelected ? AppColors.primary : AppColors.textSecondary,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// 단순 요일+시간 블록 에디터
+  Widget _buildSimpleTimeBlocksEditor() {
+    return Container(
+      margin: const EdgeInsets.all(16),
+      decoration: CommonDesignSystem.cardDecoration(),
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Row(
+            children: [
+              Icon(Icons.info_outline, size: 18, color: AppColors.textSecondary),
+              SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  '방문 가능한 요일과 시간대를 선택하세요',
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: AppColors.textSecondary,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 20),
+
+          // 요일별 시간 블록 선택
+          ...List.generate(7, (dayIndex) {
+            final weekday = dayIndex + 1; // 1=월요일, 7=일요일
+            final selectedBlocks = _weeklyTimeBlocks[weekday] ?? [];
+
+            return Container(
+              margin: const EdgeInsets.only(bottom: 16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      // 요일 레이블
+                      Container(
+                        width: 36,
+                        height: 36,
+                        decoration: BoxDecoration(
+                          color: selectedBlocks.isNotEmpty
+                              ? AppColors.primary.withValues(alpha: 0.15)
+                              : Colors.grey.shade100,
+                          shape: BoxShape.circle,
+                        ),
+                        alignment: Alignment.center,
+                        child: Text(
+                          _weekdayNames[dayIndex],
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            color: selectedBlocks.isNotEmpty
+                                ? AppColors.primary
+                                : AppColors.textSecondary,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+
+                      // 시간 블록 칩들
+                      Expanded(
+                        child: Wrap(
+                          spacing: 8,
+                          runSpacing: 8,
+                          children: _timeBlockOptions.map((block) {
+                            final isSelected = selectedBlocks.contains(block['id']);
+                            return InkWell(
+                              onTap: () => _toggleTimeBlock(weekday, block['id']!),
+                              borderRadius: BorderRadius.circular(20),
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 12,
+                                  vertical: 8,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: isSelected
+                                      ? AppColors.primary
+                                      : Colors.grey.shade100,
+                                  borderRadius: BorderRadius.circular(20),
+                                ),
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Text(
+                                      block['label']!,
+                                      style: TextStyle(
+                                        fontSize: 13,
+                                        fontWeight: FontWeight.w500,
+                                        color: isSelected
+                                            ? Colors.white
+                                            : AppColors.kTextPrimary,
+                                      ),
+                                    ),
+                                    Text(
+                                      block['time']!,
+                                      style: TextStyle(
+                                        fontSize: 10,
+                                        color: isSelected
+                                            ? Colors.white.withValues(alpha: 0.8)
+                                            : AppColors.textSecondary,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            );
+                          }).toList(),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            );
+          }),
+
+          const Divider(height: 32),
+
+          // 선택 요약
+          _buildWeeklySummary(),
+        ],
+      ),
+    );
+  }
+
+  /// 시간 블록 토글
+  void _toggleTimeBlock(int weekday, String blockId) {
+    setState(() {
+      if (!_weeklyTimeBlocks.containsKey(weekday)) {
+        _weeklyTimeBlocks[weekday] = [];
+      }
+
+      if (_weeklyTimeBlocks[weekday]!.contains(blockId)) {
+        _weeklyTimeBlocks[weekday]!.remove(blockId);
+        if (_weeklyTimeBlocks[weekday]!.isEmpty) {
+          _weeklyTimeBlocks.remove(weekday);
+        }
+      } else {
+        _weeklyTimeBlocks[weekday]!.add(blockId);
+      }
+    });
+  }
+
+  /// 주간 설정 요약
+  Widget _buildWeeklySummary() {
+    if (_weeklyTimeBlocks.isEmpty) {
+      return Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.grey.shade50,
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: const Row(
+          children: [
+            Icon(Icons.warning_amber, color: AppColors.warning, size: 20),
+            SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                '방문 가능 시간이 설정되지 않았습니다',
+                style: TextStyle(color: AppColors.textSecondary),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    final summaryParts = <String>[];
+    _weeklyTimeBlocks.forEach((weekday, blocks) {
+      final dayName = _weekdayNames[weekday - 1];
+      final blockNames = blocks.map((id) {
+        return _timeBlockOptions.firstWhere((b) => b['id'] == id)['label']!;
+      }).join(', ');
+      summaryParts.add('$dayName($blockNames)');
+    });
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: AppColors.success.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Icon(Icons.check_circle, color: AppColors.success, size: 20),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  '방문 가능 시간',
+                  style: TextStyle(
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.success,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  summaryParts.join(' • '),
+                  style: const TextStyle(
+                    fontSize: 13,
+                    color: AppColors.textSecondary,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// 주간 시간 블록 저장
+  Future<void> _saveWeeklyTimeBlocks() async {
+    try {
+      await _mlsService.setWeeklyTimeBlocks(
+        propertyId: widget.propertyId,
+        weeklyBlocks: _weeklyTimeBlocks,
+      );
+
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('방문 가능 시간이 저장되었습니다')),
+      );
+    } catch (e) {
+      Logger.error('Failed to save weekly time blocks', error: e);
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('저장에 실패했습니다')),
+      );
+    }
   }
 
   void _addTimeSlot(String dateKey) {

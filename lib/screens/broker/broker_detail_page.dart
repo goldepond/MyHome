@@ -6,6 +6,7 @@ import 'package:property/constants/app_constants.dart';
 import 'package:property/constants/typography.dart';
 import 'package:property/constants/spacing.dart';
 import 'package:property/models/broker_review.dart';
+import 'package:property/widgets/report_dialog.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 /// 공인중개사 상세 소개 / 후기 페이지
@@ -43,6 +44,28 @@ class BrokerDetailPage extends StatelessWidget {
         title: const Text('공인중개사 정보'),
         backgroundColor: AirbnbColors.background, // 에어비엔비 스타일: 흰색 배경
         foregroundColor: AirbnbColors.textPrimary,
+        actions: [
+          PopupMenuButton<String>(
+            icon: const Icon(Icons.more_vert),
+            onSelected: (value) {
+              if (value == 'report') {
+                _reportBroker(context);
+              }
+            },
+            itemBuilder: (context) => [
+              const PopupMenuItem(
+                value: 'report',
+                child: Row(
+                  children: [
+                    Icon(Icons.flag_outlined, size: 20, color: AirbnbColors.textSecondary),
+                    SizedBox(width: 12),
+                    Text('중개사 신고'),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ],
       ),
       body: StreamBuilder<List<BrokerReview>>(
         stream: firebaseService.getBrokerReviews(broker.registrationNumber),
@@ -851,6 +874,28 @@ class BrokerDetailPage extends StatelessWidget {
           ),
         );
       },
+    );
+  }
+
+  /// 중개사 신고
+  void _reportBroker(BuildContext context) {
+    if (currentUserId == null || currentUserId!.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('로그인 후 신고할 수 있습니다.'),
+          backgroundColor: AirbnbColors.warning,
+        ),
+      );
+      return;
+    }
+
+    showReportDialog(
+      context: context,
+      reporterId: currentUserId!,
+      reporterName: currentUserName ?? '익명',
+      brokerId: broker.registrationNumber,
+      brokerName: broker.name,
+      brokerRegistrationNumber: broker.registrationNumber,
     );
   }
 }

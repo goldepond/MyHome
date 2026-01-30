@@ -4,6 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import '../../api_request/firebase_service.dart';
 import '../../models/chat_model.dart';
 import '../../constants/app_constants.dart';
+import '../../widgets/report_dialog.dart';
 
 class ChatRoomPage extends StatefulWidget {
   final String roomId;
@@ -25,6 +26,40 @@ class _ChatRoomPageState extends State<ChatRoomPage> {
   final ScrollController _scrollController = ScrollController();
   final String _currentUserId = FirebaseAuth.instance.currentUser?.uid ?? '';
 
+  // 상대방 (중개사) 정보
+  String? _otherParticipantId;
+  String? _otherParticipantName;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadRoomData();
+  }
+
+  Future<void> _loadRoomData() async {
+    try {
+      final roomData = await _firebaseService.getChatRoom(widget.roomId);
+      if (roomData != null && mounted) {
+        final participants = roomData['participants'] as List<dynamic>?;
+        if (participants != null) {
+          // 현재 사용자가 아닌 다른 참여자 찾기
+          for (final participant in participants) {
+            final id = participant['id'] as String?;
+            if (id != null && id != _currentUserId) {
+              setState(() {
+                _otherParticipantId = id;
+                _otherParticipantName = participant['name'] as String? ?? widget.title;
+              });
+              break;
+            }
+          }
+        }
+      }
+    } catch (e) {
+      // 실패 시 widget.title 사용
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
@@ -37,6 +72,28 @@ class _ChatRoomPageState extends State<ChatRoomPage> {
         backgroundColor: AirbnbColors.background,
         foregroundColor: AirbnbColors.textPrimary,
         elevation: 1,
+        actions: [
+          PopupMenuButton<String>(
+            icon: const Icon(Icons.more_vert),
+            onSelected: (value) {
+              if (value == 'report') {
+                _reportBroker();
+              }
+            },
+            itemBuilder: (context) => [
+              const PopupMenuItem(
+                value: 'report',
+                child: Row(
+                  children: [
+                    Icon(Icons.flag_outlined, size: 20, color: AirbnbColors.textSecondary),
+                    SizedBox(width: 12),
+                    Text('중개사 신고'),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ],
       ),
         body: SafeArea(
           child: Column(
@@ -178,6 +235,31 @@ class _ChatRoomPageState extends State<ChatRoomPage> {
     );
 
     _messageController.clear();
+  }
+
+  Future<void> _reportBroker() async {
+    if (_otherParticipantId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('상대방 정보를 불러오는 중입니다. 잠시 후 다시 시도해주세요.')),
+      );
+      return;
+    }
+
+    // 현재 사용자 정보 가져오기
+    final userData = await _firebaseService.getUser(_currentUserId);
+    final reporterName = userData?['name'] as String? ??
+                        FirebaseAuth.instance.currentUser?.email ??
+                        '익명';
+
+    if (mounted) {
+      showReportDialog(
+        context: context,
+        reporterId: _currentUserId,
+        reporterName: reporterName,
+        brokerId: _otherParticipantId!,
+        brokerName: _otherParticipantName ?? widget.title,
+      );
+    }
   }
 }
 

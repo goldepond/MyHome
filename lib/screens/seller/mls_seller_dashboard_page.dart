@@ -869,14 +869,6 @@ class _MLSSellerDashboardPageState extends State<MLSSellerDashboardPage> {
           _buildStatChip('승인', summary.approvedRequests, AppleColors.systemGreen),
         if (summary.viewedBrokers > 0)
           _buildStatChip('열람', summary.viewedBrokers, AppleColors.systemBlue),
-        _buildStatChip('배포', summary.totalBrokers, AppleColors.tertiaryLabel),
-        if (summary.totalBrokers == 0)
-          Text(
-            '아직 배포된 중개사가 없습니다',
-            style: AppleTypography.caption1.copyWith(
-              color: AppleColors.tertiaryLabel,
-            ),
-          ),
       ],
     );
   }
