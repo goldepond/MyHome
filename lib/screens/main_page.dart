@@ -213,7 +213,7 @@ class MainPageState extends State<MainPage> {
     final maxWidth = ResponsiveHelper.getMaxWidth(context);
 
     return Scaffold(
-      backgroundColor: AppleColors.systemGroupedBackground,
+      backgroundColor: AppleColors.systemBackground,
       body: SafeArea(
         child: OfflineBanner(
           child: Center(
