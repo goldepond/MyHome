@@ -79,19 +79,20 @@ class _HouseMarketPageState extends State<HouseMarketPage> {
     }
   }
 
-  /// 필터 및 정렬 적용
+  /// 필터 및 정렬 적용 (최적화: 불필요한 리스트 복사 제거)
   void _applyFiltersAndSort() {
-    List<Property> filtered = List<Property>.from(_allProperties);
-
-    // 거래 유형 필터
-    if (_selectedTransactionType != null && _selectedTransactionType!.isNotEmpty) {
-      filtered = filtered.where((p) => p.transactionType == _selectedTransactionType).toList();
+    // 필터 조건이 없으면 전체 리스트 사용 (복사 없이)
+    if (_selectedTransactionType == null || _selectedTransactionType!.isEmpty) {
+      // 정렬만 필요 - 원본 유지를 위해 복사 후 정렬
+      _properties = List<Property>.from(_allProperties)
+        ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
+    } else {
+      // 필터링과 정렬 한 번에 수행
+      _properties = _allProperties
+          .where((p) => p.transactionType == _selectedTransactionType)
+          .toList()
+        ..sort((a, b) => b.createdAt.compareTo(a.createdAt));
     }
-
-    // 정렬
-    filtered.sort((a, b) => b.createdAt.compareTo(a.createdAt));
-
-    _properties = filtered;
   }
 
   @override

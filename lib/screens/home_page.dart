@@ -591,22 +591,27 @@ class _HomePageState extends State<HomePage> with AutomaticKeepAliveClientMixin 
     });
 
     try {
+      // VWorld API와 단지 정보 병렬 로드 (성능 최적화)
+      final futures = <Future<void>>[];
+
       // VWorld API는 항상 호출 (로그인 여부 무관)
-      _loadVWorldData(
+      futures.add(_loadVWorldData(
         selectedFullAddress,
         fullAddrAPIData:
             selectedFullAddrAPIData.isNotEmpty ? selectedFullAddrAPIData : null,
-      );
-      
+      ));
+
       // 단지 정보도 주소 선택 시 자동으로 로드
       // kaptCode 가 이미 이전 검색 쿼리로 값이 있는 경우 중복검색 방지
       if (selectedFullAddress.isNotEmpty && kaptCode == null) {
-        _loadAptInfoFromAddress(
+        futures.add(_loadAptInfoFromAddress(
           selectedFullAddress,
           fullAddrAPIData: selectedFullAddrAPIData.isNotEmpty ? selectedFullAddrAPIData : null,
-        );
-      } else {
+        ));
       }
+
+      // 모든 API 병렬 실행
+      await Future.wait(futures);
       
       // ========================================
       // 🔴 등기부등본 기능 비활성화 처리

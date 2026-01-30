@@ -10,6 +10,12 @@ jobs:
       - uses: subosito/flutter-action@v2
         with:
           channel: stable
+      - name: .env 파일 생성
+        run: |
+          echo "VWORLD_API_KEY=${{ secrets.VWORLD_API_KEY }}" >> .env
+          echo "VWORLD_GEOCODER_API_KEY=${{ secrets.VWORLD_GEOCODER_API_KEY }}" >> .env
+          echo "JUSO_API_KEY=${{ secrets.JUSO_API_KEY }}" >> .env
+          echo "DATA_GO_KR_SERVICE_KEY=${{ secrets.DATA_GO_KR_SERVICE_KEY }}" >> .env
       - run: sudo apt-get install -y ninja-build libgtk-3-dev
       - run: flutter config --enable-web
       - run: flutter pub get
@@ -31,6 +37,12 @@ jobs:
       - uses: subosito/flutter-action@v2
         with:
           channel: stable
+      - name: .env 파일 생성
+        run: |
+          echo "VWORLD_API_KEY=${{ secrets.VWORLD_API_KEY }}" >> .env
+          echo "VWORLD_GEOCODER_API_KEY=${{ secrets.VWORLD_GEOCODER_API_KEY }}" >> .env
+          echo "JUSO_API_KEY=${{ secrets.JUSO_API_KEY }}" >> .env
+          echo "DATA_GO_KR_SERVICE_KEY=${{ secrets.DATA_GO_KR_SERVICE_KEY }}" >> .env
       - run: flutter pub get
       - run: flutter build apk --release
       - uses: actions/upload-artifact@v4
@@ -45,6 +57,15 @@ jobs:
       - uses: subosito/flutter-action@v2
         with:
           channel: stable
+      - name: .env 파일 생성
+        shell: pwsh
+        run: |
+          @"
+          VWORLD_API_KEY=${{ secrets.VWORLD_API_KEY }}
+          VWORLD_GEOCODER_API_KEY=${{ secrets.VWORLD_GEOCODER_API_KEY }}
+          JUSO_API_KEY=${{ secrets.JUSO_API_KEY }}
+          DATA_GO_KR_SERVICE_KEY=${{ secrets.DATA_GO_KR_SERVICE_KEY }}
+          "@ | Out-File -FilePath .env -Encoding utf8
       - run: flutter pub get
       - run: flutter build windows --release
       - uses: actions/upload-artifact@v4
@@ -59,6 +80,12 @@ jobs:
       - uses: subosito/flutter-action@v2
         with:
           channel: stable
+      - name: .env 파일 생성
+        run: |
+          echo "VWORLD_API_KEY=${{ secrets.VWORLD_API_KEY }}" >> .env
+          echo "VWORLD_GEOCODER_API_KEY=${{ secrets.VWORLD_GEOCODER_API_KEY }}" >> .env
+          echo "JUSO_API_KEY=${{ secrets.JUSO_API_KEY }}" >> .env
+          echo "DATA_GO_KR_SERVICE_KEY=${{ secrets.DATA_GO_KR_SERVICE_KEY }}" >> .env
       - run: flutter pub get
       - run: flutter build macos --release
       - uses: actions/upload-artifact@v4
@@ -73,6 +100,12 @@ jobs:
       - uses: subosito/flutter-action@v2
         with:
           channel: stable
+      - name: .env 파일 생성
+        run: |
+          echo "VWORLD_API_KEY=${{ secrets.VWORLD_API_KEY }}" >> .env
+          echo "VWORLD_GEOCODER_API_KEY=${{ secrets.VWORLD_GEOCODER_API_KEY }}" >> .env
+          echo "JUSO_API_KEY=${{ secrets.JUSO_API_KEY }}" >> .env
+          echo "DATA_GO_KR_SERVICE_KEY=${{ secrets.DATA_GO_KR_SERVICE_KEY }}" >> .env
       - run: flutter pub get
       - run: flutter build ios --release --no-codesign
       - uses: actions/upload-artifact@v4

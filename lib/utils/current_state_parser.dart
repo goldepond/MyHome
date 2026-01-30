@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 
 class Header {
   final String publishNo, publishDate, docTitle, realtyDesc,
@@ -309,4 +310,19 @@ CurrentState parseCurrentState(String rawJson) {
     building : building,
     liens    : liens,
   );
+}
+
+/// compute()용 래퍼 - Isolate에서 JSON 파싱 수행
+/// 웹에서는 compute()가 제대로 동작하지 않으므로 직접 실행
+Future<CurrentState> parseCurrentStateAsync(String rawJson) async {
+  if (kIsWeb) {
+    // 웹에서는 직접 실행 (Isolate 미지원)
+    return parseCurrentState(rawJson);
+  }
+  return compute(_parseCurrentStateIsolate, rawJson);
+}
+
+/// Isolate에서 실행되는 파싱 함수
+CurrentState _parseCurrentStateIsolate(String rawJson) {
+  return parseCurrentState(rawJson);
 } 

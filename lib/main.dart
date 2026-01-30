@@ -370,8 +370,10 @@ class _AuthGateState extends State<_AuthGate> {
   @override
   Widget build(BuildContext context) {
     // Firebase는 main()에서 이미 초기화됨
+    // userChanges()는 authStateChanges()보다 더 많은 이벤트를 emit하여
+    // 로그인 상태 변화를 더 빠르게 감지함
     return StreamBuilder<User?>(
-      stream: FirebaseAuth.instance.authStateChanges(),
+      stream: FirebaseAuth.instance.userChanges(),
       builder: (context, snapshot) {
         final user = snapshot.data;
 

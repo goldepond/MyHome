@@ -33,13 +33,17 @@ jobs:
         run: flutter --version
 
       - name: .env 파일 생성
-        run: touch .env
+        run: |
+          echo "VWORLD_API_KEY=${{ secrets.VWORLD_API_KEY }}" >> .env
+          echo "VWORLD_GEOCODER_API_KEY=${{ secrets.VWORLD_GEOCODER_API_KEY }}" >> .env
+          echo "JUSO_API_KEY=${{ secrets.JUSO_API_KEY }}" >> .env
+          echo "DATA_GO_KR_SERVICE_KEY=${{ secrets.DATA_GO_KR_SERVICE_KEY }}" >> .env
 
       - name: 의존성 설치
         run: flutter pub get
 
       - name: 웹 빌드
-        run: flutter build web --release --base-href "/MyHome/" --dart-define=DATA_GO_KR_SERVICE_KEY=${{ secrets.DATA_GO_KR_SERVICE_KEY }}
+        run: flutter build web --release --base-href "/MyHome/"
 
       - name: 404.html 추가 (SPA 라우팅용)
         run: cp build/web/index.html build/web/404.html
@@ -59,4 +63,3 @@ jobs:
       - name: GitHub Pages에 배포
         id: deployment
         uses: actions/deploy-pages@v4
-

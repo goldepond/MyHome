@@ -29,6 +29,9 @@ class _MLSSellerDashboardPageState extends State<MLSSellerDashboardPage> {
   bool _isLoading = true;
   StreamSubscription<List<MLSProperty>>? _subscription;
 
+  // 캐시된 통계 (성능 최적화 - 빌드마다 재계산 방지)
+  _OverallStats? _cachedStats;
+
   @override
   void initState() {
     super.initState();
@@ -62,6 +65,7 @@ class _MLSSellerDashboardPageState extends State<MLSSellerDashboardPage> {
           if (_shouldUpdate(properties)) {
             setState(() {
               _properties = properties;
+              _cachedStats = _computeStats(properties); // 통계 캐싱
               _isLoading = false;
             });
           } else if (_isLoading) {
@@ -197,8 +201,8 @@ class _MLSSellerDashboardPageState extends State<MLSSellerDashboardPage> {
   }
 
   Widget _buildPropertyList(bool isMobile) {
-    // 전체 통계 계산
-    final stats = _calculateOverallStats();
+    // 캐시된 통계 사용 (없으면 계산)
+    final stats = _cachedStats ?? _computeStats(_properties);
 
     return ListView.builder(
       padding: EdgeInsets.all(isMobile ? AppleSpacing.md : AppleSpacing.lg),
@@ -219,8 +223,8 @@ class _MLSSellerDashboardPageState extends State<MLSSellerDashboardPage> {
     );
   }
 
-  /// 전체 통계 계산 - 방문 요청 중심
-  _OverallStats _calculateOverallStats() {
+  /// 전체 통계 계산 - 방문 요청 중심 (파라미터로 받아서 캐싱 가능)
+  _OverallStats _computeStats(List<MLSProperty> properties) {
     int pendingRequests = 0; // 대기 중인 방문 요청
     int approvedRequests = 0; // 승인된 방문 요청
     const int completedRequests = 0; // 완료된 방문 (연락처 교환 완료)
@@ -228,7 +232,7 @@ class _MLSSellerDashboardPageState extends State<MLSSellerDashboardPage> {
     int activeProperties = 0;
     int completedProperties = 0;
 
-    for (final property in _properties) {
+    for (final property in properties) {
       // 방문 요청별 집계
       for (final request in property.visitRequests) {
         switch (request.status) {
@@ -266,7 +270,7 @@ class _MLSSellerDashboardPageState extends State<MLSSellerDashboardPage> {
     }
 
     return _OverallStats(
-      totalProperties: _properties.length,
+      totalProperties: properties.length,
       activeProperties: activeProperties,
       completedProperties: completedProperties,
       pendingRequests: pendingRequests,
