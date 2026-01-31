@@ -51,19 +51,31 @@ class _AuthLandingPageState extends State<AuthLandingPage> {
 
   // 카카오 로그인
   Future<void> _signInWithKakao() async {
+    Logger.info('[AuthLanding] ========== 카카오 로그인 시작 ==========');
+    Logger.info('[AuthLanding] 현재 Firebase 사용자: ${_firebaseService.currentUser?.uid ?? "없음"}');
     setState(() => _isLoading = true);
     try {
+      Logger.info('[AuthLanding] FirebaseService.signInWithKakao() 호출...');
       final result = await _firebaseService.signInWithKakao();
+      Logger.info('[AuthLanding] 카카오 로그인 결과: ${result != null ? "성공" : "null"}');
+      if (result != null) {
+        Logger.info('[AuthLanding] 결과 데이터: uid=${result['uid']}, name=${result['name']}');
+      }
       if (result != null && mounted) {
+        Logger.info('[AuthLanding] 카카오 로그인 성공 - AuthGate가 처리할 예정');
         // 로그인 성공 - 마지막 로그인 방식 저장
         await _saveLastLoginMethod('kakao');
         // 로그인 성공 시 로딩 상태 유지 - AuthGate가 자동으로 MainPage로 이동
+        Logger.info('[AuthLanding] ========== 카카오 로그인 완료 ==========');
         return;
       } else if (mounted) {
+        Logger.warning('[AuthLanding] 카카오 로그인 실패 또는 취소 (result=null)');
         _showError('카카오 로그인에 실패했습니다.');
         setState(() => _isLoading = false);
       }
-    } catch (e) {
+    } catch (e, stackTrace) {
+      Logger.error('[AuthLanding] 카카오 로그인 예외 발생: $e');
+      Logger.error('[AuthLanding] 스택트레이스: $stackTrace');
       if (mounted) {
         _showError('카카오 로그인 중 오류가 발생했습니다.');
         setState(() => _isLoading = false);
@@ -73,25 +85,31 @@ class _AuthLandingPageState extends State<AuthLandingPage> {
 
   // Google 로그인
   Future<void> _signInWithGoogle() async {
-    Logger.info('[AuthLanding] Google 로그인 시작');
+    Logger.info('[AuthLanding] ========== Google 로그인 시작 ==========');
+    Logger.info('[AuthLanding] 현재 Firebase 사용자: ${_firebaseService.currentUser?.uid ?? "없음"}');
     setState(() => _isLoading = true);
     try {
+      Logger.info('[AuthLanding] FirebaseService.signInWithGoogle() 호출...');
       final result = await _firebaseService.signInWithGoogle();
       Logger.info('[AuthLanding] Google 로그인 결과: ${result != null ? "성공" : "null"}');
+      if (result != null) {
+        Logger.info('[AuthLanding] 결과 데이터: uid=${result['uid']}, name=${result['name']}');
+      }
       if (result != null && mounted) {
         Logger.info('[AuthLanding] Google 로그인 성공 - AuthGate가 처리할 예정');
         // 로그인 성공 - 마지막 로그인 방식 저장
         await _saveLastLoginMethod('google');
         // 로그인 성공 시 로딩 상태 유지 - AuthGate가 자동으로 MainPage로 이동
-        // _isLoading을 false로 설정하지 않음
+        Logger.info('[AuthLanding] ========== Google 로그인 완료 ==========');
         return;
       } else if (mounted) {
-        Logger.warning('[AuthLanding] Google 로그인 실패 또는 취소');
+        Logger.warning('[AuthLanding] Google 로그인 실패 또는 취소 (result=null)');
         _showError('Google 로그인에 실패했습니다.');
         setState(() => _isLoading = false);
       }
-    } catch (e) {
-      Logger.error('[AuthLanding] Google 로그인 오류', error: e);
+    } catch (e, stackTrace) {
+      Logger.error('[AuthLanding] Google 로그인 예외 발생: $e');
+      Logger.error('[AuthLanding] 스택트레이스: $stackTrace');
       if (mounted) {
         _showError('Google 로그인 중 오류가 발생했습니다.');
         setState(() => _isLoading = false);

@@ -2425,34 +2425,42 @@ class FirebaseService {
 
   /// 구글 로그인
   Future<Map<String, dynamic>?> signInWithGoogle() async {
+    Logger.info('[Firebase Google] ========== signInWithGoogle 시작 ==========');
     try {
       // 플랫폼 지원 여부 확인
       if (!GoogleSignInService.isSupported) {
-        Logger.warning('구글 로그인은 이 플랫폼에서 지원되지 않습니다.');
+        Logger.warning('[Firebase Google] 이 플랫폼에서 지원되지 않습니다.');
         return null;
       }
+      Logger.info('[Firebase Google] 플랫폼 지원 확인됨');
 
       // Google Sign-In 수행
+      Logger.info('[Firebase Google] GoogleSignInService.signIn() 호출...');
       final userCredential = await GoogleSignInService.signIn();
+      Logger.info('[Firebase Google] GoogleSignInService.signIn() 완료: ${userCredential != null ? "성공" : "null"}');
 
       if (userCredential == null) {
-        Logger.info('구글 로그인 취소됨');
+        Logger.info('[Firebase Google] 구글 로그인 취소됨 또는 실패');
         return null;
       }
 
       final user = userCredential.user;
+      Logger.info('[Firebase Google] Firebase User: ${user?.uid ?? "null"}');
       if (user == null) {
-        Logger.error('구글 로그인 실패: Firebase 사용자 없음');
+        Logger.error('[Firebase Google] Firebase 사용자 없음');
         return null;
       }
 
       // Firestore에 사용자 문서 생성/업데이트
+      Logger.info('[Firebase Google] Firestore 사용자 문서 확인 중...');
       final userDoc = await _firestore.collection(_usersCollectionName).doc(user.uid).get();
       bool isNewUser = false;
+      Logger.info('[Firebase Google] 문서 존재 여부: ${userDoc.exists}');
 
       if (!userDoc.exists) {
         // 신규 사용자 - 문서 생성
         isNewUser = true;
+        Logger.info('[Firebase Google] 신규 사용자 - 문서 생성 중...');
         await _firestore.collection(_usersCollectionName).doc(user.uid).set({
           'name': user.displayName ?? '사용자',
           'email': user.email ?? '',
@@ -2462,21 +2470,24 @@ class FirebaseService {
           'updatedAt': FieldValue.serverTimestamp(),
           'provider': 'google',
         });
-        Logger.info('구글 로그인 성공 (신규 사용자): ${user.uid}');
+        Logger.info('[Firebase Google] 신규 사용자 문서 생성 완료: ${user.uid}');
       } else {
         // 기존 사용자 - 마지막 로그인 시간 업데이트
+        Logger.info('[Firebase Google] 기존 사용자 - 로그인 시간 업데이트 중...');
         await _firestore.collection(_usersCollectionName).doc(user.uid).update({
           'updatedAt': FieldValue.serverTimestamp(),
           'lastLoginAt': FieldValue.serverTimestamp(),
         });
-        Logger.info('구글 로그인 성공 (기존 사용자): ${user.uid}');
+        Logger.info('[Firebase Google] 기존 사용자 로그인 시간 업데이트 완료: ${user.uid}');
       }
 
       // 최신 사용자 정보 가져오기
+      Logger.info('[Firebase Google] 최신 사용자 정보 조회 중...');
       final updatedDoc = await _firestore.collection(_usersCollectionName).doc(user.uid).get();
       final userData = updatedDoc.data() ?? {};
+      Logger.info('[Firebase Google] 사용자 데이터 조회 완료');
 
-      return {
+      final result = {
         'uid': user.uid,
         'name': userData['name'] ?? user.displayName ?? '사용자',
         'email': user.email ?? '',
@@ -2485,8 +2496,11 @@ class FirebaseService {
         'provider': 'google',
         'isNewUser': isNewUser,
       };
-    } catch (e) {
-      Logger.error('구글 로그인 오류: $e');
+      Logger.info('[Firebase Google] ========== signInWithGoogle 완료 ==========');
+      return result;
+    } catch (e, stackTrace) {
+      Logger.error('[Firebase Google] 예외 발생: $e');
+      Logger.error('[Firebase Google] 스택트레이스: $stackTrace');
       return null;
     }
   }

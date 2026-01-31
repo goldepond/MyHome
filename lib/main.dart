@@ -387,9 +387,11 @@ class _AuthGateState extends State<_AuthGate> {
       stream: FirebaseAuth.instance.userChanges(),
       builder: (context, snapshot) {
         final user = snapshot.data;
+        Logger.info('[AuthGate] StreamBuilder 빌드 - connectionState: ${snapshot.connectionState}, user: ${user?.uid ?? "null"}');
 
         // Firebase 준비 중에는 로딩 표시
         if (snapshot.connectionState == ConnectionState.waiting) {
+          Logger.info('[AuthGate] Firebase 준비 중 - 로딩 표시');
           return const Scaffold(
             body: Center(child: CircularProgressIndicator()),
           );
@@ -397,7 +399,7 @@ class _AuthGateState extends State<_AuthGate> {
 
         // Firebase 서버 오류 시 에러 화면 표시
         if (snapshot.hasError) {
-          Logger.error('Firebase Auth 스트림 오류', error: snapshot.error);
+          Logger.error('[AuthGate] Firebase Auth 스트림 오류', error: snapshot.error);
           return _NetworkErrorScreen(
             message: '서버에 연결할 수 없습니다.\n잠시 후 다시 시도해주세요.',
             onRetry: () {
@@ -408,9 +410,10 @@ class _AuthGateState extends State<_AuthGate> {
 
         // 비로그인 상태 또는 익명 사용자: 랜딩 페이지로 이동
         if (user == null || user.isAnonymous) {
+          Logger.info('[AuthGate] 비로그인 상태 - AuthLandingPage로 이동');
           // 캐시 즉시 초기화 - 재로그인 시 타이밍 문제 방지
           if (_cachedUserData != null || _lastKnownUser != null) {
-            Logger.info('로그아웃 감지 - 캐시 초기화');
+            Logger.info('[AuthGate] 로그아웃 감지 - 캐시 초기화');
             _cachedUserData = null;
             _lastKnownUser = null;
             _cacheVersion++; // 같은 계정으로 재로그인 시 FutureBuilder 강제 재실행
@@ -418,6 +421,7 @@ class _AuthGateState extends State<_AuthGate> {
           return const AuthLandingPage();
         }
 
+        Logger.info('[AuthGate] 로그인 상태 감지 - user: ${user.uid}');
         // 사용자 상태 업데이트
         _lastKnownUser = user;
         
