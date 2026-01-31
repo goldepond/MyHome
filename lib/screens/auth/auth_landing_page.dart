@@ -71,8 +71,11 @@ class _AuthLandingPageState extends State<AuthLandingPage> {
         print('[AuthLanding] 결과 데이터: uid=${result['uid']}, name=${result['name']}');
       }
       if (result != null && mounted) {
-        print('[AuthLanding] 카카오 로그인 성공 - 루트로 네비게이션');
+        print('[AuthLanding] 카카오 로그인 성공 - Firebase 상태 안정화 대기');
         await _saveLastLoginMethod('kakao');
+        // Firebase Auth 상태가 Firestore에 완전히 반영될 때까지 대기
+        // 이렇게 하지 않으면 Firestore 리스너가 credential 변경 중에 에러를 발생시킴
+        await Future.delayed(const Duration(milliseconds: 500));
         // StreamBuilder가 이벤트를 받지 못하는 경우를 위해 직접 네비게이션
         // pushNamedAndRemoveUntil로 루트로 이동하면 AuthGate가 다시 빌드됨
         if (mounted) {
@@ -109,8 +112,11 @@ class _AuthLandingPageState extends State<AuthLandingPage> {
         print('[AuthLanding] 결과 데이터: uid=${result['uid']}, name=${result['name']}');
       }
       if (result != null && mounted) {
-        print('[AuthLanding] Google 로그인 성공 - 루트로 네비게이션');
+        print('[AuthLanding] Google 로그인 성공 - Firebase 상태 안정화 대기');
         await _saveLastLoginMethod('google');
+        // Firebase Auth 상태가 Firestore에 완전히 반영될 때까지 대기
+        // 이렇게 하지 않으면 Firestore 리스너가 credential 변경 중에 에러를 발생시킴
+        await Future.delayed(const Duration(milliseconds: 500));
         // StreamBuilder가 이벤트를 받지 못하는 경우를 위해 직접 네비게이션
         // pushNamedAndRemoveUntil로 루트로 이동하면 AuthGate가 다시 빌드됨
         if (mounted) {
