@@ -103,7 +103,7 @@ class _MLSPropertyDetailPageState extends State<MLSPropertyDetailPage> {
                     // 메모리 최적화: 캐시 크기 제한
                     cacheWidth: 800,
                     cacheHeight: 600,
-                    errorBuilder: (_, __, ___) => Container(
+                    errorBuilder: (_, _a, _b) => Container(
                       color: AppleColors.tertiarySystemFill,
                       child: const Icon(Icons.image_not_supported, color: AppleColors.tertiaryLabel, size: 48),
                     ),

@@ -54,7 +54,6 @@ class MLSPropertyService {
     try {
       // 사용자의 기본 시간 블록 조회
       final defaultBlocks = await FirebaseService().getDefaultWeeklyTimeBlocks(userId);
-      final blockedDates = await FirebaseService().getBlockedDates(userId);
 
       // 기본 시간 블록이 있으면 적용
       MLSProperty propertyWithDefaults = property;

@@ -292,14 +292,14 @@ class _MLSPropertyEditPageState extends State<MLSPropertyEditPage> {
                       fit: BoxFit.cover,
                       width: double.infinity,
                       height: double.infinity,
-                      errorBuilder: (_, __, ___) => _buildImageError(),
+                      errorBuilder: (_, _a, _b) => _buildImageError(),
                     )
                   : Image.network(
                       item.existingUrl!,
                       fit: BoxFit.cover,
                       width: double.infinity,
                       height: double.infinity,
-                      errorBuilder: (_, __, ___) => _buildImageError(),
+                      errorBuilder: (_, _a, _b) => _buildImageError(),
                     ),
             ),
           ),

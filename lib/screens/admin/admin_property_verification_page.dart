@@ -151,7 +151,7 @@ class _AdminPropertyVerificationPageState extends State<AdminPropertyVerificatio
                 child: Image.network(
                   property.thumbnailUrl ?? property.imageUrls.first,
                   fit: BoxFit.cover,
-                  errorBuilder: (_, __, ___) => Container(
+                  errorBuilder: (_, _a, _b) => Container(
                     color: AirbnbColors.surface,
                     child: const Icon(Icons.image_not_supported, size: 40),
                   ),

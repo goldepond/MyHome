@@ -371,7 +371,7 @@ class BrokerStatsService {
             totalAmount: existing.totalAmount + finalPrice,
             lastDealAt: now,
             regions: region != null
-                ? [...existing.regions, region].toSet().toList()
+                ? {...existing.regions, region}.toList()
                 : existing.regions,
           );
         } else {
@@ -388,7 +388,7 @@ class BrokerStatsService {
 
         // 평균 거래 기간 계산
         final totalDuration =
-            updatedRecords.fold<int>(0, (sum, r) => sum + r.durationDays);
+            updatedRecords.fold<int>(0, (acc, r) => acc + r.durationDays);
         final avgDuration = updatedRecords.isNotEmpty
             ? totalDuration ~/ updatedRecords.length
             : 0;
@@ -437,13 +437,13 @@ class BrokerStatsService {
     try {
       final stats = await getAllBrokerStats();
 
-      final totalRequests = stats.fold<int>(0, (sum, s) => sum + s.totalRequests);
+      final totalRequests = stats.fold<int>(0, (acc, s) => acc + s.totalRequests);
       final totalApproved =
-          stats.fold<int>(0, (sum, s) => sum + s.approvedRequests);
-      final totalDeals = stats.fold<int>(0, (sum, s) => sum + s.completedDeals);
-      final totalNoShows = stats.fold<int>(0, (sum, s) => sum + s.noShowCount);
+          stats.fold<int>(0, (acc, s) => acc + s.approvedRequests);
+      final totalDeals = stats.fold<int>(0, (acc, s) => acc + s.completedDeals);
+      final totalNoShows = stats.fold<int>(0, (acc, s) => acc + s.noShowCount);
       final totalDealAmount =
-          stats.fold<double>(0, (sum, s) => sum + s.totalDealAmount);
+          stats.fold<double>(0, (acc, s) => acc + s.totalDealAmount);
 
       return {
         'totalBrokers': stats.length,

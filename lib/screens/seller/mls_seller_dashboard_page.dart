@@ -532,7 +532,7 @@ class _MLSSellerDashboardPageState extends State<MLSSellerDashboardPage> {
                       // 메모리 최적화: 캐시 크기 제한
                       cacheWidth: 400,
                       cacheHeight: 360,
-                      errorBuilder: (_, __, ___) => Container(
+                      errorBuilder: (_, _a, _b) => Container(
                         height: 180,
                         color: AppleColors.tertiarySystemFill,
                         child: const Icon(Icons.image_not_supported,

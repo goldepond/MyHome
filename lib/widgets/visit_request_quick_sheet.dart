@@ -117,7 +117,7 @@ class _VisitRequestQuickSheetState extends State<VisitRequestQuickSheet> {
                     shrinkWrap: true,
                     padding: const EdgeInsets.all(AppleSpacing.md),
                     itemCount: _pendingRequests.length,
-                    separatorBuilder: (_, __) => const SizedBox(height: AppleSpacing.sm),
+                    separatorBuilder: (_, _a) => const SizedBox(height: AppleSpacing.sm),
                     itemBuilder: (context, index) {
                       return _buildRequestCard(_pendingRequests[index]);
                     },
