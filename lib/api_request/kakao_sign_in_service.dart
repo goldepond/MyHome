@@ -19,16 +19,26 @@ class KakaoSignInService {
         Logger.error('[카카오 웹] - SDK 초기화 안됨: $e');
       }
 
-      // 1. 이미 저장된 토큰이 있는지 확인
+      // 1. 이미 저장된 토큰이 있는지 확인 (타임아웃 3초)
       Logger.info('[카카오 웹] 2. 기존 토큰 확인 중...');
-      if (await AuthApi.instance.hasToken()) {
+      bool hasValidToken = false;
+      try {
+        hasValidToken = await AuthApi.instance.hasToken()
+            .timeout(const Duration(seconds: 3));
+      } catch (e) {
+        Logger.info('[카카오 웹] - 토큰 확인 타임아웃: $e');
+      }
+
+      if (hasValidToken) {
         Logger.info('[카카오 웹] - 기존 토큰 발견, 유효성 검사 중...');
         try {
-          await UserApi.instance.accessTokenInfo();
+          await UserApi.instance.accessTokenInfo()
+              .timeout(const Duration(seconds: 3));
           Logger.info('[카카오 웹] - 토큰 유효함');
 
           // 토큰이 유효하면 바로 사용자 정보 가져오기
-          final user = await UserApi.instance.me();
+          final user = await UserApi.instance.me()
+              .timeout(const Duration(seconds: 5));
           final token = await TokenManagerProvider.instance.manager.getToken();
 
           Logger.info('[카카오 웹] - 기존 세션으로 로그인 성공: ${user.id}');
@@ -42,7 +52,7 @@ class KakaoSignInService {
             'refreshToken': token?.refreshToken,
           };
         } catch (e) {
-          Logger.info('[카카오 웹] - 토큰 만료됨, 새로 로그인 진행');
+          Logger.info('[카카오 웹] - 토큰 만료됨 또는 타임아웃, 새로 로그인 진행: $e');
         }
       }
 
@@ -113,6 +123,14 @@ class KakaoSignInService {
       Logger.info('카카오 로그아웃 성공');
     } catch (e) {
       Logger.error('카카오 로그아웃 실패: $e');
+    }
+
+    // 로컬 토큰도 삭제하여 다음 로그인 시 새로 인증하도록 함
+    try {
+      await TokenManagerProvider.instance.manager.clear();
+      Logger.info('카카오 로컬 토큰 삭제 성공');
+    } catch (e) {
+      Logger.warning('카카오 로컬 토큰 삭제 실패 (무시): $e');
     }
   }
 

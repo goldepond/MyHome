@@ -18,8 +18,16 @@ class GoogleSignInService {
       Logger.info('[GoogleSignIn] 로그인 시작');
 
       // 1. 먼저 이미 로그인된 계정이 있는지 확인 (silent sign-in)
-      GoogleSignInAccount? googleUser = await _googleSignIn.signInSilently();
-      Logger.info('[GoogleSignIn] silent 로그인 결과: ${googleUser?.email ?? "null"}');
+      // 타임아웃 3초 - 무한 대기 방지
+      GoogleSignInAccount? googleUser;
+      try {
+        googleUser = await _googleSignIn.signInSilently()
+            .timeout(const Duration(seconds: 3));
+        Logger.info('[GoogleSignIn] silent 로그인 결과: ${googleUser?.email ?? "null"}');
+      } catch (e) {
+        Logger.info('[GoogleSignIn] silent 로그인 타임아웃 또는 실패: $e');
+        googleUser = null;
+      }
 
       // 2. silent 로그인 실패시 계정 선택 UI 표시
       if (googleUser == null) {

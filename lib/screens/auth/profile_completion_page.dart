@@ -123,12 +123,16 @@ class _ProfileCompletionPageState extends State<ProfileCompletionPage> {
       Logger.info('[프로필 완성] 저장 시도 - userId: ${widget.userId}, name: $name, phone: $phone');
 
       // Firestore 업데이트
-      await _firebaseService.updateUser(widget.userId, {
+      final success = await _firebaseService.updateUser(widget.userId, {
         'name': name,
         'phone': phone,
         'profileCompleted': true,
         'updatedAt': DateTime.now().toIso8601String(),
       });
+
+      if (!success) {
+        throw Exception('Firestore 업데이트 실패');
+      }
 
       Logger.info('[프로필 완성] 저장 성공');
 
@@ -338,7 +342,7 @@ class _ProfileCompletionPageState extends State<ProfileCompletionPage> {
 
   Widget _buildSaveButton() {
     return SizedBox(
-      height: 50,
+      height: 56,
       child: ElevatedButton(
         onPressed: _isLoading ? null : _saveProfile,
         style: ElevatedButton.styleFrom(
@@ -360,8 +364,9 @@ class _ProfileCompletionPageState extends State<ProfileCompletionPage> {
               )
             : Text(
                 '시작하기',
-                style: AppleTypography.headline.copyWith(
+                style: AppleTypography.body.copyWith(
                   color: Colors.white,
+                  fontWeight: FontWeight.w600,
                 ),
               ),
       ),

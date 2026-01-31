@@ -329,6 +329,7 @@ class _AuthGate extends StatefulWidget {
 class _AuthGateState extends State<_AuthGate> {
   Map<String, dynamic>? _cachedUserData;
   User? _lastKnownUser;
+  int _cacheVersion = 0; // 캐시 무효화 시 증가하여 FutureBuilder 강제 재실행
 
   @override
   void initState() {
@@ -407,35 +408,13 @@ class _AuthGateState extends State<_AuthGate> {
 
         // 비로그인 상태 또는 익명 사용자: 랜딩 페이지로 이동
         if (user == null || user.isAnonymous) {
-          // 이전에 로그인한 사용자가 있었고 캐시 데이터가 있으면
-          // 일시적인 sign-out일 수 있으므로 잠시 대기
-          if (_lastKnownUser != null && _cachedUserData != null) {
-            Logger.info('임시 로그아웃 감지 - 재인증 대기 중...');
-            // 짧은 시간 후 실제로 로그아웃된 것인지 확인
-            Future.delayed(const Duration(milliseconds: 500), () {
-              if (mounted && FirebaseAuth.instance.currentUser == null) {
-                setState(() {
-                  _cachedUserData = null;
-                  _lastKnownUser = null;
-                });
-              }
-            });
-            // 로딩 화면 표시하면서 대기
-            return const Scaffold(
-              body: Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    CircularProgressIndicator(),
-                    SizedBox(height: 16),
-                    Text('인증 정보 확인 중...'),
-                  ],
-                ),
-              ),
-            );
+          // 캐시 즉시 초기화 - 재로그인 시 타이밍 문제 방지
+          if (_cachedUserData != null || _lastKnownUser != null) {
+            Logger.info('로그아웃 감지 - 캐시 초기화');
+            _cachedUserData = null;
+            _lastKnownUser = null;
+            _cacheVersion++; // 같은 계정으로 재로그인 시 FutureBuilder 강제 재실행
           }
-          _cachedUserData = null;
-          _lastKnownUser = null;
           return const AuthLandingPage();
         }
 
@@ -463,9 +442,10 @@ class _AuthGateState extends State<_AuthGate> {
               userId: _cachedUserData!['uid'],
               currentName: _cachedUserData!['name'],
               onComplete: () {
-                // 프로필 완성 후 캐시 초기화하여 새로 로드
+                // 프로필 완성 후 캐시 초기화 + 버전 증가로 FutureBuilder 강제 재실행
                 setState(() {
                   _cachedUserData = null;
+                  _cacheVersion++;
                 });
               },
             );
@@ -482,7 +462,7 @@ class _AuthGateState extends State<_AuthGate> {
         // Firestore / brokers 컬렉션에서 사용자 유형 및 표시 이름 로드
         // 로딩 중에도 기본 UI를 먼저 표시하여 사용자 경험 개선
         return FutureBuilder<Map<String, dynamic>?>(
-          key: ValueKey(user.uid),
+          key: ValueKey('${user.uid}_$_cacheVersion'),
           future: () async {
             final service = FirebaseService();
 
@@ -535,6 +515,7 @@ class _AuthGateState extends State<_AuthGate> {
                 onRetry: () {
                   setState(() {
                     _cachedUserData = null;
+                    _cacheVersion++;
                   });
                 },
               );
@@ -566,6 +547,7 @@ class _AuthGateState extends State<_AuthGate> {
                 onComplete: () {
                   setState(() {
                     _cachedUserData = null;
+                    _cacheVersion++;
                   });
                 },
               );
@@ -594,6 +576,7 @@ class _AuthGateState extends State<_AuthGate> {
                 onComplete: () {
                   setState(() {
                     _cachedUserData = null;
+                    _cacheVersion++;
                   });
                 },
               );
