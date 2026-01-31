@@ -407,6 +407,11 @@ class _SocialLoginButton extends StatelessWidget {
               color: Color(0xFFFEE500),
               fontSize: 14,
               fontWeight: FontWeight.w700,
+              height: 1.0,
+            ),
+            textHeightBehavior: TextHeightBehavior(
+              applyHeightToFirstAscent: false,
+              applyHeightToLastDescent: false,
             ),
           ),
         ),
@@ -429,6 +434,11 @@ class _SocialLoginButton extends StatelessWidget {
               color: Color(0xFF4285F4),
               fontSize: 14,
               fontWeight: FontWeight.w700,
+              height: 1.0,
+            ),
+            textHeightBehavior: TextHeightBehavior(
+              applyHeightToFirstAscent: false,
+              applyHeightToLastDescent: false,
             ),
           ),
         ),
