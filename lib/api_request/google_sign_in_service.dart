@@ -32,7 +32,13 @@ class GoogleSignInService {
       // 2. silent 로그인 실패시 계정 선택 UI 표시
       if (googleUser == null) {
         Logger.info('[GoogleSignIn] 계정 선택 UI 표시');
-        googleUser = await _googleSignIn.signIn();
+        try {
+          googleUser = await _googleSignIn.signIn()
+              .timeout(const Duration(seconds: 60)); // 사용자 선택 대기 (최대 60초)
+        } catch (e) {
+          Logger.error('[GoogleSignIn] signIn 타임아웃 또는 실패: $e');
+          return null;
+        }
       }
       Logger.info('[GoogleSignIn] googleUser: ${googleUser?.email ?? "null"}');
 
@@ -41,10 +47,16 @@ class GoogleSignInService {
         return null;
       }
 
-      // Google 인증 정보 가져오기
+      // Google 인증 정보 가져오기 (타임아웃 10초)
       Logger.info('[GoogleSignIn] 인증 정보 가져오는 중...');
-      final GoogleSignInAuthentication googleAuth =
-          await googleUser.authentication;
+      final GoogleSignInAuthentication googleAuth;
+      try {
+        googleAuth = await googleUser.authentication
+            .timeout(const Duration(seconds: 10));
+      } catch (e) {
+        Logger.error('[GoogleSignIn] authentication 타임아웃 또는 실패: $e');
+        return null;
+      }
       Logger.info('[GoogleSignIn] accessToken: ${googleAuth.accessToken != null ? "있음" : "없음"}');
       Logger.info('[GoogleSignIn] idToken: ${googleAuth.idToken != null ? "있음" : "없음"}');
 
@@ -54,11 +66,17 @@ class GoogleSignInService {
         idToken: googleAuth.idToken,
       );
 
-      // Firebase에 로그인
+      // Firebase에 로그인 (타임아웃 15초)
       Logger.info('[GoogleSignIn] Firebase 로그인 시도...');
-      final result = await FirebaseAuth.instance.signInWithCredential(credential);
-      Logger.info('[GoogleSignIn] Firebase 로그인 성공: ${result.user?.uid}');
-      return result;
+      try {
+        final result = await FirebaseAuth.instance.signInWithCredential(credential)
+            .timeout(const Duration(seconds: 15));
+        Logger.info('[GoogleSignIn] Firebase 로그인 성공: ${result.user?.uid}');
+        return result;
+      } catch (e) {
+        Logger.error('[GoogleSignIn] Firebase 로그인 타임아웃 또는 실패: $e');
+        return null;
+      }
     } catch (e, stackTrace) {
       Logger.error('[GoogleSignIn] 오류 발생: $e');
       Logger.error('[GoogleSignIn] 스택: $stackTrace');

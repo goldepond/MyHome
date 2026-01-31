@@ -62,20 +62,23 @@ class KakaoSignInService {
       Logger.info('[카카오 웹] 3. 카카오 계정 로그인 시도...');
       try {
         // 카카오 계정으로 로그인 (웹에서는 이 방식만 사용)
-        token = await UserApi.instance.loginWithKakaoAccount();
+        // 타임아웃 60초 - 사용자가 카카오 로그인 팝업에서 선택하는 시간 고려
+        token = await UserApi.instance.loginWithKakaoAccount()
+            .timeout(const Duration(seconds: 60));
         Logger.info('[카카오 웹] 4. 로그인 성공!');
         Logger.info('[카카오 웹] - Access Token: ${token.accessToken.substring(0, 20)}...');
         Logger.info('[카카오 웹] - Token 만료: ${token.expiresAt}');
       } catch (e) {
-        Logger.error('[카카오 웹] 4. 로그인 실패: $e');
+        Logger.error('[카카오 웹] 4. 로그인 실패 또는 타임아웃: $e');
         Logger.error('[카카오 웹] - 에러 타입: ${e.runtimeType}');
         return null;
       }
 
-      // 사용자 정보 요청
+      // 사용자 정보 요청 (타임아웃 10초)
       Logger.info('[카카오 웹] 5. 사용자 정보 요청 중...');
       try {
-        final user = await UserApi.instance.me();
+        final user = await UserApi.instance.me()
+            .timeout(const Duration(seconds: 10));
         Logger.info('[카카오 웹] 6. 사용자 정보 획득 성공!');
         Logger.info('[카카오 웹] - 사용자 ID: ${user.id}');
         Logger.info('[카카오 웹] - 닉네임: ${user.kakaoAccount?.profile?.nickname}');
