@@ -1,5 +1,6 @@
 // 모바일/웹용 Google Sign-In 서비스
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:google_sign_in/google_sign_in.dart';
 import '../utils/logger.dart';
 
@@ -15,22 +16,27 @@ class GoogleSignInService {
   /// 성공 시 Firebase UserCredential 반환, 실패/취소 시 null 반환
   static Future<UserCredential?> signIn() async {
     try {
-      print('[GoogleSignIn] ★★★ 로그인 시작 ★★★');
+      print('[GoogleSignIn] ★★★ 로그인 시작 (웹: $kIsWeb) ★★★');
 
-      // 1. 먼저 이미 로그인된 계정이 있는지 확인 (silent sign-in)
-      // 타임아웃 3초 - 무한 대기 방지
       GoogleSignInAccount? googleUser;
-      try {
-        print('[GoogleSignIn] 1. silent 로그인 시도...');
-        googleUser = await _googleSignIn.signInSilently()
-            .timeout(const Duration(seconds: 3));
-        print('[GoogleSignIn] silent 로그인 결과: ${googleUser?.email ?? "null"}');
-      } catch (e) {
-        print('[GoogleSignIn] silent 로그인 타임아웃 또는 실패: $e');
-        googleUser = null;
+
+      // 웹에서는 signInSilently가 FedCM 이슈로 항상 타임아웃되므로 건너뜀
+      if (!kIsWeb) {
+        // 모바일: 먼저 이미 로그인된 계정이 있는지 확인 (silent sign-in)
+        try {
+          print('[GoogleSignIn] 1. silent 로그인 시도...');
+          googleUser = await _googleSignIn.signInSilently()
+              .timeout(const Duration(seconds: 3));
+          print('[GoogleSignIn] silent 로그인 결과: ${googleUser?.email ?? "null"}');
+        } catch (e) {
+          print('[GoogleSignIn] silent 로그인 타임아웃 또는 실패: $e');
+          googleUser = null;
+        }
+      } else {
+        print('[GoogleSignIn] 웹 환경 - silent 로그인 건너뜀');
       }
 
-      // 2. silent 로그인 실패시 계정 선택 UI 표시
+      // silent 로그인 실패시 계정 선택 UI 표시
       if (googleUser == null) {
         print('[GoogleSignIn] 2. 계정 선택 UI 표시...');
         try {
