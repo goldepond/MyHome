@@ -71,8 +71,13 @@ class _AuthLandingPageState extends State<AuthLandingPage> {
         print('[AuthLanding] 결과 데이터: uid=${result['uid']}, name=${result['name']}');
       }
       if (result != null && mounted) {
-        print('[AuthLanding] 카카오 로그인 성공 - AuthGate가 처리할 예정');
+        print('[AuthLanding] 카카오 로그인 성공 - 루트로 네비게이션');
         await _saveLastLoginMethod('kakao');
+        // StreamBuilder가 이벤트를 받지 못하는 경우를 위해 직접 네비게이션
+        // pushNamedAndRemoveUntil로 루트로 이동하면 AuthGate가 다시 빌드됨
+        if (mounted) {
+          Navigator.of(context).pushNamedAndRemoveUntil('/', (route) => false);
+        }
         print('[AuthLanding] ★★★ 카카오 로그인 완료 ★★★');
         return;
       } else if (mounted) {
@@ -104,8 +109,13 @@ class _AuthLandingPageState extends State<AuthLandingPage> {
         print('[AuthLanding] 결과 데이터: uid=${result['uid']}, name=${result['name']}');
       }
       if (result != null && mounted) {
-        print('[AuthLanding] Google 로그인 성공 - AuthGate가 처리할 예정');
+        print('[AuthLanding] Google 로그인 성공 - 루트로 네비게이션');
         await _saveLastLoginMethod('google');
+        // StreamBuilder가 이벤트를 받지 못하는 경우를 위해 직접 네비게이션
+        // pushNamedAndRemoveUntil로 루트로 이동하면 AuthGate가 다시 빌드됨
+        if (mounted) {
+          Navigator.of(context).pushNamedAndRemoveUntil('/', (route) => false);
+        }
         print('[AuthLanding] ★★★ Google 로그인 완료 ★★★');
         return;
       } else if (mounted) {
