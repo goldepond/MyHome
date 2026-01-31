@@ -16,56 +16,41 @@ class GoogleSignInService {
   /// 성공 시 Firebase UserCredential 반환, 실패/취소 시 null 반환
   static Future<UserCredential?> signIn() async {
     try {
-      print('[GoogleSignIn] ★★★ 로그인 시작 (웹: $kIsWeb) ★★★');
-
       GoogleSignInAccount? googleUser;
 
       // 웹에서는 signInSilently가 FedCM 이슈로 항상 타임아웃되므로 건너뜀
       if (!kIsWeb) {
         // 모바일: 먼저 이미 로그인된 계정이 있는지 확인 (silent sign-in)
         try {
-          print('[GoogleSignIn] 1. silent 로그인 시도...');
           googleUser = await _googleSignIn.signInSilently()
               .timeout(const Duration(seconds: 3));
-          print('[GoogleSignIn] silent 로그인 결과: ${googleUser?.email ?? "null"}');
         } catch (e) {
-          print('[GoogleSignIn] silent 로그인 타임아웃 또는 실패: $e');
           googleUser = null;
         }
-      } else {
-        print('[GoogleSignIn] 웹 환경 - silent 로그인 건너뜀');
       }
 
       // silent 로그인 실패시 계정 선택 UI 표시
       if (googleUser == null) {
-        print('[GoogleSignIn] 2. 계정 선택 UI 표시...');
         try {
           googleUser = await _googleSignIn.signIn()
               .timeout(const Duration(seconds: 60)); // 사용자 선택 대기 (최대 60초)
         } catch (e) {
-          print('[GoogleSignIn] signIn 타임아웃 또는 실패: $e');
           return null;
         }
       }
-      print('[GoogleSignIn] googleUser: ${googleUser?.email ?? "null"}');
 
       if (googleUser == null) {
-        print('[GoogleSignIn] 사용자가 로그인 취소');
         return null;
       }
 
       // Google 인증 정보 가져오기 (타임아웃 10초)
-      print('[GoogleSignIn] 3. 인증 정보 가져오는 중...');
       final GoogleSignInAuthentication googleAuth;
       try {
         googleAuth = await googleUser.authentication
             .timeout(const Duration(seconds: 10));
       } catch (e) {
-        print('[GoogleSignIn] authentication 타임아웃 또는 실패: $e');
         return null;
       }
-      print('[GoogleSignIn] accessToken: ${googleAuth.accessToken != null ? "있음" : "없음"}');
-      print('[GoogleSignIn] idToken: ${googleAuth.idToken != null ? "있음" : "없음"}');
 
       // Firebase credential 생성
       final credential = GoogleAuthProvider.credential(
@@ -74,19 +59,15 @@ class GoogleSignInService {
       );
 
       // Firebase에 로그인 (타임아웃 15초)
-      print('[GoogleSignIn] 4. Firebase 로그인 시도...');
       try {
         final result = await FirebaseAuth.instance.signInWithCredential(credential)
             .timeout(const Duration(seconds: 15));
-        print('[GoogleSignIn] ★★★ Firebase 로그인 성공: ${result.user?.uid} ★★★');
         return result;
       } catch (e) {
-        print('[GoogleSignIn] Firebase 로그인 타임아웃 또는 실패: $e');
         return null;
       }
     } catch (e, stackTrace) {
-      print('[GoogleSignIn] 오류 발생: $e');
-      print('[GoogleSignIn] 스택: $stackTrace');
+      Logger.error('Google 로그인 오류', error: e, stackTrace: stackTrace);
       rethrow;
     }
   }

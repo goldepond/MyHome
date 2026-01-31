@@ -25,14 +25,11 @@ class _AuthLandingPageState extends State<AuthLandingPage> {
   @override
   void initState() {
     super.initState();
-    // 디버그: 위젯 상태 생성 확인
-    print('[AuthLanding] ★★★ initState 호출됨 - _isLoading: $_isLoading ★★★');
     _loadLastLoginMethod();
   }
 
   @override
   void dispose() {
-    print('[AuthLanding] ★★★ dispose 호출됨 ★★★');
     super.dispose();
   }
 
@@ -59,19 +56,10 @@ class _AuthLandingPageState extends State<AuthLandingPage> {
 
   // 카카오 로그인
   Future<void> _signInWithKakao() async {
-    print('[AuthLanding] ★★★ 카카오 로그인 버튼 클릭됨 ★★★');
-    print('[AuthLanding] 현재 _isLoading: $_isLoading');
-    print('[AuthLanding] 현재 Firebase 사용자: ${_firebaseService.currentUser?.uid ?? "없음"}');
     setState(() => _isLoading = true);
     try {
-      print('[AuthLanding] FirebaseService.signInWithKakao() 호출 시작...');
       final result = await _firebaseService.signInWithKakao();
-      print('[AuthLanding] 카카오 로그인 결과: ${result != null ? "성공" : "null"}');
-      if (result != null) {
-        print('[AuthLanding] 결과 데이터: uid=${result['uid']}, name=${result['name']}');
-      }
       if (result != null && mounted) {
-        print('[AuthLanding] 카카오 로그인 성공');
         await _saveLastLoginMethod('kakao');
         // StreamBuilder가 자동으로 AuthGate를 통해 네비게이션함
         // 100ms 대기 후 아직 이 화면에 있으면 직접 네비게이션 (fallback)
@@ -79,16 +67,13 @@ class _AuthLandingPageState extends State<AuthLandingPage> {
         if (mounted) {
           Navigator.of(context).pushNamedAndRemoveUntil('/', (route) => false);
         }
-        print('[AuthLanding] ★★★ 카카오 로그인 완료 ★★★');
         return;
       } else if (mounted) {
-        print('[AuthLanding] 카카오 로그인 실패 또는 취소 (result=null)');
         _showError('카카오 로그인에 실패했습니다.');
         setState(() => _isLoading = false);
       }
-    } catch (e, stackTrace) {
-      print('[AuthLanding] 카카오 로그인 예외 발생: $e');
-      print('[AuthLanding] 스택트레이스: $stackTrace');
+    } catch (e) {
+      Logger.error('카카오 로그인 오류', error: e);
       if (mounted) {
         _showError('카카오 로그인 중 오류가 발생했습니다.');
         setState(() => _isLoading = false);
@@ -98,19 +83,10 @@ class _AuthLandingPageState extends State<AuthLandingPage> {
 
   // Google 로그인
   Future<void> _signInWithGoogle() async {
-    print('[AuthLanding] ★★★ Google 로그인 버튼 클릭됨 ★★★');
-    print('[AuthLanding] 현재 _isLoading: $_isLoading');
-    print('[AuthLanding] 현재 Firebase 사용자: ${_firebaseService.currentUser?.uid ?? "없음"}');
     setState(() => _isLoading = true);
     try {
-      print('[AuthLanding] FirebaseService.signInWithGoogle() 호출 시작...');
       final result = await _firebaseService.signInWithGoogle();
-      print('[AuthLanding] Google 로그인 결과: ${result != null ? "성공" : "null"}');
-      if (result != null) {
-        print('[AuthLanding] 결과 데이터: uid=${result['uid']}, name=${result['name']}');
-      }
       if (result != null && mounted) {
-        print('[AuthLanding] Google 로그인 성공');
         await _saveLastLoginMethod('google');
         // StreamBuilder가 자동으로 AuthGate를 통해 네비게이션함
         // 100ms 대기 후 아직 이 화면에 있으면 직접 네비게이션 (fallback)
@@ -118,16 +94,13 @@ class _AuthLandingPageState extends State<AuthLandingPage> {
         if (mounted) {
           Navigator.of(context).pushNamedAndRemoveUntil('/', (route) => false);
         }
-        print('[AuthLanding] ★★★ Google 로그인 완료 ★★★');
         return;
       } else if (mounted) {
-        print('[AuthLanding] Google 로그인 실패 또는 취소 (result=null)');
         _showError('Google 로그인에 실패했습니다.');
         setState(() => _isLoading = false);
       }
-    } catch (e, stackTrace) {
-      print('[AuthLanding] Google 로그인 예외 발생: $e');
-      print('[AuthLanding] 스택트레이스: $stackTrace');
+    } catch (e) {
+      Logger.error('Google 로그인 오류', error: e);
       if (mounted) {
         _showError('Google 로그인 중 오류가 발생했습니다.');
         setState(() => _isLoading = false);
@@ -171,8 +144,6 @@ class _AuthLandingPageState extends State<AuthLandingPage> {
 
   @override
   Widget build(BuildContext context) {
-    // 디버그: 빌드 시 로딩 상태 확인
-    print('[AuthLanding] build() 호출 - _isLoading: $_isLoading');
     return Scaffold(
       backgroundColor: AppleColors.systemBackground,
       body: SafeArea(
