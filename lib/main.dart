@@ -387,7 +387,7 @@ class _AuthGateState extends State<_AuthGate> {
       stream: FirebaseAuth.instance.userChanges(),
       builder: (context, snapshot) {
         final user = snapshot.data;
-        Logger.info('[AuthGate] StreamBuilder 빌드 - connectionState: ${snapshot.connectionState}, user: ${user?.uid ?? "null"}');
+        print('[AuthGate] ★ StreamBuilder 빌드 - connectionState: ${snapshot.connectionState}, user: ${user?.uid ?? "null"}');
 
         // Firebase 준비 중에는 로딩 표시
         if (snapshot.connectionState == ConnectionState.waiting) {
@@ -410,15 +410,16 @@ class _AuthGateState extends State<_AuthGate> {
 
         // 비로그인 상태 또는 익명 사용자: 랜딩 페이지로 이동
         if (user == null || user.isAnonymous) {
-          Logger.info('[AuthGate] 비로그인 상태 - AuthLandingPage로 이동');
+          print('[AuthGate] ★★★ 비로그인 상태 - AuthLandingPage로 이동 ★★★');
           // 캐시 즉시 초기화 - 재로그인 시 타이밍 문제 방지
           if (_cachedUserData != null || _lastKnownUser != null) {
-            Logger.info('[AuthGate] 로그아웃 감지 - 캐시 초기화');
+            print('[AuthGate] 로그아웃 감지 - 캐시 초기화');
             _cachedUserData = null;
             _lastKnownUser = null;
             _cacheVersion++; // 같은 계정으로 재로그인 시 FutureBuilder 강제 재실행
           }
-          return const AuthLandingPage();
+          // const 제거 - 매번 새로운 State 생성 보장
+          return AuthLandingPage(key: ValueKey('auth_landing_$_cacheVersion'));
         }
 
         Logger.info('[AuthGate] 로그인 상태 감지 - user: ${user.uid}');
