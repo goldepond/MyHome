@@ -536,7 +536,9 @@ class FirebaseService {
   Future<bool> updateUser(String id, Map<String, dynamic> data) async {
     try {
       await _firestore.collection(_usersCollectionName).doc(id).update(data);
-      Logger.info('[Firebase] 사용자 정보 업데이트 성공: $id');
+      // 캐시 무효화 - 다음 getUser 호출 시 최신 데이터 반환
+      _userCache.remove(id);
+      Logger.info('[Firebase] 사용자 정보 업데이트 성공: $id (캐시 무효화됨)');
       return true;
     } catch (e) {
       Logger.error('[Firebase] 사용자 정보 업데이트 실패: $e');
@@ -547,12 +549,11 @@ class FirebaseService {
   // 사용자 이름 업데이트
   Future<bool> updateUserName(String id, String newName) async {
     try {
-      
       await _firestore.collection(_usersCollectionName).doc(id).update({
         'name': newName,
         'updatedAt': DateTime.now().toIso8601String(),
       });
-      
+      _userCache.remove(id); // 캐시 무효화
       return true;
     } catch (e) {
       return false;
@@ -562,12 +563,11 @@ class FirebaseService {
   // 사용자 전화번호 업데이트
   Future<bool> updateUserPhone(String id, String newPhone) async {
     try {
-
       await _firestore.collection(_usersCollectionName).doc(id).update({
         'phone': newPhone,
         'updatedAt': DateTime.now().toIso8601String(),
       });
-
+      _userCache.remove(id); // 캐시 무효화
       return true;
     } catch (e) {
       return false;
