@@ -59,8 +59,8 @@ class _AdminPropertyVerificationPageState extends State<AdminPropertyVerificatio
 
           // 검증 대기 매물 목록
           Expanded(
-            child: StreamBuilder<List<MLSProperty>>(
-              stream: _mlsService.getPendingProperties(),
+            child: FutureBuilder<List<MLSProperty>>(
+              future: _mlsService.getPendingPropertiesList(),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return const Center(child: CircularProgressIndicator());
@@ -68,7 +68,19 @@ class _AdminPropertyVerificationPageState extends State<AdminPropertyVerificatio
 
                 if (snapshot.hasError) {
                   return Center(
-                    child: Text('오류: ${snapshot.error}'),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(Icons.error_outline, size: 48, color: AirbnbColors.error),
+                        const SizedBox(height: 16),
+                        Text('오류: ${snapshot.error}'),
+                        const SizedBox(height: 16),
+                        ElevatedButton(
+                          onPressed: () => setState(() {}),
+                          child: const Text('다시 시도'),
+                        ),
+                      ],
+                    ),
                   );
                 }
 
@@ -78,12 +90,15 @@ class _AdminPropertyVerificationPageState extends State<AdminPropertyVerificatio
                   return _buildEmptyState();
                 }
 
-                return ListView.builder(
-                  padding: const EdgeInsets.symmetric(horizontal: 24),
-                  itemCount: properties.length,
-                  itemBuilder: (context, index) {
-                    return _buildPropertyCard(properties[index]);
-                  },
+                return RefreshIndicator(
+                  onRefresh: () async => setState(() {}),
+                  child: ListView.builder(
+                    padding: const EdgeInsets.symmetric(horizontal: 24),
+                    itemCount: properties.length,
+                    itemBuilder: (context, index) {
+                      return _buildPropertyCard(properties[index]);
+                    },
+                  ),
                 );
               },
             ),

@@ -46,8 +46,10 @@ service cloud.firestore {
     // === 공인중개사 컬렉션 ===
     match /brokers/{brokerId} {
       allow read: if isAuthenticated();
-      allow create: if isOwner(brokerId) && hasRequiredFields(['name', 'phone', 'createdAt']);
-      allow update: if isOwner(brokerId);
+      // 본인 UID로 문서 생성 가능 (ownerName, phoneNumber 필드 사용)
+      allow create: if isOwner(brokerId) && hasRequiredFields(['ownerName', 'phoneNumber', 'createdAt']);
+      // 본인 또는 관리자(익명)가 수정 가능
+      allow update: if isOwner(brokerId) || isAnonymousUser();
       allow delete: if false; // 중개사 삭제는 관리자만
     }
 

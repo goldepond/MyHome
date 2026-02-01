@@ -5,6 +5,7 @@ import '../../api_request/firebase_service.dart';
 import '../../widgets/home_logo_button.dart';
 import '../../utils/logger.dart';
 import '../login_page.dart';
+import '../user_type_selection_page.dart';
 
 /// 로그인/회원가입 랜딩페이지 (헤이딜러 스타일)
 /// 앱/웹 진입 시 로그인을 강제하는 페이지
@@ -113,10 +114,7 @@ class _AuthLandingPageState extends State<AuthLandingPage> {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => const LoginPage(
-          initialMode: LoginMode.register,
-          returnResult: false, // AuthGate가 자동으로 라우팅하도록 함
-        ),
+        builder: (context) => const UserTypeSelectionPage(),
       ),
     );
   }

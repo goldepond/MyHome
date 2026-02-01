@@ -143,12 +143,20 @@ class _AdminBrokerManagementState extends State<AdminBrokerManagement> {
                     AirbnbColors.primary,
                   ),
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: 8),
                 Expanded(
                   child: _buildStatCard(
-                    '검색 결과',
-                    _filteredBrokers.length.toString(),
-                    AirbnbColors.primary,
+                    '미인증',
+                    _brokers.where((b) => b['verified'] != true).length.toString(),
+                    AirbnbColors.warning,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: _buildStatCard(
+                    '인증됨',
+                    _brokers.where((b) => b['verified'] == true).length.toString(),
+                    AirbnbColors.success,
                   ),
                 ),
               ],
@@ -270,6 +278,7 @@ class _AdminBrokerManagementState extends State<AdminBrokerManagement> {
     final registrationNumber = broker['brokerRegistrationNumber'] ?? broker['registrationNumber'] ?? '정보 없음';
     final phone = broker['phone'] ?? broker['phoneNumber'] ?? '정보 없음';
     final address = broker['roadAddress'] ?? broker['address'] ?? '정보 없음';
+    final isVerified = broker['verified'] == true;
 
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
@@ -308,13 +317,36 @@ class _AdminBrokerManagementState extends State<AdminBrokerManagement> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        businessName,
-                        style: const TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: AirbnbColors.textPrimary,
-                        ),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              businessName,
+                              style: const TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                color: AirbnbColors.textPrimary,
+                              ),
+                            ),
+                          ),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: isVerified
+                                  ? AirbnbColors.success.withValues(alpha: 0.1)
+                                  : AirbnbColors.warning.withValues(alpha: 0.1),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Text(
+                              isVerified ? '인증됨' : '미인증',
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold,
+                                color: isVerified ? AirbnbColors.success : AirbnbColors.warning,
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                       const SizedBox(height: 4),
                       Text(
@@ -336,10 +368,33 @@ class _AdminBrokerManagementState extends State<AdminBrokerManagement> {
             const SizedBox(height: 8),
             _buildInfoRow(Icons.location_on, '주소', address),
             const SizedBox(height: 16),
-            // 수정/삭제 버튼
+            // 인증/수정/삭제 버튼
             Row(
-              mainAxisAlignment: MainAxisAlignment.end,
               children: [
+                // 인증/해제 버튼
+                if (!isVerified)
+                  ElevatedButton.icon(
+                    onPressed: () => _approveBroker(broker),
+                    icon: const Icon(Icons.check_circle, size: 18),
+                    label: const Text('인증'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AirbnbColors.success,
+                      foregroundColor: AirbnbColors.background,
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                    ),
+                  )
+                else
+                  ElevatedButton.icon(
+                    onPressed: () => _revokeBroker(broker),
+                    icon: const Icon(Icons.cancel, size: 18),
+                    label: const Text('인증 해제'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AirbnbColors.warning,
+                      foregroundColor: AirbnbColors.background,
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                    ),
+                  ),
+                const Spacer(),
                 ElevatedButton.icon(
                   onPressed: () => _showEditDialog(broker),
                   icon: const Icon(Icons.edit, size: 18),
@@ -347,7 +402,7 @@ class _AdminBrokerManagementState extends State<AdminBrokerManagement> {
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AirbnbColors.primary,
                     foregroundColor: AirbnbColors.background,
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                   ),
                 ),
                 const SizedBox(width: 8),
@@ -358,7 +413,7 @@ class _AdminBrokerManagementState extends State<AdminBrokerManagement> {
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AirbnbColors.error,
                     foregroundColor: AirbnbColors.background,
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                   ),
                 ),
               ],
@@ -397,6 +452,120 @@ class _AdminBrokerManagementState extends State<AdminBrokerManagement> {
         ),
       ],
     );
+  }
+
+  /// 중개사 인증
+  Future<void> _approveBroker(Map<String, dynamic> broker) async {
+    final brokerId = broker['uid'] ?? broker['id'] ?? broker['brokerId'] ?? '';
+    if (brokerId.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('중개사 ID를 찾을 수 없습니다.'),
+          backgroundColor: AirbnbColors.error,
+        ),
+      );
+      return;
+    }
+
+    try {
+      final success = await _firebaseService.updateBrokerInfo(brokerId, {'verified': true});
+      if (mounted) {
+        if (success) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('중개사가 인증되었습니다.'),
+              backgroundColor: AirbnbColors.success,
+            ),
+          );
+          _loadBrokers();
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('인증에 실패했습니다.'),
+              backgroundColor: AirbnbColors.error,
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('오류가 발생했습니다: $e'),
+            backgroundColor: AirbnbColors.error,
+          ),
+        );
+      }
+    }
+  }
+
+  /// 중개사 인증 해제
+  Future<void> _revokeBroker(Map<String, dynamic> broker) async {
+    final brokerId = broker['uid'] ?? broker['id'] ?? broker['brokerId'] ?? '';
+    if (brokerId.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('중개사 ID를 찾을 수 없습니다.'),
+          backgroundColor: AirbnbColors.error,
+        ),
+      );
+      return;
+    }
+
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('인증 해제'),
+        content: const Text('정말로 이 중개사의 인증을 해제하시겠습니까?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('취소'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AirbnbColors.warning,
+              foregroundColor: AirbnbColors.background,
+            ),
+            child: const Text('인증 해제'),
+          ),
+        ],
+      ),
+    );
+
+    if (result != true) return;
+
+    try {
+      final success = await _firebaseService.updateBrokerInfo(brokerId, {'verified': false});
+      if (mounted) {
+        if (success) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('중개사 인증이 해제되었습니다.'),
+              backgroundColor: AirbnbColors.warning,
+            ),
+          );
+          _loadBrokers();
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('인증 해제에 실패했습니다.'),
+              backgroundColor: AirbnbColors.error,
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('오류가 발생했습니다: $e'),
+            backgroundColor: AirbnbColors.error,
+          ),
+        );
+      }
+    }
   }
 
   /// 중개사 정보 수정 다이얼로그

@@ -343,7 +343,7 @@
           "order": "ASCENDING"
         }
       ]
-    }
+    },
     {
       "collectionGroup": "visitRequests",
       "queryScope": "COLLECTION_GROUP",

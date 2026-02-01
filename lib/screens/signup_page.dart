@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:property/constants/app_constants.dart';
 import 'package:property/constants/typography.dart';
 import 'package:property/constants/spacing.dart';
@@ -7,7 +8,7 @@ import 'package:property/widgets/common_design_system.dart';
 import 'package:property/api_request/firebase_service.dart';
 import 'package:property/widgets/home_logo_button.dart';
 import 'package:property/utils/validation_utils.dart';
-import 'package:property/screens/login_page.dart';
+import 'package:property/screens/main_page.dart';
 
 class SignupPage extends StatefulWidget {
   const SignupPage({super.key});
@@ -50,6 +51,11 @@ class _SignupPageState extends State<SignupPage> {
   }
 
   Future<void> _signup() async {
+    // 더블 클릭 방지
+    if (_isLoading) {
+      return;
+    }
+
     // 모든 에러 초기화
     setState(() {
       _emailError = null;
@@ -154,15 +160,25 @@ class _SignupPageState extends State<SignupPage> {
       if (success && mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
-            content: Text('회원가입이 완료되었습니다. 로그인해주세요.'),
+            content: Text('회원가입이 완료되었습니다!'),
             backgroundColor: AirbnbColors.success,
-            duration: Duration(seconds: 3),
+            duration: Duration(seconds: 2),
           ),
         );
-        Navigator.of(context).pushReplacement(
+
+        // 현재 로그인된 사용자의 UID 가져오기
+        final currentUser = FirebaseAuth.instance.currentUser;
+        final uid = currentUser?.uid ?? '';
+
+        // 메인 페이지로 직접 이동 (AuthGate 타이밍 문제 방지)
+        Navigator.of(context).pushAndRemoveUntil(
           MaterialPageRoute(
-            builder: (_) => const LoginPage(returnResult: false),
+            builder: (context) => MainPage(
+              userId: uid,
+              userName: name,
+            ),
           ),
+          (route) => false, // 모든 이전 라우트 제거
         );
       } else if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

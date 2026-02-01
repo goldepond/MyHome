@@ -50,18 +50,24 @@ class _AdminAuthGateState extends State<_AdminAuthGate> {
   }
 
   Future<void> _initializeAnonymousUser() async {
-    // 이미 로그인된 사용자가 있으면 패스
-    if (FirebaseAuth.instance.currentUser != null) {
+    final currentUser = FirebaseAuth.instance.currentUser;
+
+    // 이미 익명 사용자로 로그인되어 있으면 패스
+    if (currentUser != null && currentUser.isAnonymous) {
       return;
     }
-    
+
     setState(() {
       _isInitializingAnonymous = true;
     });
-    
+
     try {
-      // 임시: 관리자도 일단 익명 로그인 등을 사용한다고 가정
-      // 실제 운영 시에는 이메일/비밀번호 로그인 폼으로 대체 권장
+      // 일반 사용자로 로그인된 경우 로그아웃 후 익명 로그인
+      if (currentUser != null && !currentUser.isAnonymous) {
+        await FirebaseAuth.instance.signOut();
+      }
+
+      // 관리자용 익명 로그인
       await FirebaseService().signInAnonymously();
     } finally {
       if (mounted) {

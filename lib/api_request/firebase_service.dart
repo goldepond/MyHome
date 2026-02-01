@@ -384,8 +384,9 @@ class FirebaseService {
         'email': email ?? authEmail,
         'phone': phone,
         'role': role,
-        'createdAt': DateTime.now().toIso8601String(),
-        'updatedAt': DateTime.now().toIso8601String(),
+        'profileCompleted': true, // 이메일 회원가입 시 프로필 이미 완성됨
+        'createdAt': FieldValue.serverTimestamp(),
+        'updatedAt': FieldValue.serverTimestamp(),
       });
       
       return true;
@@ -1189,9 +1190,13 @@ class FirebaseService {
       if (brokerInfo.containsKey('broker_introduction')) {
         updateData['introduction'] = brokerInfo['broker_introduction'];
       }
-      
+      // 승인 상태
+      if (brokerInfo.containsKey('verified')) {
+        updateData['verified'] = brokerInfo['verified'];
+      }
+
       await _firestore.collection(_brokersCollectionName).doc(docId).update(updateData);
-      
+
       return true;
     } catch (e) {
       return false;

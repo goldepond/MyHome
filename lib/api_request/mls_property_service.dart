@@ -1180,6 +1180,23 @@ class MLSPropertyService {
         snapshot.docs.map((doc) => MLSProperty.fromMap(doc.data())).toList());
   }
 
+  /// 검증 대기 매물 목록 조회 (관리자용) - Future 버전
+  Future<List<MLSProperty>> getPendingPropertiesList() async {
+    try {
+      final snapshot = await _firestore
+        .collection(_collectionName)
+        .where('status', isEqualTo: PropertyStatus.pending.toString().split('.').last)
+        .where('isDeleted', isEqualTo: false)
+        .orderBy('createdAt', descending: false)
+        .get();
+
+      return snapshot.docs.map((doc) => MLSProperty.fromMap(doc.data())).toList();
+    } catch (e) {
+      Logger.error('Failed to get pending properties list', error: e);
+      rethrow;
+    }
+  }
+
   /// 검증 대기 매물 수 조회 (관리자용)
   Future<int> getPendingPropertyCount() async {
     try {
