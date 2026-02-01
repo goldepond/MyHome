@@ -54,7 +54,12 @@ class _BrokerSignupPageState extends State<BrokerSignupPage> {
 
   /// 등록번호 및 대표자명 검증
   Future<void> _validateBroker() async {
+    print('🔍 [BrokerSignup] 등록번호 검증 시작');
+    print('🔍 [BrokerSignup] 등록번호: ${_registrationNumberController.text.trim()}');
+    print('🔍 [BrokerSignup] 대표자명: ${_ownerNameController.text.trim()}');
+
     if (_registrationNumberController.text.trim().isEmpty) {
+      print('❌ [BrokerSignup] 등록번호 미입력');
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('등록번호를 입력해주세요.'),
@@ -65,6 +70,7 @@ class _BrokerSignupPageState extends State<BrokerSignupPage> {
     }
 
     if (_ownerNameController.text.trim().isEmpty) {
+      print('❌ [BrokerSignup] 대표자명 미입력');
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('대표자명을 입력해주세요.'),
@@ -81,11 +87,14 @@ class _BrokerSignupPageState extends State<BrokerSignupPage> {
 
     try {
       // 등록번호 중복 확인
+      print('🔍 [BrokerSignup] 등록번호 중복 확인 중...');
       final existingBroker = await _firebaseService.getBrokerByRegistrationNumber(
         _registrationNumberController.text.trim(),
       );
+      print('🔍 [BrokerSignup] 중복 확인 결과: ${existingBroker != null ? "이미 존재" : "신규"}');
 
       if (existingBroker != null) {
+        print('❌ [BrokerSignup] 이미 가입된 등록번호');
         setState(() {
           _isValidating = false;
         });
@@ -102,16 +111,21 @@ class _BrokerSignupPageState extends State<BrokerSignupPage> {
       }
 
       // API 검증
+      print('🔍 [BrokerSignup] 국토부 API 검증 호출...');
       final result = await BrokerVerificationService.validateBroker(
         registrationNumber: _registrationNumberController.text.trim(),
         ownerName: _ownerNameController.text.trim(),
       );
+      print('🔍 [BrokerSignup] API 검증 결과: isValid=${result.isValid}, error=${result.errorMessage}');
 
       setState(() {
         _isValidating = false;
       });
 
       if (result.isValid && result.brokerInfo != null) {
+        print('✅ [BrokerSignup] 검증 성공!');
+        print('✅ [BrokerSignup] 사업자명: ${result.brokerInfo!.businessName}');
+        print('✅ [BrokerSignup] 주소: ${result.brokerInfo!.address}');
         setState(() {
           _validatedBrokerInfo = result.brokerInfo;
         });
@@ -132,6 +146,7 @@ class _BrokerSignupPageState extends State<BrokerSignupPage> {
           );
         }
       } else {
+        print('❌ [BrokerSignup] 검증 실패: ${result.errorMessage}');
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
@@ -143,6 +158,7 @@ class _BrokerSignupPageState extends State<BrokerSignupPage> {
         }
       }
     } catch (e) {
+      print('❌ [BrokerSignup] 검증 중 예외 발생: $e');
       setState(() {
         _isValidating = false;
       });
@@ -159,6 +175,14 @@ class _BrokerSignupPageState extends State<BrokerSignupPage> {
 
   /// 회원가입 제출
   Future<void> _submitSignup() async {
+    print('📝 [BrokerSignup] ========== 회원가입 제출 시작 ==========');
+    print('📝 [BrokerSignup] 이메일: ${_emailController.text.trim()}');
+    print('📝 [BrokerSignup] 등록번호: ${_registrationNumberController.text.trim()}');
+    print('📝 [BrokerSignup] 대표자명: ${_ownerNameController.text.trim()}');
+    print('📝 [BrokerSignup] 사업자명: ${_businessNameController.text.trim()}');
+    print('📝 [BrokerSignup] 전화번호: ${_phoneNumberController.text.trim()}');
+    print('📝 [BrokerSignup] 검증 여부: ${_validatedBrokerInfo != null}');
+
     // 모든 에러 초기화
     setState(() {
       _emailError = null;
@@ -172,93 +196,116 @@ class _BrokerSignupPageState extends State<BrokerSignupPage> {
 
     // 등록번호 검증 (필수)
     if (_registrationNumberController.text.trim().isEmpty) {
+      print('❌ [BrokerSignup] 유효성 검사 실패: 등록번호 미입력');
       setState(() => _registrationNumberError = '중개업 등록번호를 입력해주세요');
       hasError = true;
     }
 
     // 이메일 검증
     if (_emailController.text.isEmpty) {
+      print('❌ [BrokerSignup] 유효성 검사 실패: 이메일 미입력');
       setState(() => _emailError = '이메일을 입력해주세요');
       hasError = true;
     } else if (!ValidationUtils.isValidEmail(_emailController.text)) {
+      print('❌ [BrokerSignup] 유효성 검사 실패: 이메일 형식 오류');
       setState(() => _emailError = '올바른 이메일 형식이 아닙니다');
       hasError = true;
     }
-    
+
     // 비밀번호 검증
     if (_passwordController.text.isEmpty) {
+      print('❌ [BrokerSignup] 유효성 검사 실패: 비밀번호 미입력');
       setState(() => _passwordError = '비밀번호를 입력해주세요');
       hasError = true;
     } else if (!ValidationUtils.isValidPasswordLength(_passwordController.text)) {
+      print('❌ [BrokerSignup] 유효성 검사 실패: 비밀번호 6자 미만');
       setState(() => _passwordError = '비밀번호는 6자 이상이어야 합니다');
       hasError = true;
     }
-    
+
     // 비밀번호 확인 검증
     if (_passwordConfirmController.text.isEmpty) {
+      print('❌ [BrokerSignup] 유효성 검사 실패: 비밀번호 확인 미입력');
       setState(() => _passwordConfirmError = '비밀번호 확인을 입력해주세요');
       hasError = true;
     } else if (!ValidationUtils.doPasswordsMatch(_passwordController.text, _passwordConfirmController.text)) {
+      print('❌ [BrokerSignup] 유효성 검사 실패: 비밀번호 불일치');
       setState(() => _passwordConfirmError = '비밀번호가 일치하지 않습니다');
       hasError = true;
     }
-    
+
     // 소유자 이름 검증
     if (_ownerNameController.text.isEmpty) {
+      print('❌ [BrokerSignup] 유효성 검사 실패: 소유자 이름 미입력');
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('소유자 이름을 입력해주세요')),
       );
       hasError = true;
     }
-    
+
     // 사무소명 검증
     if (_businessNameController.text.isEmpty) {
+      print('❌ [BrokerSignup] 유효성 검사 실패: 사무소명 미입력');
       setState(() => _businessNameError = '사무소명을 입력해주세요');
       hasError = true;
     }
-    
+
     // 전화번호 검증
     if (_phoneNumberController.text.isEmpty) {
+      print('❌ [BrokerSignup] 유효성 검사 실패: 전화번호 미입력');
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('전화번호를 입력해주세요')),
       );
       hasError = true;
     }
-    
+
     if (hasError) {
+      print('❌ [BrokerSignup] 유효성 검사 실패로 중단');
       return;
     }
 
+    print('✅ [BrokerSignup] 유효성 검사 통과');
+
     if (!_formKey.currentState!.validate()) {
+      print('❌ [BrokerSignup] Form 검증 실패');
       return;
     }
+
+    print('✅ [BrokerSignup] Form 검증 통과');
 
     setState(() {
       _isLoading = true;
     });
 
     try {
+      print('📝 [BrokerSignup] Firebase registerBroker 호출...');
       // Firebase에 저장
       // 검증 정보가 있으면 사용하고, 없으면 직접 입력한 값 사용
+      final brokerInfo = {
+        'brokerRegistrationNumber': _validatedBrokerInfo?.registrationNumber ?? _registrationNumberController.text.trim(),
+        'ownerName': _validatedBrokerInfo?.ownerName ?? _ownerNameController.text.trim(),
+        'businessName': _businessNameController.text.trim(),
+        'phoneNumber': _phoneNumberController.text.trim(),
+        'systemRegNo': _validatedBrokerInfo?.systemRegNo,
+        'address': _validatedBrokerInfo?.address,
+        'verified': _validatedBrokerInfo != null, // 검증 여부
+      };
+      print('📝 [BrokerSignup] brokerInfo: $brokerInfo');
+
       final errorMessage = await _firebaseService.registerBroker(
         brokerId: _emailController.text.trim(),
         password: _passwordController.text,
-        brokerInfo: {
-          'brokerRegistrationNumber': _validatedBrokerInfo?.registrationNumber ?? _registrationNumberController.text.trim(),
-          'ownerName': _validatedBrokerInfo?.ownerName ?? _ownerNameController.text.trim(),
-          'businessName': _businessNameController.text.trim(),
-          'phoneNumber': _phoneNumberController.text.trim(),
-          'systemRegNo': _validatedBrokerInfo?.systemRegNo,
-          'address': _validatedBrokerInfo?.address,
-          'verified': _validatedBrokerInfo != null, // 검증 여부
-        },
+        brokerInfo: brokerInfo,
       );
+
+      print('📝 [BrokerSignup] registerBroker 결과: ${errorMessage ?? "성공"}');
 
       setState(() {
         _isLoading = false;
       });
 
       if (errorMessage == null && mounted) {
+        print('✅ [BrokerSignup] 회원가입 완료!');
         // 성공 메시지
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -273,6 +320,7 @@ class _BrokerSignupPageState extends State<BrokerSignupPage> {
           'password': _passwordController.text,
         });
       } else if (mounted) {
+        print('❌ [BrokerSignup] 회원가입 실패: $errorMessage');
         // 에러 메시지 표시
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
@@ -282,6 +330,7 @@ class _BrokerSignupPageState extends State<BrokerSignupPage> {
         );
       }
     } catch (e) {
+      print('❌ [BrokerSignup] 예외 발생: $e');
       setState(() {
         _isLoading = false;
       });
@@ -294,6 +343,7 @@ class _BrokerSignupPageState extends State<BrokerSignupPage> {
         );
       }
     }
+    print('📝 [BrokerSignup] ========== 회원가입 제출 종료 ==========');
   }
 
   @override
