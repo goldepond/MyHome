@@ -1319,6 +1319,7 @@ class _MLSPropertyDetailPageState extends State<MLSPropertyDetailPage> {
               children: [
                 // 거절 버튼
                 Expanded(
+                  flex: 2,
                   child: OutlinedButton(
                     onPressed: () => _rejectRequest(request),
                     style: OutlinedButton.styleFrom(
@@ -1333,6 +1334,7 @@ class _MLSPropertyDetailPageState extends State<MLSPropertyDetailPage> {
 
                 // 다른 시간 제안 버튼
                 Expanded(
+                  flex: 3,
                   child: OutlinedButton(
                     onPressed: () => _suggestAlternativeTime(request),
                     style: OutlinedButton.styleFrom(
@@ -1347,7 +1349,7 @@ class _MLSPropertyDetailPageState extends State<MLSPropertyDetailPage> {
 
                 // 승인 버튼
                 Expanded(
-                  flex: 2,
+                  flex: 3,
                   child: ElevatedButton(
                     onPressed: () => _approveRequest(request),
                     style: ElevatedButton.styleFrom(
