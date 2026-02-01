@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../models/mls_property.dart';
 import '../models/notification_model.dart';
 import '../utils/logger.dart';
@@ -497,8 +498,19 @@ class MLSPropertyService {
         viewedAt: viewed == true ? DateTime.now() : existing?.viewedAt,
       );
 
+      // targetBrokerIds에 Firebase UID 추가 (Firestore 규칙 통과용)
+      final targetBrokerIds = List<String>.from(property.targetBrokerIds);
+      final currentUid = FirebaseAuth.instance.currentUser?.uid;
+      if (currentUid != null && !targetBrokerIds.contains(currentUid)) {
+        targetBrokerIds.add(currentUid);
+      }
+      if (!targetBrokerIds.contains(brokerId)) {
+        targetBrokerIds.add(brokerId);
+      }
+
       await updateProperty(propertyId, {
         'brokerResponses': responses.map((k, v) => MapEntry(k, v.toMap())),
+        'targetBrokerIds': targetBrokerIds,
       });
 
       Logger.info('Broker response updated: $brokerId -> stage: $stage');
@@ -1259,8 +1271,9 @@ class MLSPropertyService {
         targetBrokerIds.add(brokerId);
       }
       // Firebase UID도 추가 (Firestore 보안 규칙에서 request.auth.uid로 확인)
-      if (brokerUid != null && !targetBrokerIds.contains(brokerUid)) {
-        targetBrokerIds.add(brokerUid);
+      final effectiveUid = brokerUid ?? FirebaseAuth.instance.currentUser?.uid;
+      if (effectiveUid != null && !targetBrokerIds.contains(effectiveUid)) {
+        targetBrokerIds.add(effectiveUid);
       }
 
       await updateProperty(propertyId, {
