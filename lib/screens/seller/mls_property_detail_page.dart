@@ -1319,45 +1319,51 @@ class _MLSPropertyDetailPageState extends State<MLSPropertyDetailPage> {
               children: [
                 // 거절 버튼
                 Expanded(
-                  flex: 2,
                   child: OutlinedButton(
                     onPressed: () => _rejectRequest(request),
                     style: OutlinedButton.styleFrom(
                       foregroundColor: AppleColors.systemRed,
                       side: BorderSide(color: AppleColors.systemRed.withValues(alpha: 0.5)),
-                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
                     ),
-                    child: const Text('거절'),
+                    child: const FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Text('거절'),
+                    ),
                   ),
                 ),
                 const SizedBox(width: AppleSpacing.xs),
 
                 // 다른 시간 제안 버튼
                 Expanded(
-                  flex: 3,
                   child: OutlinedButton(
                     onPressed: () => _suggestAlternativeTime(request),
                     style: OutlinedButton.styleFrom(
                       foregroundColor: AppleColors.systemBlue,
                       side: BorderSide(color: AppleColors.systemBlue.withValues(alpha: 0.5)),
-                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
                     ),
-                    child: const Text('다른 시간'),
+                    child: const FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Text('다른 시간'),
+                    ),
                   ),
                 ),
                 const SizedBox(width: AppleSpacing.xs),
 
                 // 승인 버튼
                 Expanded(
-                  flex: 3,
                   child: ElevatedButton(
                     onPressed: () => _approveRequest(request),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppleColors.systemGreen,
                       foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 8),
                     ),
-                    child: const Text('승인'),
+                    child: const FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Text('승인'),
+                    ),
                   ),
                 ),
               ],
