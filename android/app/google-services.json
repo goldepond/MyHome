@@ -56,6 +56,42 @@
           ]
         }
       }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1018586798653:android:cc8ad1f55855bd38cae854",
+        "android_client_info": {
+          "package_name": "com.goldepond.myhome"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1018586798653-nr1i1kl3eejtjmpebfiol2bkfd83ulmj.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA7zQg7yod00a2BWZwAa8EkEUYNVKq7s-o"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1018586798653-h3dt91muv5r1c41oi14ofv40rl5u900v.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "1018586798653-6rvg4403rg678so06rk8sig2j7ucphg5.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.property"
+              }
+            }
+          ]
+        }
+      }
     }
   ],
   "configuration_version": "1"

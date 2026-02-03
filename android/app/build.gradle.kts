@@ -16,7 +16,7 @@ if (keystorePropertiesFile.exists()) {
 }
 
 android {
-    namespace = "android.houseproject"
+    namespace = "com.goldepond.myhome"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
@@ -42,7 +42,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "android.houseproject"
+        applicationId = "com.goldepond.myhome"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = flutter.minSdkVersion
@@ -81,7 +81,7 @@ android {
         }
     }
 
-    // Automatically copy debug APK to Flutter-expected location
+    // Automatically copy APK/AAB to Flutter-expected location
     tasks.whenTaskAdded {
         if (name.startsWith("assemble")) {
             doLast {
@@ -94,8 +94,20 @@ android {
                     targetDir.mkdirs()
                     sourceApk.copyTo(targetApk, overwrite = true)
                     println("✅ APK copied to Flutter-expected location: ${targetApk.absolutePath}")
-                } else {
-                    println("⚠️ Source APK not found: ${sourceApk.absolutePath}")
+                }
+            }
+        }
+        // AAB 빌드 시 Flutter 예상 위치로 복사
+        if (name == "bundleRelease") {
+            doLast {
+                val sourceAab = File("${project.buildDir}/outputs/bundle/release/app-release.aab")
+                val targetDir = File("${rootProject.projectDir}/../build/app/outputs/bundle/release")
+                val targetAab = File(targetDir, "app-release.aab")
+
+                if (sourceAab.exists()) {
+                    targetDir.mkdirs()
+                    sourceAab.copyTo(targetAab, overwrite = true)
+                    println("✅ AAB copied to Flutter-expected location: ${targetAab.absolutePath}")
                 }
             }
         }
