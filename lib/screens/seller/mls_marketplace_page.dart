@@ -792,7 +792,7 @@ class _MLSMarketplacePageState extends State<MLSMarketplacePage> {
                   ),
                   const SizedBox(height: AppleSpacing.xxs),
                   Text(
-                    '30초 등록으로 지역 중개사에게 자동 배포',
+                    '간편 등록으로 지역 중개사에게 자동 배포',
                     style: AppleTypography.subheadline.copyWith(
                       color: AppleColors.secondaryLabel,
                     ),

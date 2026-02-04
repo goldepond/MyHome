@@ -226,7 +226,7 @@ class _MLSQuickRegistrationPageState extends State<MLSQuickRegistrationPage>
 
     switch (_currentStep) {
       case 0:
-        title = '내 집, 30초 만에';
+        title = '한 번 등록하면';
         subtitle = actionVerb;
         description = '먼저 매물 주소를 알려주세요';
         break;
@@ -241,7 +241,7 @@ class _MLSQuickRegistrationPageState extends State<MLSQuickRegistrationPage>
         description = '매물 사진을 올려주시면 끝이에요';
         break;
       default:
-        title = '내 집, 30초 만에';
+        title = '한 번 등록하면';
         subtitle = actionVerb;
         description = '';
     }
