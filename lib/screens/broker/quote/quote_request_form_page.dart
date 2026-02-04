@@ -77,14 +77,15 @@ class _QuoteRequestFormPageState extends State<QuoteRequestFormPage> {
   /// 사용자 이메일 가져오기
   Future<String> _getUserEmail() async {
     // 1. 게스트 모드에서 전달받은 이메일이 있으면 사용
-    if (widget.userEmail != null && widget.userEmail!.isNotEmpty) {
-      return widget.userEmail!;
+    final widgetEmail = widget.userEmail;
+    if (widgetEmail != null && widgetEmail.isNotEmpty) {
+      return widgetEmail;
     }
 
     // 2. Firebase Auth에서 현재 사용자 이메일 가져오기
-    final currentUser = _firebaseService.currentUser;
-    if (currentUser?.email != null && currentUser!.email!.isNotEmpty) {
-      return currentUser.email!;
+    final currentUserEmail = _firebaseService.currentUser?.email;
+    if (currentUserEmail != null && currentUserEmail.isNotEmpty) {
+      return currentUserEmail;
     }
 
     // 3. userId가 있으면 Firestore에서 사용자 정보 조회
@@ -105,8 +106,9 @@ class _QuoteRequestFormPageState extends State<QuoteRequestFormPage> {
   /// 사용자 전화번호 가져오기
   Future<String?> _getUserPhone() async {
     // 1. 게스트 모드에서 전달받은 전화번호가 있으면 사용
-    if (widget.userPhone != null && widget.userPhone!.isNotEmpty) {
-      return widget.userPhone!;
+    final widgetPhone = widget.userPhone;
+    if (widgetPhone != null && widgetPhone.isNotEmpty) {
+      return widgetPhone;
     }
 
     // 2. userId가 있으면 Firestore에서 사용자 정보 조회

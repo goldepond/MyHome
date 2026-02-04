@@ -248,6 +248,10 @@ class ApiConstants {
   // 서울시 Open API
   static String get seoulOpenApiKey => _getEnv('SEOUL_OPEN_API_KEY');
   static const String seoulGlobalBrokerBaseUrl = 'https://openapi.seoul.go.kr:8088';
+
+  // 카카오 SDK
+  static String get kakaoNativeAppKey => _getEnv('KAKAO_NATIVE_APP_KEY');
+  static String get kakaoJavaScriptAppKey => _getEnv('KAKAO_JAVASCRIPT_APP_KEY');
 }
 
 // dotenv 안전 접근 헬퍼 함수
@@ -266,6 +270,8 @@ String _getEnv(String key) {
       'CODEF_PUBLIC_KEY': String.fromEnvironment('CODEF_PUBLIC_KEY'),
       'REGISTER_API_KEY': String.fromEnvironment('REGISTER_API_KEY'),
       'SEOUL_OPEN_API_KEY': String.fromEnvironment('SEOUL_OPEN_API_KEY'),
+      'KAKAO_NATIVE_APP_KEY': String.fromEnvironment('KAKAO_NATIVE_APP_KEY'),
+      'KAKAO_JAVASCRIPT_APP_KEY': String.fromEnvironment('KAKAO_JAVASCRIPT_APP_KEY'),
     };
     
     final value = webApiKeys[key] ?? '';
@@ -313,6 +319,20 @@ String _getEnv(String key) {
       // 또는 다른 키 사용 가능
       if (value.isEmpty) {
         return '516b44654c676f6c313036564f4c4d66';
+      }
+      return value;
+    }
+    if (key == 'KAKAO_NATIVE_APP_KEY') {
+      // 카카오 네이티브 앱 키 (Android/iOS 앱용)
+      if (value.isEmpty) {
+        return '79eb4a17226ceff2ac253ae9fbe7d6af';
+      }
+      return value;
+    }
+    if (key == 'KAKAO_JAVASCRIPT_APP_KEY') {
+      // 카카오 JavaScript 앱 키 (웹용)
+      if (value.isEmpty) {
+        return 'c31199c0e7e674ea06152e43591f98b6';
       }
       return value;
     }

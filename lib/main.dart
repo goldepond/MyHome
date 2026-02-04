@@ -27,8 +27,8 @@ void main() async {
 
   // 카카오 SDK 초기화
   kakao.KakaoSdk.init(
-    nativeAppKey: '79eb4a17226ceff2ac253ae9fbe7d6af',
-    javaScriptAppKey: 'c31199c0e7e674ea06152e43591f98b6',
+    nativeAppKey: ApiConstants.kakaoNativeAppKey,
+    javaScriptAppKey: ApiConstants.kakaoJavaScriptAppKey,
   );
 
   // 이미지 캐시 최적화 (메모리 사용량 제한)
