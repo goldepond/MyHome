@@ -159,7 +159,7 @@ class MainPageState extends State<MainPage> {
     Widget page;
     switch (index) {
       case 0:
-        // 빠른 등록 (30초 등록) - 메인 CTA
+        // 빠른 등록 - 메인 CTA
         page = MLSQuickRegistrationPage(
           key: const ValueKey('mls_quick_registration'),
           onRegistrationComplete: () {

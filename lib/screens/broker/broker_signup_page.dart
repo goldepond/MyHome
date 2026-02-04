@@ -53,18 +53,8 @@ class _BrokerSignupPageState extends State<BrokerSignupPage> {
 
   /// 회원가입 제출
   Future<void> _submitSignup() async {
-    // 더블 클릭 방지 - 가장 먼저 체크
-    if (_isLoading) {
-      print('⚠️ [BrokerSignup] 이미 제출 중 - 중복 요청 무시');
-      return;
-    }
-
-    print('📝 [BrokerSignup] ========== 회원가입 제출 시작 ==========');
-    print('📝 [BrokerSignup] 이메일: ${_emailController.text.trim()}');
-    print('📝 [BrokerSignup] 등록번호: ${_registrationNumberController.text.trim()}');
-    print('📝 [BrokerSignup] 대표자명: ${_ownerNameController.text.trim()}');
-    print('📝 [BrokerSignup] 사업자명: ${_businessNameController.text.trim()}');
-    print('📝 [BrokerSignup] 전화번호: ${_phoneNumberController.text.trim()}');
+    // 더블 클릭 방지
+    if (_isLoading) return;
 
     // 모든 에러 초기화 + 로딩 상태 즉시 설정
     setState(() {
@@ -80,47 +70,39 @@ class _BrokerSignupPageState extends State<BrokerSignupPage> {
 
     // 등록번호 검증 (필수)
     if (_registrationNumberController.text.trim().isEmpty) {
-      print('❌ [BrokerSignup] 유효성 검사 실패: 등록번호 미입력');
       setState(() => _registrationNumberError = '중개업 등록번호를 입력해주세요');
       hasError = true;
     }
 
     // 이메일 검증
     if (_emailController.text.isEmpty) {
-      print('❌ [BrokerSignup] 유효성 검사 실패: 이메일 미입력');
       setState(() => _emailError = '이메일을 입력해주세요');
       hasError = true;
     } else if (!ValidationUtils.isValidEmail(_emailController.text)) {
-      print('❌ [BrokerSignup] 유효성 검사 실패: 이메일 형식 오류');
       setState(() => _emailError = '올바른 이메일 형식이 아닙니다');
       hasError = true;
     }
 
     // 비밀번호 검증
     if (_passwordController.text.isEmpty) {
-      print('❌ [BrokerSignup] 유효성 검사 실패: 비밀번호 미입력');
       setState(() => _passwordError = '비밀번호를 입력해주세요');
       hasError = true;
     } else if (!ValidationUtils.isValidPasswordLength(_passwordController.text)) {
-      print('❌ [BrokerSignup] 유효성 검사 실패: 비밀번호 6자 미만');
       setState(() => _passwordError = '비밀번호는 6자 이상이어야 합니다');
       hasError = true;
     }
 
     // 비밀번호 확인 검증
     if (_passwordConfirmController.text.isEmpty) {
-      print('❌ [BrokerSignup] 유효성 검사 실패: 비밀번호 확인 미입력');
       setState(() => _passwordConfirmError = '비밀번호 확인을 입력해주세요');
       hasError = true;
     } else if (!ValidationUtils.doPasswordsMatch(_passwordController.text, _passwordConfirmController.text)) {
-      print('❌ [BrokerSignup] 유효성 검사 실패: 비밀번호 불일치');
       setState(() => _passwordConfirmError = '비밀번호가 일치하지 않습니다');
       hasError = true;
     }
 
     // 소유자 이름 검증
     if (_ownerNameController.text.isEmpty) {
-      print('❌ [BrokerSignup] 유효성 검사 실패: 소유자 이름 미입력');
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('대표자명을 입력해주세요')),
       );
@@ -129,14 +111,12 @@ class _BrokerSignupPageState extends State<BrokerSignupPage> {
 
     // 사무소명 검증
     if (_businessNameController.text.isEmpty) {
-      print('❌ [BrokerSignup] 유효성 검사 실패: 사무소명 미입력');
       setState(() => _businessNameError = '사무소명을 입력해주세요');
       hasError = true;
     }
 
     // 전화번호 검증
     if (_phoneNumberController.text.isEmpty) {
-      print('❌ [BrokerSignup] 유효성 검사 실패: 전화번호 미입력');
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('전화번호를 입력해주세요')),
       );
@@ -144,31 +124,23 @@ class _BrokerSignupPageState extends State<BrokerSignupPage> {
     }
 
     if (hasError) {
-      print('❌ [BrokerSignup] 유효성 검사 실패로 중단');
       setState(() => _isLoading = false);
       return;
     }
-
-    print('✅ [BrokerSignup] 유효성 검사 통과');
 
     if (!_formKey.currentState!.validate()) {
-      print('❌ [BrokerSignup] Form 검증 실패');
       setState(() => _isLoading = false);
       return;
     }
 
-    print('✅ [BrokerSignup] Form 검증 통과');
-
     try {
-      print('📝 [BrokerSignup] Firebase registerBroker 호출...');
       final brokerInfo = {
         'brokerRegistrationNumber': _registrationNumberController.text.trim(),
         'ownerName': _ownerNameController.text.trim(),
         'businessName': _businessNameController.text.trim(),
         'phoneNumber': _phoneNumberController.text.trim(),
-        'verified': false, // 관리자 인증 전 기본값
+        'verified': false,
       };
-      print('📝 [BrokerSignup] brokerInfo: $brokerInfo');
 
       final errorMessage = await _firebaseService.registerBroker(
         brokerId: _emailController.text.trim(),
@@ -176,15 +148,11 @@ class _BrokerSignupPageState extends State<BrokerSignupPage> {
         brokerInfo: brokerInfo,
       );
 
-      print('📝 [BrokerSignup] registerBroker 결과: ${errorMessage ?? "성공"}');
-
       setState(() {
         _isLoading = false;
       });
 
       if (errorMessage == null && mounted) {
-        print('✅ [BrokerSignup] 회원가입 완료!');
-        // 성공 메시지
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('회원가입이 완료되었습니다!'),
@@ -192,11 +160,9 @@ class _BrokerSignupPageState extends State<BrokerSignupPage> {
           ),
         );
 
-        // 현재 로그인된 사용자의 UID 가져오기
         final currentUser = FirebaseAuth.instance.currentUser;
         final uid = currentUser?.uid ?? '';
 
-        // 브로커 대시보드로 직접 이동 (AuthGate 타이밍 문제 방지)
         Navigator.of(context).pushAndRemoveUntil(
           MaterialPageRoute(
             builder: (context) => MLSBrokerDashboardPage(
@@ -212,11 +178,9 @@ class _BrokerSignupPageState extends State<BrokerSignupPage> {
               },
             ),
           ),
-          (route) => false, // 모든 이전 라우트 제거
+          (route) => false,
         );
       } else if (mounted) {
-        print('❌ [BrokerSignup] 회원가입 실패: $errorMessage');
-        // 에러 메시지 표시
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(errorMessage ?? '회원가입에 실패했습니다. 다시 시도해주세요.'),
@@ -225,7 +189,6 @@ class _BrokerSignupPageState extends State<BrokerSignupPage> {
         );
       }
     } catch (e) {
-      print('❌ [BrokerSignup] 예외 발생: $e');
       setState(() {
         _isLoading = false;
       });
@@ -238,7 +201,6 @@ class _BrokerSignupPageState extends State<BrokerSignupPage> {
         );
       }
     }
-    print('📝 [BrokerSignup] ========== 회원가입 제출 종료 ==========');
   }
 
   @override

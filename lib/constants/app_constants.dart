@@ -247,7 +247,7 @@ class ApiConstants {
   
   // 서울시 Open API
   static String get seoulOpenApiKey => _getEnv('SEOUL_OPEN_API_KEY');
-  static const String seoulGlobalBrokerBaseUrl = 'http://openapi.seoul.go.kr:8088';
+  static const String seoulGlobalBrokerBaseUrl = 'https://openapi.seoul.go.kr:8088';
 }
 
 // dotenv 안전 접근 헬퍼 함수

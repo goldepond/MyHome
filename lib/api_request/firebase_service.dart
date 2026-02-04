@@ -1750,45 +1750,31 @@ class FirebaseService {
     required String password,
     required Map<String, dynamic> brokerInfo,
   }) async {
-    print('🔥 [FirebaseService] ========== registerBroker 시작 ==========');
-    print('🔥 [FirebaseService] brokerId: $brokerId');
-    print('🔥 [FirebaseService] brokerInfo: $brokerInfo');
-
     try {
       // 이메일 형식 생성
       String email = brokerId;
       if (!brokerId.contains('@')) {
         email = '$brokerId@myhome.com';
       }
-      print('🔥 [FirebaseService] 생성된 이메일: $email');
 
       // Firebase Authentication으로 계정 생성
-      print('🔥 [FirebaseService] Firebase Auth 계정 생성 시도...');
       final userCredential = await _auth.createUserWithEmailAndPassword(
         email: email,
         password: password,
       );
-      print('🔥 [FirebaseService] Firebase Auth 계정 생성 완료');
 
       final uid = userCredential.user?.uid;
-      print('🔥 [FirebaseService] 생성된 UID: $uid');
 
       if (uid == null) {
-        print('❌ [FirebaseService] UID가 null - 계정 생성 실패');
         return '계정 생성에 실패했습니다. 다시 시도해주세요.';
       }
 
       // displayName 설정
-      print('🔥 [FirebaseService] displayName 설정 중...');
       await userCredential.user?.updateDisplayName(
         brokerInfo['ownerName'] ?? brokerId,
       );
-      print('🔥 [FirebaseService] displayName 설정 완료: ${brokerInfo['ownerName'] ?? brokerId}');
 
       // Firestore에 공인중개사 정보 저장
-      print('🔥 [FirebaseService] Firestore 문서 저장 시도...');
-      print('🔥 [FirebaseService] 컬렉션: $_brokersCollectionName, 문서ID: $uid');
-
       final docData = {
         'brokerId': brokerId,
         'uid': uid,
@@ -1799,17 +1785,13 @@ class FirebaseService {
         'createdAt': FieldValue.serverTimestamp(),
         'updatedAt': FieldValue.serverTimestamp(),
       };
-      print('🔥 [FirebaseService] 저장할 데이터: $docData');
 
       await _firestore.collection(_brokersCollectionName).doc(uid).set(docData);
-      print('✅ [FirebaseService] Firestore 문서 저장 완료!');
-      print('🔥 [FirebaseService] ========== registerBroker 성공 ==========');
+      Logger.info('공인중개사 등록 완료: $brokerId');
 
       return null; // 성공
     } on FirebaseAuthException catch (e) {
-      print('❌ [FirebaseService] FirebaseAuthException 발생');
-      print('❌ [FirebaseService] code: ${e.code}');
-      print('❌ [FirebaseService] message: ${e.message}');
+      Logger.warning('공인중개사 등록 실패', metadata: {'code': e.code});
 
       if (e.code == 'email-already-in-use') {
         return '이미 사용 중인 이메일입니다.\n로그인해주세요.';
@@ -1821,8 +1803,7 @@ class FirebaseService {
         return '회원가입에 실패했습니다.\n${e.message ?? '알 수 없는 오류가 발생했습니다.'}';
       }
     } catch (e) {
-      print('❌ [FirebaseService] 일반 예외 발생: $e');
-      print('❌ [FirebaseService] 예외 타입: ${e.runtimeType}');
+      Logger.warning('공인중개사 등록 예외', metadata: {'error': e.toString()});
       return '회원가입 중 오류가 발생했습니다.\n잠시 후 다시 시도해주세요.';
     }
   }
@@ -2018,9 +1999,6 @@ class FirebaseService {
 
   /// 공인중개사가 등록번호로 조회 (중복 가입 방지)
   Future<Map<String, dynamic>?> getBrokerByRegistrationNumber(String registrationNumber) async {
-    print('🔥 [FirebaseService] getBrokerByRegistrationNumber 호출');
-    print('🔥 [FirebaseService] 검색할 등록번호: $registrationNumber');
-
     try {
       final querySnapshot = await _firestore
           .collection(_brokersCollectionName)
@@ -2028,17 +2006,12 @@ class FirebaseService {
           .limit(1)
           .get();
 
-      print('🔥 [FirebaseService] 조회 결과 문서 수: ${querySnapshot.docs.length}');
-
       if (querySnapshot.docs.isNotEmpty) {
-        final data = querySnapshot.docs.first.data();
-        print('🔥 [FirebaseService] 기존 등록된 중개사 발견: ${data['ownerName']} (${data['businessName']})');
-        return data;
+        return querySnapshot.docs.first.data();
       }
-      print('🔥 [FirebaseService] 해당 등록번호로 가입된 중개사 없음');
       return null;
     } catch (e) {
-      print('❌ [FirebaseService] getBrokerByRegistrationNumber 예외: $e');
+      Logger.warning('등록번호 조회 실패', metadata: {'error': e.toString()});
       return null;
     }
   }
