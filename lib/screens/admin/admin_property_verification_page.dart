@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../api_request/mls_property_service.dart';
+import '../../api_request/firebase_service.dart';
 import '../../models/mls_property.dart';
 import '../../constants/app_constants.dart';
 
@@ -23,6 +24,7 @@ class AdminPropertyVerificationPage extends StatefulWidget {
 
 class _AdminPropertyVerificationPageState extends State<AdminPropertyVerificationPage> {
   final _mlsService = MLSPropertyService();
+  final _firebaseService = FirebaseService();
 
   @override
   Widget build(BuildContext context) {
@@ -371,13 +373,25 @@ class _AdminPropertyVerificationPageState extends State<AdminPropertyVerificatio
           adminId: widget.userId,
         );
 
+        // 매도인에게 알림 전송
+        if (property.userId.isNotEmpty) {
+          await _firebaseService.sendNotification(
+            userId: property.userId,
+            title: '매물 승인 완료',
+            message: '등록하신 매물 "${property.roadAddress}"이(가) 검증 승인되었습니다.\n\n이제 지역 중개사들에게 배포됩니다.',
+            type: 'property_approved',
+            relatedId: property.id,
+          );
+        }
+
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
-              content: Text('매물이 승인되었습니다'),
+              content: Text('매물이 승인되고 알림이 전송되었습니다'),
               backgroundColor: AirbnbColors.success,
             ),
           );
+          setState(() {}); // 목록 새로고침
         }
       } catch (e) {
         if (mounted) {
@@ -523,13 +537,25 @@ class _AdminPropertyVerificationPageState extends State<AdminPropertyVerificatio
           reason: result,
         );
 
+        // 매도인에게 알림 전송
+        if (property.userId.isNotEmpty) {
+          await _firebaseService.sendNotification(
+            userId: property.userId,
+            title: '매물 검증 거절',
+            message: '등록하신 매물 "${property.roadAddress}"이(가) 검증 과정에서 거절되었습니다.\n\n사유: $result\n\n수정 후 다시 등록해주세요.',
+            type: 'property_rejected',
+            relatedId: property.id,
+          );
+        }
+
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
-              content: Text('매물이 거절되었습니다'),
+              content: Text('매물이 거절되고 알림이 전송되었습니다'),
               backgroundColor: AirbnbColors.warning,
             ),
           );
+          setState(() {}); // 목록 새로고침
         }
       } catch (e) {
         if (mounted) {

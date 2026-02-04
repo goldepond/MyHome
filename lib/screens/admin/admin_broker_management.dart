@@ -472,9 +472,19 @@ class _AdminBrokerManagementState extends State<AdminBrokerManagement> {
       final success = await _firebaseService.updateBrokerInfo(brokerId, {'verified': true});
       if (mounted) {
         if (success) {
+          // 중개사에게 알림 전송
+          final businessName = broker['businessName'] ?? broker['name'] ?? '중개사';
+          await _firebaseService.sendNotification(
+            userId: brokerId,
+            title: '인증 완료',
+            message: '"$businessName"의 공인중개사 인증이 완료되었습니다.\n\n이제 모든 서비스를 이용하실 수 있습니다.',
+            type: 'broker_verified',
+            relatedId: brokerId,
+          );
+
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
-              content: Text('중개사가 인증되었습니다.'),
+              content: Text('중개사가 인증되고 알림이 전송되었습니다.'),
               backgroundColor: AirbnbColors.success,
             ),
           );
@@ -541,9 +551,19 @@ class _AdminBrokerManagementState extends State<AdminBrokerManagement> {
       final success = await _firebaseService.updateBrokerInfo(brokerId, {'verified': false});
       if (mounted) {
         if (success) {
+          // 중개사에게 알림 전송
+          final businessName = broker['businessName'] ?? broker['name'] ?? '중개사';
+          await _firebaseService.sendNotification(
+            userId: brokerId,
+            title: '인증 해제 알림',
+            message: '"$businessName"의 공인중개사 인증이 해제되었습니다.\n\n문의사항은 관리자에게 연락해주세요.',
+            type: 'broker_unverified',
+            relatedId: brokerId,
+          );
+
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
-              content: Text('중개사 인증이 해제되었습니다.'),
+              content: Text('중개사 인증이 해제되고 알림이 전송되었습니다.'),
               backgroundColor: AirbnbColors.warning,
             ),
           );
@@ -770,7 +790,7 @@ class _AdminBrokerManagementState extends State<AdminBrokerManagement> {
   /// 중개사 삭제
   Future<void> _deleteBroker(Map<String, dynamic> broker) async {
     try {
-      final brokerId = broker['id'] ?? broker['brokerId'] ?? '';
+      final brokerId = broker['uid'] ?? broker['id'] ?? broker['brokerId'] ?? '';
       if (brokerId.isEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -781,13 +801,23 @@ class _AdminBrokerManagementState extends State<AdminBrokerManagement> {
         return;
       }
 
+      // 삭제 전에 알림 전송 (삭제 후에는 알림을 받을 수 없음)
+      final businessName = broker['businessName'] ?? broker['name'] ?? '중개사';
+      await _firebaseService.sendNotification(
+        userId: brokerId,
+        title: '계정 삭제 알림',
+        message: '"$businessName" 중개사 계정이 관리자에 의해 삭제되었습니다.\n\n문의사항은 고객센터로 연락해주세요.',
+        type: 'broker_deleted',
+        relatedId: brokerId,
+      );
+
       final success = await _firebaseService.deleteBroker(brokerId);
 
       if (mounted) {
         if (success) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
-              content: Text('중개사가 삭제되었습니다.'),
+              content: Text('중개사가 삭제되고 알림이 전송되었습니다.'),
               backgroundColor: AirbnbColors.success,
             ),
           );

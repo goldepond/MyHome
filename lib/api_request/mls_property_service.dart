@@ -133,6 +133,19 @@ class MLSPropertyService {
         .toList());
   }
 
+  /// 관리자용 전체 매물 조회 (모든 상태 포함 - pending, rejected 등)
+  Stream<List<MLSProperty>> getAllPropertiesForAdmin({int limit = 500}) {
+    return _firestore
+      .collection(_collectionName)
+      .where('isDeleted', isEqualTo: false)
+      .orderBy('createdAt', descending: true)
+      .limit(limit)
+      .snapshots()
+      .map((snapshot) => snapshot.docs
+        .map((doc) => MLSProperty.fromMap(doc.data()))
+        .toList());
+  }
+
   /// 전체 활성 매물 빠른 조회 (마켓플레이스 초기 로딩용)
   Future<List<MLSProperty>> getAllActivePropertiesFast({int limit = 100}) async {
     try {
@@ -257,25 +270,6 @@ class MLSPropertyService {
         .toList());
   }
 
-  /// 중개사가 참여 중인 매물 목록 조회
-  Stream<List<MLSProperty>> getPropertiesByBroker(String brokerId) {
-    return _firestore
-      .collection(_collectionName)
-      .where('targetBrokerIds', arrayContains: brokerId)
-      .where('isDeleted', isEqualTo: false)
-      .orderBy('broadcastedAt', descending: true)
-      .snapshots()
-      .map((snapshot) {
-        return snapshot.docs
-          .map((doc) => MLSProperty.fromMap(doc.data()))
-          .where((property) {
-            final response = property.brokerResponses[brokerId];
-            return response != null && response.hasViewed;
-          })
-          .toList();
-      });
-  }
-
   /// 중개사에게 배포된 모든 매물 조회 (참여 대시보드용) - Future 버전
   /// 수락 여부와 관계없이 targetBrokerIds에 포함된 모든 매물 반환
   Future<List<MLSProperty>> getPropertiesBroadcastedToBroker(String brokerId) async {
@@ -297,7 +291,8 @@ class MLSPropertyService {
     }
   }
 
-  /// 중개사에게 배포된 모든 매물 조회 (실시간 스트림 버전)
+  /// 중개사에게 배포된 활성 매물 조회 (실시간 스트림 버전)
+  /// 활성 상태(active, inquiry, underOffer)인 매물만 반환
   /// 스트림 캐싱으로 재구독 방지
   Stream<List<MLSProperty>> getPropertiesBroadcastedToBrokerStream(String brokerId) {
     final cacheKey = 'broadcasted_$brokerId';
@@ -314,8 +309,13 @@ class MLSPropertyService {
       .orderBy('broadcastedAt', descending: true)
       .snapshots()
       .map((snapshot) {
+        // 클라이언트 측에서 활성 상태만 필터링 (arrayContains와 whereIn 동시 사용 불가)
         return snapshot.docs
           .map((doc) => MLSProperty.fromMap(doc.data()))
+          .where((property) =>
+            property.status == PropertyStatus.active ||
+            property.status == PropertyStatus.inquiry ||
+            property.status == PropertyStatus.underOffer)
           .toList();
       }).asBroadcastStream();
 
@@ -384,6 +384,7 @@ class MLSPropertyService {
   }
 
   /// 중개사에게 배포된 매물 빠른 조회 (초기 로딩용)
+  /// 활성 상태(active, inquiry, underOffer)인 매물만 반환
   Future<List<MLSProperty>> getPropertiesBroadcastedToBrokerFast(String brokerId) async {
     try {
       final snapshot = await _firestore
@@ -395,8 +396,13 @@ class MLSPropertyService {
         .limit(50)
         .get();
 
+      // 클라이언트 측에서 활성 상태만 필터링 (arrayContains와 whereIn 동시 사용 불가)
       return snapshot.docs
         .map((doc) => MLSProperty.fromMap(doc.data()))
+        .where((property) =>
+          property.status == PropertyStatus.active ||
+          property.status == PropertyStatus.inquiry ||
+          property.status == PropertyStatus.underOffer)
         .toList();
     } catch (e) {
       Logger.error('Failed to get broadcasted properties fast', error: e);

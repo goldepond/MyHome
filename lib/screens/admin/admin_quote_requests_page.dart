@@ -773,6 +773,21 @@ class _AdminQuoteRequestsPageState extends State<AdminQuoteRequestsPage> {
                         icon: const Icon(Icons.cancel, size: 18),
                         label: const Text('취소', style: TextStyle(fontSize: 13)),
                       ),
+
+                    // 삭제 버튼 (항상 표시)
+                    OutlinedButton.icon(
+                      onPressed: () => _showDeleteConfirmDialog(request),
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: AirbnbColors.error,
+                        side: const BorderSide(color: AirbnbColors.error),
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                      icon: const Icon(Icons.delete_outline, size: 18),
+                      label: const Text('삭제', style: TextStyle(fontSize: 13)),
+                    ),
                   ],
                 ),
               ],
@@ -1087,6 +1102,171 @@ $inquiryUrl
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('❌ 상태 업데이트에 실패했습니다. 다시 시도해주세요.'),
+            backgroundColor: AirbnbColors.error,
+          ),
+        );
+      }
+    }
+  }
+
+  /// 견적문의 삭제 확인 다이얼로그 (사유 입력 포함)
+  Future<void> _showDeleteConfirmDialog(QuoteRequest request) async {
+    final reasonController = TextEditingController();
+    String selectedReason = '잘못된 정보';
+
+    final result = await showDialog<String?>(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setDialogState) => AlertDialog(
+          title: const Text('견적문의 삭제'),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text('정말로 이 견적문의를 삭제하시겠습니까?'),
+                const SizedBox(height: 12),
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: AirbnbColors.surface,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('문의자: ${request.userName}', style: const TextStyle(fontSize: 13)),
+                      Text('중개사: ${request.brokerName}', style: const TextStyle(fontSize: 13)),
+                      Text('문의일: ${_formatDateTime(request.requestDate)}', style: const TextStyle(fontSize: 13)),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 16),
+                const Text(
+                  '삭제 사유 선택',
+                  style: TextStyle(
+                    fontWeight: FontWeight.w600,
+                    fontSize: 14,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                // 사유 선택 드롭다운
+                DropdownButtonFormField<String>(
+                  value: selectedReason,
+                  decoration: InputDecoration(
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  ),
+                  items: const [
+                    DropdownMenuItem(value: '잘못된 정보', child: Text('잘못된 정보')),
+                    DropdownMenuItem(value: '중복 문의', child: Text('중복 문의')),
+                    DropdownMenuItem(value: '스팸/테스트', child: Text('스팸/테스트')),
+                    DropdownMenuItem(value: '사용자 요청', child: Text('사용자 요청')),
+                    DropdownMenuItem(value: '기타', child: Text('기타 (직접 입력)')),
+                  ],
+                  onChanged: (value) {
+                    setDialogState(() => selectedReason = value ?? '잘못된 정보');
+                  },
+                ),
+                // 기타 선택 시 직접 입력
+                if (selectedReason == '기타') ...[
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: reasonController,
+                    decoration: InputDecoration(
+                      hintText: '삭제 사유를 입력하세요',
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                    maxLines: 2,
+                  ),
+                ],
+                const SizedBox(height: 16),
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: AirbnbColors.warning.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: AirbnbColors.warning.withValues(alpha: 0.3)),
+                  ),
+                  child: const Row(
+                    children: [
+                      Icon(Icons.info_outline, color: AirbnbColors.warning, size: 20),
+                      SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          '삭제 시 문의자에게 알림이 전송됩니다.',
+                          style: TextStyle(fontSize: 13, color: AirbnbColors.warning),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, null),
+              child: const Text('취소'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                final reason = selectedReason == '기타'
+                    ? (reasonController.text.trim().isEmpty ? '기타' : reasonController.text.trim())
+                    : selectedReason;
+                Navigator.pop(context, reason);
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AirbnbColors.error,
+                foregroundColor: AirbnbColors.background,
+              ),
+              child: const Text('삭제'),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    if (result != null) {
+      await _deleteQuoteRequest(request, result);
+    }
+  }
+
+  /// 견적문의 삭제 (알림 전송 포함)
+  Future<void> _deleteQuoteRequest(QuoteRequest request, String reason) async {
+    // 삭제 전에 문의자 정보 저장
+    final userId = request.userId;
+    final brokerName = request.brokerName;
+
+    final success = await _firebaseService.deleteQuoteRequest(request.id);
+
+    if (mounted) {
+      if (success) {
+        // 문의자에게 알림 전송
+        if (userId.isNotEmpty) {
+          await _firebaseService.sendNotification(
+            userId: userId,
+            title: '견적문의 삭제 알림',
+            message: '"$brokerName" 중개사에게 보낸 견적문의가 관리자에 의해 삭제되었습니다.\n\n사유: $reason',
+            type: 'quote_request_deleted',
+            relatedId: request.id,
+          );
+        }
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('✅ ${request.userName}님의 견적문의가 삭제되고 알림이 전송되었습니다.'),
+            backgroundColor: AirbnbColors.success,
+          ),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('❌ 견적문의 삭제에 실패했습니다. 다시 시도해주세요.'),
             backgroundColor: AirbnbColors.error,
           ),
         );
