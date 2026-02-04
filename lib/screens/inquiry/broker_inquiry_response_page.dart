@@ -421,6 +421,7 @@ class _BrokerInquiryResponsePageState extends State<BrokerInquiryResponsePage> {
     final quoteRequest = QuoteRequest.fromMap(_inquiryData!['id'], _inquiryData!);
 
     return GestureDetector(
+      behavior: HitTestBehavior.translucent,
       onTap: () => FocusScope.of(context).unfocus(),
       child: Scaffold(
         appBar: AppBar(

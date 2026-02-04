@@ -171,6 +171,7 @@ class _BrokerSettingsPageState extends State<BrokerSettingsPage> {
     final maxWidth = ResponsiveHelper.getMaxWidth(context);
 
     return GestureDetector(
+      behavior: HitTestBehavior.translucent,
       onTap: () => FocusScope.of(context).unfocus(),
       child: Scaffold(
       backgroundColor: AirbnbColors.surface,

@@ -82,6 +82,7 @@ class _AdminBrokerManagementState extends State<AdminBrokerManagement> {
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
+      behavior: HitTestBehavior.translucent,
       onTap: () => FocusScope.of(context).unfocus(),
       child: Scaffold(
       backgroundColor: AirbnbColors.surface,

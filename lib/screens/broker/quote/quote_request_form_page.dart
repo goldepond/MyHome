@@ -138,6 +138,7 @@ class _QuoteRequestFormPageState extends State<QuoteRequestFormPage> {
     final maxContentWidth = ResponsiveHelper.getMaxWidth(context);
 
     return GestureDetector(
+      behavior: HitTestBehavior.translucent,
       onTap: () => FocusScope.of(context).unfocus(),
       child: Scaffold(
         backgroundColor: const Color(0xFFE8EAF0), // 배경을 더 진하게
