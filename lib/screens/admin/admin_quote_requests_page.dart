@@ -28,7 +28,7 @@ class _AdminQuoteRequestsPageState extends State<AdminQuoteRequestsPage> {
   
   // 필터/정렬 상태
   String _statusFilter = 'all'; // all, pending, contacted, answered, completed, cancelled
-  String _periodFilter = '7d'; // today, 7d, 30d, all
+  String _periodFilter = 'all'; // today, 7d, 30d, all (기본값: 전체)
   String _sortOption = 'newest'; // newest, oldest
   final TextEditingController _regionController = TextEditingController(); // 지역/주소 키워드
 
@@ -97,15 +97,15 @@ class _AdminQuoteRequestsPageState extends State<AdminQuoteRequestsPage> {
                 _buildFilterBar(),
                 
                 // 견적문의 목록
-                const Text(
-                  '💬 견적문의 관리',
-                  style: TextStyle(
+                Text(
+                  '💬 견적문의 관리 (${sorted.length}/${quoteRequests.length}개)',
+                  style: const TextStyle(
                     fontWeight: FontWeight.bold,
                     color: AirbnbColors.primaryHover,
                   ),
                 ),
                 const SizedBox(height: 16),
-                
+
                 if (sorted.isEmpty)
                   _buildEmptyState()
                 else
