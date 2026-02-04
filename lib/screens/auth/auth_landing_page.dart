@@ -167,6 +167,10 @@ class _AuthLandingPageState extends State<AuthLandingPage> {
             children: [
               // 헤더 텍스트
               _buildHeader(),
+              const SizedBox(height: AppleSpacing.xl),
+
+              // 서비스 설명 섹션
+              _buildServiceDescription(),
               const SizedBox(height: AppleSpacing.section),
 
               // 소셜 로그인 버튼들
@@ -178,6 +182,146 @@ class _AuthLandingPageState extends State<AuthLandingPage> {
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildServiceDescription() {
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppleSpacing.md,
+        vertical: AppleSpacing.lg,
+      ),
+      decoration: BoxDecoration(
+        color: AppleColors.tertiarySystemBackground,
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Column(
+        children: [
+          // 섹션 타이틀
+          Text(
+            '이렇게 진행돼요',
+            style: AppleTypography.footnote.copyWith(
+              fontWeight: FontWeight.w600,
+              color: AppleColors.secondaryLabel,
+              letterSpacing: 0.5,
+            ),
+          ),
+          const SizedBox(height: AppleSpacing.md),
+
+          // 가로 스텝 플로우
+          Row(
+            children: [
+              // Step 1
+              Expanded(
+                child: _buildCompactStep(
+                  stepNumber: '1',
+                  icon: Icons.edit_note_rounded,
+                  title: '등록',
+                  color: AppleColors.systemBlue,
+                ),
+              ),
+              // 화살표 1
+              _buildHorizontalArrow(),
+              // Step 2
+              Expanded(
+                child: _buildCompactStep(
+                  stepNumber: '2',
+                  icon: Icons.campaign_rounded,
+                  title: '배포',
+                  color: AppleColors.systemGreen,
+                ),
+              ),
+              // 화살표 2
+              _buildHorizontalArrow(),
+              // Step 3
+              Expanded(
+                child: _buildCompactStep(
+                  stepNumber: '3',
+                  icon: Icons.phone_in_talk_rounded,
+                  title: '연락',
+                  color: AppleColors.systemOrange,
+                ),
+              ),
+            ],
+          ),
+
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCompactStep({
+    required String stepNumber,
+    required IconData icon,
+    required String title,
+    required Color color,
+  }) {
+    return Column(
+      children: [
+        // 아이콘 원
+        Container(
+          width: 44,
+          height: 44,
+          decoration: BoxDecoration(
+            color: color,
+            shape: BoxShape.circle,
+          ),
+          child: Stack(
+            children: [
+              Center(
+                child: Icon(
+                  icon,
+                  color: Colors.white,
+                  size: 22,
+                ),
+              ),
+              Positioned(
+                top: 0,
+                right: 0,
+                child: Container(
+                  width: 16,
+                  height: 16,
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    shape: BoxShape.circle,
+                    border: Border.all(color: color, width: 1.5),
+                  ),
+                  child: Center(
+                    child: Text(
+                      stepNumber,
+                      style: TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.w800,
+                        color: color,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 6),
+        // 타이틀
+        Text(
+          title,
+          style: AppleTypography.caption1.copyWith(
+            fontWeight: FontWeight.w600,
+            color: color,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildHorizontalArrow() {
+    return const Padding(
+      padding: EdgeInsets.only(bottom: 20),
+      child: Icon(
+        Icons.arrow_forward_rounded,
+        color: AppleColors.tertiaryLabel,
+        size: 18,
       ),
     );
   }
@@ -206,13 +350,13 @@ class _AuthLandingPageState extends State<AuthLandingPage> {
               ),
               TextSpan(text: ' 등록하면\n'),
               TextSpan(
-                text: '여러 중개사',
+                text: '모든 중개사',
                 style: TextStyle(
                   color: AppleColors.systemBlue,
                   fontWeight: FontWeight.w800,
                 ),
               ),
-              TextSpan(text: '가 홍보해요'),
+              TextSpan(text: '가 봐요'),
             ],
           ),
         ),
@@ -220,7 +364,7 @@ class _AuthLandingPageState extends State<AuthLandingPage> {
 
         // 서브 카피
         Text(
-          '주소 · 가격 · 사진만 입력하면\n지역 중개사들이 먼저 연락드려요',
+          '주소 · 가격 · 사진만 입력하세요\n지역 중개사들에게 한 번에 전달됩니다',
           textAlign: TextAlign.center,
           style: AppleTypography.body.copyWith(
             color: AppleColors.secondaryLabel,

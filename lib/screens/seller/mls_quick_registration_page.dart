@@ -203,19 +203,19 @@ class _MLSQuickRegistrationPageState extends State<MLSQuickRegistrationPage>
 
   Widget _buildHeroHeader() {
     // 거래 유형에 따른 문구
-    String actionVerb;
+    String typeLabel;
     String priceLabel;
     switch (_transactionType) {
       case '전세':
-        actionVerb = '전세 놓으세요';
+        typeLabel = '전세';
         priceLabel = '전세금';
         break;
       case '월세':
-        actionVerb = '월세 놓으세요';
+        typeLabel = '월세';
         priceLabel = '월세';
         break;
       default:
-        actionVerb = '팔아보세요';
+        typeLabel = '매물';
         priceLabel = '매매가';
     }
 
@@ -226,8 +226,8 @@ class _MLSQuickRegistrationPageState extends State<MLSQuickRegistrationPage>
 
     switch (_currentStep) {
       case 0:
-        title = '한 번 등록하면';
-        subtitle = actionVerb;
+        title = '$typeLabel 등록 한 번이면';
+        subtitle = '모든 중개사가 봐요';
         description = '먼저 매물 주소를 알려주세요';
         break;
       case 1:
@@ -241,8 +241,8 @@ class _MLSQuickRegistrationPageState extends State<MLSQuickRegistrationPage>
         description = '매물 사진을 올려주시면 끝이에요';
         break;
       default:
-        title = '한 번 등록하면';
-        subtitle = actionVerb;
+        title = '$typeLabel 등록 한 번이면';
+        subtitle = '모든 중개사가 봐요';
         description = '';
     }
 
