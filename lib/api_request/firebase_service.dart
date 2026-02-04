@@ -1312,11 +1312,17 @@ class FirebaseService {
           .orderBy('requestDate', descending: true)
           .snapshots()
           .map((snapshot) {
+            Logger.info('견적문의 조회: ${snapshot.docs.length}개 발견');
             return snapshot.docs
                 .map((doc) => QuoteRequest.fromMap(doc.id, doc.data()))
                 .toList();
+          })
+          .handleError((error) {
+            Logger.error('견적문의 조회 오류', error: error);
+            return <QuoteRequest>[];
           });
     } catch (e) {
+      Logger.error('견적문의 스트림 생성 오류', error: e);
       return Stream.value([]);
     }
   }
