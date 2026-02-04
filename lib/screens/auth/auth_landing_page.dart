@@ -189,19 +189,38 @@ class _AuthLandingPageState extends State<AuthLandingPage> {
         const LogoImage(height: 60),
         const SizedBox(height: AppleSpacing.xl),
         // 메인 카피
-        Text(
-          '중개사마다 연락할 필요 없어요\n한 번 등록이면 여러 중개사가\n내 집을 홍보합니다',
+        RichText(
           textAlign: TextAlign.center,
-          style: AppleTypography.largeTitle.copyWith(
-            height: 1.3,
-            fontWeight: FontWeight.w700,
+          text: TextSpan(
+            style: AppleTypography.largeTitle.copyWith(
+              height: 1.3,
+              fontWeight: FontWeight.w700,
+            ),
+            children: const [
+              TextSpan(
+                text: '한 번',
+                style: TextStyle(
+                  color: AppleColors.systemBlue,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+              TextSpan(text: ' 등록하면\n'),
+              TextSpan(
+                text: '여러 중개사',
+                style: TextStyle(
+                  color: AppleColors.systemBlue,
+                  fontWeight: FontWeight.w800,
+                ),
+              ),
+              TextSpan(text: '가 홍보해요'),
+            ],
           ),
         ),
         const SizedBox(height: AppleSpacing.lg),
 
         // 서브 카피
         Text(
-          '주소, 가격, 사진만 입력하면\n지역 중개사들이 연락드려요',
+          '주소 · 가격 · 사진만 입력하세요',
           textAlign: TextAlign.center,
           style: AppleTypography.body.copyWith(
             color: AppleColors.secondaryLabel,
