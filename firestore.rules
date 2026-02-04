@@ -63,10 +63,11 @@ service cloud.firestore {
       allow create: if isAuthenticated() &&
         request.resource.data.userId == request.auth.uid &&
         hasRequiredFields(['userId', 'createdAt', 'status']);
-      allow update: if isAuthenticated() && (
+      // 관리자(익명) 또는 본인/중개사가 수정 가능
+      allow update: if isAnonymousUser() || (isAuthenticated() && (
         resource.data.userId == request.auth.uid ||
         resource.data.brokerId == request.auth.uid
-      );
+      ));
       allow delete: if isAuthenticated() && resource.data.userId == request.auth.uid;
     }
 

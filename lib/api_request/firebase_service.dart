@@ -1400,12 +1400,14 @@ class FirebaseService {
   /// 견적문의 상태 업데이트
   Future<bool> updateQuoteRequestStatus(String requestId, String newStatus) async {
     try {
+      Logger.info('견적문의 상태 업데이트: $requestId → $newStatus');
       await _firestore.collection(_quoteRequestsCollectionName).doc(requestId).update({
         'status': newStatus,
         'updatedAt': FieldValue.serverTimestamp(),
       });
       return true;
     } catch (e) {
+      Logger.error('견적문의 상태 업데이트 실패', error: e);
       return false;
     }
   }
