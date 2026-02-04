@@ -220,7 +220,7 @@ class _AuthLandingPageState extends State<AuthLandingPage> {
 
         // 서브 카피
         Text(
-          '주소 · 가격 · 사진만 입력하세요',
+          '주소 · 가격 · 사진만 입력하면\n지역 중개사들이 먼저 연락드려요',
           textAlign: TextAlign.center,
           style: AppleTypography.body.copyWith(
             color: AppleColors.secondaryLabel,
