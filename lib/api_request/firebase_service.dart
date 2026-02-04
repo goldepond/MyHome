@@ -1688,6 +1688,20 @@ class FirebaseService {
     required Map<String, dynamic> brokerInfo,
   }) async {
     try {
+      // 중개업 등록번호 중복 체크
+      final registrationNumber = brokerInfo['brokerRegistrationNumber'] as String?;
+      if (registrationNumber != null && registrationNumber.isNotEmpty) {
+        final duplicateCheck = await _firestore
+            .collection(_brokersCollectionName)
+            .where('brokerRegistrationNumber', isEqualTo: registrationNumber)
+            .limit(1)
+            .get();
+
+        if (duplicateCheck.docs.isNotEmpty) {
+          return '이미 등록된 중개업 등록번호입니다.\n다른 등록번호를 입력하거나 기존 계정으로 로그인해주세요.';
+        }
+      }
+
       // 이메일 형식 생성
       String email = brokerId;
       if (!brokerId.contains('@')) {
