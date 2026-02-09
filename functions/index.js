@@ -6,9 +6,12 @@
  */
 
 const { onDocumentCreated } = require("firebase-functions/v2/firestore");
+const { onRequest } = require("firebase-functions/v2/https");
 const { initializeApp } = require("firebase-admin/app");
 const { getFirestore } = require("firebase-admin/firestore");
 const { getMessaging } = require("firebase-admin/messaging");
+const axios = require("axios");
+const cors = require("cors")({ origin: true });
 
 // Firebase Admin 초기화
 initializeApp();
@@ -221,3 +224,196 @@ async function sendFCM(fcmToken, title, body, notification, notificationId, docR
     pushSuccess: true,
   });
 }
+
+// 캐시 설정
+const CACHE_TTL_HOURS = 6; // 실거래가 API 캐시 TTL (시간)
+const CACHE_COLLECTION = "apiCache";
+
+/**
+ * 캐시 키 생성 (URL에서 ServiceKey 제외)
+ */
+function generateCacheKey(url) {
+  try {
+    const urlObj = new URL(url);
+    const params = new URLSearchParams(urlObj.search);
+    // ServiceKey는 캐시 키에서 제외 (보안 + 동일 요청 매칭)
+    params.delete("ServiceKey");
+    return `${urlObj.pathname}_${params.toString()}`.replace(/[\/\?&=]/g, "_");
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Firestore에서 캐시 조회
+ */
+async function getCache(cacheKey) {
+  try {
+    const doc = await db.collection(CACHE_COLLECTION).doc(cacheKey).get();
+    if (!doc.exists) return null;
+
+    const data = doc.data();
+    const cachedAt = data.cachedAt?.toDate();
+    if (!cachedAt) return null;
+
+    // TTL 확인
+    const ageHours = (Date.now() - cachedAt.getTime()) / (1000 * 60 * 60);
+    if (ageHours > CACHE_TTL_HOURS) {
+      console.log(`[Cache] Expired: ${cacheKey} (${ageHours.toFixed(1)}h old)`);
+      return null;
+    }
+
+    console.log(`[Cache] Hit: ${cacheKey} (${ageHours.toFixed(1)}h old)`);
+    return data.response;
+  } catch (error) {
+    console.error("[Cache] Get error:", error.message);
+    return null;
+  }
+}
+
+/**
+ * Firestore에 캐시 저장
+ */
+async function setCache(cacheKey, response) {
+  try {
+    await db.collection(CACHE_COLLECTION).doc(cacheKey).set({
+      response: response,
+      cachedAt: new Date(),
+    });
+    console.log(`[Cache] Saved: ${cacheKey}`);
+  } catch (error) {
+    console.error("[Cache] Set error:", error.message);
+  }
+}
+
+/**
+ * 캐시 가능한 API인지 확인
+ */
+function isCacheableApi(url) {
+  // 국토부 실거래가 API만 캐싱
+  return url.includes("apis.data.go.kr") &&
+         (url.includes("RTMSDataSvc") || url.includes("실거래"));
+}
+
+/**
+ * CORS 프록시 함수 (서버 사이드 캐싱 포함)
+ * Flutter 웹에서 외부 API(JUSO 등) 호출 시 CORS 우회용
+ *
+ * 사용법: /proxy?q=<encoded_url>
+ */
+exports.proxy = onRequest(
+  {
+    region: "asia-northeast3",
+    cors: true,
+  },
+  async (req, res) => {
+    // CORS 처리
+    cors(req, res, async () => {
+      try {
+        const targetUrl = req.query.q;
+
+        if (!targetUrl) {
+          res.status(400).json({ error: "Missing 'q' parameter" });
+          return;
+        }
+
+        // URL 디코딩
+        const decodedUrl = decodeURIComponent(targetUrl);
+        console.log(`[Proxy] Fetching: ${decodedUrl}`);
+
+        // data.go.kr API는 + 문자가 %2B로 인코딩되어야 함
+        // URL의 query string에서 + 문자를 %2B로 치환
+        const urlParts = decodedUrl.split("?");
+        let finalUrl = decodedUrl;
+        if (urlParts.length > 1) {
+          const baseUrl = urlParts[0];
+          const queryString = urlParts.slice(1).join("?");
+          // + 문자를 %2B로 치환 (ServiceKey 등에 포함된 + 처리)
+          const encodedQuery = queryString.replace(/\+/g, "%2B");
+          finalUrl = `${baseUrl}?${encodedQuery}`;
+        }
+        console.log(`[Proxy] Final URL: ${finalUrl}`);
+
+        // 허용된 도메인 체크 (보안)
+        const allowedDomains = [
+          "business.juso.go.kr",
+          "api.vworld.kr",
+          "apis.data.go.kr",
+          "openapi.seoul.go.kr",
+          "map.vworld.kr",
+        ];
+
+        const url = new URL(decodedUrl);
+        if (!allowedDomains.some(domain => url.hostname.includes(domain))) {
+          console.log(`[Proxy] Blocked domain: ${url.hostname}`);
+          res.status(403).json({ error: "Domain not allowed" });
+          return;
+        }
+
+        // 서버 사이드 캐싱 (국토부 실거래가 API만)
+        if (isCacheableApi(decodedUrl)) {
+          const cacheKey = generateCacheKey(decodedUrl);
+          if (cacheKey) {
+            // 캐시 확인
+            const cachedResponse = await getCache(cacheKey);
+            if (cachedResponse) {
+              res.set("X-Cache", "HIT");
+              res.status(200).json(cachedResponse);
+              return;
+            }
+
+            // 외부 API 호출
+            const response = await axios.get(finalUrl, {
+              timeout: 15000,
+              headers: {
+                "Accept": "application/json",
+                "Accept-Encoding": "gzip, deflate",
+              },
+            });
+
+            console.log(`[Proxy] Success: ${response.status}`);
+
+            // 성공 응답만 캐시
+            if (response.status === 200 && response.data) {
+              // 비동기로 캐시 저장 (응답 지연 방지)
+              setCache(cacheKey, response.data);
+            }
+
+            res.set("X-Cache", "MISS");
+            res.status(response.status).json(response.data);
+            return;
+          }
+        }
+
+        // 캐싱하지 않는 API는 바로 호출
+        const response = await axios.get(finalUrl, {
+          timeout: 10000,
+          headers: {
+            "Accept": "application/json",
+            "Accept-Encoding": "gzip, deflate",
+          },
+        });
+
+        console.log(`[Proxy] Success: ${response.status}`);
+
+        // 응답 반환
+        res.status(response.status).json(response.data);
+
+      } catch (error) {
+        console.error("[Proxy] Error:", error.message);
+
+        if (error.response) {
+          // 서버에서 에러 응답을 받은 경우
+          res.status(error.response.status).json({
+            error: error.message,
+            data: error.response.data,
+          });
+        } else if (error.code === "ECONNABORTED") {
+          res.status(504).json({ error: "Gateway timeout" });
+        } else {
+          res.status(500).json({ error: error.message });
+        }
+      }
+    });
+  }
+);

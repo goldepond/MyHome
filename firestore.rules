@@ -236,5 +236,29 @@ service cloud.firestore {
       // 통계는 시스템/서버에서만 업데이트 (Cloud Functions 권장)
       allow write: if isAuthenticated();
     }
+
+    // === 시세 조회 분석 (SEO 트래킹용) ===
+    match /analytics_market_price/{docId} {
+      // 관리자만 읽기 가능 (통계 대시보드용)
+      allow read: if isAnonymousUser();
+      // 누구나 로깅 가능 (로그인 안 해도 시세 조회 가능 - SEO)
+      allow create: if true;
+      allow update, delete: if false; // 로그 수정/삭제 금지
+    }
+
+    // === 지역별 조회 통계 (집계용) ===
+    match /analytics_region_counts/{lawdCd} {
+      // 인증된 사용자는 읽기 가능 (인기 지역 표시용)
+      allow read: if isAuthenticated();
+      // 누구나 카운터 업데이트 가능 (트랜잭션으로 처리됨)
+      allow create, update: if true;
+      allow delete: if false; // 통계 삭제 금지
+    }
+
+    // === API 캐시 (Cloud Functions 전용) ===
+    match /apiCache/{cacheKey} {
+      // 클라이언트에서는 접근 불가 (Cloud Functions에서만 사용)
+      allow read, write: if false;
+    }
   }
 }

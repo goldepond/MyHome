@@ -331,6 +331,20 @@
       "queryScope": "COLLECTION",
       "fields": [
         {
+          "fieldPath": "isDeleted",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "createdAt",
+          "order": "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "mlsProperties",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
           "fieldPath": "status",
           "order": "ASCENDING"
         },
@@ -368,6 +382,48 @@
         },
         {
           "fieldPath": "createdAt",
+          "order": "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "analytics_market_price",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "lawdCd",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "timestamp",
+          "order": "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "analytics_market_price",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "lawdCd",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "buildingName",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "timestamp",
+          "order": "DESCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "analytics_region_counts",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "totalCount",
           "order": "DESCENDING"
         }
       ]

@@ -14,6 +14,7 @@ import 'package:property/screens/auth/profile_completion_page.dart';
 import 'package:property/api_request/firebase_service.dart';
 import 'package:property/api_request/fcm_service.dart';
 import 'package:property/screens/inquiry/broker_inquiry_response_page.dart';
+import 'package:property/screens/market_price/market_price_page.dart';
 import 'package:kakao_flutter_sdk_user/kakao_flutter_sdk_user.dart' as kakao;
 import 'package:property/utils/app_analytics_observer.dart';
 import 'package:property/utils/admin_page_loader_actual.dart';
@@ -244,6 +245,13 @@ class _MyAppState extends State<MyApp> {
           );
         }
         
+        // 시세 조회 페이지 (공개 - 로그인 불필요)
+        if (uri.path == '/market-price') {
+          return MaterialPageRoute(
+            builder: (context) => const MarketPricePage(),
+          );
+        }
+
         // 기본 홈 페이지: Auth 게이트 사용
         return MaterialPageRoute(
           builder: (context) => const _AuthGate(),
