@@ -288,12 +288,12 @@ class RealTransaction {
     required this.dealMonth,
     required this.dealDay,
     required this.floor,
+    required this.transactionType,
+    required this.housingType,
     this.buildYear,
     this.dealingGbn,
     this.deposit,
     this.monthlyRent,
-    required this.transactionType,
-    required this.housingType,
     this.umdNm,
     this.roadNm,
     this.jibun,
@@ -1042,7 +1042,7 @@ class RealTransactionService {
     final List<String> dealYmds = [];
 
     for (int i = 0; i < months; i++) {
-      final targetDate = DateTime(now.year, now.month - i, 1);
+      final targetDate = DateTime(now.year, now.month - i);
       final dealYmd =
           '${targetDate.year}${targetDate.month.toString().padLeft(2, '0')}';
       dealYmds.add(dealYmd);
@@ -1062,7 +1062,7 @@ class RealTransactionService {
       }
     }
 
-    Logger.info('🚀 [실거래가] ${months}개월 데이터 병렬 조회 시작...');
+    Logger.info('🚀 [실거래가] $months개월 데이터 병렬 조회 시작...');
     final startTime = DateTime.now();
 
     // 모든 API 호출을 병렬로 실행
@@ -1271,7 +1271,6 @@ class RealTransactionService {
         lawdCd: lawdCd,
         aptName: buildingName,
         transactionType: transactionType,
-        housingType: HousingType.apartment,
         months: months,
       ),
       getRecentTransactions(
@@ -1305,40 +1304,6 @@ class RealTransactionService {
   static String? extractLawdCd(String? admCd) {
     if (admCd == null || admCd.length < 5) return null;
     return admCd.substring(0, 5);
-  }
-
-  /// 이름 정규화 (공백 제거, 소문자)
-  /// 건물명 정규화 (비교용)
-  /// - 공백 제거
-  /// - 소문자 변환
-  /// - 흔한 접미사 제거 (아파트, 빌라, 맨션 등)
-  static String _normalizeName(String value) {
-    String normalized = value.replaceAll(RegExp(r'\s+'), '').toLowerCase();
-
-    // 흔한 접미사 제거 (뒤에서부터 제거)
-    const suffixes = [
-      '아파트',
-      '빌라',
-      '맨션',
-      '빌딩',
-      '주택',
-      '타운',
-      '하우스',
-      '타워',
-      '파크',
-      'apt',
-      'apartment',
-      'villa',
-    ];
-
-    for (final suffix in suffixes) {
-      if (normalized.endsWith(suffix) && normalized.length > suffix.length) {
-        normalized = normalized.substring(0, normalized.length - suffix.length);
-        break; // 한 번만 제거
-      }
-    }
-
-    return normalized;
   }
 
   /// items에서 리스트 추출 (AptInfoService 패턴 동일)
@@ -1381,6 +1346,7 @@ class RealTransactionService {
   /// - 전체 완료 후 최종 업데이트
   static Future<void> getRecentTransactionsProgressive({
     required String lawdCd,
+    required void Function(List<RealTransaction> transactions, bool isPartial) onData,
     String? aptName,
     String? roadNm,
     String? umdNm,
@@ -1397,10 +1363,9 @@ class RealTransactionService {
     PartyType? buyerType,
     PriceRange? priceRange,
     bool? useRenewalRightFilter,
-    required void Function(List<RealTransaction> transactions, bool isPartial) onData,
   }) async {
     Logger.info('═══════════════════════════════════════════════════════');
-    Logger.info('🚀 [실거래가] 단계적 로딩 시작 (총 ${months}개월)');
+    Logger.info('🚀 [실거래가] 단계적 로딩 시작 (총 $months개월)');
 
     final now = DateTime.now();
     const firstBatchMonths = 3;
@@ -1488,7 +1453,7 @@ class RealTransactionService {
     // 월별 dealYmd 목록 생성
     final List<String> dealYmds = [];
     for (int i = 0; i < months; i++) {
-      final targetDate = DateTime(now.year, now.month - i, 1);
+      final targetDate = DateTime(now.year, now.month - i);
       dealYmds.add('${targetDate.year}${targetDate.month.toString().padLeft(2, '0')}');
     }
 

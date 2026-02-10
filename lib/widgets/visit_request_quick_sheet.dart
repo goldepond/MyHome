@@ -117,7 +117,7 @@ class _VisitRequestQuickSheetState extends State<VisitRequestQuickSheet> {
                     shrinkWrap: true,
                     padding: const EdgeInsets.all(AppleSpacing.md),
                     itemCount: _pendingRequests.length,
-                    separatorBuilder: (_, _a) => const SizedBox(height: AppleSpacing.sm),
+                    separatorBuilder: (_, _) => const SizedBox(height: AppleSpacing.sm),
                     itemBuilder: (context, index) {
                       return _buildRequestCard(_pendingRequests[index]);
                     },
@@ -230,7 +230,7 @@ class _VisitRequestQuickSheetState extends State<VisitRequestQuickSheet> {
               ),
               // 더보기 메뉴 (신고)
               PopupMenuButton<String>(
-                icon: Icon(
+                icon: const Icon(
                   Icons.more_vert,
                   color: AppleColors.secondaryLabel,
                   size: 20,
@@ -245,12 +245,12 @@ class _VisitRequestQuickSheetState extends State<VisitRequestQuickSheet> {
                   }
                 },
                 itemBuilder: (context) => [
-                  PopupMenuItem(
+                  const PopupMenuItem(
                     value: 'report',
                     child: Row(
                       children: [
                         Icon(Icons.flag_rounded, color: AppleColors.systemRed, size: 18),
-                        const SizedBox(width: 8),
+                        SizedBox(width: 8),
                         Text('중개사 신고', style: TextStyle(color: AppleColors.systemRed)),
                       ],
                     ),

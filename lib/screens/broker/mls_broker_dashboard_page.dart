@@ -503,10 +503,11 @@ class _MLSBrokerDashboardPageState extends State<MLSBrokerDashboardPage>
           ),
           TextButton(
             onPressed: () async {
-              Navigator.pop(context);
+              final navigator = Navigator.of(context);
+              navigator.pop();
               await FirebaseService().signOut();
               if (mounted) {
-                Navigator.of(context).pushAndRemoveUntil(
+                navigator.pushAndRemoveUntil(
                   MaterialPageRoute(builder: (_) => const AuthLandingPage()),
                   (route) => false,
                 );
@@ -1180,7 +1181,7 @@ class _MLSBrokerDashboardPageState extends State<MLSBrokerDashboardPage>
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            Icon(Icons.verified, size: 12, color: AppleColors.systemTeal),
+                            const Icon(Icons.verified, size: 12, color: AppleColors.systemTeal),
                             const SizedBox(width: 2),
                             Text(
                               '검증됨',

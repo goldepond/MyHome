@@ -103,7 +103,7 @@ class _MLSPropertyDetailPageState extends State<MLSPropertyDetailPage> {
                     // 메모리 최적화: 캐시 크기 제한
                     cacheWidth: 800,
                     cacheHeight: 600,
-                    errorBuilder: (_, _a, _b) => Container(
+                    errorBuilder: (_, _, _) => Container(
                       color: AppleColors.tertiarySystemFill,
                       child: const Icon(Icons.image_not_supported, color: AppleColors.tertiaryLabel, size: 48),
                     ),
@@ -1504,8 +1504,9 @@ class _MLSPropertyDetailPageState extends State<MLSPropertyDetailPage> {
           ),
           ElevatedButton(
             onPressed: () async {
+              final scaffoldMessenger = ScaffoldMessenger.of(context);
               if (phoneController.text.trim().isEmpty) {
-                ScaffoldMessenger.of(context).showSnackBar(
+                scaffoldMessenger.showSnackBar(
                   const SnackBar(content: Text('연락처를 입력해주세요')),
                 );
                 return;
@@ -1530,7 +1531,7 @@ class _MLSPropertyDetailPageState extends State<MLSPropertyDetailPage> {
                 }
 
                 if (mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
+                  scaffoldMessenger.showSnackBar(
                     SnackBar(
                       content: Text('방문 요청이 승인되었습니다. ${request.brokerName} 중개사와 연락처가 교환되었습니다.'),
                       backgroundColor: AppleColors.systemGreen,
@@ -1539,7 +1540,7 @@ class _MLSPropertyDetailPageState extends State<MLSPropertyDetailPage> {
                 }
               } catch (e) {
                 if (mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
+                  scaffoldMessenger.showSnackBar(
                     SnackBar(
                       content: Text('승인 실패: $e'),
                       backgroundColor: AppleColors.systemRed,
@@ -1598,6 +1599,7 @@ class _MLSPropertyDetailPageState extends State<MLSPropertyDetailPage> {
           ),
           TextButton(
             onPressed: () async {
+              final scaffoldMessenger = ScaffoldMessenger.of(context);
               Navigator.pop(context);
 
               try {
@@ -1616,7 +1618,7 @@ class _MLSPropertyDetailPageState extends State<MLSPropertyDetailPage> {
                 }
 
                 if (mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
+                  scaffoldMessenger.showSnackBar(
                     const SnackBar(
                       content: Text('방문 요청이 거절되었습니다'),
                     ),
@@ -1624,7 +1626,7 @@ class _MLSPropertyDetailPageState extends State<MLSPropertyDetailPage> {
                 }
               } catch (e) {
                 if (mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
+                  scaffoldMessenger.showSnackBar(
                     SnackBar(
                       content: Text('거절 실패: $e'),
                       backgroundColor: AppleColors.systemRed,
@@ -1844,6 +1846,7 @@ class _MLSPropertyDetailPageState extends State<MLSPropertyDetailPage> {
                     child: ElevatedButton(
                       onPressed: (selectedDate != null && selectedTime != null)
                           ? () async {
+                              final scaffoldMessenger = ScaffoldMessenger.of(context);
                               Navigator.pop(context);
 
                               try {
@@ -1871,7 +1874,7 @@ class _MLSPropertyDetailPageState extends State<MLSPropertyDetailPage> {
                                 }
 
                                 if (mounted) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
+                                  scaffoldMessenger.showSnackBar(
                                     SnackBar(
                                       content: Text('${request.brokerName} 중개사에게 새로운 시간을 제안했습니다'),
                                       backgroundColor: AppleColors.systemBlue,
@@ -1880,7 +1883,7 @@ class _MLSPropertyDetailPageState extends State<MLSPropertyDetailPage> {
                                 }
                               } catch (e) {
                                 if (mounted) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
+                                  scaffoldMessenger.showSnackBar(
                                     SnackBar(
                                       content: Text('제안 실패: $e'),
                                       backgroundColor: AppleColors.systemRed,
@@ -1913,6 +1916,7 @@ class _MLSPropertyDetailPageState extends State<MLSPropertyDetailPage> {
 
   /// 전화 걸기 (공통)
   Future<void> _makePhoneCall(String phone) async {
+    final scaffoldMessenger = ScaffoldMessenger.of(context);
     // 전화번호에서 공백, 하이픈 제거
     final cleanPhone = phone.replaceAll(RegExp(r'[\s\-]'), '');
     final uri = Uri.parse('tel:$cleanPhone');
@@ -1924,7 +1928,7 @@ class _MLSPropertyDetailPageState extends State<MLSPropertyDetailPage> {
         // 전화 앱을 열 수 없는 경우 클립보드에 복사
         if (mounted) {
           await Clipboard.setData(ClipboardData(text: phone));
-          ScaffoldMessenger.of(context).showSnackBar(
+          scaffoldMessenger.showSnackBar(
             SnackBar(
               content: Text('전화번호가 복사되었습니다: $phone'),
               backgroundColor: AppleColors.systemGreen,
@@ -1936,7 +1940,7 @@ class _MLSPropertyDetailPageState extends State<MLSPropertyDetailPage> {
       if (mounted) {
         // 오류 발생 시 클립보드에 복사
         await Clipboard.setData(ClipboardData(text: phone));
-        ScaffoldMessenger.of(context).showSnackBar(
+        scaffoldMessenger.showSnackBar(
           SnackBar(
             content: Text('전화번호가 복사되었습니다: $phone'),
             backgroundColor: AppleColors.systemGreen,
@@ -1972,10 +1976,10 @@ class _MLSPropertyDetailPageState extends State<MLSPropertyDetailPage> {
 
     final hour = dateTime.hour;
     final minute = dateTime.minute.toString().padLeft(2, '0');
-    final ampm = hour < 12 ? '오전' : '오후';
+    final period = hour < 12 ? '오전' : '오후';
     final hour12 = hour == 0 ? 12 : (hour > 12 ? hour - 12 : hour);
 
-    return '$dateStr $ampm $hour12:$minute';
+    return '$dateStr $period $hour12:$minute';
   }
 
   Widget _buildBottomActions() {

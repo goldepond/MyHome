@@ -11,9 +11,11 @@ import '../../api_request/storage_service.dart';
 import '../../api_request/address_service.dart';
 import '../../api_request/vworld_service.dart';
 import '../../api_request/broker_service.dart';
+import '../../api_request/firebase_service.dart';
 import '../../models/mls_property.dart';
 import '../../utils/logger.dart';
 import '../../widgets/road_address_list.dart';
+import '../../widgets/real_transaction_reference.dart';
 import '../../widgets/address_map_widget_stub.dart'
     if (dart.library.html) '../../widgets/address_map_widget.dart';
 import '../../widgets/address_map_widget_mobile.dart';
@@ -53,8 +55,12 @@ class _MLSQuickRegistrationPageState extends State<MLSQuickRegistrationPage>
   final _addressController = TextEditingController();
   final _detailAddressController = TextEditingController();
   final _detailAddressFocusNode = FocusNode();
-  final _priceController = TextEditingController();
+  final _priceController = TextEditingController(); // 내부 저장용 (만원 단위)
+  final _priceUkController = TextEditingController(); // 억 단위 입력
+  final _priceManController = TextEditingController(); // 만원 단위 입력
   final _depositController = TextEditingController(); // 월세 보증금
+  final _depositUkController = TextEditingController(); // 보증금 억 단위
+  final _depositManController = TextEditingController(); // 보증금 만원 단위
   final _priceFocusNode = FocusNode();
   final List<XFile> _selectedImages = []; // 선택된 이미지 파일들 (최대 5장)
   static const int _maxImages = 5;
@@ -104,6 +110,7 @@ class _MLSQuickRegistrationPageState extends State<MLSQuickRegistrationPage>
   List<String> _addresses = [];
   String? _errorMessage;
   bool _isMainAddressSelected = false; // 기본 주소 선택 완료 여부
+  bool _hasCheckedMarketPrice = false; // 시세 확인 완료 여부
 
   // 지도 좌표
   double? _latitude;
@@ -124,7 +131,11 @@ class _MLSQuickRegistrationPageState extends State<MLSQuickRegistrationPage>
     _detailAddressFocusNode.dispose();
     _priceController.removeListener(_onPriceChanged);
     _priceController.dispose();
+    _priceUkController.dispose();
+    _priceManController.dispose();
     _depositController.dispose();
+    _depositUkController.dispose();
+    _depositManController.dispose();
     _priceFocusNode.dispose();
     _notesController.dispose();
     _debounceTimer?.cancel();
@@ -140,6 +151,44 @@ class _MLSQuickRegistrationPageState extends State<MLSQuickRegistrationPage>
         setState(() {});
       }
     }
+  }
+
+  /// 억/만원 입력값을 합산하여 _priceController에 동기화
+  void _syncPriceFromSplit() {
+    final uk = int.tryParse(_priceUkController.text) ?? 0;
+    final man = int.tryParse(_priceManController.text) ?? 0;
+    final total = uk * 10000 + man;
+    _priceController.text = total > 0 ? total.toString() : '';
+    setState(() {});
+  }
+
+  /// 억/만원 입력값을 합산하여 _depositController에 동기화
+  void _syncDepositFromSplit() {
+    final uk = int.tryParse(_depositUkController.text) ?? 0;
+    final man = int.tryParse(_depositManController.text) ?? 0;
+    final total = uk * 10000 + man;
+    _depositController.text = total > 0 ? total.toString() : '';
+    setState(() {});
+  }
+
+  /// 프리셋 선택 시 억/만원 분리 컨트롤러에 값 설정
+  void _setPricePreset(int manwon) {
+    final uk = manwon ~/ 10000;
+    final man = manwon % 10000;
+    _priceUkController.text = uk > 0 ? uk.toString() : '';
+    _priceManController.text = man > 0 ? man.toString() : '';
+    _priceController.text = manwon.toString();
+    setState(() {});
+  }
+
+  /// 보증금 프리셋 선택 시 억/만원 분리 컨트롤러에 값 설정
+  void _setDepositPreset(int manwon) {
+    final uk = manwon ~/ 10000;
+    final man = manwon % 10000;
+    _depositUkController.text = uk > 0 ? uk.toString() : '';
+    _depositManController.text = man > 0 ? man.toString() : '';
+    _depositController.text = manwon.toString();
+    setState(() {});
   }
 
   void _goToNextStep() {
@@ -159,7 +208,7 @@ class _MLSQuickRegistrationPageState extends State<MLSQuickRegistrationPage>
   @override
   Widget build(BuildContext context) {
     final isMobile = AppleResponsive.isMobile(context);
-    final maxWidth = isMobile ? double.infinity : 500.0;
+    final maxWidth = isMobile ? double.infinity : 720.0;
 
     return Scaffold(
       backgroundColor: AppleColors.systemBackground,
@@ -308,9 +357,14 @@ class _MLSQuickRegistrationPageState extends State<MLSQuickRegistrationPage>
                   onTap: () {
                     setState(() {
                       _transactionType = type;
-                      // 거래 유형 변경 시 가격 초기화
+                      // 거래 유형 변경 시 가격 및 시세 확인 상태 초기화
                       _priceController.clear();
+                      _priceUkController.clear();
+                      _priceManController.clear();
                       _depositController.clear();
+                      _depositUkController.clear();
+                      _depositManController.clear();
+                      _hasCheckedMarketPrice = false;
                     });
                   },
                   child: Container(
@@ -748,141 +802,133 @@ class _MLSQuickRegistrationPageState extends State<MLSQuickRegistrationPage>
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          _buildStepLabel('희망 $priceLabel', stepNumber: 2),
-          const SizedBox(height: AppleSpacing.xs),
-          Text(
-            '만원 단위로 입력해주세요 (예: 5억 = 50000)',
-            style: AppleTypography.caption1.copyWith(
-              color: AppleColors.secondaryLabel,
-            ),
-          ),
-          const SizedBox(height: AppleSpacing.sm),
-
-          // 월세인 경우 보증금 먼저 입력
-          if (_transactionType == '월세') ...[
-            Text(
-              '보증금',
-              style: AppleTypography.subheadline.copyWith(
-                color: AppleColors.secondaryLabel,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
+          // ═══════════════════════════════════════════════════════
+          // 섹션 1: 시세 참고 (실거래 기반)
+          // ═══════════════════════════════════════════════════════
+          if (_selectedFullData != null) ...[
+            _buildStepLabel('시세 참고', stepNumber: 2),
             const SizedBox(height: AppleSpacing.xs),
-            // 보증금 프리셋
-            Wrap(
-              spacing: AppleSpacing.xs,
-              runSpacing: AppleSpacing.xs,
-              children: [
-                _buildDepositPreset('500만', 500),
-                _buildDepositPreset('1000만', 1000),
-                _buildDepositPreset('2000만', 2000),
-                _buildDepositPreset('5000만', 5000),
-                _buildDepositPreset('1억', 10000),
-              ],
+            Text(
+              '실거래가 기반으로 예상 시세를 확인하세요',
+              style: AppleTypography.caption1.copyWith(
+                color: AppleColors.secondaryLabel,
+              ),
             ),
             const SizedBox(height: AppleSpacing.sm),
-            TextFormField(
-              controller: _depositController,
-              keyboardType: TextInputType.number,
-              inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-              decoration: InputDecoration(
-                hintText: '보증금 직접 입력',
-                hintStyle: AppleTypography.body.copyWith(color: AppleColors.tertiaryLabel),
-                filled: true,
-                fillColor: AppleColors.secondarySystemGroupedBackground,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(AppleRadius.md),
-                  borderSide: BorderSide.none,
-                ),
-                contentPadding: const EdgeInsets.all(AppleSpacing.md),
-                suffixText: '만원',
-                suffixStyle: AppleTypography.body.copyWith(
-                  color: AppleColors.secondaryLabel,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              style: AppleTypography.title3.copyWith(
-                color: AppleColors.label,
-                fontWeight: FontWeight.w600,
-              ),
+            RealTransactionReference(
+              addressData: _selectedFullData,
+              transactionType: _transactionType,
+              embedded: true,
+              onDataLoaded: () {
+                setState(() {
+                  _hasCheckedMarketPrice = true;
+                });
+              },
+              onPriceSelected: (price) {
+                _setPricePreset(price);
+              },
             ),
-            const SizedBox(height: AppleSpacing.lg),
-            Text(
-              '월세',
-              style: AppleTypography.subheadline.copyWith(
-                color: AppleColors.secondaryLabel,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-            const SizedBox(height: AppleSpacing.xs),
-            // 월세 프리셋
-            Wrap(
-              spacing: AppleSpacing.xs,
-              runSpacing: AppleSpacing.xs,
-              children: [
-                _buildPricePreset('30만', 30),
-                _buildPricePreset('50만', 50),
-                _buildPricePreset('70만', 70),
-                _buildPricePreset('100만', 100),
-                _buildPricePreset('150만', 150),
-              ],
-            ),
-            const SizedBox(height: AppleSpacing.sm),
-          ] else ...[
-            // 매매/전세 프리셋
-            Wrap(
-              spacing: AppleSpacing.xs,
-              runSpacing: AppleSpacing.xs,
-              children: _transactionType == '전세'
-                  ? [
-                      _buildPricePreset('5천만', 5000),
-                      _buildPricePreset('1억', 10000),
-                      _buildPricePreset('2억', 20000),
-                      _buildPricePreset('3억', 30000),
-                      _buildPricePreset('5억', 50000),
-                    ]
-                  : [
-                      _buildPricePreset('1억', 10000),
-                      _buildPricePreset('3억', 30000),
-                      _buildPricePreset('5억', 50000),
-                      _buildPricePreset('7억', 70000),
-                      _buildPricePreset('10억', 100000),
-                    ],
-            ),
-            const SizedBox(height: AppleSpacing.md),
+            const SizedBox(height: AppleSpacing.xl),
           ],
 
-          TextFormField(
-            controller: _priceController,
-            focusNode: _priceFocusNode,
-            keyboardType: TextInputType.number,
-            inputFormatters: [
-              FilteringTextInputFormatter.digitsOnly,
-            ],
-            decoration: InputDecoration(
-              hintText: _transactionType == '월세' ? '월세 직접 입력' : '직접 입력',
-              hintStyle: AppleTypography.body.copyWith(
-                color: AppleColors.tertiaryLabel,
-              ),
-              filled: true,
-              fillColor: AppleColors.secondarySystemGroupedBackground,
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(AppleRadius.md),
-                borderSide: BorderSide.none,
-              ),
-              contentPadding: const EdgeInsets.all(AppleSpacing.md),
-              suffixText: '만원',
-              suffixStyle: AppleTypography.body.copyWith(
+          // ═══════════════════════════════════════════════════════
+          // 섹션 2: 희망 매매가 입력
+          // ═══════════════════════════════════════════════════════
+          if (_selectedFullData == null || _hasCheckedMarketPrice) ...[
+            _buildStepLabel('희망 $priceLabel', stepNumber: _selectedFullData != null ? 3 : 2),
+            const SizedBox(height: AppleSpacing.xs),
+            Text(
+              '만원 단위로 입력해주세요 (예: 5억 = 50000)',
+              style: AppleTypography.caption1.copyWith(
                 color: AppleColors.secondaryLabel,
-                fontWeight: FontWeight.w600,
               ),
             ),
-            style: AppleTypography.title1.copyWith(
-              color: AppleColors.label,
-              fontWeight: FontWeight.w600,
-            ),
-            onFieldSubmitted: (_) => _validateAndGoToPhoto(),
-          ),
+            const SizedBox(height: AppleSpacing.sm),
+            // 월세인 경우 보증금 먼저 입력
+            if (_transactionType == '월세') ...[
+              Text(
+                '보증금',
+                style: AppleTypography.subheadline.copyWith(
+                  color: AppleColors.secondaryLabel,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              const SizedBox(height: AppleSpacing.xs),
+              // 보증금 프리셋
+              Wrap(
+                spacing: AppleSpacing.xs,
+                runSpacing: AppleSpacing.xs,
+                children: [
+                  _buildDepositPresetNew('500만', 500),
+                  _buildDepositPresetNew('1000만', 1000),
+                  _buildDepositPresetNew('2000만', 2000),
+                  _buildDepositPresetNew('5000만', 5000),
+                  _buildDepositPresetNew('1억', 10000),
+                ],
+              ),
+              const SizedBox(height: AppleSpacing.sm),
+              // 보증금 억/만원 분리 입력
+              _buildSplitPriceInput(
+                ukController: _depositUkController,
+                manController: _depositManController,
+                onChanged: _syncDepositFromSplit,
+              ),
+              const SizedBox(height: AppleSpacing.lg),
+              Text(
+                '월세',
+                style: AppleTypography.subheadline.copyWith(
+                  color: AppleColors.secondaryLabel,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              const SizedBox(height: AppleSpacing.xs),
+              // 월세 프리셋
+              Wrap(
+                spacing: AppleSpacing.xs,
+                runSpacing: AppleSpacing.xs,
+                children: [
+                  _buildPricePreset('30만', 30),
+                  _buildPricePreset('50만', 50),
+                  _buildPricePreset('70만', 70),
+                  _buildPricePreset('100만', 100),
+                  _buildPricePreset('150만', 150),
+                ],
+              ),
+              const SizedBox(height: AppleSpacing.sm),
+            ] else ...[
+              // 매매/전세 프리셋 (더 촘촘하게)
+              Wrap(
+                spacing: AppleSpacing.xs,
+                runSpacing: AppleSpacing.xs,
+                children: _transactionType == '전세'
+                    ? [
+                        _buildPricePresetNew('5천', 5000),
+                        _buildPricePresetNew('1억', 10000),
+                        _buildPricePresetNew('2억', 20000),
+                        _buildPricePresetNew('3억', 30000),
+                        _buildPricePresetNew('5억', 50000),
+                      ]
+                    : [
+                        _buildPricePresetNew('1억', 10000),
+                        _buildPricePresetNew('2억', 20000),
+                        _buildPricePresetNew('3억', 30000),
+                        _buildPricePresetNew('5억', 50000),
+                        _buildPricePresetNew('7억', 70000),
+                        _buildPricePresetNew('10억', 100000),
+                      ],
+              ),
+              const SizedBox(height: AppleSpacing.md),
+
+              // 억/만원 분리 입력
+              _buildSplitPriceInput(
+                ukController: _priceUkController,
+                manController: _priceManController,
+                onChanged: _syncPriceFromSplit,
+                focusNode: _priceFocusNode,
+                onSubmitted: _validateAndGoToPhoto,
+              ),
+            ],
+          ],
 
           // 실시간 가격 변환 표시
           if (_priceController.text.isNotEmpty) ...[
@@ -923,6 +969,8 @@ class _MLSQuickRegistrationPageState extends State<MLSQuickRegistrationPage>
               onPressed: _validateAndGoToPhoto,
               label: '다음',
             ),
+          // 하단 여백
+          const SizedBox(height: AppleSpacing.xxl),
         ],
       ),
     );
@@ -961,14 +1009,137 @@ class _MLSQuickRegistrationPageState extends State<MLSQuickRegistrationPage>
     );
   }
 
-  Widget _buildDepositPreset(String label, int value) {
+  /// 새 프리셋 버튼 (억/만원 분리 입력 연동)
+  Widget _buildPricePresetNew(String label, int value) {
+    final isSelected = _priceController.text == value.toString();
+    return GestureDetector(
+      onTap: () => _setPricePreset(value),
+      child: Container(
+        padding: const EdgeInsets.symmetric(
+          horizontal: AppleSpacing.md,
+          vertical: AppleSpacing.sm,
+        ),
+        decoration: BoxDecoration(
+          color: isSelected
+              ? AppleColors.systemBlue
+              : AppleColors.secondarySystemGroupedBackground,
+          borderRadius: BorderRadius.circular(AppleRadius.sm),
+          border: Border.all(
+            color: isSelected ? AppleColors.systemBlue : AppleColors.separator,
+          ),
+        ),
+        child: Text(
+          label,
+          style: AppleTypography.subheadline.copyWith(
+            color: isSelected ? Colors.white : AppleColors.label,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// 억/만원 분리 입력 위젯
+  Widget _buildSplitPriceInput({
+    required TextEditingController ukController,
+    required TextEditingController manController,
+    required VoidCallback onChanged,
+    FocusNode? focusNode,
+    VoidCallback? onSubmitted,
+  }) {
+    return Row(
+      children: [
+        // 억 단위 입력
+        Expanded(
+          flex: 2,
+          child: TextFormField(
+            controller: ukController,
+            focusNode: focusNode,
+            keyboardType: TextInputType.number,
+            inputFormatters: [
+              FilteringTextInputFormatter.digitsOnly,
+              LengthLimitingTextInputFormatter(3), // 최대 999억
+            ],
+            textAlign: TextAlign.center,
+            decoration: InputDecoration(
+              hintText: '0',
+              hintStyle: AppleTypography.title2.copyWith(
+                color: AppleColors.tertiaryLabel,
+              ),
+              filled: true,
+              fillColor: AppleColors.secondarySystemGroupedBackground,
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(AppleRadius.md),
+                borderSide: BorderSide.none,
+              ),
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: AppleSpacing.sm,
+                vertical: AppleSpacing.md,
+              ),
+              suffixText: '억',
+              suffixStyle: AppleTypography.body.copyWith(
+                color: AppleColors.secondaryLabel,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            style: AppleTypography.title2.copyWith(
+              color: AppleColors.label,
+              fontWeight: FontWeight.w600,
+            ),
+            onChanged: (_) => onChanged(),
+          ),
+        ),
+        const SizedBox(width: AppleSpacing.sm),
+        // 만원 단위 입력
+        Expanded(
+          flex: 3,
+          child: TextFormField(
+            controller: manController,
+            keyboardType: TextInputType.number,
+            inputFormatters: [
+              FilteringTextInputFormatter.digitsOnly,
+              LengthLimitingTextInputFormatter(4), // 최대 9999만원
+            ],
+            textAlign: TextAlign.center,
+            decoration: InputDecoration(
+              hintText: '0',
+              hintStyle: AppleTypography.title2.copyWith(
+                color: AppleColors.tertiaryLabel,
+              ),
+              filled: true,
+              fillColor: AppleColors.secondarySystemGroupedBackground,
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(AppleRadius.md),
+                borderSide: BorderSide.none,
+              ),
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: AppleSpacing.sm,
+                vertical: AppleSpacing.md,
+              ),
+              suffixText: '만원',
+              suffixStyle: AppleTypography.body.copyWith(
+                color: AppleColors.secondaryLabel,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            style: AppleTypography.title2.copyWith(
+              color: AppleColors.label,
+              fontWeight: FontWeight.w600,
+            ),
+            onChanged: (_) => onChanged(),
+            onFieldSubmitted: (_) => onSubmitted?.call(),
+          ),
+        ),
+      ],
+    );
+  }
+
+
+  /// 새 보증금 프리셋 버튼 (억/만원 분리 입력 연동)
+  Widget _buildDepositPresetNew(String label, int value) {
     final isSelected = _depositController.text == value.toString();
     return GestureDetector(
-      onTap: () {
-        setState(() {
-          _depositController.text = value.toString();
-        });
-      },
+      onTap: () => _setDepositPreset(value),
       child: Container(
         padding: const EdgeInsets.symmetric(
           horizontal: AppleSpacing.md,
@@ -2185,6 +2356,14 @@ class _MLSQuickRegistrationPageState extends State<MLSQuickRegistrationPage>
               _selectedFullData = fullData;
               _latitude = null;
               _longitude = null;
+              // 주소 변경 시 시세 확인 상태 및 가격 초기화
+              _hasCheckedMarketPrice = false;
+              _priceController.clear();
+              _priceUkController.clear();
+              _priceManController.clear();
+              _depositController.clear();
+              _depositUkController.clear();
+              _depositManController.clear();
             });
 
             // 좌표 가져오기 (지도 표시용)
@@ -2256,7 +2435,11 @@ class _MLSQuickRegistrationPageState extends State<MLSQuickRegistrationPage>
       _addressController.clear();
       _detailAddressController.clear();
       _priceController.clear();
+      _priceUkController.clear();
+      _priceManController.clear();
       _depositController.clear();
+      _depositUkController.clear();
+      _depositManController.clear();
       _selectedImages.clear();
       _isMainAddressSelected = false;
       _selectedFullData = null;
@@ -2265,6 +2448,7 @@ class _MLSQuickRegistrationPageState extends State<MLSQuickRegistrationPage>
       _searchResults = [];
       _addresses = [];
       _errorMessage = null;
+      _hasCheckedMarketPrice = false;
       // 상세 정보 초기화
       _showDetailFields = false;
       _floor = null;
@@ -2402,7 +2586,7 @@ class _MLSQuickRegistrationPageState extends State<MLSQuickRegistrationPage>
       // 5. Firestore에 저장
       await _mlsService.createProperty(property);
 
-      // 6. 자동 배포 - 주변 중개사 검색 후 배포
+      // 6. 자동 배포 - 주변 중개사 검색 후 플랫폼 가입 중개사만 배포
       int broadcastCount = 0;
       try {
         if (_latitude != null && _longitude != null) {
@@ -2413,12 +2597,29 @@ class _MLSQuickRegistrationPageState extends State<MLSQuickRegistrationPage>
           );
 
           if (brokerResult.brokers.isNotEmpty) {
-            final brokerIds = brokerResult.brokers.map((b) => b.registrationNumber).toList();
-            await _mlsService.broadcastProperty(
-              propertyId: propertyId,
-              brokerIds: brokerIds,
-            );
-            broadcastCount = brokerIds.length;
+            // 외부 API 등록번호 목록
+            final externalRegNumbers = brokerResult.brokers.map((b) => b.registrationNumber).toList();
+
+            // 플랫폼에 실제 가입된 중개사만 필터링
+            final firebaseService = FirebaseService();
+            final registeredBrokers = await firebaseService.getBrokersByRegistrationNumbers(externalRegNumbers);
+
+            if (registeredBrokers.isNotEmpty) {
+              // 플랫폼 중개사의 UID를 사용 (Firestore document ID)
+              final platformBrokerIds = registeredBrokers.values
+                  .map((b) => b['uid'] as String?)
+                  .where((uid) => uid != null && uid.isNotEmpty)
+                  .cast<String>()
+                  .toList();
+
+              if (platformBrokerIds.isNotEmpty) {
+                await _mlsService.broadcastProperty(
+                  propertyId: propertyId,
+                  brokerIds: platformBrokerIds,
+                );
+                broadcastCount = platformBrokerIds.length;
+              }
+            }
           }
         }
       } catch (e) {
