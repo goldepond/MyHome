@@ -84,9 +84,13 @@ service cloud.firestore {
     // === MLS 매물 컬렉션 ===
     match /mlsProperties/{propertyId} {
       allow read: if isAuthenticated();
-      allow create: if isAuthenticated() &&
-        request.resource.data.userId == request.auth.uid &&
-        hasRequiredFields(['userId', 'roadAddress', 'createdAt', 'status']);
+      // 본인 등록 또는 관리자(익명) 대리 등록
+      allow create: if isAuthenticated() && (
+        // 일반 사용자: 본인 명의로만 등록 가능
+        (request.resource.data.userId == request.auth.uid) ||
+        // 관리자(익명): 다른 사용자 대신 등록 가능 (isProxyRegistration 플래그 필수)
+        (isAnonymousUser() && request.resource.data.isProxyRegistration == true)
+      ) && hasRequiredFields(['userId', 'roadAddress', 'createdAt', 'status']);
       // 관리자(익명) 또는 본인이 삭제 가능
       allow delete: if isAnonymousUser() || (isAuthenticated() && resource.data.userId == request.auth.uid);
       // 업데이트: 관리자(익명), 소유자, 또는 targetBrokerIds에 포함된 중개사

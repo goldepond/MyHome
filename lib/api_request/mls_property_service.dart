@@ -77,6 +77,31 @@ class MLSPropertyService {
     }
   }
 
+  /// 관리자 대리 매물 등록
+  ///
+  /// 관리자가 특정 사용자를 대신하여 매물을 등록합니다.
+  /// [property] - 등록할 매물 정보 (userId, userName은 대상 사용자 정보로 설정되어 있어야 함)
+  /// [adminId] - 등록을 처리한 관리자 ID
+  Future<String> createPropertyOnBehalf({
+    required MLSProperty property,
+    required String adminId,
+  }) async {
+    try {
+      final propertyMap = property.toMap();
+      propertyMap['registeredByAdmin'] = adminId;
+      propertyMap['isProxyRegistration'] = true;
+
+      final docRef = _firestore.collection(_collectionName).doc(property.id);
+      await docRef.set(propertyMap);
+
+      Logger.info('MLS Property created on behalf: ${property.id} by admin: $adminId');
+      return property.id;
+    } catch (e) {
+      Logger.error('Failed to create MLS property on behalf', error: e);
+      rethrow;
+    }
+  }
+
   /// 매물 수정
   Future<void> updateProperty(String id, Map<String, dynamic> updates) async {
     try {

@@ -25,6 +25,7 @@ class AdminPropertyVerificationPage extends StatefulWidget {
 class _AdminPropertyVerificationPageState extends State<AdminPropertyVerificationPage> {
   final _mlsService = MLSPropertyService();
   final _firebaseService = FirebaseService();
+  String _statusFilter = 'all'; // 'all', 'pending', 'active', 'sold', etc.
 
   @override
   Widget build(BuildContext context) {
@@ -40,7 +41,7 @@ class _AdminPropertyVerificationPageState extends State<AdminPropertyVerificatio
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const Text(
-                  '매물 검증',
+                  '매물 관리',
                   style: TextStyle(
                     fontSize: 28,
                     fontWeight: FontWeight.bold,
@@ -49,7 +50,7 @@ class _AdminPropertyVerificationPageState extends State<AdminPropertyVerificatio
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  '등기 확인 후 매물을 승인하거나 거절합니다',
+                  '등록된 모든 매물을 조회하고 관리합니다',
                   style: TextStyle(
                     fontSize: 16,
                     color: AirbnbColors.textSecondary,
@@ -59,10 +60,13 @@ class _AdminPropertyVerificationPageState extends State<AdminPropertyVerificatio
             ),
           ),
 
-          // 검증 대기 매물 목록
+          // 상태 필터 탭
+          _buildStatusFilterTabs(),
+
+          // 매물 목록
           Expanded(
-            child: FutureBuilder<List<MLSProperty>>(
-              future: _mlsService.getPendingPropertiesList(),
+            child: StreamBuilder<List<MLSProperty>>(
+              stream: _mlsService.getAllPropertiesForAdmin(),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return const Center(child: CircularProgressIndicator());
@@ -86,21 +90,19 @@ class _AdminPropertyVerificationPageState extends State<AdminPropertyVerificatio
                   );
                 }
 
-                final properties = snapshot.data ?? [];
+                final allProperties = snapshot.data ?? [];
+                final properties = _filterByStatus(allProperties);
 
                 if (properties.isEmpty) {
                   return _buildEmptyState();
                 }
 
-                return RefreshIndicator(
-                  onRefresh: () async => setState(() {}),
-                  child: ListView.builder(
-                    padding: const EdgeInsets.symmetric(horizontal: 24),
-                    itemCount: properties.length,
-                    itemBuilder: (context, index) {
-                      return _buildPropertyCard(properties[index]);
-                    },
-                  ),
+                return ListView.builder(
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  itemCount: properties.length,
+                  itemBuilder: (context, index) {
+                    return _buildPropertyCard(properties[index]);
+                  },
                 );
               },
             ),
@@ -110,33 +112,86 @@ class _AdminPropertyVerificationPageState extends State<AdminPropertyVerificatio
     );
   }
 
+  List<MLSProperty> _filterByStatus(List<MLSProperty> properties) {
+    if (_statusFilter == 'all') return properties;
+    return properties.where((p) {
+      final status = p.status.toString().split('.').last;
+      return status == _statusFilter;
+    }).toList();
+  }
+
+  Widget _buildStatusFilterTabs() {
+    final filters = [
+      {'key': 'all', 'label': '전체'},
+      {'key': 'active', 'label': '활성'},
+      {'key': 'pending', 'label': '검증 대기'},
+      {'key': 'sold', 'label': '거래 완료'},
+      {'key': 'rejected', 'label': '거절'},
+    ];
+
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      padding: const EdgeInsets.symmetric(horizontal: 24),
+      child: Row(
+        children: filters.map((filter) {
+          final isSelected = _statusFilter == filter['key'];
+          return Padding(
+            padding: const EdgeInsets.only(right: 8, bottom: 16),
+            child: InkWell(
+              onTap: () => setState(() => _statusFilter = filter['key']!),
+              borderRadius: BorderRadius.circular(20),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                decoration: BoxDecoration(
+                  color: isSelected ? AirbnbColors.primary : AirbnbColors.background,
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(
+                    color: isSelected ? AirbnbColors.primary : AirbnbColors.border,
+                  ),
+                ),
+                child: Text(
+                  filter['label']!,
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+                    color: isSelected ? Colors.white : AirbnbColors.textSecondary,
+                  ),
+                ),
+              ),
+            ),
+          );
+        }).toList(),
+      ),
+    );
+  }
+
   Widget _buildEmptyState() {
+    final isFiltered = _statusFilter != 'all';
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Icon(
-            Icons.check_circle_outline,
+            isFiltered ? Icons.filter_list_off : Icons.home_work_outlined,
             size: 80,
             color: AirbnbColors.textLight,
           ),
           const SizedBox(height: 16),
-          const Text(
-            '검증 대기 중인 매물이 없습니다',
-            style: TextStyle(
+          Text(
+            isFiltered ? '해당 상태의 매물이 없습니다' : '등록된 매물이 없습니다',
+            style: const TextStyle(
               fontSize: 18,
               fontWeight: FontWeight.w500,
               color: AirbnbColors.textSecondary,
             ),
           ),
-          const SizedBox(height: 8),
-          Text(
-            '모든 매물이 검증되었습니다',
-            style: TextStyle(
-              fontSize: 14,
-              color: AirbnbColors.textLight,
+          if (isFiltered) ...[
+            const SizedBox(height: 8),
+            TextButton(
+              onPressed: () => setState(() => _statusFilter = 'all'),
+              child: const Text('전체 보기'),
             ),
-          ),
+          ],
         ],
       ),
     );
@@ -184,28 +239,7 @@ class _AdminPropertyVerificationPageState extends State<AdminPropertyVerificatio
                 // 상태 뱃지
                 Row(
                   children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                      decoration: BoxDecoration(
-                        color: AirbnbColors.warning.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: const Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(Icons.pending, size: 14, color: AirbnbColors.warning),
-                          SizedBox(width: 4),
-                          Text(
-                            '검증 대기',
-                            style: TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w600,
-                              color: AirbnbColors.warning,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
+                    _buildStatusBadge(property.status),
                     const Spacer(),
                     Text(
                       _formatDate(property.createdAt),
@@ -282,44 +316,91 @@ class _AdminPropertyVerificationPageState extends State<AdminPropertyVerificatio
 
                 const SizedBox(height: 20),
 
-                // 액션 버튼
-                Row(
-                  children: [
-                    Expanded(
-                      child: OutlinedButton.icon(
-                        onPressed: () => _showRejectDialog(property),
-                        icon: const Icon(Icons.close, size: 18),
-                        label: const Text('거절'),
-                        style: OutlinedButton.styleFrom(
-                          foregroundColor: AirbnbColors.error,
-                          side: const BorderSide(color: AirbnbColors.error),
-                          padding: const EdgeInsets.symmetric(vertical: 14),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      flex: 2,
-                      child: ElevatedButton.icon(
-                        onPressed: () => _approveProperty(property),
-                        icon: const Icon(Icons.check, size: 18),
-                        label: const Text('검증 승인'),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AirbnbColors.primary,
-                          foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(vertical: 14),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
+                // 액션 버튼 (상태에 따라 다르게 표시)
+                _buildActionButtons(property),
               ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStatusBadge(PropertyStatus status) {
+    final statusName = status.toString().split('.').last;
+    Color color;
+    String label;
+    IconData icon;
+
+    switch (statusName) {
+      case 'active':
+        color = AirbnbColors.success;
+        label = '활성';
+        icon = Icons.check_circle;
+        break;
+      case 'pending':
+        color = AirbnbColors.warning;
+        label = '검증 대기';
+        icon = Icons.pending;
+        break;
+      case 'rejected':
+        color = AirbnbColors.error;
+        label = '거절';
+        icon = Icons.cancel;
+        break;
+      case 'sold':
+        color = AirbnbColors.primary;
+        label = '거래 완료';
+        icon = Icons.sell;
+        break;
+      case 'depositTaken':
+        color = const Color(0xFF6B4CE6);
+        label = '가계약';
+        icon = Icons.handshake;
+        break;
+      case 'inquiry':
+        color = AirbnbColors.primary;
+        label = '문의 중';
+        icon = Icons.chat_bubble;
+        break;
+      case 'underOffer':
+        color = const Color(0xFFE67E22);
+        label = '협의 중';
+        icon = Icons.swap_horiz;
+        break;
+      case 'cancelled':
+        color = AirbnbColors.textLight;
+        label = '취소';
+        icon = Icons.block;
+        break;
+      case 'draft':
+        color = AirbnbColors.textLight;
+        label = '임시저장';
+        icon = Icons.edit_note;
+        break;
+      default:
+        color = AirbnbColors.textSecondary;
+        label = statusName;
+        icon = Icons.info;
+    }
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(20),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 14, color: color),
+          const SizedBox(width: 4),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              color: color,
             ),
           ),
         ],
@@ -342,6 +423,78 @@ class _AdminPropertyVerificationPageState extends State<AdminPropertyVerificatio
         ),
       ],
     );
+  }
+
+  Widget _buildActionButtons(MLSProperty property) {
+    final statusName = property.status.toString().split('.').last;
+    final isPending = statusName == 'pending';
+    final isActive = statusName == 'active';
+
+    if (isPending) {
+      // 검증 대기: 승인/거절 버튼
+      return Row(
+        children: [
+          Expanded(
+            child: OutlinedButton.icon(
+              onPressed: () => _showRejectDialog(property),
+              icon: const Icon(Icons.close, size: 18),
+              label: const Text('거절'),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: AirbnbColors.error,
+                side: const BorderSide(color: AirbnbColors.error),
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            flex: 2,
+            child: ElevatedButton.icon(
+              onPressed: () => _approveProperty(property),
+              icon: const Icon(Icons.check, size: 18),
+              label: const Text('검증 승인'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AirbnbColors.primary,
+                foregroundColor: Colors.white,
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+            ),
+          ),
+        ],
+      );
+    }
+
+    if (isActive) {
+      // 활성 매물: 거절(비활성화) 버튼만
+      return Row(
+        children: [
+          Expanded(
+            child: OutlinedButton.icon(
+              onPressed: () => _showRejectDialog(property),
+              icon: const Icon(Icons.block, size: 18),
+              label: const Text('비활성화'),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: AirbnbColors.error,
+                side: const BorderSide(color: AirbnbColors.error),
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+            ),
+          ),
+        ],
+      );
+    }
+
+    // 그 외 상태 (sold, rejected, cancelled 등): 버튼 없음
+    return const SizedBox.shrink();
   }
 
   Future<void> _approveProperty(MLSProperty property) async {

@@ -171,6 +171,10 @@ class _AuthLandingPageState extends State<AuthLandingPage> {
 
               // 서비스 설명 섹션
               _buildServiceDescription(),
+              const SizedBox(height: AppleSpacing.lg),
+
+              // 시세 조회 링크 (로그인 불필요)
+              _buildMarketPriceLink(),
               const SizedBox(height: AppleSpacing.section),
 
               // 소셜 로그인 버튼들
@@ -247,6 +251,51 @@ class _AuthLandingPageState extends State<AuthLandingPage> {
           ),
 
         ],
+      ),
+    );
+  }
+
+  Widget _buildMarketPriceLink() {
+    return GestureDetector(
+      onTap: () {
+        Navigator.pushNamed(context, '/market-price');
+      },
+      child: Container(
+        padding: const EdgeInsets.all(AppleSpacing.md),
+        decoration: BoxDecoration(
+          color: AppleColors.systemBlue.withValues(alpha: 0.08),
+          borderRadius: BorderRadius.circular(AppleRadius.md),
+          border: Border.all(
+            color: AppleColors.systemBlue.withValues(alpha: 0.2),
+          ),
+        ),
+        child: Row(
+          children: [
+            const Icon(Icons.trending_up, color: AppleColors.systemBlue, size: 24),
+            const SizedBox(width: AppleSpacing.sm),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    '우리집 시세 조회',
+                    style: AppleTypography.headline.copyWith(
+                      color: AppleColors.systemBlue,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  Text(
+                    '최근 실거래가로 시세를 확인하세요',
+                    style: AppleTypography.caption1.copyWith(
+                      color: AppleColors.secondaryLabel,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const Icon(Icons.chevron_right, color: AppleColors.systemBlue),
+          ],
+        ),
       ),
     );
   }

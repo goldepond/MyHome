@@ -12,6 +12,7 @@ import 'auth/auth_landing_page.dart';
 import 'broker/mls_broker_dashboard_page.dart';
 import 'seller/mls_seller_dashboard_page.dart';
 import 'seller/mls_quick_registration_page.dart';
+import 'market_price/market_price_page.dart';
 import 'notification/notification_page.dart';
 import 'userInfo/personal_info_page.dart';
 
@@ -90,6 +91,13 @@ class MainPageState extends State<MainPage> {
           key: ValueKey('mls_seller_dashboard'),
         );
       }
+
+      // 시세 조회 페이지 (현재 탭이 아닌 경우만)
+      if (_currentIndex != 2 && !_pageCache.containsKey(2)) {
+        _pageCache[2] = const MarketPricePage(
+          key: ValueKey('market_price'),
+        );
+      }
     });
   }
 
@@ -110,8 +118,8 @@ class MainPageState extends State<MainPage> {
   /// 컨텍스트 기반 초기 탭 결정
   /// 항상 "등록" 탭(0)으로 시작 - 헤이딜러 스타일
   int _getContextBasedInitialTab() {
-    // 명시적 initialTabIndex가 있으면 우선 사용 (0 또는 1)
-    if (widget.initialTabIndex >= 0 && widget.initialTabIndex < 2) {
+    // 명시적 initialTabIndex가 있으면 우선 사용 (0, 1, 2)
+    if (widget.initialTabIndex >= 0 && widget.initialTabIndex < 3) {
       return widget.initialTabIndex;
     }
     // 기본: 등록 탭 (Tab 0) - 메인 CTA
@@ -120,7 +128,7 @@ class MainPageState extends State<MainPage> {
 
   /// 외부에서 탭 전환을 위한 메서드
   void setCurrentTab(int index) {
-    if (index >= 0 && index < 2) {
+    if (index >= 0 && index < 3) {
       setState(() {
         _currentIndex = index;
       });
@@ -155,7 +163,7 @@ class MainPageState extends State<MainPage> {
       return _pageCache[index]!;
     }
 
-    // 페이지 생성 및 캐싱 (2탭 구조: 등록 / 내 매물) - 헤이딜러 스타일
+    // 페이지 생성 및 캐싱 (3탭 구조: 등록 / 내 매물 / 시세)
     Widget page;
     switch (index) {
       case 0:
@@ -172,6 +180,12 @@ class MainPageState extends State<MainPage> {
         // 내 매물 (등록한 매물 관리)
         page = const MLSSellerDashboardPage(
           key: ValueKey('mls_seller_dashboard'),
+        );
+        break;
+      case 2:
+        // 시세 조회
+        page = const MarketPricePage(
+          key: ValueKey('market_price'),
         );
         break;
       default:
@@ -400,6 +414,7 @@ class MainPageState extends State<MainPage> {
           children: [
             _buildSegment(0, '등록', isLoggedIn: isLoggedIn),
             _buildSegment(1, '내 매물', isLoggedIn: isLoggedIn),
+            _buildSegment(2, '시세', isLoggedIn: isLoggedIn),
           ],
         ),
       ),
@@ -425,7 +440,7 @@ class MainPageState extends State<MainPage> {
             return;
           }
           setState(() => _currentIndex = index);
-          final screenNames = ['MLSQuickRegistrationPage', 'MLSSellerDashboardPage'];
+          final screenNames = ['MLSQuickRegistrationPage', 'MLSSellerDashboardPage', 'MarketPricePage'];
           _logService.logScreenView(screenNames[index], screenClass: 'MainPageTab');
         },
         child: AnimatedContainer(

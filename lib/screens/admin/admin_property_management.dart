@@ -5,6 +5,7 @@ import 'package:property/api_request/firebase_service.dart';
 import 'package:property/api_request/mls_property_service.dart';
 import 'package:property/models/mls_property.dart';
 import 'package:intl/intl.dart';
+import 'admin_proxy_registration_page.dart';
 
 /// 관리자 - MLS 매물 관리 페이지
 class AdminPropertyManagement extends StatefulWidget {
@@ -70,6 +71,38 @@ class _AdminPropertyManagementState extends State<AdminPropertyManagement> {
     );
   }
 
+  /// 대리 등록 페이지 열기
+  Future<void> _openProxyRegistration() async {
+    final result = await Navigator.push<bool>(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const AdminProxyRegistrationPage(),
+      ),
+    );
+
+    if (result == true) {
+      // 등록 성공 시 목록 새로고침
+      _loadProperties();
+    }
+  }
+
+  /// 매물 수정 페이지 열기
+  Future<void> _editProperty(MLSProperty property) async {
+    final result = await Navigator.push<bool>(
+      context,
+      MaterialPageRoute(
+        builder: (context) => AdminProxyRegistrationPage(
+          existingProperty: property,
+        ),
+      ),
+    );
+
+    if (result == true) {
+      // 수정 성공 시 목록 새로고침
+      _loadProperties();
+    }
+  }
+
   List<MLSProperty> get _filteredProperties {
     List<MLSProperty> filtered = _properties;
 
@@ -103,6 +136,13 @@ class _AdminPropertyManagementState extends State<AdminPropertyManagement> {
       child: Scaffold(
         backgroundColor: AirbnbColors.surface,
         resizeToAvoidBottomInset: true,
+        floatingActionButton: FloatingActionButton.extended(
+          onPressed: _openProxyRegistration,
+          backgroundColor: AirbnbColors.primary,
+          foregroundColor: AirbnbColors.background,
+          icon: const Icon(Icons.add),
+          label: const Text('대리 등록'),
+        ),
         body: SafeArea(
           child: Column(
             children: [
@@ -465,20 +505,56 @@ class _AdminPropertyManagementState extends State<AdminPropertyManagement> {
                 '${property.targetBrokerIds.length}명',
               ),
             ],
-            const SizedBox(height: 16),
-            // 삭제 버튼
-            Align(
-              alignment: Alignment.centerRight,
-              child: ElevatedButton.icon(
-                onPressed: () => _showDeleteConfirmDialog(property),
-                icon: const Icon(Icons.delete_outline, size: 18),
-                label: const Text('삭제'),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AirbnbColors.error,
-                  foregroundColor: AirbnbColors.background,
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            // 대리 등록 표시
+            if (property.toMap()['isProxyRegistration'] == true) ...[
+              const SizedBox(height: 8),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: AirbnbColors.info.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: AirbnbColors.info.withValues(alpha: 0.3)),
+                ),
+                child: const Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(Icons.admin_panel_settings, size: 14, color: AirbnbColors.info),
+                    SizedBox(width: 4),
+                    Text(
+                      '관리자 대리 등록',
+                      style: TextStyle(fontSize: 11, color: AirbnbColors.info, fontWeight: FontWeight.w500),
+                    ),
+                  ],
                 ),
               ),
+            ],
+            const SizedBox(height: 16),
+            // 수정/삭제 버튼
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                OutlinedButton.icon(
+                  onPressed: () => _editProperty(property),
+                  icon: const Icon(Icons.edit_outlined, size: 18),
+                  label: const Text('수정'),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: AirbnbColors.primary,
+                    side: const BorderSide(color: AirbnbColors.primary),
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                ElevatedButton.icon(
+                  onPressed: () => _showDeleteConfirmDialog(property),
+                  icon: const Icon(Icons.delete_outline, size: 18),
+                  label: const Text('삭제'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AirbnbColors.error,
+                    foregroundColor: AirbnbColors.background,
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  ),
+                ),
+              ],
             ),
           ],
         ),
