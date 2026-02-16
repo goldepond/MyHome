@@ -102,6 +102,47 @@ class MLSPropertyService {
     }
   }
 
+  /// 외부 매물을 앱 가입한 사용자에게 연결
+  ///
+  /// 외부 매물(당근마켓 등)의 집주인이 나중에 앱에 가입했을 때
+  /// 해당 매물의 소유권을 이전합니다.
+  Future<void> linkExternalPropertyToUser({
+    required String propertyId,
+    required String userId,
+    required String userName,
+  }) async {
+    try {
+      await _firestore.collection(_collectionName).doc(propertyId).update({
+        'linkedUserId': userId,
+        'userId': userId,
+        'userName': userName,
+        'updatedAt': DateTime.now().toIso8601String(),
+      });
+      Logger.info('External property $propertyId linked to user: $userId');
+    } catch (e) {
+      Logger.error('Failed to link external property to user', error: e);
+      rethrow;
+    }
+  }
+
+  /// 전화번호로 외부 매물 조회
+  Future<List<MLSProperty>> findExternalPropertiesByPhone(String phone) async {
+    try {
+      final snapshot = await _firestore
+          .collection(_collectionName)
+          .where('isExternalListing', isEqualTo: true)
+          .where('externalSellerPhone', isEqualTo: phone)
+          .get();
+
+      return snapshot.docs
+          .map((doc) => MLSProperty.fromMap(doc.data()))
+          .toList();
+    } catch (e) {
+      Logger.error('Failed to find external properties by phone', error: e);
+      return [];
+    }
+  }
+
   /// 매물 수정
   Future<void> updateProperty(String id, Map<String, dynamic> updates) async {
     try {

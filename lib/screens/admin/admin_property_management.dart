@@ -1,10 +1,12 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:property/constants/app_constants.dart';
 import 'package:property/api_request/firebase_service.dart';
 import 'package:property/api_request/mls_property_service.dart';
 import 'package:property/models/mls_property.dart';
 import 'package:intl/intl.dart';
+import '../../models/broker_offer.dart';
 import 'admin_proxy_registration_page.dart';
 
 /// 관리자 - MLS 매물 관리 페이지
@@ -505,34 +507,163 @@ class _AdminPropertyManagementState extends State<AdminPropertyManagement> {
                 '${property.targetBrokerIds.length}명',
               ),
             ],
-            // 대리 등록 표시
-            if (property.toMap()['isProxyRegistration'] == true) ...[
-              const SizedBox(height: 8),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  color: AirbnbColors.info.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: AirbnbColors.info.withValues(alpha: 0.3)),
-                ),
-                child: const Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(Icons.admin_panel_settings, size: 14, color: AirbnbColors.info),
-                    SizedBox(width: 4),
-                    Text(
-                      '관리자 대리 등록',
-                      style: TextStyle(fontSize: 11, color: AirbnbColors.info, fontWeight: FontWeight.w500),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-            const SizedBox(height: 16),
-            // 수정/삭제 버튼
-            Row(
-              mainAxisAlignment: MainAxisAlignment.end,
+            // 배지 영역 (대리 등록 / 외부 매물)
+            Wrap(
+              spacing: 8,
+              runSpacing: 4,
               children: [
+                if (property.toMap()['isProxyRegistration'] == true)
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: AirbnbColors.info.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: AirbnbColors.info.withValues(alpha: 0.3)),
+                    ),
+                    child: const Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.admin_panel_settings, size: 14, color: AirbnbColors.info),
+                        SizedBox(width: 4),
+                        Text(
+                          '관리자 대리 등록',
+                          style: TextStyle(fontSize: 11, color: AirbnbColors.info, fontWeight: FontWeight.w500),
+                        ),
+                      ],
+                    ),
+                  ),
+                if (property.isExternalListing)
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: Colors.orange.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: Colors.orange.withValues(alpha: 0.3)),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(Icons.open_in_new, size: 14, color: Colors.orange),
+                        const SizedBox(width: 4),
+                        Text(
+                          '외부 매물 · ${property.externalSource ?? ''}',
+                          style: const TextStyle(fontSize: 11, color: Colors.orange, fontWeight: FontWeight.w500),
+                        ),
+                      ],
+                    ),
+                  ),
+                if (property.isExternalListing && property.linkedUserId != null)
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: AirbnbColors.success.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: AirbnbColors.success.withValues(alpha: 0.3)),
+                    ),
+                    child: const Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.link, size: 14, color: AirbnbColors.success),
+                        SizedBox(width: 4),
+                        Text(
+                          '사용자 연결됨',
+                          style: TextStyle(fontSize: 11, color: AirbnbColors.success, fontWeight: FontWeight.w500),
+                        ),
+                      ],
+                    ),
+                  ),
+              ],
+            ),
+            // 중개 제안 카운트
+            StreamBuilder<QuerySnapshot>(
+              stream: FirebaseFirestore.instance
+                  .collection('brokerOffers')
+                  .where('propertyId', isEqualTo: property.id)
+                  .snapshots(),
+              builder: (context, offerSnapshot) {
+                final offers = offerSnapshot.data?.docs ?? [];
+                final pendingCount = offers.where((d) => (d.data() as Map)['status'] == 'pending').length;
+                final selectedCount = offers.where((d) => (d.data() as Map)['status'] == 'selected').length;
+                if (offers.isEmpty) return const SizedBox.shrink();
+                return Padding(
+                  padding: const EdgeInsets.only(top: 8),
+                  child: InkWell(
+                    onTap: () => _showOffersDialog(property),
+                    borderRadius: BorderRadius.circular(8),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      decoration: BoxDecoration(
+                        color: selectedCount > 0
+                            ? AirbnbColors.success.withValues(alpha: 0.08)
+                            : AirbnbColors.primary.withValues(alpha: 0.08),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(
+                          color: selectedCount > 0
+                              ? AirbnbColors.success.withValues(alpha: 0.3)
+                              : AirbnbColors.primary.withValues(alpha: 0.3),
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(
+                            selectedCount > 0 ? Icons.check_circle : Icons.handshake_rounded,
+                            size: 16,
+                            color: selectedCount > 0 ? AirbnbColors.success : AirbnbColors.primary,
+                          ),
+                          const SizedBox(width: 6),
+                          Text(
+                            selectedCount > 0
+                                ? '중개사 선정 완료 (총 ${offers.length}건)'
+                                : '중개 제안 $pendingCount건 대기',
+                            style: TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                              color: selectedCount > 0 ? AirbnbColors.success : AirbnbColors.primary,
+                            ),
+                          ),
+                          const Spacer(),
+                          Icon(
+                            Icons.arrow_forward_ios,
+                            size: 12,
+                            color: selectedCount > 0 ? AirbnbColors.success : AirbnbColors.primary,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                );
+              },
+            ),
+            const SizedBox(height: 16),
+            // 수정/삭제/연결 버튼
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              alignment: WrapAlignment.end,
+              children: [
+                // 제안 보기 버튼
+                OutlinedButton.icon(
+                  onPressed: () => _showOffersDialog(property),
+                  icon: const Icon(Icons.handshake_outlined, size: 18),
+                  label: const Text('제안'),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: AirbnbColors.primary,
+                    side: const BorderSide(color: AirbnbColors.primary),
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  ),
+                ),
+                // 외부 매물이고 아직 연결 안 된 경우 "사용자 연결" 버튼
+                if (property.isExternalListing && property.linkedUserId == null)
+                  OutlinedButton.icon(
+                    onPressed: () => _showLinkUserDialog(property),
+                    icon: const Icon(Icons.person_add_alt, size: 18),
+                    label: const Text('연결'),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: Colors.orange,
+                      side: const BorderSide(color: Colors.orange),
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    ),
+                  ),
                 OutlinedButton.icon(
                   onPressed: () => _editProperty(property),
                   icon: const Icon(Icons.edit_outlined, size: 18),
@@ -540,10 +671,9 @@ class _AdminPropertyManagementState extends State<AdminPropertyManagement> {
                   style: OutlinedButton.styleFrom(
                     foregroundColor: AirbnbColors.primary,
                     side: const BorderSide(color: AirbnbColors.primary),
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                   ),
                 ),
-                const SizedBox(width: 8),
                 ElevatedButton.icon(
                   onPressed: () => _showDeleteConfirmDialog(property),
                   icon: const Icon(Icons.delete_outline, size: 18),
@@ -551,7 +681,7 @@ class _AdminPropertyManagementState extends State<AdminPropertyManagement> {
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AirbnbColors.error,
                     foregroundColor: AirbnbColors.background,
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                   ),
                 ),
               ],
@@ -761,5 +891,525 @@ class _AdminPropertyManagementState extends State<AdminPropertyManagement> {
         );
       }
     }
+  }
+
+  /// 중개 제안 목록 보기 + 선정 다이얼로그
+  Future<void> _showOffersDialog(MLSProperty property) async {
+    await showDialog(
+      context: context,
+      builder: (dialogContext) => StatefulBuilder(
+        builder: (context, setDialogState) => AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          title: Row(
+            children: [
+              const Icon(Icons.handshake_rounded, color: AirbnbColors.primary, size: 22),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text('중개 제안 목록', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+                    Text(
+                      property.roadAddress,
+                      style: const TextStyle(fontSize: 12, color: AirbnbColors.textSecondary, fontWeight: FontWeight.normal),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          content: SizedBox(
+            width: MediaQuery.of(context).size.width * 0.9,
+            height: MediaQuery.of(context).size.height * 0.6,
+            child: StreamBuilder<QuerySnapshot>(
+              stream: FirebaseFirestore.instance
+                  .collection('brokerOffers')
+                  .where('propertyId', isEqualTo: property.id)
+                  .orderBy('createdAt', descending: true)
+                  .snapshots(),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+                final docs = snapshot.data?.docs ?? [];
+                if (docs.isEmpty) {
+                  return const Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.inbox_outlined, size: 48, color: AirbnbColors.textLight),
+                        SizedBox(height: 12),
+                        Text('아직 제안이 없습니다', style: TextStyle(color: AirbnbColors.textSecondary)),
+                        SizedBox(height: 4),
+                        Text(
+                          '공개 매물 페이지에서 중개사가 제안을 보낼 수 있습니다',
+                          style: TextStyle(fontSize: 12, color: AirbnbColors.textLight),
+                        ),
+                      ],
+                    ),
+                  );
+                }
+
+                final offers = docs.map((d) => BrokerOffer.fromMap(d.data() as Map<String, dynamic>)).toList();
+
+                return ListView.separated(
+                  itemCount: offers.length,
+                  separatorBuilder: (_, __) => const Divider(height: 1),
+                  itemBuilder: (context, index) {
+                    final offer = offers[index];
+                    final isSelected = offer.status == BrokerOfferStatus.selected;
+                    final isRejected = offer.status == BrokerOfferStatus.rejected;
+
+                    return Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: isSelected
+                            ? AirbnbColors.success.withValues(alpha: 0.05)
+                            : isRejected
+                                ? Colors.grey.withValues(alpha: 0.05)
+                                : null,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          // 상단: 이름 + 상태 배지
+                          Row(
+                            children: [
+                              CircleAvatar(
+                                radius: 18,
+                                backgroundColor: isSelected
+                                    ? AirbnbColors.success.withValues(alpha: 0.1)
+                                    : AirbnbColors.primary.withValues(alpha: 0.1),
+                                child: Icon(
+                                  isSelected ? Icons.check : Icons.person,
+                                  size: 18,
+                                  color: isSelected ? AirbnbColors.success : AirbnbColors.primary,
+                                ),
+                              ),
+                              const SizedBox(width: 10),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      offer.brokerName,
+                                      style: TextStyle(
+                                        fontSize: 15,
+                                        fontWeight: FontWeight.w600,
+                                        color: isRejected ? AirbnbColors.textLight : AirbnbColors.textPrimary,
+                                      ),
+                                    ),
+                                    if (offer.brokerCompany != null)
+                                      Text(
+                                        offer.brokerCompany!,
+                                        style: TextStyle(
+                                          fontSize: 12,
+                                          color: isRejected ? AirbnbColors.textLight : AirbnbColors.textSecondary,
+                                        ),
+                                      ),
+                                  ],
+                                ),
+                              ),
+                              // 상태 배지
+                              if (isSelected)
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                  decoration: BoxDecoration(
+                                    color: AirbnbColors.success,
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: const Text('선정', style: TextStyle(fontSize: 11, color: Colors.white, fontWeight: FontWeight.w600)),
+                                )
+                              else if (isRejected)
+                                Container(
+                                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                  decoration: BoxDecoration(
+                                    color: Colors.grey,
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: const Text('미선정', style: TextStyle(fontSize: 11, color: Colors.white, fontWeight: FontWeight.w600)),
+                                ),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+
+                          // 전화번호
+                          Row(
+                            children: [
+                              Icon(Icons.phone_outlined, size: 14, color: isRejected ? AirbnbColors.textLight : AirbnbColors.textSecondary),
+                              const SizedBox(width: 4),
+                              Text(
+                                offer.brokerPhone,
+                                style: TextStyle(fontSize: 13, color: isRejected ? AirbnbColors.textLight : AirbnbColors.textPrimary),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 6),
+
+                          // 한마디 (pitch)
+                          Container(
+                            width: double.infinity,
+                            padding: const EdgeInsets.all(10),
+                            decoration: BoxDecoration(
+                              color: AirbnbColors.surface,
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Text(
+                              offer.pitch,
+                              style: TextStyle(
+                                fontSize: 13,
+                                color: isRejected ? AirbnbColors.textLight : AirbnbColors.textPrimary,
+                                height: 1.4,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 6),
+
+                          // 제출 시각 + 선정 버튼
+                          Row(
+                            children: [
+                              Text(
+                                DateFormat('MM/dd HH:mm').format(offer.createdAt),
+                                style: const TextStyle(fontSize: 11, color: AirbnbColors.textLight),
+                              ),
+                              const Spacer(),
+                              if (offer.status == BrokerOfferStatus.pending)
+                                TextButton.icon(
+                                  onPressed: () => _selectBrokerOffer(property, offer, offers),
+                                  icon: const Icon(Icons.check_circle_outline, size: 16),
+                                  label: const Text('이 중개사 선정'),
+                                  style: TextButton.styleFrom(
+                                    foregroundColor: AirbnbColors.success,
+                                    padding: const EdgeInsets.symmetric(horizontal: 8),
+                                    visualDensity: VisualDensity.compact,
+                                  ),
+                                ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                );
+              },
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              child: const Text('닫기'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// 중개사 선정 처리
+  Future<void> _selectBrokerOffer(MLSProperty property, BrokerOffer selected, List<BrokerOffer> allOffers) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Text('중개사 선정'),
+        content: Text(
+          '${selected.brokerName}${selected.brokerCompany != null ? ' (${selected.brokerCompany})' : ''}을(를) 선정하시겠습니까?\n\n'
+          '선정 후 다른 제안은 미선정 처리됩니다.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('취소'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AirbnbColors.success,
+              foregroundColor: Colors.white,
+            ),
+            child: const Text('선정'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true) return;
+
+    try {
+      final batch = FirebaseFirestore.instance.batch();
+
+      // 선정된 제안: selected
+      batch.update(
+        FirebaseFirestore.instance.collection('brokerOffers').doc(selected.id),
+        {
+          'status': 'selected',
+          'selectedAt': DateTime.now().toIso8601String(),
+        },
+      );
+
+      // 나머지 제안: rejected
+      for (final offer in allOffers) {
+        if (offer.id != selected.id && offer.status == BrokerOfferStatus.pending) {
+          batch.update(
+            FirebaseFirestore.instance.collection('brokerOffers').doc(offer.id),
+            {'status': 'rejected'},
+          );
+        }
+      }
+
+      // 매물의 selectedBrokerId 업데이트
+      batch.update(
+        FirebaseFirestore.instance.collection('mlsProperties').doc(property.id),
+        {
+          'finalBrokerId': selected.brokerId ?? selected.brokerName,
+          'updatedAt': DateTime.now().toIso8601String(),
+        },
+      );
+
+      await batch.commit();
+
+      // 선정된 중개사에게 알림 (brokerId가 있는 경우)
+      if (selected.brokerId != null) {
+        FirebaseService().sendNotification(
+          userId: selected.brokerId!,
+          title: '축하합니다! 중개 제안이 선정되었습니다',
+          message: '${property.roadAddress} 매물의 중개사로 선정되었습니다. 곧 매물 소유자와 연결해드리겠습니다.',
+          type: 'broker_selected',
+          relatedId: property.id,
+        );
+      }
+
+      // 미선정된 중개사에게 알림 (brokerId가 있는 경우)
+      for (final offer in allOffers) {
+        if (offer.id != selected.id &&
+            offer.status == BrokerOfferStatus.pending &&
+            offer.brokerId != null) {
+          FirebaseService().sendNotification(
+            userId: offer.brokerId!,
+            title: '중개 제안 결과 안내',
+            message: '${property.roadAddress} 매물에 다른 중개사가 선정되었습니다. 다른 매물도 확인해보세요.',
+            type: 'broker_rejected',
+            relatedId: property.id,
+          );
+        }
+      }
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('${selected.brokerName}님이 선정되었습니다'),
+            backgroundColor: AirbnbColors.success,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('선정 실패: $e'),
+            backgroundColor: AirbnbColors.error,
+          ),
+        );
+      }
+    }
+  }
+
+  /// 외부 매물을 앱 사용자에게 연결하는 다이얼로그
+  Future<void> _showLinkUserDialog(MLSProperty property) async {
+    final searchController = TextEditingController();
+    List<Map<String, dynamic>> searchResults = [];
+    bool isSearching = false;
+
+    await showDialog(
+      context: context,
+      builder: (dialogContext) => StatefulBuilder(
+        builder: (context, setDialogState) => AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          title: const Text('사용자 연결', style: TextStyle(fontWeight: FontWeight.w600)),
+          content: SizedBox(
+            width: MediaQuery.of(context).size.width * 0.8,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // 매물 정보
+                Container(
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: Colors.orange.withValues(alpha: 0.08),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: Colors.orange.withValues(alpha: 0.3)),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        property.roadAddress,
+                        style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        '외부 집주인: ${property.externalSellerName ?? ""}',
+                        style: const TextStyle(fontSize: 12, color: AirbnbColors.textSecondary),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 16),
+
+                // 사용자 검색
+                TextField(
+                  controller: searchController,
+                  decoration: InputDecoration(
+                    hintText: '사용자 이름 또는 이메일로 검색',
+                    prefixIcon: const Icon(Icons.search, size: 20),
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(10)),
+                    isDense: true,
+                  ),
+                  onChanged: (query) async {
+                    if (query.length < 2) {
+                      setDialogState(() => searchResults = []);
+                      return;
+                    }
+                    setDialogState(() => isSearching = true);
+                    try {
+                      final snapshot = await FirebaseFirestore.instance
+                          .collection('users')
+                          .limit(50)
+                          .get();
+                      final queryLower = query.toLowerCase();
+                      final results = snapshot.docs
+                          .where((doc) {
+                            final data = doc.data();
+                            final name = (data['name'] ?? '').toString().toLowerCase();
+                            final email = (data['email'] ?? '').toString().toLowerCase();
+                            return name.contains(queryLower) || email.contains(queryLower);
+                          })
+                          .take(5)
+                          .map((doc) => {'id': doc.id, ...doc.data()})
+                          .toList();
+                      setDialogState(() {
+                        searchResults = results;
+                        isSearching = false;
+                      });
+                    } catch (e) {
+                      setDialogState(() => isSearching = false);
+                    }
+                  },
+                ),
+                const SizedBox(height: 8),
+
+                // 검색 결과
+                if (isSearching)
+                  const Padding(
+                    padding: EdgeInsets.all(16),
+                    child: Center(child: CircularProgressIndicator(strokeWidth: 2)),
+                  )
+                else if (searchResults.isNotEmpty)
+                  ConstrainedBox(
+                    constraints: const BoxConstraints(maxHeight: 200),
+                    child: ListView.builder(
+                      shrinkWrap: true,
+                      itemCount: searchResults.length,
+                      itemBuilder: (context, i) {
+                        final user = searchResults[i];
+                        final name = user['name'] ?? '이름 없음';
+                        final email = user['email'] ?? '';
+                        final uid = user['id'] ?? user['uid'] ?? '';
+                        return ListTile(
+                          dense: true,
+                          leading: CircleAvatar(
+                            radius: 16,
+                            backgroundColor: AirbnbColors.primary.withValues(alpha: 0.1),
+                            child: const Icon(Icons.person, size: 18, color: AirbnbColors.primary),
+                          ),
+                          title: Text(name, style: const TextStyle(fontSize: 14)),
+                          subtitle: Text(email, style: const TextStyle(fontSize: 12)),
+                          onTap: () async {
+                            final confirmed = await showDialog<bool>(
+                              context: context,
+                              builder: (ctx) => AlertDialog(
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                                title: const Text('연결 확인'),
+                                content: Text(
+                                  '외부 매물 "${property.externalSellerName}"을\n'
+                                  '앱 사용자 "$name"에게 연결하시겠습니까?\n\n'
+                                  '연결 후 해당 사용자가 매물을 관리할 수 있게 됩니다.',
+                                ),
+                                actions: [
+                                  TextButton(
+                                    onPressed: () => Navigator.pop(ctx, false),
+                                    child: const Text('취소'),
+                                  ),
+                                  ElevatedButton(
+                                    onPressed: () => Navigator.pop(ctx, true),
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: AirbnbColors.primary,
+                                      foregroundColor: Colors.white,
+                                    ),
+                                    child: const Text('연결'),
+                                  ),
+                                ],
+                              ),
+                            );
+                            if (confirmed == true) {
+                              try {
+                                await _mlsService.linkExternalPropertyToUser(
+                                  propertyId: property.id,
+                                  userId: uid,
+                                  userName: name,
+                                );
+                                if (dialogContext.mounted) Navigator.pop(dialogContext);
+                                if (mounted) {
+                                  ScaffoldMessenger.of(this.context).showSnackBar(
+                                    SnackBar(
+                                      content: Text('$name님에게 매물이 연결되었습니다'),
+                                      backgroundColor: AirbnbColors.success,
+                                    ),
+                                  );
+                                }
+                              } catch (e) {
+                                if (mounted) {
+                                  ScaffoldMessenger.of(this.context).showSnackBar(
+                                    SnackBar(
+                                      content: Text('연결 실패: $e'),
+                                      backgroundColor: AirbnbColors.error,
+                                    ),
+                                  );
+                                }
+                              }
+                            }
+                          },
+                        );
+                      },
+                    ),
+                  )
+                else if (searchController.text.length >= 2)
+                  const Padding(
+                    padding: EdgeInsets.all(16),
+                    child: Center(
+                      child: Text(
+                        '검색 결과가 없습니다',
+                        style: TextStyle(color: AirbnbColors.textSecondary),
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              child: const Text('닫기'),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }

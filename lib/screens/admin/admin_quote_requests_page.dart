@@ -1152,7 +1152,7 @@ $inquiryUrl
                 const SizedBox(height: 8),
                 // 사유 선택 드롭다운
                 DropdownButtonFormField<String>(
-                  value: selectedReason,
+                  initialValue: selectedReason,
                   decoration: InputDecoration(
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(8),
@@ -1210,7 +1210,7 @@ $inquiryUrl
           ),
           actions: [
             TextButton(
-              onPressed: () => Navigator.pop(context, null),
+              onPressed: () => Navigator.pop(context),
               child: const Text('취소'),
             ),
             ElevatedButton(
@@ -1244,33 +1244,34 @@ $inquiryUrl
 
     final success = await _firebaseService.deleteQuoteRequest(request.id);
 
-    if (mounted) {
-      if (success) {
-        // 문의자에게 알림 전송
-        if (userId.isNotEmpty) {
-          await _firebaseService.sendNotification(
-            userId: userId,
-            title: '견적문의 삭제 알림',
-            message: '"$brokerName" 중개사에게 보낸 견적문의가 관리자에 의해 삭제되었습니다.\n\n사유: $reason',
-            type: 'quote_request_deleted',
-            relatedId: request.id,
-          );
-        }
+    if (!mounted) return;
 
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('✅ ${request.userName}님의 견적문의가 삭제되고 알림이 전송되었습니다.'),
-            backgroundColor: AirbnbColors.success,
-          ),
-        );
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('❌ 견적문의 삭제에 실패했습니다. 다시 시도해주세요.'),
-            backgroundColor: AirbnbColors.error,
-          ),
+    if (success) {
+      // 문의자에게 알림 전송
+      if (userId.isNotEmpty) {
+        await _firebaseService.sendNotification(
+          userId: userId,
+          title: '견적문의 삭제 알림',
+          message: '"$brokerName" 중개사에게 보낸 견적문의가 관리자에 의해 삭제되었습니다.\n\n사유: $reason',
+          type: 'quote_request_deleted',
+          relatedId: request.id,
         );
       }
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('${request.userName}님의 견적문의가 삭제되고 알림이 전송되었습니다.'),
+          backgroundColor: AirbnbColors.success,
+        ),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('견적문의 삭제에 실패했습니다. 다시 시도해주세요.'),
+          backgroundColor: AirbnbColors.error,
+        ),
+      );
     }
   }
 }

@@ -47,6 +47,17 @@ class _AdminProxyRegistrationPageState extends State<AdminProxyRegistrationPage>
   // 대상 사용자
   Map<String, dynamic>? _selectedUser;
 
+  // 외부 매물 모드
+  bool _isExternalMode = false;
+  final _externalNameController = TextEditingController();
+  final _externalPhoneController = TextEditingController();
+  final _externalUrlController = TextEditingController();
+  String _externalSource = '당근마켓';
+
+  static const List<String> _externalSources = [
+    '당근마켓', '피터팬', '맘카페', '네이버카페', '기타',
+  ];
+
   // 현재 단계 (0: 사용자 선택, 1: 주소, 2: 가격, 3: 사진)
   int _currentStep = 0;
   bool get _isEditMode => widget.existingProperty != null;
@@ -162,6 +173,9 @@ class _AdminProxyRegistrationPageState extends State<AdminProxyRegistrationPage>
     _depositUkController.dispose();
     _depositManController.dispose();
     _notesController.dispose();
+    _externalNameController.dispose();
+    _externalPhoneController.dispose();
+    _externalUrlController.dispose();
     _debounceTimer?.cancel();
     super.dispose();
   }
@@ -304,16 +318,20 @@ class _AdminProxyRegistrationPageState extends State<AdminProxyRegistrationPage>
   }
 
   Widget _buildSelectedUserInfo() {
+    final isExternal = _selectedUser?['isExternal'] == true;
     final name = _selectedUser?['name'] ?? '이름 없음';
-    final email = _selectedUser?['email'] ?? '';
+    final subtitle = isExternal
+        ? '${_externalSource} · ${_selectedUser?['phone'] ?? ''}'
+        : (_selectedUser?['email'] ?? '');
+    final badgeColor = isExternal ? Colors.orange : AirbnbColors.primary;
 
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: AirbnbColors.primary.withValues(alpha: 0.1),
+        color: badgeColor.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: AirbnbColors.primary.withValues(alpha: 0.3)),
+        border: Border.all(color: badgeColor.withValues(alpha: 0.3)),
       ),
       child: Row(
         children: [
@@ -321,17 +339,14 @@ class _AdminProxyRegistrationPageState extends State<AdminProxyRegistrationPage>
             width: 36,
             height: 36,
             decoration: BoxDecoration(
-              color: AirbnbColors.primary,
+              color: badgeColor,
               borderRadius: BorderRadius.circular(18),
             ),
             child: Center(
-              child: Text(
-                name.isNotEmpty ? name[0].toUpperCase() : '?',
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16,
-                ),
+              child: Icon(
+                isExternal ? Icons.open_in_new : Icons.person,
+                color: Colors.white,
+                size: 18,
               ),
             ),
           ),
@@ -341,15 +356,15 @@ class _AdminProxyRegistrationPageState extends State<AdminProxyRegistrationPage>
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  '대상 사용자: $name',
+                  isExternal ? '외부 매물: $name' : '대상 사용자: $name',
                   style: const TextStyle(
                     fontWeight: FontWeight.w600,
                     color: AirbnbColors.textPrimary,
                   ),
                 ),
-                if (email.isNotEmpty)
+                if (subtitle.isNotEmpty)
                   Text(
-                    email,
+                    subtitle,
                     style: const TextStyle(
                       fontSize: 12,
                       color: AirbnbColors.textSecondary,
@@ -358,7 +373,10 @@ class _AdminProxyRegistrationPageState extends State<AdminProxyRegistrationPage>
               ],
             ),
           ),
-          const Icon(Icons.person, color: AirbnbColors.primary),
+          Icon(
+            isExternal ? Icons.open_in_new : Icons.person,
+            color: badgeColor,
+          ),
         ],
       ),
     );
@@ -381,13 +399,13 @@ class _AdminProxyRegistrationPageState extends State<AdminProxyRegistrationPage>
     }
   }
 
-  // Step 0: 사용자 선택
+  // Step 0: 사용자 선택 (앱 사용자 / 외부 매물 선택)
   Widget _buildUserSelectionStep() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Text(
-          '매물을 등록할 사용자를 선택하세요',
+          '매물을 등록할 대상을 선택하세요',
           style: TextStyle(
             fontSize: 24,
             fontWeight: FontWeight.bold,
@@ -396,22 +414,184 @@ class _AdminProxyRegistrationPageState extends State<AdminProxyRegistrationPage>
         ),
         const SizedBox(height: 8),
         const Text(
-          '선택한 사용자 명의로 매물이 등록됩니다',
+          '앱 사용자 또는 외부 매물(당근마켓 등)을 선택합니다',
           style: TextStyle(
             fontSize: 16,
             color: AirbnbColors.textSecondary,
           ),
         ),
+        const SizedBox(height: 20),
+
+        // 모드 선택 토글
+        Row(
+          children: [
+            Expanded(
+              child: GestureDetector(
+                onTap: () => setState(() {
+                  _isExternalMode = false;
+                  _selectedUser = null;
+                }),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  decoration: BoxDecoration(
+                    color: !_isExternalMode ? AirbnbColors.primary : AirbnbColors.background,
+                    borderRadius: const BorderRadius.only(
+                      topLeft: Radius.circular(12),
+                      bottomLeft: Radius.circular(12),
+                    ),
+                    border: Border.all(
+                      color: !_isExternalMode ? AirbnbColors.primary : AirbnbColors.border,
+                    ),
+                  ),
+                  child: Center(
+                    child: Text(
+                      '앱 사용자',
+                      style: TextStyle(
+                        color: !_isExternalMode ? Colors.white : AirbnbColors.textPrimary,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            Expanded(
+              child: GestureDetector(
+                onTap: () => setState(() {
+                  _isExternalMode = true;
+                  _selectedUser = null;
+                }),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  decoration: BoxDecoration(
+                    color: _isExternalMode ? AirbnbColors.primary : AirbnbColors.background,
+                    borderRadius: const BorderRadius.only(
+                      topRight: Radius.circular(12),
+                      bottomRight: Radius.circular(12),
+                    ),
+                    border: Border.all(
+                      color: _isExternalMode ? AirbnbColors.primary : AirbnbColors.border,
+                    ),
+                  ),
+                  child: Center(
+                    child: Text(
+                      '외부 매물',
+                      style: TextStyle(
+                        color: _isExternalMode ? Colors.white : AirbnbColors.textPrimary,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
         const SizedBox(height: 24),
-        SizedBox(
-          height: MediaQuery.of(context).size.height * 0.5,
-          child: AdminUserSelector(
-            selectedUserId: (_selectedUser?['uid'] ?? _selectedUser?['id'])?.toString(),
-            onUserSelected: (user) {
-              setState(() {
-                _selectedUser = user;
-              });
-            },
+
+        // 모드별 콘텐츠
+        if (_isExternalMode)
+          _buildExternalSellerForm()
+        else
+          SizedBox(
+            height: MediaQuery.of(context).size.height * 0.5,
+            child: AdminUserSelector(
+              selectedUserId: (_selectedUser?['uid'] ?? _selectedUser?['id'])?.toString(),
+              onUserSelected: (user) {
+                setState(() {
+                  _selectedUser = user;
+                });
+              },
+            ),
+          ),
+      ],
+    );
+  }
+
+  // 외부 매물 집주인 정보 입력 폼
+  Widget _buildExternalSellerForm() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Colors.orange.withValues(alpha: 0.08),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: Colors.orange.withValues(alpha: 0.3)),
+          ),
+          child: const Row(
+            children: [
+              Icon(Icons.info_outline, color: Colors.orange, size: 20),
+              SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  '당근마켓, 피터팬 등 외부 플랫폼에서 발견한 매물을 등록합니다. 집주인이 앱에 가입하지 않아도 됩니다.',
+                  style: TextStyle(fontSize: 13, color: AirbnbColors.textSecondary),
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 24),
+
+        // 집주인 이름
+        TextField(
+          controller: _externalNameController,
+          decoration: InputDecoration(
+            labelText: '집주인 이름 (필수)',
+            hintText: '홍길동',
+            prefixIcon: const Icon(Icons.person_outline),
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+            filled: true,
+            fillColor: AirbnbColors.background,
+          ),
+        ),
+        const SizedBox(height: 16),
+
+        // 집주인 전화번호
+        TextField(
+          controller: _externalPhoneController,
+          keyboardType: TextInputType.phone,
+          decoration: InputDecoration(
+            labelText: '집주인 전화번호 (필수)',
+            hintText: '010-1234-5678',
+            prefixIcon: const Icon(Icons.phone_outlined),
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+            filled: true,
+            fillColor: AirbnbColors.background,
+          ),
+        ),
+        const SizedBox(height: 16),
+
+        // 출처 선택
+        DropdownButtonFormField<String>(
+          value: _externalSource,
+          decoration: InputDecoration(
+            labelText: '매물 출처',
+            prefixIcon: const Icon(Icons.source_outlined),
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+            filled: true,
+            fillColor: AirbnbColors.background,
+          ),
+          items: _externalSources
+              .map((s) => DropdownMenuItem(value: s, child: Text(s)))
+              .toList(),
+          onChanged: (v) => setState(() => _externalSource = v ?? '당근마켓'),
+        ),
+        const SizedBox(height: 16),
+
+        // 원본 URL (선택)
+        TextField(
+          controller: _externalUrlController,
+          keyboardType: TextInputType.url,
+          decoration: InputDecoration(
+            labelText: '원본 게시글 URL (선택)',
+            hintText: 'https://...',
+            prefixIcon: const Icon(Icons.link),
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+            filled: true,
+            fillColor: AirbnbColors.background,
           ),
         ),
       ],
@@ -1085,11 +1265,31 @@ class _AdminProxyRegistrationPageState extends State<AdminProxyRegistrationPage>
 
     switch (effectiveStep) {
       case 0: // 사용자 선택
-        if (_selectedUser == null) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('사용자를 선택해주세요')),
-          );
-          return;
+        if (_isExternalMode) {
+          if (_externalNameController.text.trim().isEmpty) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('집주인 이름을 입력해주세요')),
+            );
+            return;
+          }
+          if (_externalPhoneController.text.trim().isEmpty) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('집주인 전화번호를 입력해주세요')),
+            );
+            return;
+          }
+          _selectedUser = {
+            'name': _externalNameController.text.trim(),
+            'phone': _externalPhoneController.text.trim(),
+            'isExternal': true,
+          };
+        } else {
+          if (_selectedUser == null) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(content: Text('사용자를 선택해주세요')),
+            );
+            return;
+          }
         }
         setState(() => _currentStep++);
         break;
@@ -1141,7 +1341,10 @@ class _AdminProxyRegistrationPageState extends State<AdminProxyRegistrationPage>
       final adminUser = FirebaseAuth.instance.currentUser;
       if (adminUser == null) throw Exception('관리자 인증 정보가 없습니다');
 
-      final String targetUserId = (_selectedUser!['uid'] ?? _selectedUser!['id'] ?? '').toString();
+      final bool isExternal = _selectedUser!['isExternal'] == true;
+      final String targetUserId = isExternal
+          ? 'external_${DateTime.now().millisecondsSinceEpoch}'
+          : (_selectedUser!['uid'] ?? _selectedUser!['id'] ?? '').toString();
       final String targetUserName = (_selectedUser!['name'] ?? '').toString();
 
       // 1. 이미지 업로드
@@ -1258,6 +1461,16 @@ class _AdminProxyRegistrationPageState extends State<AdminProxyRegistrationPage>
           region: region,
           district: _selectedFullData?['siNm'] ?? '',
           status: PropertyStatus.active,
+          verificationStatus: isExternal ? VerificationStatus.adminApproved : null,
+          verifiedAt: isExternal ? now : null,
+          verifiedBy: isExternal ? adminUser.uid : null,
+          isExternalListing: isExternal,
+          externalSellerName: isExternal ? _externalNameController.text.trim() : null,
+          externalSellerPhone: isExternal ? _externalPhoneController.text.trim() : null,
+          externalSource: isExternal ? _externalSource : null,
+          externalListingUrl: isExternal && _externalUrlController.text.trim().isNotEmpty
+              ? _externalUrlController.text.trim()
+              : null,
           createdAt: now,
           updatedAt: now,
         );
@@ -1304,17 +1517,19 @@ class _AdminProxyRegistrationPageState extends State<AdminProxyRegistrationPage>
           // 자동 배포 실패 무시
         }
 
-        // 대상 사용자에게 알림 전송
-        try {
-          await FirebaseService().sendNotification(
-            userId: targetUserId,
-            title: '매물 등록 완료',
-            message: '관리자가 고객님의 매물 "$fullAddress"을 등록했습니다.',
-            type: 'property_registered_by_admin',
-            relatedId: propertyId,
-          );
-        } catch (e) {
-          // 알림 실패 무시
+        // 대상 사용자에게 알림 전송 (외부 매물은 스킵)
+        if (!isExternal) {
+          try {
+            await FirebaseService().sendNotification(
+              userId: targetUserId,
+              title: '매물 등록 완료',
+              message: '관리자가 고객님의 매물 "$fullAddress"을 등록했습니다.',
+              type: 'property_registered_by_admin',
+              relatedId: propertyId,
+            );
+          } catch (e) {
+            // 알림 실패 무시
+          }
         }
 
         if (mounted) {
@@ -1328,14 +1543,17 @@ class _AdminProxyRegistrationPageState extends State<AdminProxyRegistrationPage>
                 children: [
                   const Icon(Icons.check_circle, color: AirbnbColors.success, size: 64),
                   const SizedBox(height: 16),
-                  const Text(
-                    '대리 등록 완료!',
-                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
+                  Text(
+                    isExternal ? '외부 매물 등록 완료!' : '대리 등록 완료!',
+                    style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w600),
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    '$targetUserName님의 매물이 등록되었습니다.\n'
-                    '${broadcastCount > 0 ? '$broadcastCount개 중개사에게 배포되었습니다.' : ''}',
+                    isExternal
+                        ? '$targetUserName님의 외부 매물이 등록되었습니다.\n'
+                          '${broadcastCount > 0 ? '$broadcastCount개 중개사에게 배포되었습니다.' : ''}'
+                        : '$targetUserName님의 매물이 등록되었습니다.\n'
+                          '${broadcastCount > 0 ? '$broadcastCount개 중개사에게 배포되었습니다.' : ''}',
                     style: const TextStyle(color: AirbnbColors.textSecondary),
                     textAlign: TextAlign.center,
                   ),

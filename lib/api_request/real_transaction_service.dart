@@ -646,10 +646,9 @@ class RealTransactionService {
         return null;
       }
 
-      Logger.info('💾 [로컬캐시] 히트! $cacheKey (${entry.data.length}건)');
       return entry;
     } catch (e) {
-      Logger.warning('⚠️ [로컬캐시] 로드 실패: $e');
+      Logger.warning('[로컬캐시] 로드 실패: $e');
       return null;
     }
   }
@@ -660,9 +659,8 @@ class RealTransactionService {
       final prefs = await SharedPreferences.getInstance();
       final jsonStr = jsonEncode(entry.toJson());
       await prefs.setString('$_localCachePrefix$cacheKey', jsonStr);
-      Logger.info('💾 [로컬캐시] 저장 완료: $cacheKey (${entry.data.length}건)');
     } catch (e) {
-      Logger.warning('⚠️ [로컬캐시] 저장 실패: $e');
+      Logger.warning('[로컬캐시] 저장 실패: $e');
     }
   }
 
@@ -671,7 +669,6 @@ class RealTransactionService {
     try {
       final prefs = await SharedPreferences.getInstance();
       final keys = prefs.getKeys().where((k) => k.startsWith(_localCachePrefix));
-      int removedCount = 0;
 
       for (final key in keys) {
         try {
@@ -681,20 +678,15 @@ class RealTransactionService {
             final timestamp = DateTime.fromMillisecondsSinceEpoch(json['timestamp'] as int);
             if (DateTime.now().difference(timestamp) > _cacheTTL) {
               await prefs.remove(key);
-              removedCount++;
             }
           }
         } catch (_) {
           await prefs.remove(key);
-          removedCount++;
         }
       }
 
-      if (removedCount > 0) {
-        Logger.info('🧹 [로컬캐시] $removedCount개 만료 캐시 정리 완료');
-      }
     } catch (e) {
-      Logger.warning('⚠️ [로컬캐시] 정리 실패: $e');
+      Logger.warning('[로컬캐시] 정리 실패: $e');
     }
   }
 
@@ -818,36 +810,23 @@ class RealTransactionService {
     required String logLabel,
     bool filterCancelled = true,
   }) async {
-    Logger.info('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-    Logger.info('📡 [$logLabel] API 호출 시작');
-    Logger.info('   - cacheKey: $cacheKey');
-    Logger.info('   - baseUrl: $baseUrl');
-    Logger.info('   - lawdCd: $lawdCd');
-    Logger.info('   - dealYmd: $dealYmd');
-
     // 1. 메모리 캐시 확인
     final cached = _cache[cacheKey];
     if (cached != null && !cached.isExpired(_cacheTTL)) {
-      Logger.info('📦 [$logLabel] 메모리 캐시 히트! ${cached.data.length}건 반환');
       return cached.data;
     }
 
     // 2. 로컬 저장소 캐시 확인
     final localCached = await _loadFromLocalStorage(cacheKey);
     if (localCached != null) {
-      // 메모리 캐시에도 저장
       _cache[cacheKey] = localCached;
       _enforceCacheLimit();
       return localCached.data;
     }
 
-    Logger.info('📦 [$logLabel] 캐시 미스 - API 호출 필요');
-
     final serviceKey = ApiConstants.dataGoKrServiceKey;
-    Logger.info('🔑 [$logLabel] ServiceKey 길이: ${serviceKey.length}');
-
     if (serviceKey.isEmpty) {
-      Logger.warning('❌ [$logLabel] DATA_GO_KR_SERVICE_KEY가 설정되지 않았습니다!');
+      Logger.warning('[$logLabel] DATA_GO_KR_SERVICE_KEY가 설정되지 않았습니다');
       return [];
     }
 
@@ -857,7 +836,6 @@ class RealTransactionService {
       int totalCount = 0;
       int fetchedCount = 0;
 
-      // 페이지네이션 루프
       do {
         final queryParams = {
           'ServiceKey': serviceKey,
@@ -870,72 +848,37 @@ class RealTransactionService {
         final uri = Uri.parse(baseUrl).replace(queryParameters: queryParams);
         final requestUri = ApiHelper.getRequestUri(uri);
 
-        Logger.info('🌐 [$logLabel] 페이지 $pageNo 요청 (numOfRows: $_numOfRows)');
-        Logger.info('⏳ [$logLabel] HTTP GET 요청 시작...');
-
-        final stopwatch = Stopwatch()..start();
         final response = await http.get(requestUri).timeout(
               const Duration(seconds: 15),
               onTimeout: () {
-                Logger.error('⏰ [$logLabel] 타임아웃 발생! (15초)');
                 throw TimeoutException('$logLabel 실거래가 조회 시간 초과');
               },
             );
-        stopwatch.stop();
-
-        Logger.info('✅ [$logLabel] HTTP 응답 수신 (${stopwatch.elapsedMilliseconds}ms)');
-        Logger.info('   - 상태 코드: ${response.statusCode}');
-        Logger.info('   - 응답 크기: ${response.bodyBytes.length} bytes');
 
         if (response.statusCode != 200) {
-          Logger.warning('❌ [$logLabel] 실거래가 API 응답 오류: ${response.statusCode}');
+          Logger.warning('[$logLabel] API 응답 오류: ${response.statusCode}');
           break;
         }
 
         final responseBody = utf8.decode(response.bodyBytes);
         final data = json.decode(responseBody);
 
-        // 에러 코드 확인 (API에 따라 '00' 또는 '000' 반환)
         final resultCode = data['response']?['header']?['resultCode']?.toString();
         final resultMsg = data['response']?['header']?['resultMsg'];
         final isSuccess = resultCode == '00' || resultCode == '000';
         if (!isSuccess) {
-          Logger.warning('❌ [$logLabel] API 오류: $resultCode - $resultMsg');
+          Logger.warning('[$logLabel] API 오류: $resultCode - $resultMsg');
           break;
         }
 
         final items = data['response']?['body']?['items'];
         totalCount = data['response']?['body']?['totalCount'] ?? 0;
 
-        if (pageNo == 1) {
-          Logger.info('📊 [$logLabel] 전체 데이터 수: $totalCount건');
-        }
-
-        if (items == null || items == '') {
-          Logger.info('📊 [$logLabel] 페이지 $pageNo: items 비어있음');
-          break;
-        }
+        if (items == null || items == '') break;
 
         final itemList = _extractItemList(items);
         fetchedCount += itemList.length;
-        Logger.info('📊 [$logLabel] 페이지 $pageNo: ${itemList.length}건 조회 (누적: $fetchedCount/$totalCount)');
 
-        // 첫 페이지에서 원본 API 응답 샘플 출력 (최대 3건)
-        if (pageNo == 1 && itemList.isNotEmpty) {
-          Logger.info('');
-          Logger.info('📋 [$logLabel] ===== API 원본 응답 샘플 (최대 3건) =====');
-          for (int i = 0; i < itemList.length && i < 3; i++) {
-            final item = itemList[i] as Map<String, dynamic>;
-            Logger.info('--- 거래 ${i + 1} ---');
-            item.forEach((key, value) {
-              Logger.info('   $key: $value');
-            });
-          }
-          Logger.info('📋 [$logLabel] ==========================================');
-          Logger.info('');
-        }
-
-        // 파싱 및 필터링
         final pageTransactions = itemList
             .where((item) {
               if (!filterCancelled) return true;
@@ -947,34 +890,21 @@ class RealTransactionService {
 
         allTransactions.addAll(pageTransactions);
 
-        // 다음 페이지 필요 여부 확인
         if (fetchedCount >= totalCount || itemList.length < _numOfRows) {
           break;
         }
         pageNo++;
-      } while (pageNo <= 10); // 최대 10페이지 (10,000건 제한)
+      } while (pageNo <= 10);
 
-      Logger.info('✅ [$logLabel] 전체 파싱 완료: ${allTransactions.length}건');
-      if (allTransactions.isNotEmpty) {
-        final first = allTransactions.first;
-        Logger.info('   첫 거래: ${first.buildingName}, ${first.area}㎡, ${first.dealAmount}만원');
-      }
-
-      // 메모리 캐시 저장
+      // 캐시 저장
       final cacheEntry = _CacheEntry(data: allTransactions, timestamp: DateTime.now());
       _cache[cacheKey] = cacheEntry;
       _enforceCacheLimit();
-
-      // 로컬 저장소 캐시 저장 (비동기, 결과 대기 안함)
       _saveToLocalStorage(cacheKey, cacheEntry);
 
-      Logger.info('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
       return allTransactions;
-    } catch (e, stackTrace) {
-      Logger.error('❌ [$logLabel] 실거래가 조회 실패', error: e);
-      Logger.warning('   에러 타입: ${e.runtimeType}');
-      Logger.warning('   스택 트레이스: $stackTrace');
-      Logger.info('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    } catch (e) {
+      Logger.error('[$logLabel] 실거래가 조회 실패', error: e);
       return [];
     }
   }
@@ -1015,37 +945,15 @@ class RealTransactionService {
     PriceRange? priceRange,
     bool? useRenewalRightFilter,
   }) async {
-    Logger.info('═══════════════════════════════════════════════════════');
-    Logger.info('🏠 [실거래가] getRecentTransactions 호출됨');
-    Logger.info('   - lawdCd: $lawdCd');
-    Logger.info('   - aptName: $aptName');
-    Logger.info('   - transactionType: $transactionType');
-    Logger.info('   - housingType: $housingType');
-    Logger.info('   - months: $months');
-    Logger.info('   - areaCategory: ${areaCategory?.label ?? "전체"}');
-    Logger.info('   - searchScope: ${searchScope.label}');
-    Logger.info('   - floorCategory: ${floorCategory?.label ?? "전체"}');
-    Logger.info('   - buildYearCategory: ${buildYearCategory?.label ?? "전체"}');
-    Logger.info('   - dealingType: ${dealingType?.label ?? "전체"}');
-    Logger.info('   - contractTypeFilter: ${contractTypeFilter?.label ?? "전체"}');
-    Logger.info('   - sellerType: ${sellerType?.label ?? "전체"}');
-    Logger.info('   - buyerType: ${buyerType?.label ?? "전체"}');
-    Logger.info('   - priceRange: ${priceRange?.label ?? "전체"}');
-    Logger.info('   - useRenewalRightFilter: ${useRenewalRightFilter ?? "전체"}');
-    Logger.info('═══════════════════════════════════════════════════════');
-
     final now = DateTime.now();
-    Logger.info('📅 현재 날짜: ${now.year}-${now.month}-${now.day}');
 
     // 월별 API 호출을 병렬로 실행
     final List<Future<List<RealTransaction>>> futures = [];
-    final List<String> dealYmds = [];
 
     for (int i = 0; i < months; i++) {
       final targetDate = DateTime(now.year, now.month - i);
       final dealYmd =
           '${targetDate.year}${targetDate.month.toString().padLeft(2, '0')}';
-      dealYmds.add(dealYmd);
 
       if (transactionType == '매매') {
         futures.add(_getTradesByHousingType(
@@ -1062,20 +970,12 @@ class RealTransactionService {
       }
     }
 
-    Logger.info('🚀 [실거래가] $months개월 데이터 병렬 조회 시작...');
-    final startTime = DateTime.now();
-
-    // 모든 API 호출을 병렬로 실행
     final results = await Future.wait(futures);
-
-    final elapsed = DateTime.now().difference(startTime).inMilliseconds;
-    Logger.info('✅ [실거래가] 병렬 조회 완료 (${elapsed}ms)');
 
     // 결과 합치기
     final List<RealTransaction> allTransactions = [];
     for (int i = 0; i < results.length; i++) {
       var monthData = results[i];
-      final dealYmd = dealYmds[i];
 
       // 전세/월세 필터링
       if (transactionType != '매매') {
@@ -1087,142 +987,74 @@ class RealTransactionService {
       }
 
       allTransactions.addAll(monthData);
-      Logger.info('📊 [$dealYmd] ${monthData.length}건');
     }
-
-    Logger.info('═══════════════════════════════════════════════════════');
-    Logger.info('📊 [실거래가] 전체 조회 완료: ${allTransactions.length}건');
 
     List<RealTransaction> filtered = allTransactions;
 
     // 1. 검색 범위에 따른 필터
-    // 범위: 같은 도로 (가장 좁음) < 같은 동 < 같은 구 (가장 넓음)
     if (searchScope == SearchScope.sameRoad && roadNm != null && roadNm.isNotEmpty) {
-      // 같은 도로: umdNm + roadNm 매칭 (가장 좁은 범위)
-      Logger.info('🔍 [실거래가] 도로명+법정동 필터 적용 (같은 도로)');
-      Logger.info('   - 검색 법정동: "$umdNm"');
-      Logger.info('   - 검색 도로명: "$roadNm"');
-
       filtered = allTransactions.where((t) =>
         t.umdNm == umdNm && t.roadNm == roadNm
       ).toList();
-
-      Logger.info('🔍 [실거래가] 도로명+법정동 필터 후: ${allTransactions.length} → ${filtered.length}건');
-
-      if (filtered.isEmpty && allTransactions.isNotEmpty) {
-        final sampleData = allTransactions.take(10).map((t) => '${t.umdNm}/${t.roadNm}').toSet();
-        Logger.info('🔍 [실거래가] ⚠️ 매칭 실패! API 샘플: $sampleData');
-      }
     } else if (searchScope == SearchScope.sameDong && umdNm != null && umdNm.isNotEmpty) {
-      // 같은 동: umdNm (법정동명) 매칭
-      Logger.info('🔍 [실거래가] 법정동 필터 적용 (같은 동)');
-      Logger.info('   - 검색 법정동: "$umdNm"');
-
       filtered = allTransactions.where((t) => t.umdNm == umdNm).toList();
-
-      Logger.info('🔍 [실거래가] 법정동 필터 후: ${allTransactions.length} → ${filtered.length}건');
-
-      if (filtered.isEmpty && allTransactions.isNotEmpty) {
-        final sampleUmdNms = allTransactions.take(10).map((t) => t.umdNm).toSet();
-        Logger.info('🔍 [실거래가] ⚠️ 매칭 실패! API 법정동 샘플: $sampleUmdNms');
-      }
-    } else if (searchScope == SearchScope.sameDistrict) {
-      // 같은 구: API 호출 시 lawdCd로 이미 제한됨
-      Logger.info('🔍 [실거래가] 검색 범위: 같은 구 전체 (추가 필터 없음)');
     }
 
     // 2. 면적 카테고리 필터
     if (areaCategory != null) {
-      final beforeCount = filtered.length;
       filtered = filtered.where((t) => areaCategory.contains(t.area)).toList();
-      Logger.info('📐 [실거래가] 면적 필터 (${areaCategory.label} ${areaCategory.description}): $beforeCount → ${filtered.length}건');
-
-      if (filtered.isNotEmpty) {
-        final areaInfo = filtered.take(5).map((t) => '${t.buildingName}(${t.area}㎡)').toList();
-        Logger.info('📐 [실거래가] 필터된 거래 샘플: $areaInfo');
-      } else {
-        // 면적 분포 확인
-        final areaDistribution = <String, int>{};
-        for (final t in allTransactions) {
-          final cat = AreaCategory.fromArea(t.area);
-          areaDistribution[cat.label] = (areaDistribution[cat.label] ?? 0) + 1;
-        }
-        Logger.info('📐 [실거래가] 해당 지역 면적 분포: $areaDistribution');
-      }
     }
 
     // 3. 층수 카테고리 필터
     if (floorCategory != null) {
-      final beforeCount = filtered.length;
       filtered = filtered.where((t) => floorCategory.contains(t.floor)).toList();
-      Logger.info('🏢 [실거래가] 층수 필터 (${floorCategory.label}): $beforeCount → ${filtered.length}건');
     }
 
     // 4. 건축년도 카테고리 필터
     if (buildYearCategory != null) {
-      final beforeCount = filtered.length;
       filtered = filtered.where((t) => buildYearCategory.containsYear(t.buildYear)).toList();
-      Logger.info('🏗️ [실거래가] 건축년도 필터 (${buildYearCategory.label}): $beforeCount → ${filtered.length}건');
     }
 
     // 5. 거래유형 필터 (매매만)
     if (dealingType != null && transactionType == '매매') {
-      final beforeCount = filtered.length;
       filtered = filtered.where((t) => dealingType.matches(t.dealingGbn)).toList();
-      Logger.info('🤝 [실거래가] 거래유형 필터 (${dealingType.label}): $beforeCount → ${filtered.length}건');
     }
 
     // 6. 계약구분 필터 (전월세만)
     if (contractTypeFilter != null && transactionType != '매매') {
-      final beforeCount = filtered.length;
       filtered = filtered.where((t) => contractTypeFilter.matches(t.contractType)).toList();
-      Logger.info('📝 [실거래가] 계약구분 필터 (${contractTypeFilter.label}): $beforeCount → ${filtered.length}건');
     }
 
     // 7. 매도자 구분 필터 (매매만)
     if (sellerType != null && transactionType == '매매') {
-      final beforeCount = filtered.length;
       filtered = filtered.where((t) => sellerType.matches(t.slerGbn)).toList();
-      Logger.info('👤 [실거래가] 매도자 필터 (${sellerType.label}): $beforeCount → ${filtered.length}건');
     }
 
     // 8. 매수자 구분 필터 (매매만)
     if (buyerType != null && transactionType == '매매') {
-      final beforeCount = filtered.length;
       filtered = filtered.where((t) => buyerType.matches(t.buyerGbn)).toList();
-      Logger.info('👤 [실거래가] 매수자 필터 (${buyerType.label}): $beforeCount → ${filtered.length}건');
     }
 
     // 9. 가격대 필터
     if (priceRange != null) {
-      final beforeCount = filtered.length;
       filtered = filtered.where((t) => priceRange.contains(t.dealAmount)).toList();
-      Logger.info('💰 [실거래가] 가격대 필터 (${priceRange.label}): $beforeCount → ${filtered.length}건');
     }
 
-    // 10. 갱신요구권 사용 필터 (전월세 갱신만)
+    // 10. 갱신요구권 사용 필터 (전월세만)
     if (useRenewalRightFilter != null && transactionType != '매매') {
-      final beforeCount = filtered.length;
       filtered = filtered.where((t) => t.useRenewalRight == useRenewalRightFilter).toList();
-      Logger.info('🔄 [실거래가] 갱신요구권 필터 ($useRenewalRightFilter): $beforeCount → ${filtered.length}건');
     }
 
-    // 정렬: 면적 필터 적용 시 면적순 → 날짜순, 그 외에는 날짜순만
+    // 정렬
     if (areaCategory != null) {
-      // 면적 카테고리 필터 적용 시: 면적순 정렬 후 같은 면적 내에서 날짜순
       filtered.sort((a, b) {
         final areaCompare = a.area.compareTo(b.area);
         if (areaCompare != 0) return areaCompare;
-        return b.dealDate.compareTo(a.dealDate); // 같은 면적이면 최신순
+        return b.dealDate.compareTo(a.dealDate);
       });
-      Logger.info('📐 [실거래가] 면적순 정렬 완료 (면적 → 날짜)');
     } else {
-      // 면적 필터 없으면 날짜순만
       filtered.sort((a, b) => b.dealDate.compareTo(a.dealDate));
     }
-
-    Logger.info('✅ [실거래가] 최종 반환: ${filtered.length}건');
-    Logger.info('═══════════════════════════════════════════════════════');
 
     return filtered;
   }
@@ -1364,12 +1196,8 @@ class RealTransactionService {
     PriceRange? priceRange,
     bool? useRenewalRightFilter,
   }) async {
-    Logger.info('═══════════════════════════════════════════════════════');
-    Logger.info('🚀 [실거래가] 단계적 로딩 시작 (총 $months개월)');
-
     final now = DateTime.now();
     const firstBatchMonths = 3;
-    final startTime = DateTime.now();
 
     // 필터링 함수
     List<RealTransaction> applyFilters(List<RealTransaction> allTransactions) {
@@ -1506,33 +1334,24 @@ class RealTransactionService {
 
     // 첫 3개월 완료 대기 → UI 업데이트
     await Future.wait(firstBatchFutures);
-    final firstBatchElapsed = DateTime.now().difference(startTime).inMilliseconds;
 
     final firstBatchTransactions = <RealTransaction>[];
     for (int i = 0; i < firstBatchMonths && i < months; i++) {
       firstBatchTransactions.addAll(resultsByMonth[i] ?? []);
     }
 
-    final filteredFirstBatch = applyFilters(firstBatchTransactions);
-    Logger.info('✅ [실거래가] 1단계 완료 (${firstBatchElapsed}ms): ${filteredFirstBatch.length}건');
-    onData(filteredFirstBatch, true);
+    onData(applyFilters(firstBatchTransactions), true);
 
     // 나머지 월 완료 대기 → 전체 업데이트
     if (remainingFutures.isNotEmpty) {
       await Future.wait(remainingFutures);
-      final totalElapsed = DateTime.now().difference(startTime).inMilliseconds;
 
       final allTransactions = <RealTransaction>[];
       for (int i = 0; i < months; i++) {
         allTransactions.addAll(resultsByMonth[i] ?? []);
       }
 
-      final filteredAll = applyFilters(allTransactions);
-      Logger.info('✅ [실거래가] 2단계 완료 (${totalElapsed}ms): ${filteredAll.length}건');
-      Logger.info('═══════════════════════════════════════════════════════');
-      onData(filteredAll, false);
-    } else {
-      Logger.info('═══════════════════════════════════════════════════════');
+      onData(applyFilters(allTransactions), false);
     }
   }
 }

@@ -104,6 +104,14 @@ class MLSProperty {
   final String? rejectionReason; // 거절 사유
   final String? duplicatePropertyId; // 중복 감지된 매물 ID
 
+  // 외부 매물 정보 (당근마켓/피터팬 등에서 가져온 매물)
+  final bool isExternalListing; // 외부 매물 여부
+  final String? externalSellerName; // 외부 집주인 이름
+  final String? externalSellerPhone; // 외부 집주인 전화번호
+  final String? externalSource; // 출처 (당근마켓, 피터팬, 맘카페 등)
+  final String? externalListingUrl; // 원본 게시글 URL
+  final String? linkedUserId; // 앱 가입 시 연결할 userId
+
   // 메타데이터
   final DateTime createdAt; // 생성 시각
   final DateTime updatedAt; // 수정 시각
@@ -169,6 +177,12 @@ class MLSProperty {
     this.verifiedBy,
     this.rejectionReason,
     this.duplicatePropertyId,
+    this.isExternalListing = false,
+    this.externalSellerName,
+    this.externalSellerPhone,
+    this.externalSource,
+    this.externalListingUrl,
+    this.linkedUserId,
     this.isActive = true,
     this.isDeleted = false,
   });
@@ -254,6 +268,12 @@ class MLSProperty {
       'verifiedBy': verifiedBy,
       'rejectionReason': rejectionReason,
       'duplicatePropertyId': duplicatePropertyId,
+      'isExternalListing': isExternalListing,
+      'externalSellerName': externalSellerName,
+      'externalSellerPhone': externalSellerPhone,
+      'externalSource': externalSource,
+      'externalListingUrl': externalListingUrl,
+      'linkedUserId': linkedUserId,
       'createdAt': createdAt.toIso8601String(),
       'updatedAt': updatedAt.toIso8601String(),
       'isActive': isActive,
@@ -346,6 +366,12 @@ class MLSProperty {
       verifiedBy: map['verifiedBy'],
       rejectionReason: map['rejectionReason'],
       duplicatePropertyId: map['duplicatePropertyId'],
+      isExternalListing: map['isExternalListing'] ?? false,
+      externalSellerName: map['externalSellerName'],
+      externalSellerPhone: map['externalSellerPhone'],
+      externalSource: map['externalSource'],
+      externalListingUrl: map['externalListingUrl'],
+      linkedUserId: map['linkedUserId'],
       createdAt: map['createdAt'] != null ? DateTime.parse(map['createdAt']) : DateTime.now(),
       updatedAt: map['updatedAt'] != null ? DateTime.parse(map['updatedAt']) : DateTime.now(),
       isActive: map['isActive'] ?? true,
@@ -415,6 +441,12 @@ class MLSProperty {
     String? verifiedBy,
     String? rejectionReason,
     String? duplicatePropertyId,
+    bool? isExternalListing,
+    String? externalSellerName,
+    String? externalSellerPhone,
+    String? externalSource,
+    String? externalListingUrl,
+    String? linkedUserId,
     DateTime? createdAt,
     DateTime? updatedAt,
     bool? isActive,
@@ -482,6 +514,12 @@ class MLSProperty {
       verifiedBy: verifiedBy ?? this.verifiedBy,
       rejectionReason: rejectionReason ?? this.rejectionReason,
       duplicatePropertyId: duplicatePropertyId ?? this.duplicatePropertyId,
+      isExternalListing: isExternalListing ?? this.isExternalListing,
+      externalSellerName: externalSellerName ?? this.externalSellerName,
+      externalSellerPhone: externalSellerPhone ?? this.externalSellerPhone,
+      externalSource: externalSource ?? this.externalSource,
+      externalListingUrl: externalListingUrl ?? this.externalListingUrl,
+      linkedUserId: linkedUserId ?? this.linkedUserId,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
       isActive: isActive ?? this.isActive,

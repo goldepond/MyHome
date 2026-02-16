@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import '../../models/mls_property.dart';
+import '../../models/broker_offer.dart';
 import '../../api_request/mls_property_service.dart';
 import '../../api_request/firebase_service.dart';
 import '../../constants/apple_design_system.dart';
@@ -114,7 +116,7 @@ class _MLSBrokerDashboardPageState extends State<MLSBrokerDashboardPage>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 3, vsync: this);
+    _tabController = TabController(length: 4, vsync: this);
     _tabController.addListener(_onTabChanged);
     // 첫 프레임 렌더링 후 데이터 로드 (UI 먼저 표시)
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -198,7 +200,9 @@ class _MLSBrokerDashboardPageState extends State<MLSBrokerDashboardPage>
           _subscribeToMyProperties();
         }
         break;
-      case 2: // 성과
+      case 2: // 내 제안 (StreamBuilder 사용, 별도 구독 불필요)
+        break;
+      case 3: // 성과
         if (_completedSubscription == null) {
           _subscribeToCompletedProperties();
         }
@@ -572,7 +576,8 @@ class _MLSBrokerDashboardPageState extends State<MLSBrokerDashboardPage>
           children: [
             _buildSegment(0, '매물'),
             _buildSegment(1, '내 참여', badge: _myCompetingProperties.length),
-            _buildSegment(2, '성과'),
+            _buildSegment(2, '내 제안'),
+            _buildSegment(3, '성과'),
           ],
         ),
       ),
@@ -651,7 +656,8 @@ class _MLSBrokerDashboardPageState extends State<MLSBrokerDashboardPage>
     final currentTabLoading = switch (_tabController.index) {
       0 => _isLoadingMain,
       1 => _isLoadingMy,
-      2 => _isLoadingCompleted,
+      2 => false, // 내 제안 탭은 StreamBuilder 사용
+      3 => _isLoadingCompleted,
       _ => false,
     };
 
@@ -669,6 +675,7 @@ class _MLSBrokerDashboardPageState extends State<MLSBrokerDashboardPage>
       children: [
         _isLoadingMain ? const Center(child: CircularProgressIndicator.adaptive()) : _buildBrowseTab(),
         _isLoadingMy ? const Center(child: CircularProgressIndicator.adaptive()) : _buildMyCompetingTab(),
+        _buildMyOffersTab(),
         _isLoadingCompleted ? const Center(child: CircularProgressIndicator.adaptive()) : _buildResultsTab(),
       ],
     );
@@ -1544,7 +1551,159 @@ class _MLSBrokerDashboardPageState extends State<MLSBrokerDashboardPage>
     }
   }
 
-  /// Tab 2: 성과
+  /// Tab 2: 내 제안 (brokerOffers에서 brokerId로 조회)
+  Widget _buildMyOffersTab() {
+    return StreamBuilder<QuerySnapshot>(
+      stream: FirebaseFirestore.instance
+          .collection('brokerOffers')
+          .where('brokerId', isEqualTo: widget.brokerId)
+          .orderBy('createdAt', descending: true)
+          .snapshots(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator.adaptive());
+        }
+
+        final docs = snapshot.data?.docs ?? [];
+        if (docs.isEmpty) {
+          return _buildEmptyState(
+            '제출한 제안이 없습니다',
+            '공개 매물 페이지에서 중개 제안을 보내보세요',
+          );
+        }
+
+        final offers = docs
+            .map((d) => BrokerOffer.fromMap(d.data() as Map<String, dynamic>))
+            .toList();
+
+        final pendingCount = offers.where((o) => o.status == BrokerOfferStatus.pending).length;
+        final selectedCount = offers.where((o) => o.status == BrokerOfferStatus.selected).length;
+
+        return ListView.builder(
+          padding: const EdgeInsets.all(20),
+          itemCount: offers.length + 1, // +1 for summary header
+          itemBuilder: (context, index) {
+            if (index == 0) {
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 16),
+                child: Row(
+                  children: [
+                    Text(
+                      '총 ${offers.length}건',
+                      style: AppleTypography.headline.copyWith(fontWeight: FontWeight.w600),
+                    ),
+                    const SizedBox(width: 8),
+                    if (pendingCount > 0)
+                      _buildBadge('대기 $pendingCount', AppleColors.systemOrange),
+                    if (pendingCount > 0 && selectedCount > 0)
+                      const SizedBox(width: 6),
+                    if (selectedCount > 0)
+                      _buildBadge('선정 $selectedCount', AppleColors.systemGreen),
+                  ],
+                ),
+              );
+            }
+
+            final offer = offers[index - 1];
+            return _buildOfferCard(offer);
+          },
+        );
+      },
+    );
+  }
+
+  Widget _buildOfferCard(BrokerOffer offer) {
+    final (statusLabel, statusColor) = switch (offer.status) {
+      BrokerOfferStatus.pending => ('대기중', AppleColors.systemOrange),
+      BrokerOfferStatus.selected => ('선정됨', AppleColors.systemGreen),
+      BrokerOfferStatus.rejected => ('미선정', AppleColors.secondaryLabel),
+    };
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      decoration: BoxDecoration(
+        color: AppleColors.systemBackground,
+        borderRadius: BorderRadius.circular(12),
+        border: offer.status == BrokerOfferStatus.selected
+            ? Border.all(color: AppleColors.systemGreen.withValues(alpha: 0.4))
+            : null,
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // 상단: 매물 주소 + 상태 배지
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    offer.propertyAddress.isNotEmpty
+                        ? offer.propertyAddress
+                        : '매물 ID: ${offer.propertyId}',
+                    style: AppleTypography.body.copyWith(fontWeight: FontWeight.w600),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
+                const SizedBox(width: 8),
+                _buildBadge(statusLabel, statusColor),
+              ],
+            ),
+            const SizedBox(height: 10),
+
+            // 한마디 (pitch)
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: AppleColors.secondarySystemFill,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Text(
+                offer.pitch,
+                style: AppleTypography.subheadline.copyWith(
+                  color: offer.status == BrokerOfferStatus.rejected
+                      ? AppleColors.tertiaryLabel
+                      : AppleColors.label,
+                  height: 1.4,
+                ),
+                maxLines: 3,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+            const SizedBox(height: 8),
+
+            // 하단: 제출 시각 + 선정 시각
+            Row(
+              children: [
+                const Icon(Icons.schedule_outlined, size: 14, color: AppleColors.tertiaryLabel),
+                const SizedBox(width: 4),
+                Text(
+                  _formatTimeAgo(offer.createdAt),
+                  style: AppleTypography.caption1.copyWith(color: AppleColors.tertiaryLabel),
+                ),
+                if (offer.status == BrokerOfferStatus.selected && offer.selectedAt != null) ...[
+                  const SizedBox(width: 12),
+                  const Icon(Icons.check_circle_outline, size: 14, color: AppleColors.systemGreen),
+                  const SizedBox(width: 4),
+                  Text(
+                    '${offer.selectedAt!.month}/${offer.selectedAt!.day} 선정',
+                    style: AppleTypography.caption1.copyWith(
+                      color: AppleColors.systemGreen,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// Tab 3: 성과
   Widget _buildResultsTab() {
     return RefreshIndicator(
       onRefresh: () async => _subscribeToProperties(),

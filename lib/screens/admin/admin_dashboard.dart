@@ -7,6 +7,7 @@ import 'admin_broker_stats_page.dart';
 import 'admin_user_logs_page.dart';
 import 'admin_property_management.dart';
 import 'admin_property_verification_page.dart';
+import 'admin_matching_page.dart';
 import '../main_page.dart';
 
 class AdminDashboard extends StatefulWidget {
@@ -59,6 +60,10 @@ class _AdminDashboardState extends State<AdminDashboard> {
             userId: widget.userId,
             userName: widget.userName,
           ),
+          AdminMatchingPage(
+            userId: widget.userId,
+            userName: widget.userName,
+          ),
         ],
       ),
     );
@@ -98,6 +103,8 @@ class _AdminDashboardState extends State<AdminDashboard> {
         Expanded(child: _buildNavButton('검증', 5, Icons.verified_rounded, isMobile: true)),
         const SizedBox(width: 4),
         Expanded(child: _buildNavButton('로그', 6, Icons.analytics_outlined, isMobile: true)),
+        const SizedBox(width: 4),
+        Expanded(child: _buildNavButton('매칭', 7, Icons.handshake_rounded, isMobile: true)),
       ],
     );
   }
@@ -173,6 +180,8 @@ class _AdminDashboardState extends State<AdminDashboard> {
                   Flexible(child: _buildNavButton('검증', 5, Icons.verified_rounded)),
                   SizedBox(width: isNarrow ? 2 : 4),
                   Flexible(child: _buildNavButton('활동로그', 6, Icons.analytics_outlined)),
+                  SizedBox(width: isNarrow ? 2 : 4),
+                  Flexible(child: _buildNavButton('매칭', 7, Icons.handshake_rounded)),
                 ],
               );
             },
@@ -399,6 +408,13 @@ class _AdminDashboardState extends State<AdminDashboard> {
           title: '사용자 행동 로그',
           description: '사용자들의 앱 내 활동 내역을 실시간으로 모니터링합니다',
           onTap: () => setState(() => _currentIndex = 6),
+        ),
+        const SizedBox(height: 16),
+        _buildCard(
+          icon: Icons.handshake_rounded,
+          title: '매칭 관리',
+          description: '매물과 중개사를 수동으로 연결하고 진행 상태를 추적합니다',
+          onTap: () => setState(() => _currentIndex = 7),
         ),
       ],
     );

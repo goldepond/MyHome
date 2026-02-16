@@ -15,6 +15,8 @@ import 'package:property/api_request/firebase_service.dart';
 import 'package:property/api_request/fcm_service.dart';
 import 'package:property/screens/inquiry/broker_inquiry_response_page.dart';
 import 'package:property/screens/market_price/market_price_page.dart';
+import 'package:property/screens/public/public_listings_page.dart';
+import 'package:property/screens/public/public_property_detail_page.dart';
 import 'package:kakao_flutter_sdk_user/kakao_flutter_sdk_user.dart' as kakao;
 import 'package:property/utils/app_analytics_observer.dart';
 import 'package:property/utils/admin_page_loader_actual.dart';
@@ -134,7 +136,7 @@ class _MyAppState extends State<MyApp> {
     }
 
     return MaterialApp(
-      title: 'MyHome - 쉽고 빠른 부동산 상담', 
+      title: 'MyHome - 부동산 매물 등록', 
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         primaryColor: AirbnbColors.primary,
@@ -249,6 +251,21 @@ class _MyAppState extends State<MyApp> {
         if (uri.path == '/market-price') {
           return MaterialPageRoute(
             builder: (context) => const MarketPricePage(),
+          );
+        }
+
+        // 공개 매물 목록 (로그인 불필요)
+        if (uri.path == '/listings') {
+          return MaterialPageRoute(
+            builder: (context) => const PublicListingsPage(),
+          );
+        }
+
+        // 공개 매물 상세 (로그인 불필요)
+        if (uri.pathSegments.length == 2 && uri.pathSegments.first == 'property') {
+          final id = uri.pathSegments[1];
+          return MaterialPageRoute(
+            builder: (context) => PublicPropertyDetailPage(propertyId: id),
           );
         }
 

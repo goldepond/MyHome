@@ -36,7 +36,7 @@ class _MarketPricePageState extends State<MarketPricePage> {
 
   // API 필터 (조회 전 적용)
   AreaCategory? _selectedAreaCategory;
-  SearchScope _selectedSearchScope = SearchScope.sameDong;
+  SearchScope _selectedSearchScope = SearchScope.sameRoad;
   FloorCategory? _selectedFloorCategory;
   BuildYearCategory? _selectedBuildYearCategory;
   ContractTypeFilter? _selectedContractType;
@@ -120,28 +120,15 @@ class _MarketPricePageState extends State<MarketPricePage> {
   }
 
   Future<void> _fetchTransactions() async {
-    debugPrint('');
-    debugPrint('╔═══════════════════════════════════════════════════════════════╗');
-    debugPrint('║ 🏠 [시세조회] _fetchTransactions() 호출됨 (Progressive)        ║');
-    debugPrint('╚═══════════════════════════════════════════════════════════════╝');
-
-    debugPrint('📋 [시세조회] _selectedFullData: $_selectedFullData');
-
     final admCd = _selectedFullData?['admCd'];
     final lawdCd = RealTransactionService.extractLawdCd(admCd);
-    debugPrint('📋 [시세조회] admCd: $admCd');
-    debugPrint('📋 [시세조회] lawdCd (추출): $lawdCd');
 
     if (lawdCd == null) {
-      debugPrint('❌ [시세조회] lawdCd가 null - 조회 중단!');
-      debugPrint('   → admCd가 없거나 5자리 미만입니다.');
       setState(() {
         _transactionError = '주소 정보가 부족하여 실거래가를 조회할 수 없습니다.';
       });
       return;
     }
-
-    debugPrint('✅ [시세조회] lawdCd 유효 - API 호출 진행');
 
     setState(() {
       _isLoadingTransactions = true;
@@ -153,24 +140,7 @@ class _MarketPricePageState extends State<MarketPricePage> {
 
     try {
       final aptName = _selectedFullData?['bdNm']?.trim();
-      debugPrint('');
-      debugPrint('🔍 [시세조회] ===== API 호출 파라미터 =====');
-      debugPrint('   - lawdCd: $lawdCd');
-      debugPrint('   - aptName: "$aptName"');
-      debugPrint('   - transactionType: $_transactionType');
-      debugPrint('   - months: $_selectedMonths');
-      debugPrint('🔍 [시세조회] ================================');
-      debugPrint('');
-      debugPrint('⏳ [시세조회] RealTransactionService.getRecentTransactionsProgressive() 호출 중...');
-      debugPrint('   - areaCategory: ${_selectedAreaCategory?.label ?? "전체"}');
-      debugPrint('   - searchScope: ${_selectedSearchScope.label}');
-      debugPrint('   - floorCategory: ${_selectedFloorCategory?.label ?? "전체"}');
-      debugPrint('   - buildYearCategory: ${_selectedBuildYearCategory?.label ?? "전체"}');
-      debugPrint('   - contractType: ${_selectedContractType?.label ?? "전체"}');
-
-      final stopwatch = Stopwatch()..start();
       bool isFirstBatch = true;
-      List<RealTransaction> finalResults = [];
 
       await RealTransactionService.getRecentTransactionsProgressive(
         lawdCd: lawdCd,
@@ -188,10 +158,7 @@ class _MarketPricePageState extends State<MarketPricePage> {
         onData: (partialResults, isPartial) {
           if (!mounted) return;
 
-          finalResults = partialResults;
-
           if (isFirstBatch && partialResults.isNotEmpty) {
-            debugPrint('📦 [시세조회] 첫 번째 배치 도착: ${partialResults.length}건');
             isFirstBatch = false;
             setState(() {
               _transactions = partialResults;
@@ -200,11 +167,9 @@ class _MarketPricePageState extends State<MarketPricePage> {
                 transactionType: _transactionType,
               );
               _isLoadingTransactions = false;
-              _isLoadingMore = isPartial; // 추가 데이터 로딩 중 표시
+              _isLoadingMore = isPartial;
             });
           } else if (!isPartial) {
-            // 최종 결과
-            debugPrint('📦 [시세조회] 최종 결과 도착 - 전체: ${partialResults.length}건');
             setState(() {
               _transactions = partialResults;
               _stats = TransactionStats(
@@ -217,7 +182,6 @@ class _MarketPricePageState extends State<MarketPricePage> {
               }
             });
           } else {
-            debugPrint('📦 [시세조회] 추가 배치 도착 - 전체: ${partialResults.length}건');
             setState(() {
               _transactions = partialResults;
               _stats = TransactionStats(
@@ -228,19 +192,7 @@ class _MarketPricePageState extends State<MarketPricePage> {
           }
         },
       );
-      stopwatch.stop();
 
-      debugPrint('');
-      debugPrint('✅ [시세조회] API 호출 완료!');
-      debugPrint('   - 소요 시간: ${stopwatch.elapsedMilliseconds}ms');
-      debugPrint('   - 결과 수: ${finalResults.length}건');
-
-      if (finalResults.isNotEmpty) {
-        debugPrint('   - 첫 거래: ${finalResults.first.buildingName}, ${finalResults.first.area}㎡, ${finalResults.first.formattedPrice}');
-        debugPrint('   - 마지막 거래: ${finalResults.last.buildingName}, ${finalResults.last.area}㎡, ${finalResults.last.formattedPrice}');
-      }
-
-      // 검색 분석 로깅 (비동기, 실패해도 무시)
       SearchAnalyticsService.logMarketPriceSearch(
         lawdCd: lawdCd,
         buildingName: aptName,
@@ -248,21 +200,7 @@ class _MarketPricePageState extends State<MarketPricePage> {
         address: _selectedAddress,
       );
 
-      debugPrint('╔═══════════════════════════════════════════════════════════════╗');
-      debugPrint('║ ✅ [시세조회] 완료 - 결과: ${finalResults.length}건                          ');
-      debugPrint('╚═══════════════════════════════════════════════════════════════╝');
-      debugPrint('');
-
-    } catch (e, stackTrace) {
-      debugPrint('');
-      debugPrint('╔═══════════════════════════════════════════════════════════════╗');
-      debugPrint('║ ❌ [시세조회] 예외 발생!                                       ║');
-      debugPrint('╚═══════════════════════════════════════════════════════════════╝');
-      debugPrint('   에러: $e');
-      debugPrint('   타입: ${e.runtimeType}');
-      debugPrint('   스택: $stackTrace');
-      debugPrint('');
-
+    } catch (e) {
       if (!mounted) return;
       setState(() {
         _isLoadingTransactions = false;
@@ -297,7 +235,7 @@ class _MarketPricePageState extends State<MarketPricePage> {
       _addresses = [];
       _stats = null;
       _selectedAreaCategory = null;
-      _selectedSearchScope = SearchScope.sameDong;
+      _selectedSearchScope = SearchScope.sameRoad;
       _selectedFloorCategory = null;
       _selectedBuildYearCategory = null;
       _selectedContractType = null;
